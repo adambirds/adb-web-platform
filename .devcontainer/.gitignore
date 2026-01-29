@@ -1,0 +1,5 @@
+# Devcontainer specific ignores
+.devcontainer/postgres-data/
+.devcontainer/redis-data/
+.devcontainer/.env.local
+.devcontainer/.env

@@ -1,0 +1,17 @@
+Subject: Verify Your Email Address
+
+Hi {{ first_name }},
+
+Thank you for registering with {{ site_name }}! To complete your registration, please verify your email address by clicking the link below:
+
+Verify Email: {{ verification_link }}
+
+If you did not create an account with {{ site_name }}, please ignore this email.
+
+Best regards,
+The {{ site_name }} Team
+
+---
+
+Visit us at: {{ site_url }}
+

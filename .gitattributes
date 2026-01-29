@@ -1,0 +1,31 @@
+# Existing rules (yours)
+*   text=auto eol=lf
+
+*.gif  binary
+*.jpg  binary
+*.jpeg binary
+*.eot  binary
+*.woff binary
+*.woff2 binary
+*.svg  binary
+*.ttf  binary
+*.png  binary
+*.otf  binary
+*.tif  binary
+*.ogg  binary
+*.bson binary
+*.bmp  binary
+*.mp3  binary
+*.pdf  binary
+
+# --- SCRIPTS ---
+
+# Ensure all shell/python scripts are LF only
+*.sh   text eol=lf
+*.py   text eol=lf
+
+# Force executability for known CLI entrypoints in tools/
+tools/*          text eol=lf
+tools/check-*    text eol=lf executable
+tools/run-*      text eol=lf executable
+tools/*.py       text eol=lf executable

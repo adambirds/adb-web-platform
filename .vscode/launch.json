@@ -1,0 +1,36 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Django: Debug",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/manage.py",
+            "args": [
+                "runserver",
+                "0.0.0.0:8000",
+                "--nothreading",
+                "--noreload"
+            ],
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "app.settings"
+            },
+            "django": true,
+            "justMyCode": true,
+            "python": "/opt/venv/bin/python"
+        },
+        {
+            "name": "Django: Test",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/manage.py",
+            "args": ["test", "${workspaceFolder}"],
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "app.settings"
+            },
+            "django": true,
+            "justMyCode": true,
+            "python": "/opt/venv/bin/python"
+        }
+    ]
+}

@@ -1,0 +1,47 @@
+services:
+    app:
+        build:
+            context: ..
+            dockerfile: .devcontainer/Dockerfile
+        command: sleep infinity
+        env_file:
+            - .env
+        depends_on:
+            - db
+            - redis-cache
+            - redis-session
+        networks:
+            - app-dev
+
+    db:
+        image: postgres:14.4
+        restart: unless-stopped
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
+        environment:
+            POSTGRES_DB: app_dev
+            POSTGRES_USER: app
+            POSTGRES_PASSWORD: app_dev_password
+        ports:
+            - "5432:5432"
+        networks:
+            - app-dev
+
+    redis-cache:
+        image: redis:7.0.4
+        restart: unless-stopped
+        networks:
+            - app-dev
+
+    redis-session:
+        image: redis:7.0.4
+        restart: unless-stopped
+        networks:
+            - app-dev
+
+volumes:
+    postgres-data:
+
+networks:
+    app-dev:
+        driver: bridge

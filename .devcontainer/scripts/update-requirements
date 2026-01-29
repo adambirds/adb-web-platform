@@ -1,0 +1,9 @@
+#!/bin/bash
+# Update locked requirements using pip-tools
+set -e
+
+cd /workspace
+source /opt/venv/bin/activate
+
+echo "📦 Updating locked requirements with pip-tools..."
+./tools/update-locked-requirements "$@"

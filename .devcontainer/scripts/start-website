@@ -1,0 +1,13 @@
+#!/bin/bash
+# Start Next.js website development server
+set -e
+
+if [ ! -d "/workspace/website" ]; then
+	echo "⚠️  Website directory not found. This script will work once you move website code to /workspace/website/"
+	exit 1
+fi
+
+cd /workspace/website
+
+echo "🚀 Starting Next.js website development server..."
+pnpm run dev

@@ -1,0 +1,134 @@
+# Codecov configuration for the project
+# https://docs.codecov.com/docs/codecov-yaml
+
+coverage:
+    # Configure project coverage and commit status
+    # https://docs.codecov.com/docs/commit-status
+    status:
+        project:
+            default:
+                target: auto
+                threshold: 1%
+                base: auto
+            backend:
+                target: auto
+                threshold: 1%
+                base: auto
+                flags:
+                    - backend
+                paths:
+                    - backend/
+            website:
+                target: auto
+                threshold: 1%
+                base: auto
+                flags:
+                    - website
+                paths:
+                    - website/
+        patch:
+            default:
+                target: auto
+                threshold: 1%
+                base: auto
+    # Define precision for coverage reports
+    precision: 2
+    # Round coverage values
+    round: down
+    # Coverage range for visual indicators
+    range: "70...100"
+
+# Component definitions for monorepo organization
+# https://docs.codecov.com/docs/components
+component_management:
+    individual_components:
+        - component_id: backend
+          name: Backend (Django)
+          paths:
+              - backend/**
+          flag_regexes:
+              - backend.*
+        - component_id: website
+          name: Website (Next.js)
+          paths:
+              - website/**
+          flag_regexes:
+              - website.*
+
+# Flag definitions for different parts of the monorepo
+# https://docs.codecov.com/docs/flags
+flag_management:
+    default_rules:
+        carryforward: true
+        carryforward_mode: all
+    individual_flags:
+        - name: backend
+          carryforward: true
+          paths:
+              - backend/
+          statuses:
+              - type: project
+                target: auto
+                threshold: 1%
+        - name: website
+          carryforward: true
+          paths:
+              - website/
+          statuses:
+              - type: project
+                target: auto
+                threshold: 1%
+        - name: unittests
+          carryforward: true
+          paths:
+              - backend/
+        - name: integration
+          carryforward: true
+        - name: e2e
+          carryforward: true
+
+# Ignore patterns
+ignore:
+    - "static/"
+    - "requirements/"
+    - "node_modules/"
+    - "tools/"
+    - "venv/"
+    - "**/management/commands/"
+    - "**/migrations/"
+    - "**/node_modules/"
+    - "**/dist/"
+    - "**/build/"
+    - "**/.next/"
+    - "**/coverage/"
+    - "**/__tests__/"
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/test*/**"
+    - "manage.py"
+    - "**/vite.config.*"
+    - "**/tailwind.config.*"
+    - "**/postcss.config.*"
+    - "**/eslint.config.*"
+    - "**/prettier.config.*"
+    - "**/*.d.ts"
+
+# Comment configuration
+comment:
+    layout: "reach,diff,flags,tree,reach"
+    behavior: default
+    require_changes: false
+    require_base: false
+    require_head: true
+    branches:
+        - main
+
+# GitHub integration settings
+github_checks:
+    annotations: true
+
+# Notification settings
+notifications:
+    webhook:
+        # This will be sent on coverage changes
+        url: null

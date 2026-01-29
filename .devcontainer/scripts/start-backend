@@ -1,0 +1,10 @@
+#!/bin/bash
+# Start Django development server
+set -e
+
+cd /workspace/backend
+source /opt/venv/bin/activate
+
+echo "🚀 Starting Django development server..."
+
+uvicorn app.asgi:application --host 0.0.0.0 --port 8000 --reload --log-level debug

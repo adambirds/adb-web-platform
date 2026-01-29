@@ -1,0 +1,13 @@
+#!/bin/bash
+# Start Next.js auth frontend development server
+set -e
+
+if [ ! -d "/workspace/auth-frontend" ]; then
+	echo "⚠️  Auth frontend directory not found. This script will work once you move auth frontend code to /workspace/auth-frontend/"
+	exit 1
+fi
+
+cd /workspace/auth-frontend
+
+echo "🚀 Starting Next.js auth frontend development server..."
+pnpm run dev

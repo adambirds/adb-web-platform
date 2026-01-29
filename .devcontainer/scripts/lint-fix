@@ -1,0 +1,9 @@
+#!/bin/bash
+# Run project linting checks with auto-fix
+set -e
+
+cd /workspace
+source /opt/venv/bin/activate
+
+echo "🔧 Running project linting checks with auto-fix..."
+./tools/lint --fix "$@"

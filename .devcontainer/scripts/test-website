@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Test script for website
+# This script runs Jest tests for the Next.js website application
+
+set -e
+
+echo "📚 Running Website Tests..."
+echo "================================"
+
+# Change to website directory
+cd /workspace/website
+
+# Install dependencies if not already installed
+if [ ! -d "node_modules" ]; then
+	echo "Installing dependencies..."
+	pnpm install
+fi
+
+# Run tests with coverage
+echo "Running Jest tests..."
+pnpm run test:coverage
+
+echo ""
+echo "✅ Website tests completed successfully!"

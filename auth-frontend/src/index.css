@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@plugin '@tailwindcss/forms';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+    --color-brand: #0064d2;
+    --color-brand_red: #e53138;
+    --color-brand_green: #87b817;
+    --color-brand_yellow: #f6af00;
+    --font-*: initial;
+    --font-sans:
+        inter var, montserrat, ui-sans-serif, system-ui, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji";
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+*/
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-slate-200, currentColor);
+    }
+}
+
+/* Base styles */
+html {
+    @apply h-full antialiased;
+}
+
+body {
+    @apply h-full bg-white dark:bg-slate-900;
+}
+
+/* Form input base styles */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"] {
+    @apply focus:ring-brand block w-full rounded-md border-0 bg-white/5 py-1.5 shadow-xs ring-1 ring-slate-300 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 dark:text-white dark:ring-white/10;
+}
+
+/* Button base styles */
+.btn {
+    @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none;
+}
+
+.btn-primary {
+    @apply bg-brand focus:ring-brand text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.btn-secondary {
+    @apply bg-white text-slate-900 ring-1 ring-slate-300 ring-inset hover:bg-slate-50 focus:ring-slate-400 dark:bg-slate-800 dark:text-white dark:ring-white/10 dark:hover:bg-slate-700;
+}
+
+/* Passkey button styles */
+.btn-passkey {
+    @apply to-brand bg-linear-to-r from-purple-600 text-white hover:from-purple-500 hover:opacity-90 focus:ring-purple-600;
+}

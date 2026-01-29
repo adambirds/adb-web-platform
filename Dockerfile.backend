@@ -1,0 +1,49 @@
+# Use official Python base image with slimmed down Debian base
+FROM python:3.12-slim
+
+# Environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    LANG=C.UTF-8
+
+# System dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    gcc \
+    curl \
+    libffi-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    libjpeg-dev \
+    zlib1g-dev \
+    libcairo2 \
+    libcairo2-dev \
+    fontconfig \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install font
+COPY ./backend/static/Inter-SemiBold.woff2 /usr/share/fonts/Inter-SemiBold.woff2
+RUN fc-cache -f -v
+
+# Install Python dependencies
+COPY backend/requirements/dev.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Set working directory
+WORKDIR /opt/app
+
+# Copy project code (backend directory contents)
+COPY ./backend/ .
+
+# Expose port for Django (Gunicorn or Uvicorn)
+EXPOSE 8000
+
+# Copy entrypoint script
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "app.asgi:application"]

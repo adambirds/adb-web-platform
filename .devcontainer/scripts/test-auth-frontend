@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Test script for auth-frontend
+# This script runs Jest tests for the Next.js auth frontend application
+
+set -e
+
+echo "📚 Running Auth Frontend Tests..."
+echo "================================"
+
+# Change to auth-frontend directory
+cd /workspace/auth-frontend
+# Install dependencies if not already installed
+if [ ! -d "node_modules" ]; then
+	echo "Installing dependencies..."
+	pnpm install
+fi
+
+# Run tests with coverage
+echo "Running Jest tests..."
+pnpm run test:coverage
+
+echo ""
+echo "✅ Auth Frontend tests completed successfully!"

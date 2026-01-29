@@ -1,0 +1,17 @@
+Subject: Email Verification Successful
+
+Hi {{ user.first_name }},
+
+Thank you for verifying your email address! Your {{ site_name }} account is now ready to use.
+
+You can get started here: {{ site_url }}
+
+If you did not verify this email address, please contact our support team immediately.
+
+Best regards,
+The {{ site_name }} Team
+
+---
+
+Visit us at: {{ site_url }}
+

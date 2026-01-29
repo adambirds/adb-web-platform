@@ -1,0 +1,9 @@
+#!/bin/bash
+# Run project linting checks
+set -e
+
+cd /workspace
+source /opt/venv/bin/activate
+
+echo "🔍 Running project linting checks..."
+./tools/lint "$@"
