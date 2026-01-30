@@ -21,15 +21,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcairo2 \
     libcairo2-dev \
     fontconfig \
+    procps \
+    # WeasyPrint dependencies for PDF generation
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf-2.0-0 \
+    shared-mime-info \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install font
-COPY ./backend/static/Inter-SemiBold.woff2 /usr/share/fonts/Inter-SemiBold.woff2
-RUN fc-cache -f -v
-
 # Install Python dependencies
-COPY backend/requirements/dev.txt /app/requirements.txt
+COPY backend/requirements/prod.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Set working directory
@@ -38,12 +40,4 @@ WORKDIR /opt/adb-software-solutions
 # Copy project code (backend directory contents)
 COPY ./backend/ .
 
-# Expose port for Django (Gunicorn or Uvicorn)
-EXPOSE 8000
-
-# Copy entrypoint script
-COPY ./entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "adbsoftwaresolutions.asgi:application"]
+CMD ["celery", "-A", "adbsoftwaresolutions", "beat", "-l", "INFO"]

@@ -74,6 +74,11 @@ echo ""
 CONFIG_FILE="${1:-}"
 LOAD_FROM_CONFIG=false
 
+# Ensure extra frontend arrays are initialized (avoid unbound variables with set -u)
+EXTRA_FRONTENDS=()
+EXTRA_FRONTEND_TYPES=()
+EXTRA_FRONTEND_PORTS=()
+
 # If no config file passed, check if default exists
 if [[ -z "$CONFIG_FILE" && -f "$DEFAULT_CONFIG_FILE" ]]; then
     echo -e "${YELLOW}Found existing configuration file: $DEFAULT_CONFIG_FILE${NC}"
@@ -301,7 +306,7 @@ fi  # End of LOAD_FROM_CONFIG check
 # Build FRONTEND_DIRS list for tools/lint
 FRONTEND_DIRS_LIST='"website"'
 FRONTEND_DIRS_LIST+=',\n        "auth-frontend"'
-for frontend in "${EXTRA_FRONTENDS[@]}"; do
+for frontend in "${EXTRA_FRONTENDS[@]:-}"; do
     FRONTEND_DIRS_LIST+=",\n        \"$frontend\""
 done
 
@@ -560,6 +565,10 @@ replace_in_files "SQL_PASSWORD=adbsoftwaresolutions_dev_password" "SQL_PASSWORD=
 replace_in_files "user='adbsoftwaresolutions'" "user='$DB_USER'"
 replace_in_files "password='adbsoftwaresolutions_dev_password'" "password='$DB_PASSWORD'"
 replace_in_files 'user="adbsoftwaresolutions"' "user=\"$DB_USER\""
+# Update post-create.sh database connection check
+replace_in_files "dbname='adbsoftwaresolutions_dev'" "dbname='$DB_NAME'"
+replace_in_files "user='adbsoftwaresolutions'" "user='$DB_USER'"
+replace_in_files "password='adbsoftwaresolutions_dev_password'" "password='$DB_PASSWORD'"
 
 echo "  ✓ Updated database configuration"
 mark_step_complete "step_3_database"
@@ -581,6 +590,9 @@ replace_in_files "- app-dev" "- ${PYTHON_NAME}-dev"
 # Volume names  
 replace_in_files "adbsoftwaresolutions-bash-history" "${PYTHON_NAME}-bash-history"
 replace_in_files "adbsoftwaresolutions-dev-static" "${PYTHON_NAME}-dev-static"
+
+# Devcontainer network name
+replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "app-dev" "${PYTHON_NAME}-dev"
 
 # Update WORKDIR in Dockerfiles to use slug name
 replace_in_file "$PROJECT_ROOT/Dockerfile.backend" "WORKDIR /opt/app" "WORKDIR /opt/${SLUG_NAME}"
@@ -664,6 +676,14 @@ replace_in_file "$PROJECT_ROOT/auth-frontend/vite.config.ts" "port: 5173" "port:
 # PostgreSQL port
 replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "5432:5432" "$POSTGRES_PORT:5432"
 replace_in_file "$PROJECT_ROOT/.devcontainer/.env.example" "SQL_PORT=5432" "SQL_PORT=$POSTGRES_PORT"
+
+# PostgreSQL credentials
+replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "POSTGRES_DB: app_dev" "POSTGRES_DB: $DB_NAME"
+replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "POSTGRES_USER: app" "POSTGRES_USER: $DB_USER"
+replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "POSTGRES_PASSWORD: app_dev_password" "POSTGRES_PASSWORD: $DB_PASSWORD"
+replace_in_file "$PROJECT_ROOT/.devcontainer/.env.example" "SQL_DATABASE=app_dev" "SQL_DATABASE=$DB_NAME"
+replace_in_file "$PROJECT_ROOT/.devcontainer/.env.example" "SQL_USER=app" "SQL_USER=$DB_USER"
+replace_in_file "$PROJECT_ROOT/.devcontainer/.env.example" "SQL_PASSWORD=app_dev_password" "SQL_PASSWORD=$DB_PASSWORD"
 
 # Redis port
 replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "6379:6379" "$REDIS_PORT:6379"
@@ -1641,7 +1661,7 @@ NEXTDOCKERFILE
     echo "  Updating existing CI workflows to include all frontends..."
     
     # Build comma-separated list of all frontends
-    ALL_FRONTENDS=(website auth-frontend "${EXTRA_FRONTENDS[@]}")
+    ALL_FRONTENDS=(website auth-frontend "${EXTRA_FRONTENDS[@]:-}")
     FRONTENDS_LIST=$(IFS=,; echo "${ALL_FRONTENDS[*]}")
     
     # Call Python script to update CI files
@@ -1676,13 +1696,13 @@ NEXTDOCKERFILE
         # 2. Update database connection details (lines 36-55 area)
         # Update dbname, user, password
         if [[ "$OSTYPE" == "darwin"* ]]; then
-            sed -i '' "s/dbname='app_dev'/dbname='$DB_NAME'/" "$POSTCREATE_FILE"
-            sed -i '' "s/user='app'/user='$DB_USER'/" "$POSTCREATE_FILE"
-            sed -i '' "s/password='app_dev_password'/password='${DB_USER}_dev_password'/" "$POSTCREATE_FILE"
+            sed -i '' "s/dbname='adbsoftwaresolutions_dev'/dbname='$DB_NAME'/" "$POSTCREATE_FILE"
+            sed -i '' "s/user='adbsoftwaresolutions'/user='$DB_USER'/" "$POSTCREATE_FILE"
+            sed -i '' "s/password='adbsoftwaresolutions_dev_password'/password='${DB_USER}_dev_password'/" "$POSTCREATE_FILE"
         else
-            sed -i "s/dbname='app_dev'/dbname='$DB_NAME'/" "$POSTCREATE_FILE"
-            sed -i "s/user='app'/user='$DB_USER'/" "$POSTCREATE_FILE"
-            sed -i "s/password='app_dev_password'/password='${DB_USER}_dev_password'/" "$POSTCREATE_FILE"
+            sed -i "s/dbname='adbsoftwaresolutions_dev'/dbname='$DB_NAME'/" "$POSTCREATE_FILE"
+            sed -i "s/user='adbsoftwaresolutions'/user='$DB_USER'/" "$POSTCREATE_FILE"
+            sed -i "s/password='adbsoftwaresolutions_dev_password'/password='${DB_USER}_dev_password'/" "$POSTCREATE_FILE"
         fi
         
         # 3. Update Quick start commands section (lines 259-272 area)
@@ -1721,7 +1741,7 @@ NEXTDOCKERFILE
         
         # Add extra frontends with their ports
         NEXT_PORT=5174
-        for frontend in "${EXTRA_FRONTENDS[@]}"; do
+        for frontend in "${EXTRA_FRONTENDS[@]:-}"; do
             FRONTEND_LABEL="${frontend//-/ }"
             FRONTEND_LABEL="$(echo "$FRONTEND_LABEL" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1')"
             # Calculate padding to align at 17 characters
@@ -1748,7 +1768,7 @@ NEXTDOCKERFILE
         # Build extra frontends argument for Python script
         EXTRA_FRONTENDS_ARG=""
         NEXT_PORT=5174
-        for frontend in "${EXTRA_FRONTENDS[@]}"; do
+        for frontend in "${EXTRA_FRONTENDS[@]:-}"; do
             # Convert frontend name to label (e.g., admin-frontend -> Admin Frontend)
             LABEL=$(echo "$frontend" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
             
@@ -1796,7 +1816,7 @@ if [[ -f "$TASKS_FILE" ]]; then
     echo "  Updating VS Code tasks.json..."
     
     # Build comma-separated list of all frontends
-    ALL_FRONTENDS=(website auth-frontend "${EXTRA_FRONTENDS[@]}")
+    ALL_FRONTENDS=(website auth-frontend "${EXTRA_FRONTENDS[@]:-}")
     FRONTENDS_LIST=$(IFS=,; echo "${ALL_FRONTENDS[*]}")
     
     # Call Python script to update tasks.json
@@ -1867,7 +1887,7 @@ echo \"  Flower:          http://localhost:$FLOWER_PORT/\"" "$POSTCREATE_FILE"
         # Build extra frontends argument for Python script
         EXTRA_FRONTENDS_ARG=""
         NEXT_PORT=5174
-        for frontend in "${EXTRA_FRONTENDS[@]}"; do
+        for frontend in "${EXTRA_FRONTENDS[@]:-}"; do
             # Convert frontend name to label (e.g., admin-frontend -> Admin Frontend)
             LABEL=$(echo "$frontend" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
             

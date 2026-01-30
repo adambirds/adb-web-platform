@@ -1,0 +1,9 @@
+#!/bin/bash
+# Start Celery worker for notifications queue
+set -e
+
+cd /workspace/backend
+source /opt/venv/bin/activate
+
+echo "🔄 Starting Celery worker for notifications queue..."
+celery -A adbsoftwaresolutions worker -Q notifications -l info --concurrency=1 --hostname=notifications@%h

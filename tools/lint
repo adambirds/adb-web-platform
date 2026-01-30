@@ -48,6 +48,7 @@ def run() -> None:
     FRONTEND_DIRS = [
         "website",
         "auth-frontend",
+        "",
     ]
 
     for frontend_dir in FRONTEND_DIRS:

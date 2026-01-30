@@ -1,0 +1,9 @@
+#!/bin/bash
+# Start Celery worker for general queue
+set -e
+
+cd /workspace/backend
+source /opt/venv/bin/activate
+
+echo "🔄 Starting Celery worker for general queue..."
+celery -A adbsoftwaresolutions worker -Q general -l info --concurrency=1 --hostname=general@%h

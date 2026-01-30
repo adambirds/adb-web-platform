@@ -9,7 +9,7 @@ FAILED_COMPONENTS=()
 # Test Backend (Django)
 echo "📊 Backend (Django)..."
 cd backend || exit 1
-if DJANGO_SETTINGS_MODULE=app.settings_test coverage run manage.py test -v 2; then
+if DJANGO_SETTINGS_MODULE=adbsoftwaresolutions.settings_test coverage run manage.py test -v 2; then
 	echo "✅ Backend tests passed"
 else
 	echo "❌ Backend tests failed"

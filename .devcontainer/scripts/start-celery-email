@@ -1,0 +1,9 @@
+#!/bin/bash
+# Start Celery worker for email queue
+set -e
+
+cd /workspace/backend
+source /opt/venv/bin/activate
+
+echo "🔄 Starting Celery worker for email queue..."
+celery -A adbsoftwaresolutions worker -Q email -l info --concurrency=1 --hostname=email@%h

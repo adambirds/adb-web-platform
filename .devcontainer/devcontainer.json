@@ -84,9 +84,11 @@
 
     // Use 'forwardPorts' to make a list of ports inside the container available locally
     "forwardPorts": [
-        8000, // Django backend
+        8000, // Django Backend
         3000, // Website
-        5173, // Auth Frontend
+        5174, // Auth Frontend
+        5174, // 
+        5555, // Flower (Celery Monitor)
         5432 // PostgreSQL
     ],
 
@@ -100,8 +102,16 @@
             "label": "Website",
             "onAutoForward": "notify"
         },
-        "5173": {
+        "5174": {
             "label": "Auth Frontend",
+            "onAutoForward": "notify"
+        },
+        "5174": {
+            "label": "",
+            "onAutoForward": "notify"
+        },
+        "5555": {
+            "label": "Flower (Celery Monitor)",
             "onAutoForward": "notify"
         },
         "5432": {
@@ -109,6 +119,7 @@
             "onAutoForward": "silent"
         }
     },
+
 
     "postCreateCommand": "bash .devcontainer/post-create.sh",
     "postStartCommand": "bash .devcontainer/scripts/link-host-git-config.sh",

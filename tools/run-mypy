@@ -110,7 +110,7 @@ env["PYTHONPATH"] = os.pathsep.join(pp_parts)
 
 # If not already set by CI/local shell, set Django settings module so the
 # mypy-django plugin can import your project
-env.setdefault("DJANGO_SETTINGS_MODULE", "app.settings")
+env.setdefault("DJANGO_SETTINGS_MODULE", "adbsoftwaresolutions.settings")
 env.setdefault("MYPY_DJANGO_SETTINGS_MODULE", env["DJANGO_SETTINGS_MODULE"])
 
 # Run mypy from repo root; paths listed by zulint are already repo-relative

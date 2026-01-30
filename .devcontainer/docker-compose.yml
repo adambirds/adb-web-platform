@@ -11,7 +11,7 @@ services:
             - redis-cache
             - redis-session
         networks:
-            - app-dev
+            - adbsoftwaresolutions-dev
 
     db:
         image: postgres:14.4
@@ -19,29 +19,29 @@ services:
         volumes:
             - postgres-data:/var/lib/postgresql/data
         environment:
-            POSTGRES_DB: app_dev
-            POSTGRES_USER: app
-            POSTGRES_PASSWORD: app_dev_password
+            POSTGRES_DB: adbsoftwaresolutions_dev
+            POSTGRES_USER: adbsoftwaresolutions
+            POSTGRES_PASSWORD: adbsoftwaresolutions_dev_password
         ports:
             - "5432:5432"
         networks:
-            - app-dev
+            - adbsoftwaresolutions-dev
 
     redis-cache:
         image: redis:7.0.4
         restart: unless-stopped
         networks:
-            - app-dev
+            - adbsoftwaresolutions-dev
 
     redis-session:
         image: redis:7.0.4
         restart: unless-stopped
         networks:
-            - app-dev
+            - adbsoftwaresolutions-dev
 
 volumes:
     postgres-data:
 
 networks:
-    app-dev:
+    adbsoftwaresolutions-dev:
         driver: bridge

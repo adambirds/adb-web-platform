@@ -1,0 +1,28 @@
+#!/bin/bash
+# Start multiple Celery workers with different queues (1 worker per queue for dev)
+set -e
+
+cd /workspace/backend
+source /opt/venv/bin/activate
+
+echo "🔄 Starting Celery workers with different queues (dev setup - 1 worker per queue)..."
+
+echo "Starting general queue worker..."
+celery -A adbsoftwaresolutions worker -Q general -l info --concurrency=1 --hostname=general@%h &
+
+echo "Starting email queue worker..."
+celery -A adbsoftwaresolutions worker -Q email -l info --concurrency=1 --hostname=email@%h &
+
+echo "Starting notifications queue worker..."
+celery -A adbsoftwaresolutions worker -Q notifications -l info --concurrency=1 --hostname=notifications@%h &
+
+echo "Starting scheduled queue worker..."
+celery -A adbsoftwaresolutions worker -Q scheduled -l info --concurrency=1 --hostname=scheduled@%h &
+
+echo "Starting external queue worker..."
+celery -A adbsoftwaresolutions worker -Q external -l info --concurrency=1 --hostname=external@%h &
+
+echo "✅ All Celery workers started (1 per queue)"
+
+# Wait for all background processes
+wait

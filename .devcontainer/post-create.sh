@@ -40,9 +40,9 @@ import sys
 import psycopg2
 try:
     psycopg2.connect(
-        dbname='app_dev',
-        user='app',
-        password='app_dev_password',
+        dbname='adbsoftwaresolutions_dev',
+        user='adbsoftwaresolutions',
+        password='adbsoftwaresolutions_dev_password',
         host='db',
         port=5432,
     )
@@ -261,6 +261,7 @@ echo "Development environment setup complete!"
 echo ""
 echo "Quick start commands:"
 echo "  Backend:         cd /workspace && python backend/manage.py runserver 0.0.0.0:8000"
+echo "  Flower:          cd /workspace/backend && source /opt/venv/bin/activate && celery -A adbsoftwaresolutions flower --port=5555 --address=0.0.0.0"
 echo "  Website:         cd /workspace/website && pnpm dev"
 echo "  Auth Frontend:   cd /workspace/auth-frontend && pnpm dev"
 echo ""

@@ -5,7 +5,7 @@
 
 # The rules can be found in /.gitlint
 
-repository="your-org/your-repo"
+repository="adb-software-solutions/adbsoftwaresolutions.co.uk"
 
 if [[ "
 $(git remote -v)

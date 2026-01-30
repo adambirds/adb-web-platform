@@ -15,8 +15,8 @@ const LogoComponent = (props: SVGProps<SVGSVGElement>) => (
             fontSize="28"
             fontWeight="700"
         >
-            <tspan fill="url(#logoGradient)">Your</tspan>
-            <tspan fill="currentColor">App</tspan>
+            <tspan fill="url(#logoGradient)">ADB</tspan>
+            <tspan fill="currentColor">Software Solutions</tspan>
         </text>
     </svg>
 );

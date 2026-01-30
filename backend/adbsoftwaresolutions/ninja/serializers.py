@@ -1,4 +1,4 @@
-from app.ninja.schema import Pagination
+from adbsoftwaresolutions.ninja.schema import Pagination
 
 
 def serialize_pagination(

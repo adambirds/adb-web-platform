@@ -7,6 +7,11 @@ on:
         paths:
             - "backend/**"
             - "Dockerfile.backend"
+            - "Dockerfile.flower"
+            - "Dockerfile.celery-worker"
+            - "Dockerfile.celery-beat"
+            - "entrypoint-flower.sh"
+            - "entrypoint-celery-worker.sh"
             - "entrypoint.sh"
             - "tools/**"
             - "package.json"
@@ -16,6 +21,11 @@ on:
         paths:
             - "backend/**"
             - "Dockerfile.backend"
+            - "Dockerfile.flower"
+            - "Dockerfile.celery-worker"
+            - "Dockerfile.celery-beat"
+            - "entrypoint-flower.sh"
+            - "entrypoint-celery-worker.sh"
             - "entrypoint.sh"
             - "tools/**"
             - "package.json"
@@ -120,7 +130,7 @@ jobs:
 
             - name: Run Django tests
               working-directory: backend
-              run: DJANGO_SETTINGS_MODULE=app.settings_test coverage run manage.py test -v 2
+              run: DJANGO_SETTINGS_MODULE=adbsoftwaresolutions.settings_test coverage run manage.py test -v 2
 
             - name: Generate coverage file
               working-directory: backend
@@ -175,6 +185,9 @@ jobs:
             matrix:
                 image:
                     - backend
+                    - flower
+                    - celery-worker
+                    - celery-beat
         steps:
             - uses: actions/checkout@v4
             - name: Log in to DigitalOcean Container Registry
@@ -193,6 +206,9 @@ jobs:
             matrix:
                 image:
                     - backend
+                    - flower
+                    - celery-worker
+                    - celery-beat
         steps:
             - name: Scan registry.digitalocean.com/adbsoftwaresolutions/app-${{ matrix.image }}:latest
               uses: aquasecurity/trivy-action@0.29.0

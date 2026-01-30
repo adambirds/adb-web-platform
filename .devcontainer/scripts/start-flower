@@ -1,0 +1,9 @@
+#!/bin/bash
+# Start Flower (Celery monitoring)
+set -e
+
+cd /workspace/backend
+source /opt/venv/bin/activate
+
+echo "🌸 Starting Flower..."
+celery -A adbsoftwaresolutions flower --port=5555 --address=0.0.0.0

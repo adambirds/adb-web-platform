@@ -77,8 +77,8 @@ INSTALLED_APPS = [
 ]
 
 UNFOLD = {
-    "SITE_TITLE": "Admin",
-    "SITE_HEADER": "Admin",
+    "SITE_TITLE": "ADB Software Solutions Admin",
+    "SITE_HEADER": "ADB Software Solutions Admin",
     "SITE_ICON": {
         "light": lambda request: static("logo.png"),
         "dark": lambda request: static("logo-dark.png"),
@@ -113,7 +113,7 @@ AUTHENTICATION_BACKENDS = [
     "authentication.backends.EmailBackend",
 ]
 
-ROOT_URLCONF = "app.urls"
+ROOT_URLCONF = "adbsoftwaresolutions.urls"
 
 TEMPLATES = [
     {
@@ -132,7 +132,7 @@ TEMPLATES = [
     },
 ]
 
-ASGI_APPLICATION = "app.asgi.application"
+ASGI_APPLICATION = "adbsoftwaresolutions.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
