@@ -30,6 +30,7 @@ asgiref==3.9.1 \
     --hash=sha256:a5ab6582236218e5ef1648f242fd9f10626cfd4de8dc377db215d5d5098e3142 \
     --hash=sha256:f3bba7092a48005b5f5bacd747d36ee4a5a61f4a269a6df590b43144355ebd2c
     # via
+    #   channels
     #   django
     #   django-cors-headers
 async-timeout==5.0.1 \
@@ -150,6 +151,10 @@ cffi==1.15.1 \
     # via
     #   cairocffi
     #   cryptography
+channels==4.3.2 \
+    --hash=sha256:f2bb6bfb73ad7fb4705041d07613c7b4e69528f01ef8cb9fb6c21d9295f15667 \
+    --hash=sha256:fef47e9055a603900cf16cef85f050d522d9ac4b3daccf24835bd9580705c176
+    # via -r backend/requirements/common.in
 charset-normalizer==3.1.0 \
     --hash=sha256:04afa6387e2b282cf78ff3dbce20f0cc071c12dc8f685bd40960cc68644cfea6 \
     --hash=sha256:04eefcee095f58eaabe6dc3cc2262f3bcd776d2c67005880894f447b3f2cb9c1 \
@@ -383,6 +388,7 @@ django==5.2.5 \
     --hash=sha256:2b2ada0ee8a5ff743a40e2b9820d1f8e24c11bac9ae6469cd548f0057ea6ddcd
     # via
     #   -r backend/requirements/common.in
+    #   channels
     #   django-cors-headers
     #   django-debug-toolbar
     #   django-filter

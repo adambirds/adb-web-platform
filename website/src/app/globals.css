@@ -88,6 +88,29 @@
     --color-green-800: #166534;
     --color-green-900: #14532d;
     --color-green-950: #052e16;
+    /* ADB Brand Colors */
+    --color-adb-navy-50: #f0f4f9;
+    --color-adb-navy-100: #e1e9f3;
+    --color-adb-navy-200: #c2d2e6;
+    --color-adb-navy-300: #a4bcd9;
+    --color-adb-navy-400: #86a6cc;
+    --color-adb-navy-500: #6790bf;
+    --color-adb-navy-600: #5876a8;
+    --color-adb-navy-700: #495d91;
+    --color-adb-navy-800: #3a447a;
+    --color-adb-navy-900: #2b2b63;
+    --color-adb-navy-950: #1a1a3e;
+    --color-adb-cyan-50: #f0fffe;
+    --color-adb-cyan-100: #e0fffc;
+    --color-adb-cyan-200: #c0fffb;
+    --color-adb-cyan-300: #a0fef9;
+    --color-adb-cyan-400: #80fef7;
+    --color-adb-cyan-500: #60fdf5;
+    --color-adb-cyan-600: #4dffee;
+    --color-adb-cyan-700: #1ec9b7;
+    --color-adb-cyan-800: #1aa69a;
+    --color-adb-cyan-900: #17837d;
+    --color-adb-cyan-950: #0f4a42;
     --font-*: initial;
     --font-sans:
         intervariable, montserrat, ui-sans-serif, system-ui, sans-serif,

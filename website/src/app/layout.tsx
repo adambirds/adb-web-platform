@@ -1,18 +1,33 @@
+import { Providers } from "@/providers";
 import type { Metadata } from "next";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
-    title: "Project Template",
+    title: {
+        default: "ADB Software Solutions",
+        template: "%s | ADB Software Solutions",
+    },
+    description:
+        "Senior software engineer delivering agency-level work with direct collaboration.",
+    metadataBase: new URL("https://adbsoftwaresolutions.co.uk"),
+    openGraph: {
+        type: "website",
+        locale: "en_GB",
+        url: "https://adbsoftwaresolutions.co.uk",
+        title: "ADB Software Solutions",
+        description: "Senior software engineer delivering agency-level work",
+        siteName: "ADB Software Solutions",
+    },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en" className="h-full" suppressHydrationWarning>
+        <html lang="en" suppressHydrationWarning>
             <head>
                 <link
                     rel="icon"
@@ -29,11 +44,13 @@ export default async function RootLayout({
                 />
                 <meta
                     name="apple-mobile-web-app-title"
-                    content="Project Template"
+                    content="ADB Software Solutions"
                 />
                 <link rel="manifest" href="/site.webmanifest" />
             </head>
-            <body className="h-full bg-gray-900 text-gray-200">{children}</body>
+            <body className="text-adb-navy dark:bg-adb-navy-950 dark:text-adb-navy-100 min-h-screen bg-white">
+                <Providers>{children}</Providers>
+            </body>
         </html>
     );
 }

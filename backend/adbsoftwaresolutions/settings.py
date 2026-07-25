@@ -63,6 +63,13 @@ else:
 
 INSTALLED_APPS = [
     "authentication",
+    "apps.website",
+    "apps.clients",
+    "apps.infrastructure",
+    "apps.crm",
+    "apps.credentials",
+    "apps.knowledge_base",
+    "apps.tasks",
     "corsheaders",
     "unfold",  # before django.contrib.admin
     "unfold.contrib.filters",  # optional, if special filters are needed

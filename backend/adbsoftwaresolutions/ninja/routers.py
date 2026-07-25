@@ -3,10 +3,12 @@ import logging
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
-from ninja import NinjaAPI
+from ninja import NinjaAPI, Router
 from ninja.errors import HttpError
 from pydantic import ValidationError
 
+from apps.website.ninja.admin_views import website_admin_router
+from apps.website.ninja.views import website_misc_router, website_public_router
 from authentication.auth_service.views import auth_service_router
 from authentication.ninja.views import auth_router
 from authentication.sessions.views import sessions_router
@@ -23,6 +25,19 @@ api = NinjaAPI(
 api.add_router("/auth", auth_router)  # Admin auth (staff/superuser only)
 api.add_router("/auth-service", auth_service_router)  # User auth (registration, login, 2FA, etc.)
 api.add_router("/sessions", sessions_router)  # Session/device management
+
+# Grouped routers for public, website, admin areas
+public_router = Router(tags=["public"])
+public_router.add_router("", website_public_router)
+api.add_router("/public", public_router)
+
+website_router = Router(tags=["website"])
+website_router.add_router("", website_misc_router)
+api.add_router("/website", website_router)
+
+admin_router = Router(tags=["admin"])
+admin_router.add_router("", website_admin_router)
+api.add_router("/admin", admin_router)
 
 
 @api.get("/csrf", auth=None)
