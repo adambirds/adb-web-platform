@@ -43,21 +43,13 @@ def run() -> None:
     FRONTEND_DIRS = [
         "admin-website",
         "auth-frontend",
-        "sites/adb-software-solutions",
-        "sites/adb-web-designs",
         "",
     ]
 
     for frontend_dir in FRONTEND_DIRS:
         linter_config.external_linter(
             "css",
-            [
-                "pnpm",
-                "exec",
-                "stylelint",
-                "**/*.{css,scss}",
-                "--allow-empty-input",
-            ],
+            ["pnpm", "exec", "stylelint", "**/*.{css,scss}", "--allow-empty-input"],
             ["css"],
             fix_arg="--fix",
             description=f"Stylelint in {frontend_dir} (config: stylelint.config.js)",
@@ -67,14 +59,7 @@ def run() -> None:
 
         linter_config.external_linter(
             "eslint",
-            [
-                "pnpm",
-                "exec",
-                "eslint",
-                ".",
-                "--max-warnings=0",
-                "--cache",
-            ],
+            ["pnpm", "exec", "eslint", ".", "--max-warnings=0", "--cache"],
             ["js", "ts", "tsx", "jsx"],
             fix_arg="--fix",
             description=f"ESLint in {frontend_dir} (config: eslint.config.js / .eslintrc*)",
@@ -89,14 +74,12 @@ def run() -> None:
         description="Custom linter checks whitespace formatting of HTML templates",
         fix_arg="--fix",
     )
-
     linter_config.external_linter(
         "shellcheck",
         ["shellcheck", "-x", "-P", "SCRIPTDIR"],
         ["sh", "bash"],
         description="Standard shell script linter",
     )
-
     linter_config.external_linter(
         "shfmt",
         ["shfmt"],
@@ -105,16 +88,13 @@ def run() -> None:
         fix_arg="-w",
         description="Formats shell scripts",
     )
-
-    command = ["tools/run-mypy", "--quiet"]
     linter_config.external_linter(
         "mypy",
-        command,
+        ["tools/run-mypy", "--quiet"],
         ["py", "pyi"],
         pass_targets=False,
         description="Static type checker for Python",
     )
-
     linter_config.external_linter(
         "ruff",
         ["ruff", "check", "--quiet"],
@@ -123,19 +103,14 @@ def run() -> None:
         description="Python linter",
     )
 
+    gitlint_command = ["tools/commit-message-lint"]
     if args.from_hook:
-        linter_config.external_linter(
-            "gitlint",
-            ["tools/commit-message-lint", "--hook"],
-            description="Checks commit messages for common formatting errors (config: .gitlint)",
-        )
-    else:
-        linter_config.external_linter(
-            "gitlint",
-            ["tools/commit-message-lint"],
-            description="Checks commit messages for common formatting errors (config: .gitlint)",
-        )
-
+        gitlint_command.append("--hook")
+    linter_config.external_linter(
+        "gitlint",
+        gitlint_command,
+        description="Checks commit messages for common formatting errors (config: .gitlint)",
+    )
     linter_config.external_linter(
         "prettier",
         ["node_modules/.bin/prettier", "--check", "--log-level=warn"],
@@ -143,7 +118,6 @@ def run() -> None:
         fix_arg=["--write"],
         description="Formats CSS, JavaScript, YAML",
     )
-
     linter_config.external_linter(
         "ruff-format",
         ["ruff", "format", "--quiet"],
@@ -151,7 +125,6 @@ def run() -> None:
         description="Reformats Python code",
         check_arg=["--check"],
     )
-
     linter_config.external_linter(
         "format-mdx",
         ["tools/format-mdx"],

@@ -41,9 +41,7 @@ jobs:
     tests-and-linters:
         name: Run Tests and Linters
         runs-on: ubuntu-latest
-        # Skip CI on the template repository itself
         if: github.repository != 'adb-software-solutions/project-template'
-
         services:
             postgres:
                 image: postgres:14.4
@@ -60,7 +58,6 @@ jobs:
             redis:
                 image: redis:7.0.4
                 ports: ["6379:6379"]
-
         env:
             SQL_ENGINE: django.db.backends.postgresql
             SQL_DATABASE: app_dev
@@ -74,77 +71,58 @@ jobs:
             SITE_DOMAIN: testserver
             SESSION_BACKEND_URL: redis://localhost:6379/1
             CACHE_BACKEND_URL: redis://localhost:6379/2
-
         steps:
             - uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-
             - uses: actions/setup-python@v5
               with:
                   python-version: "3.12"
-
-            # Node + pnpm for root-level tools/lint (and per-app bins)
             - uses: pnpm/action-setup@v4.1.0
-
             - uses: actions/setup-node@v4
               with:
                   node-version: "22"
                   cache: "pnpm"
                   cache-dependency-path: |
                       pnpm-lock.yaml
-                      website/pnpm-lock.yaml
+                      admin-website/pnpm-lock.yaml
                       auth-frontend/pnpm-lock.yaml
-
-            # Install Node deps in root, frontend, and website so prettier/eslint/stylelint exist
             - name: Install root Node deps
               if: hashFiles('pnpm-lock.yaml') != ''
               run: pnpm install --frozen-lockfile
-
-            - name: Install website Node deps
-              if: hashFiles('website/pnpm-lock.yaml') != ''
-              working-directory: website
+            - name: Install admin website Node deps
+              if: hashFiles('admin-website/pnpm-lock.yaml') != ''
+              working-directory: admin-website
               run: pnpm install --frozen-lockfile
-
             - name: Install auth-frontend Node deps
               if: hashFiles('auth-frontend/pnpm-lock.yaml') != ''
               working-directory: auth-frontend
               run: pnpm install --frozen-lockfile
-
-            # Ensure node_modules/.bin from all locations are available to tools/lint
             - name: Add node bin paths to PATH
               run: |
                   echo "$GITHUB_WORKSPACE/node_modules/.bin" >> $GITHUB_PATH
-                  echo "$GITHUB_WORKSPACE/website/node_modules/.bin" >> $GITHUB_PATH
+                  echo "$GITHUB_WORKSPACE/admin-website/node_modules/.bin" >> $GITHUB_PATH
                   echo "$GITHUB_WORKSPACE/auth-frontend/node_modules/.bin" >> $GITHUB_PATH
-
             - name: Cache pip
               uses: actions/cache@v4
               with:
                   path: ~/.cache/pip
                   key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements/*.txt') }}
                   restore-keys: ${{ runner.os }}-pip-
-
             - name: Install Python dependencies
               run: pip install -r backend/requirements/dev.txt
-
             - name: Run Django tests
               working-directory: backend
               run: DJANGO_SETTINGS_MODULE=adbsoftwaresolutions.settings_test coverage run manage.py test -v 2
-
             - name: Generate coverage file
               working-directory: backend
               run: coverage xml
-
             - name: Install Shellcheck + shfmt
               run: |
                   tools/setup/install-shellcheck
                   tools/setup/install-shfmt
-
-            # Run lint from repo root with Django context so mypy plugin can import settings
             - name: Run linters (root tools/lint)
               run: tools/lint
-
             - name: Upload coverage to Codecov
               if: ${{ github.repository == 'adb-software-solutions/app' && github.event_name == 'push' }}
               uses: codecov/codecov-action@v4
