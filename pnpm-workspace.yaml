@@ -1,9 +1,10 @@
 packages:
-    - auth-frontend
-    - admin-website
-    - sites/*
-    - packages/*
+  - auth-frontend
+  - admin-website
+  - sites/*
+  - packages/*
 
 onlyBuiltDependencies:
-    - esbuild
-    - unrs-resolver
+  - esbuild
+  - sharp
+  - unrs-resolver
