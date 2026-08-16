@@ -1,6 +1,5 @@
 name: "Copilot Setup Steps"
 
-# Validate automatically on change and allow manual runs
 on:
     workflow_dispatch:
     push:
@@ -11,16 +10,10 @@ on:
             - .github/workflows/copilot-setup-steps.yml
 
 jobs:
-    # MUST be exactly this name or Copilot ignores it
     copilot-setup-steps:
         runs-on: ubuntu-latest
-        # Skip on the template repository
-        if: github.repository != 'adb-software-solutions/project-template'
-
-        # Least privilege; Copilot gets its own token for agent work
         permissions:
             contents: read
-
         services:
             postgres:
                 image: postgres:14.4
@@ -37,7 +30,6 @@ jobs:
             redis:
                 image: redis:7.0.4
                 ports: ["6379:6379"]
-
         env:
             SQL_ENGINE: django.db.backends.postgresql
             SQL_DATABASE: app_dev
@@ -51,32 +43,23 @@ jobs:
             SITE_DOMAIN: testserver
             SESSION_BACKEND_URL: redis://localhost:6379/1
             CACHE_BACKEND_URL: redis://localhost:6379/2
-
-        # Everything here executes before the agent starts
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
-
-            # --- Python setup ---
             - name: Set up Python
               uses: actions/setup-python@v5
               with:
                   python-version: "3.12"
-
             - name: Cache pip
               uses: actions/cache@v4
               with:
                   path: ~/.cache/pip
                   key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements/*.txt') }}
                   restore-keys: ${{ runner.os }}-pip-
-
             - name: Install Python dependencies
               run: pip install -r backend/requirements/dev.txt
-
-            # --- Node + pnpm for monorepo ---
             - name: Set up pnpm
               uses: pnpm/action-setup@v4.1.0
-
             - name: Set up Node.js
               uses: actions/setup-node@v4
               with:
@@ -84,29 +67,22 @@ jobs:
                   cache: "pnpm"
                   cache-dependency-path: |
                       pnpm-lock.yaml
-                      website/pnpm-lock.yaml
+                      admin-website/pnpm-lock.yaml
                       auth-frontend/pnpm-lock.yaml
-
-            - name: Install root Node dependencies
-              if: ${{ hashFiles('pnpm-lock.yaml') != '' }}
-              run: pnpm install --frozen-lockfile
-
-            - name: Install website Node dependencies
-              if: ${{ hashFiles('website/pnpm-lock.yaml') != '' }}
-              working-directory: website
-              run: pnpm install --frozen-lockfile
-
-            - name: Install auth-frontend Node dependencies
-              if: ${{ hashFiles('auth-frontend/pnpm-lock.yaml') != '' }}
-              working-directory: auth-frontend
-              run: pnpm install --frozen-lockfile
-
+                      sites/adb-software-solutions/pnpm-lock.yaml
+                      sites/adb-web-designs/pnpm-lock.yaml
+            - name: Install Node dependencies
+              run: |
+                  pnpm install --frozen-lockfile
+                  pnpm --dir admin-website install --frozen-lockfile
+                  pnpm --dir auth-frontend install --frozen-lockfile
+                  pnpm --dir sites/adb-software-solutions install --frozen-lockfile
+                  pnpm --dir sites/adb-web-designs install --frozen-lockfile
             - name: Add node bin paths to PATH
               run: |
                   echo "$GITHUB_WORKSPACE/node_modules/.bin" >> $GITHUB_PATH
-                  echo "$GITHUB_WORKSPACE/website/node_modules/.bin" >> $GITHUB_PATH
-
-            # --- Tooling used by your scripts ---
+                  echo "$GITHUB_WORKSPACE/admin-website/node_modules/.bin" >> $GITHUB_PATH
+                  echo "$GITHUB_WORKSPACE/auth-frontend/node_modules/.bin" >> $GITHUB_PATH
             - name: Install ShellCheck and shfmt
               run: |
                   tools/setup/install-shellcheck

@@ -1,74 +1,46 @@
 {
-    "name": "Project Template Dev Container",
+    "name": "ADB Web Platform Dev Container",
     "dockerComposeFile": ["docker-compose.yml"],
     "service": "app",
     "workspaceFolder": "/workspace",
     "shutdownAction": "stopCompose",
-
-    // Features to install in the container
     "features": {
         "ghcr.io/devcontainers/features/git:1": {},
         "ghcr.io/devcontainers/features/github-cli:1": {},
         "ghcr.io/devcontainers/features/node:1": {
             "nodeGypDependencies": true,
-            "version": "20"
+            "version": "22"
         },
         "ghcr.io/devcontainers/features/python:1": {
             "version": "3.12",
             "installTools": true
         }
     },
-
-    // Configure tool-specific properties
     "customizations": {
         "vscode": {
             "extensions": [
-                // Python extensions
                 "ms-python.python",
                 "ms-python.pylance",
                 "ms-python.black-formatter",
-
-                // Django extensions
                 "batisteo.vscode-django",
-
-                // JavaScript/TypeScript/Frontend extensions
                 "esbenp.prettier-vscode",
                 "bradlc.vscode-tailwindcss",
                 "ms-vscode.vscode-typescript-next",
                 "csstools.postcss",
-                "ms-vscode.live-server",
-
-                // GitHub extensions
                 "github.copilot",
                 "github.copilot-chat",
                 "github.vscode-pull-request-github",
                 "github.remotehub",
-
-                // Docker extensions
                 "ms-azuretools.vscode-docker",
-
-                // Git extensions
                 "eamodio.gitlens",
                 "codezombiech.gitignore",
-
-                // General development
                 "ms-vscode.vscode-json",
                 "redhat.vscode-yaml",
                 "redhat.vscode-xml",
-                "dotjoshjohnson.xml",
-                "jock.svg",
-                "tomoki1207.pdf",
-
-                // Markdown/Documentation
                 "unifiedjs.vscode-mdx"
             ],
             "settings": {
                 "python.defaultInterpreterPath": "/opt/venv/bin/python",
-                "python.formatting.provider": "black",
-                "python.linting.enabled": true,
-                "python.linting.pylintEnabled": true,
-                "python.linting.flake8Enabled": true,
-                "python.linting.mypyEnabled": true,
                 "editor.formatOnSave": true,
                 "python.terminal.activateEnvironment": true,
                 "editor.codeActionsOnSave": {
@@ -81,72 +53,27 @@
             }
         }
     },
-
-    // Use 'forwardPorts' to make a list of ports inside the container available locally
-    "forwardPorts": [
-        8000, // Django Backend
-        3000, // Website
-        5174, // Auth Frontend
-        5174, // 
-        5555, // Flower (Celery Monitor)
-        5432 // PostgreSQL
-    ],
-
-    // Port attributes
+    "forwardPorts": [8000, 3000, 3001, 3002, 5173, 5555, 5432],
     "portsAttributes": {
-        "8000": {
-            "label": "Django Backend",
-            "onAutoForward": "notify"
-        },
-        "3000": {
-            "label": "Website",
-            "onAutoForward": "notify"
-        },
-        "5174": {
-            "label": "Auth Frontend",
-            "onAutoForward": "notify"
-        },
-        "5174": {
-            "label": "",
-            "onAutoForward": "notify"
-        },
-        "5555": {
-            "label": "Flower (Celery Monitor)",
-            "onAutoForward": "notify"
-        },
-        "5432": {
-            "label": "PostgreSQL",
-            "onAutoForward": "silent"
-        }
+        "8000": {"label": "Django Backend", "onAutoForward": "notify"},
+        "3000": {"label": "Internal Admin Website", "onAutoForward": "notify"},
+        "3001": {"label": "ADB Software Solutions", "onAutoForward": "notify"},
+        "3002": {"label": "ADB Web Designs", "onAutoForward": "notify"},
+        "5173": {"label": "Auth Frontend", "onAutoForward": "notify"},
+        "5555": {"label": "Flower", "onAutoForward": "notify"},
+        "5432": {"label": "PostgreSQL", "onAutoForward": "silent"}
     },
-
-
     "postCreateCommand": "bash .devcontainer/post-create.sh",
     "postStartCommand": "bash .devcontainer/scripts/link-host-git-config.sh",
-
-    // Set the user to use inside the container
     "remoteUser": "root",
-
-    // Make /opt/venv the default interpreter for everything VS Code launches
     "remoteEnv": {
         "VIRTUAL_ENV": "/opt/venv",
         "PATH": "/opt/venv/bin:${containerEnv:PATH}"
     },
-
-    // Mounts
     "mounts": [
-        // Persistent Bash history (Docker volume mounted as a directory)
-        // The history file will live at /root/.history/.bash_history
         "source=app-bash-history,target=/root/.history,type=volume",
-
-        // Workspace
         "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
-
-        // Each developer's HOST $HOME (for reading git config)
         "source=${localEnv:HOME},target=/host-home,type=bind,consistency=cached",
-
-        // Mount the host's SSH directory into root's ~/.ssh inside the container
-        // Default to read-only for safety; flip to writable if you want to add new hosts from inside.
         "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached,readonly"
     ]
 }

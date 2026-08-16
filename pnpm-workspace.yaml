@@ -1,0 +1,5 @@
+packages:
+    - "auth-frontend"
+    - "admin-website"
+    - "sites/*"
+    - "packages/*"

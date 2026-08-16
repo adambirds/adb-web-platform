@@ -1,0 +1,13 @@
+#!/bin/bash
+# Start the internal Next.js admin application.
+set -e
+
+if [ ! -d "/workspace/admin-website" ]; then
+	echo "Admin website directory not found at /workspace/admin-website."
+	exit 1
+fi
+
+cd /workspace/admin-website
+
+echo "Starting internal admin website..."
+pnpm run dev

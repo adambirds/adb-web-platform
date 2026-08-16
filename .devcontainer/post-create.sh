@@ -1,39 +1,35 @@
 #!/usr/bin/env bash
-# Post-create script for devcontainer
 set -Eeuo pipefail
+
 error_trap() {
 	local code=$?
-	echo "❌ post-create failed at line $LINENO: ${BASH_COMMAND} (exit $code)"
-	exit $code
+	echo "post-create failed at line $LINENO: ${BASH_COMMAND} (exit $code)"
+	exit "$code"
 }
 trap error_trap ERR
 
-# Consistent path to rc
 BASHRC="/root/.bashrc"
-
-# Make pnpm happy in non-interactive shells
 export SHELL="${SHELL:-/bin/bash}"
 export PNPM_HOME="${PNPM_HOME:-/usr/local/share/pnpm}"
 export PATH="$PNPM_HOME:$PATH"
 
-echo "Setting up development environment..."
-
-# Change to workspace directory
+echo "Setting up ADB web platform development environment..."
 cd /workspace
 
-# Create devcontainer .env file if it doesn't exist
 if [ ! -f .devcontainer/.env ]; then
 	echo "Creating devcontainer environment file..."
 	cp .devcontainer/.env.example .devcontainer/.env
 	echo "Please update .devcontainer/.env with your actual credentials"
 fi
 
-echo "Installing frontend dependencies..."
+echo "Installing Node dependencies..."
 pnpm install
-cd /workspace/website && pnpm install
+cd /workspace/admin-website && pnpm install
 cd /workspace/auth-frontend && pnpm install
+cd /workspace/sites/adb-software-solutions && pnpm install
+cd /workspace/sites/adb-web-designs && pnpm install
+cd /workspace
 
-# Wait for database to be ready using Python and psycopg2
 echo "Waiting for database to be ready..."
 until /opt/venv/bin/python -c "
 import sys
@@ -54,13 +50,10 @@ sys.exit(0)
 done
 echo "PostgreSQL is available"
 
-# Run Django migrations
 echo "Running Django migrations..."
-cd /workspace
 source /opt/venv/bin/activate
 python backend/manage.py migrate --noinput
 
-# Install pre-commit hooks if available (ensure it's installed in venv)
 if [ -f .pre-commit-config.yaml ]; then
 	if ! command -v pre-commit >/dev/null 2>&1; then
 		pip install pre-commit >/dev/null 2>&1 || true
@@ -69,17 +62,10 @@ if [ -f .pre-commit-config.yaml ]; then
 	pre-commit install || echo "Pre-commit not available"
 fi
 
-# Setup git safe directory
 git config --global --add safe.directory /workspace
 
-###############################################################################
-# Bash prompt fix: ensure (venv) shows in every interactive bash in VS Code
-# We append to /root/.bashrc at the END (idempotently) so it runs after any PS1=
-###############################################################################
 MARK_BEGIN="# >>> devcontainer: ensure (venv) prompt begin >>>"
 MARK_END="# <<< devcontainer: ensure (venv) prompt end <<<"
-
-# Remove previous block if present (to keep idempotent on rebuilds)
 if grep -qF "$MARK_BEGIN" "$BASHRC" 2>/dev/null; then
 	awk -v s="$MARK_BEGIN" -v e="$MARK_END" '
     $0==s {inblk=1; next}
@@ -88,11 +74,8 @@ if grep -qF "$MARK_BEGIN" "$BASHRC" 2>/dev/null; then
   ' "$BASHRC" >"${BASHRC}.tmp" && mv "${BASHRC}.tmp" "$BASHRC"
 fi
 
-# Append our guarded block
 cat >>"$BASHRC" <<'EOF'
 # >>> devcontainer: ensure (venv) prompt begin >>>
-# Always show (venv) in interactive bash shells and ensure /opt/venv is active.
-# Place this at the END so it runs after any PS1 reassignments in the file.
 if [ -n "$PS1" ]; then
   unset VIRTUAL_ENV_DISABLE_PROMPT
   export VIRTUAL_ENV_PROMPT="(venv) "
@@ -106,27 +89,16 @@ fi
 # <<< devcontainer: ensure (venv) prompt end <<<
 EOF
 
-###############################################################################
-# Persistent Bash history (via Docker volume mounted at /root/.history)
-# - We store the file at /root/.history/.bash_history
-# - We also symlink /root/.bash_history -> /root/.history/.bash_history
-# - Terminals share history live and it survives rebuilds
-###############################################################################
 HIST_DIR="/root/.history"
 HIST_FILE="${HIST_DIR}/.bash_history"
 HIST_BEGIN="# >>> devcontainer: persistent bash history begin >>>"
 HIST_END="# <<< devcontainer: persistent bash history end <<<"
-
-# Ensure directory exists (volume mount) and file present
 mkdir -p "$HIST_DIR"
 touch "$HIST_FILE"
 chmod 700 "$HIST_DIR"
 chmod 600 "$HIST_FILE"
-
-# Symlink traditional location to our persistent file
 ln -sf "$HIST_FILE" /root/.bash_history
 
-# Remove prior block if present
 if grep -qF "$HIST_BEGIN" "$BASHRC" 2>/dev/null; then
 	awk -v s="$HIST_BEGIN" -v e="$HIST_END" '
     $0==s {inblk=1; next}
@@ -135,32 +107,23 @@ if grep -qF "$HIST_BEGIN" "$BASHRC" 2>/dev/null; then
   ' "$BASHRC" >"${BASHRC}.tmp" && mv "${BASHRC}.tmp" "$BASHRC"
 fi
 
-# Append persistent history config at the very end (after PS1 edits)
 cat >>"$BASHRC" <<EOF
 ${HIST_BEGIN}
-# Persist bash history to a Docker volume-backed file
 export HISTFILE="${HIST_FILE}"
 export HISTSIZE=50000
 export HISTFILESIZE=100000
 export HISTCONTROL=ignoredups:erasedups
 export HISTTIMEFORMAT='%F %T '
-
-# Append new commands immediately and read in commands from other terminals
 shopt -s histappend
 PROMPT_COMMAND="history -a; history -n; \${PROMPT_COMMAND}"
 ${HIST_END}
 EOF
 
-###############################################################################
-# Bash completion (system + common CLIs) — idempotent
-###############################################################################
 COMP_DIR="/etc/bash_completion.d"
 COMP_BEGIN="# >>> devcontainer: bash-completion begin >>>"
 COMP_END="# <<< devcontainer: bash-completion end <<<"
-
 mkdir -p "$COMP_DIR"
 
-# Remove previous block if present
 if grep -qF "$COMP_BEGIN" "$BASHRC" 2>/dev/null; then
 	awk -v s="$COMP_BEGIN" -v e="$COMP_END" '
     $0==s {inblk=1; next}
@@ -169,10 +132,8 @@ if grep -qF "$COMP_BEGIN" "$BASHRC" 2>/dev/null; then
   ' "$BASHRC" >"${BASHRC}.tmp" && mv "${BASHRC}.tmp" "$BASHRC"
 fi
 
-# Append sourcing + QoL bindings at the very end (after PS1 edits)
 cat >>"$BASHRC" <<'EOF'
 # >>> devcontainer: bash-completion begin >>>
-# Enable programmable completion
 if [ -n "$PS1" ]; then
   if [ -r /etc/profile.d/bash_completion.sh ]; then
     . /etc/profile.d/bash_completion.sh
@@ -180,52 +141,34 @@ if [ -n "$PS1" ]; then
     . /usr/share/bash-completion/bash_completion
   fi
 fi
-
-# Friendlier tab-complete behavior
 bind "set completion-ignore-case on"
 bind "set show-all-if-ambiguous on"
 bind "set menu-complete-display-prefix on"
 # <<< devcontainer: bash-completion end <<<
 EOF
 
-# ---- Generate completion scripts (guarded if tools exist) ----
-# gh (GitHub CLI)
 if command -v gh >/dev/null 2>&1; then
 	gh completion -s bash >"${COMP_DIR}/gh"
 fi
-
-# npm + npx
 if command -v npm >/dev/null 2>&1; then
 	npm completion >"${COMP_DIR}/npm"
 	cp -f "${COMP_DIR}/npm" "${COMP_DIR}/npx"
 fi
-
-# pnpm (explicit shell name is required)
 if command -v pnpm >/dev/null 2>&1; then
 	pnpm completion bash >"${COMP_DIR}/pnpm"
 fi
-
-# pip
 if command -v python >/dev/null 2>&1; then
 	python -m pip completion --bash >"${COMP_DIR}/pip" 2>/dev/null || true
 fi
-
-# kubectl (future)
 if command -v kubectl >/dev/null 2>&1; then
 	kubectl completion bash >"${COMP_DIR}/kubectl"
 fi
-
-# terraform (future)
 if command -v terraform >/dev/null 2>&1; then
 	terraform -install-autocomplete >/dev/null 2>&1 || true
 fi
 
-###############################################################################
-# Starship prompt (emoji-free, shows venv + git) — idempotent
-###############################################################################
 STARSHIP_LINE="# >>> devcontainer: starship init >>>"
 if ! grep -qF "$STARSHIP_LINE" "$BASHRC" 2>/dev/null; then
-	# Init starship in bash
 	cat >>"$BASHRC" <<'EOF'
 # >>> devcontainer: starship init >>>
 if command -v starship >/dev/null 2>&1; then
@@ -235,7 +178,6 @@ fi
 EOF
 fi
 
-# Minimal, no-emoji config
 mkdir -p /root/.config
 cat >/root/.config/starship.toml <<'EOF'
 add_newline = false
@@ -252,7 +194,6 @@ disabled = true
 min_time = 1000
 
 [character]
-# Escape the dollar so it's treated literally
 success_symbol = "\\$ "
 error_symbol = "! "
 EOF
@@ -260,13 +201,16 @@ EOF
 echo "Development environment setup complete!"
 echo ""
 echo "Quick start commands:"
-echo "  Backend:         cd /workspace && python backend/manage.py runserver 0.0.0.0:8000"
-echo "  Flower:          cd /workspace/backend && source /opt/venv/bin/activate && celery -A adbsoftwaresolutions flower --port=5555 --address=0.0.0.0"
-echo "  Website:         cd /workspace/website && pnpm dev"
-echo "  Auth Frontend:   cd /workspace/auth-frontend && pnpm dev"
+echo "  Backend:               python backend/manage.py runserver 0.0.0.0:8000"
+echo "  Internal Admin:        cd /workspace/admin-website && pnpm dev"
+echo "  Software Solutions:    cd /workspace/sites/adb-software-solutions && pnpm dev"
+echo "  Web Designs:           cd /workspace/sites/adb-web-designs && pnpm dev"
+echo "  Auth Frontend:         cd /workspace/auth-frontend && pnpm dev"
+echo "  Flower:                cd /workspace/backend && celery -A adbsoftwaresolutions flower --port=5555 --address=0.0.0.0"
 echo ""
 echo "Access URLs:"
-echo "  Django Admin:    http://localhost:8000/admin/ (admin/admin)"
-echo "  Website:         http://localhost:3000/"
-echo "  Auth Frontend:   http://localhost:5173/"
-echo ""
+echo "  Django Admin:          http://localhost:8000/admin/"
+echo "  Internal Admin:        http://localhost:3000/"
+echo "  Software Solutions:    http://localhost:3001/"
+echo "  Web Designs:           http://localhost:3002/"
+echo "  Auth Frontend:         http://localhost:5173/"

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Test script for the internal admin website.
+set -e
+
+echo "Running admin website tests..."
+echo "================================"
+
+cd /workspace/admin-website
+
+if [ ! -d "node_modules" ]; then
+	echo "Installing dependencies..."
+	pnpm install
+fi
+
+pnpm run test:coverage
+
+echo ""
+echo "Admin website tests completed successfully."
