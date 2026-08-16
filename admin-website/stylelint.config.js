@@ -1,8 +1,7 @@
 "use strict";
 
 module.exports = {
-    extends: ["stylelint-config-standard", "stylelint-config-tailwindcss"],
-    plugins: ["stylelint-order"],
+    extends: ["stylelint-config-standard"],
     rules: {
         "at-rule-no-unknown": [
             true,
@@ -17,6 +16,11 @@ module.exports = {
                     "plugin",
                     "custom-variant",
                     "utility",
+                    "apply",
+                    "variants",
+                    "responsive",
+                    "screen",
+                    "layer",
                 ],
             },
         ],
@@ -53,5 +57,5 @@ module.exports = {
         "function-url-no-scheme-relative": true,
         "function-url-scheme-allowed-list": ["data"],
     },
-    ignoreFiles: ["dist/**", "node_modules/**"],
+    ignoreFiles: ["dist/**", "node_modules/**", ".next/**", "coverage/**"],
 };
