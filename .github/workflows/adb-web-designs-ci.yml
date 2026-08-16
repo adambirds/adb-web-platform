@@ -34,7 +34,7 @@ jobs:
                   node-version: "22"
                   cache: pnpm
                   cache-dependency-path: pnpm-lock.yaml
-            - run: pnpm install --no-frozen-lockfile
+            - run: pnpm install --frozen-lockfile
             - run: pnpm --dir sites/adb-web-designs test --passWithNoTests
             - run: pnpm --dir sites/adb-web-designs build
     trivy-fs-scan:
