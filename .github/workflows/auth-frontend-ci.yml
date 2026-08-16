@@ -9,6 +9,7 @@ on:
             - "Dockerfile.auth-frontend"
             - ".github/workflows/auth-frontend-ci.yml"
             - "tools/**"
+            - "pnpm-workspace.yaml"
             - "pnpm-lock.yaml"
             - "package.json"
     pull_request:
@@ -17,6 +18,7 @@ on:
             - "Dockerfile.auth-frontend"
             - ".github/workflows/auth-frontend-ci.yml"
             - "tools/**"
+            - "pnpm-workspace.yaml"
             - "pnpm-lock.yaml"
             - "package.json"
     workflow_dispatch:
@@ -55,27 +57,22 @@ jobs:
               with:
                   ref: ${{ github.event.pull_request.head.sha }}
             - uses: pnpm/action-setup@v4.1.0
+              with:
+                  version: 10.15.0
             - uses: actions/setup-node@v4
               with:
                   node-version: "22"
                   cache: "pnpm"
-                  cache-dependency-path: |
-                      pnpm-lock.yaml
-                      admin-website/pnpm-lock.yaml
-                      auth-frontend/pnpm-lock.yaml
-            - name: Install root Node deps
-              run: pnpm install --frozen-lockfile
-            - name: Install admin website Node deps
-              working-directory: admin-website
-              run: pnpm install --frozen-lockfile
-            - name: Install auth-frontend Node deps
-              working-directory: auth-frontend
-              run: pnpm install --frozen-lockfile
-            - name: Add node bin paths to PATH
+                  cache-dependency-path: pnpm-lock.yaml
+            - name: Install Node dependencies
+              run: pnpm install --no-frozen-lockfile
+            - name: Add Node binaries to PATH
               run: |
-                  echo "$GITHUB_WORKSPACE/node_modules/.bin" >> $GITHUB_PATH
-                  echo "$GITHUB_WORKSPACE/admin-website/node_modules/.bin" >> $GITHUB_PATH
-                  echo "$GITHUB_WORKSPACE/auth-frontend/node_modules/.bin" >> $GITHUB_PATH
+                  echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
+                  echo "$GITHUB_WORKSPACE/admin-website/node_modules/.bin" >> "$GITHUB_PATH"
+                  echo "$GITHUB_WORKSPACE/auth-frontend/node_modules/.bin" >> "$GITHUB_PATH"
+                  echo "$GITHUB_WORKSPACE/sites/adb-software-solutions/node_modules/.bin" >> "$GITHUB_PATH"
+                  echo "$GITHUB_WORKSPACE/sites/adb-web-designs/node_modules/.bin" >> "$GITHUB_PATH"
             - uses: actions/setup-python@v5
               with:
                   python-version: "3.12"
@@ -97,16 +94,15 @@ jobs:
         steps:
             - uses: actions/checkout@v4
             - uses: pnpm/action-setup@v4.1.0
+              with:
+                  version: 10.15.0
             - uses: actions/setup-node@v4
               with:
                   node-version: "22"
                   cache: "pnpm"
-                  cache-dependency-path: |
-                      pnpm-lock.yaml
-                      auth-frontend/pnpm-lock.yaml
-            - name: Install auth-frontend Node deps
-              working-directory: auth-frontend
-              run: pnpm install --frozen-lockfile
+                  cache-dependency-path: pnpm-lock.yaml
+            - name: Install Node dependencies
+              run: pnpm install --no-frozen-lockfile
             - name: Run auth-frontend tests
               working-directory: auth-frontend
               run: pnpm test --passWithNoTests
@@ -121,16 +117,15 @@ jobs:
               with:
                   fetch-depth: 0
             - uses: pnpm/action-setup@v4.1.0
+              with:
+                  version: 10.15.0
             - uses: actions/setup-node@v4
               with:
                   node-version: "22"
                   cache: "pnpm"
-                  cache-dependency-path: |
-                      pnpm-lock.yaml
-                      auth-frontend/pnpm-lock.yaml
-            - name: Install auth-frontend Node deps
-              working-directory: auth-frontend
-              run: pnpm install --frozen-lockfile
+                  cache-dependency-path: pnpm-lock.yaml
+            - name: Install Node dependencies
+              run: pnpm install --no-frozen-lockfile
             - name: Build auth-frontend for analysis
               working-directory: auth-frontend
               run: pnpm run build
