@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import BlogCategory, BlogPost, BlogTag, FAQ, FAQCategory, Portfolio, Testimonial
+from .models import FAQ, BlogCategory, BlogPost, BlogTag, FAQCategory, Portfolio, Testimonial
 
 # Register your models here.
 

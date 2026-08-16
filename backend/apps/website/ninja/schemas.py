@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List
 
 from ninja import Schema
 from pydantic import EmailStr
@@ -15,7 +14,7 @@ class PortfolioOut(Schema):
     challenge: str
     solution: str
     results: str
-    technologies: List[str]
+    technologies: list[str]
     project_url: str | None = None
     github_url: str | None = None
     image_url: str | None = None
@@ -61,8 +60,8 @@ class BlogPostOut(Schema):
     author: str
     published: bool
     featured: bool
-    categories: List[BlogCategoryOut]
-    tags: List[BlogTagOut]
+    categories: list[BlogCategoryOut]
+    tags: list[BlogTagOut]
     meta_description: str
     meta_keywords: str
     created_at: datetime
@@ -103,7 +102,7 @@ class PortfolioIn(Schema):
     challenge: str
     solution: str
     results: str
-    technologies: List[str]
+    technologies: list[str]
     project_url: str | None = None
     github_url: str | None = None
     featured: bool = False
@@ -137,8 +136,8 @@ class BlogPostIn(Schema):
     author: str | None = None
     published: bool = False
     featured: bool = False
-    category_ids: List[int] = []
-    tag_ids: List[int] = []
+    category_ids: list[int] = []
+    tag_ids: list[int] = []
     meta_description: str | None = None
     meta_keywords: str | None = None
     published_at: datetime | None = None

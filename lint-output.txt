@@ -1,0 +1,1747 @@
+[38;5;205mcss       |[0m [1;31mConfigurationError: Could not find "stylelint-config-tailwindcss". Do you need to install the package or use the "configBasedir" option?[0m
+[38;5;205mcss       |[0m [1;31m    at getModulePath (file:///workspace/node_modules/.pnpm/stylelint@16.23.1_typescript@5.9.2/node_modules/stylelint/lib/utils/getModulePath.mjs:29:9)[0m
+[38;5;205mcss       |[0m [1;31m    at loadExtendedConfig (file:///workspace/node_modules/.pnpm/stylelint@16.23.1_typescript@5.9.2/node_modules/stylelint/lib/augmentConfig.mjs:225:21)[0m
+[38;5;205mcss       |[0m [1;31m    at extendConfig (file:///workspace/node_modules/.pnpm/stylelint@16.23.1_typescript@5.9.2/node_modules/stylelint/lib/augmentConfig.mjs:193:25)[0m
+[38;5;205mcss       |[0m [1;31m    at async augmentConfigBasic (file:///workspace/node_modules/.pnpm/stylelint@16.23.1_typescript@5.9.2/node_modules/stylelint/lib/augmentConfig.mjs:58:20)[0m
+[38;5;205mcss       |[0m [1;31m    at async augmentConfigFull (file:///workspace/node_modules/.pnpm/stylelint@16.23.1_typescript@5.9.2/node_modules/stylelint/lib/augmentConfig.mjs:112:24)[0m
+[38;5;205mcss       |[0m [1;31m    at async search (/workspace/node_modules/.pnpm/cosmiconfig@9.0.0_typescript@5.9.2/node_modules/cosmiconfig/dist/Explorer.js:53:36)[0m
+[38;5;205mcss       |[0m [1;31m    at async search (/workspace/node_modules/.pnpm/cosmiconfig@9.0.0_typescript@5.9.2/node_modules/cosmiconfig/dist/Explorer.js:71:28)[0m
+[38;5;205mcss       |[0m [1;31m    at async search (/workspace/node_modules/.pnpm/cosmiconfig@9.0.0_typescript@5.9.2/node_modules/cosmiconfig/dist/Explorer.js:71:28)[0m
+[38;5;205mcss       |[0m [1;31m    at async search (/workspace/node_modules/.pnpm/cosmiconfig@9.0.0_typescript@5.9.2/node_modules/cosmiconfig/dist/Explorer.js:71:28)[0m
+[38;5;205mcss       |[0m [1;31m    at async Explorer.search (/workspace/node_modules/.pnpm/cosmiconfig@9.0.0_typescript@5.9.2/node_modules/cosmiconfig/dist/Explorer.js:78:20)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/jest.setup.js[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/(admin)/admin/clients/page.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/(admin)/admin/content/blog/page.tsx[0m
+[38;5;93meslint    |[0m [1;31m  3:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (3:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/(admin)/admin/content/faqs/page.tsx[0m
+[38;5;93meslint    |[0m [1;31m  3:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (3:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/(admin)/admin/content/page.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/(admin)/admin/content/portfolio/page.tsx[0m
+[38;5;93meslint    |[0m [1;31m  3:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (3:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/(admin)/admin/content/testimonials/page.tsx[0m
+[38;5;93meslint    |[0m [1;31m  3:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (3:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/(admin)/admin/credentials/page.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/(admin)/admin/infrastructure/page.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/(admin)/admin/leads/page.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/(admin)/admin/page.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/(admin)/admin/projects/page.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/(admin)/admin/time-tracking/page.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/(admin)/layout.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/layout.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/page.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/app/robots.ts[0m
+[38;5;93meslint    |[0m [1;31m  1:12  error  Parsing error: Unexpected token, expected "from" (1:12)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/layout/AdminLayout.tsx[0m
+[38;5;93meslint    |[0m [1;31m  3:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (3:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/layout/Footer.tsx[0m
+[38;5;93meslint    |[0m [1;31m  3:8  error  Parsing error: This experimental syntax requires enabling one of the following parser plugin(s): "jsx", "flow", "typescript". (3:8)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/layout/Header.tsx[0m
+[38;5;93meslint    |[0m [1;31m  3:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (3:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/seo/JsonLd.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/ui/Badge.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/ui/Button.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/ui/Card.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/ui/Container.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/ui/EmptyState.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/ui/Input.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/ui/PageHeader.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/ui/SectionHeader.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/ui/Select.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/ui/StatCard.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/ui/Table.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/ui/Textarea.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/components/ui/index.ts[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/contexts/AuthContext.tsx[0m
+[38;5;93meslint    |[0m [1;31m  3:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (3:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/globals.d.ts[0m
+[38;5;93meslint    |[0m [1;31m  1:7  error  Parsing error: Missing semicolon. (1:7)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/lib/api/endpoints.ts[0m
+[38;5;93meslint    |[0m [1;31m  8:18  error  Parsing error: Unexpected token, expected "," (8:18)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/lib/api/fetch.ts[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/lib/api/public.ts[0m
+[38;5;93meslint    |[0m [1;31m  4:7  error  Parsing error: This experimental syntax requires enabling one of the following parser plugin(s): "flow", "typescript". (4:7)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/lib/auth/AuthContext.tsx[0m
+[38;5;93meslint    |[0m [1;31m  9:9  error  Parsing error: Unexpected token, expected "," (9:9)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/lib/auth/index.ts[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/lib/auth/types.ts[0m
+[38;5;93meslint    |[0m [1;31m  5:7  error  Parsing error: This experimental syntax requires enabling one of the following parser plugin(s): "flow", "typescript". (5:7)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/lib/canonical.ts[0m
+[38;5;93meslint    |[0m [1;31m  12:36  error  Parsing error: Unexpected token, expected "," (12:36)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/lib/utils/cn.ts[0m
+[38;5;93meslint    |[0m [1;31m  1:20  error  Parsing error: Unexpected token, expected "," (1:20)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/providers/index.tsx[0m
+[38;5;93meslint    |[0m [1;31m  3:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (3:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/admin-website/src/types/index.ts[0m
+[38;5;93meslint    |[0m [1;31m  2:7  error  Parsing error: This experimental syntax requires enabling one of the following parser plugin(s): "flow", "typescript". (2:7)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/App.test.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/App.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/components/Alert.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:9  error  Parsing error: Missing semicolon. (1:9)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/components/TwoFactorVerification.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/components/common/Button.test.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/components/logo/LogoComponent.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/contexts/AuthContext.tsx[0m
+[38;5;93meslint    |[0m [1;31m  2:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (2:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/contexts/ThemeContext.ts[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/layouts/AuthLayout.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/layouts/DashboardLayout.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/main.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/pages/ForgotPasswordPage.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/pages/LoginPage.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/pages/LogoutPage.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/pages/NotFoundPage.tsx[0m
+[38;5;93meslint    |[0m [1;31m  3:8  error  Parsing error: This experimental syntax requires enabling one of the following parser plugin(s): "jsx", "flow", "typescript". (3:8)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/pages/ResetPasswordPage.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/pages/SecuritySettingsPage.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/pages/Setup2FAPage.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/pages/SetupPasskeyPage.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/pages/SignupPage.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/pages/VerifyEmailPage.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/providers/ThemeProvider.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/test/setup.ts[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/types/themeTypes.ts[0m
+[38;5;93meslint    |[0m [1;31m  1:7  error  Parsing error: This experimental syntax requires enabling one of the following parser plugin(s): "flow", "typescript". (1:7)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/utils/api.ts[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/utils/config.ts[0m
+[38;5;93meslint    |[0m [1;31m  6:23  error  Parsing error: import.meta may appear only with 'sourceType: "module"' (6:23)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/utils/validation.test.ts[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/utils/webauthn.ts[0m
+[38;5;93meslint    |[0m [1;31m  8:25  error  Parsing error: Missing semicolon. (8:25)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/src/vite-env.d.ts[0m
+[38;5;93meslint    |[0m [1;31m  3:9  error  Parsing error: Missing semicolon. (3:9)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/stylelint.config.js[0m
+[38;5;93meslint    |[0m [1;31m  2:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (2:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/auth-frontend/vite.config.ts[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/packages/api-client/src/index.ts[0m
+[38;5;93meslint    |[0m [1;31m  1:7  error  Parsing error: This experimental syntax requires enabling one of the following parser plugin(s): "flow", "typescript". (1:7)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/packages/ui/src/index.ts[0m
+[38;5;93meslint    |[0m [1;31m  1:7  error  Parsing error: This experimental syntax requires enabling one of the following parser plugin(s): "flow", "typescript". (1:7)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/sites/adb-software-solutions/jest.setup.js[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/sites/adb-software-solutions/src/app/layout.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:12  error  Parsing error: Unexpected token, expected "from" (1:12)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/sites/adb-software-solutions/src/app/page.tsx[0m
+[38;5;93meslint    |[0m [1;31m  3:8  error  Parsing error: This experimental syntax requires enabling one of the following parser plugin(s): "jsx", "flow", "typescript". (3:8)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/sites/adb-web-designs/jest.setup.js[0m
+[38;5;93meslint    |[0m [1;31m  1:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (1:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/sites/adb-web-designs/src/app/layout.tsx[0m
+[38;5;93meslint    |[0m [1;31m  1:12  error  Parsing error: Unexpected token, expected "from" (1:12)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/sites/adb-web-designs/src/app/page.tsx[0m
+[38;5;93meslint    |[0m [1;31m  3:8  error  Parsing error: This experimental syntax requires enabling one of the following parser plugin(s): "jsx", "flow", "typescript". (3:8)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/website/.next/types/app/(admin)/admin/page.ts[0m
+[38;5;93meslint    |[0m [1;31m  2:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (2:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/website/.next/types/app/(admin)/layout.ts[0m
+[38;5;93meslint    |[0m [1;31m  2:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (2:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/website/.next/types/app/(marketing)/about/page.ts[0m
+[38;5;93meslint    |[0m [1;31m  2:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (2:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/website/.next/types/app/(marketing)/layout.ts[0m
+[38;5;93meslint    |[0m [1;31m  2:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (2:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/website/.next/types/app/layout.ts[0m
+[38;5;93meslint    |[0m [1;31m  2:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (2:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/website/.next/types/app/page.ts[0m
+[38;5;93meslint    |[0m [1;31m  2:0  error  Parsing error: 'import' and 'export' may appear only with 'sourceType: "module"' (2:0)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m/workspace/website/.next/types/cache-life.d.ts[0m
+[38;5;93meslint    |[0m [1;31m  3:7  error  Parsing error: Missing semicolon. (3:7)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;93meslint    |[0m [1;31m✖ 92 problems (92 errors, 0 warnings)[0m
+[38;5;93meslint    |[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 152:[0m
+[38;5;30mshellcheck|[0m [1;31m	read -p "App Name (e.g., 'ADB Software Solutions'): " APP_NAME[0m
+[38;5;30mshellcheck|[0m [1;31m        ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 159:[0m
+[38;5;30mshellcheck|[0m [1;31m	read -p "App Name for Python (e.g., 'adbsoftwaresolutions'): " PYTHON_NAME[0m
+[38;5;30mshellcheck|[0m [1;31m        ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 172:[0m
+[38;5;30mshellcheck|[0m [1;31m	read -p "GitHub URL for upstream (e.g., 'git@github.com:org/repo.git'): " GITHUB_UPSTREAM[0m
+[38;5;30mshellcheck|[0m [1;31m        ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 173:[0m
+[38;5;30mshellcheck|[0m [1;31m	read -p "GitHub URL for origin (e.g., 'git@github.com:you/repo.git'): " GITHUB_ORIGIN[0m
+[38;5;30mshellcheck|[0m [1;31m        ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 192:[0m
+[38;5;30mshellcheck|[0m [1;31m	read -p "Backend port [default: 8000]: " BACKEND_PORT[0m
+[38;5;30mshellcheck|[0m [1;31m        ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 195:[0m
+[38;5;30mshellcheck|[0m [1;31m	read -p "Website (Next.js) port [default: 3000]: " WEBSITE_PORT[0m
+[38;5;30mshellcheck|[0m [1;31m        ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 198:[0m
+[38;5;30mshellcheck|[0m [1;31m	read -p "Auth Frontend (Vite) port [default: 5173]: " AUTH_FRONTEND_PORT[0m
+[38;5;30mshellcheck|[0m [1;31m        ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 201:[0m
+[38;5;30mshellcheck|[0m [1;31m	read -p "PostgreSQL port [default: 5432]: " POSTGRES_PORT[0m
+[38;5;30mshellcheck|[0m [1;31m        ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 204:[0m
+[38;5;30mshellcheck|[0m [1;31m	read -p "Redis port [default: 6379]: " REDIS_PORT[0m
+[38;5;30mshellcheck|[0m [1;31m        ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 218:[0m
+[38;5;30mshellcheck|[0m [1;31m	read -p "Do you want to configure Celery? (y/n): " CONFIGURE_CELERY[0m
+[38;5;30mshellcheck|[0m [1;31m        ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 225:[0m
+[38;5;30mshellcheck|[0m [1;31m		read -p "Queue names: " CELERY_QUEUES[0m
+[38;5;30mshellcheck|[0m [1;31m                ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 231:[0m
+[38;5;30mshellcheck|[0m [1;31m			read -p "Enter Flower monitoring port [default: 5555]: " FLOWER_PORT[0m
+[38;5;30mshellcheck|[0m [1;31m                        ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 260:[0m
+[38;5;30mshellcheck|[0m [1;31m		read -p "Frontend name (e.g., 'admin-frontend') or Enter to finish: " FRONTEND_NAME[0m
+[38;5;30mshellcheck|[0m [1;31m                ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 280:[0m
+[38;5;30mshellcheck|[0m [1;31m		read -p "  Choice [1/2]: " FRAMEWORK_CHOICE[0m
+[38;5;30mshellcheck|[0m [1;31m                ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 285:[0m
+[38;5;30mshellcheck|[0m [1;31m			read -p "  Port [default: $NEXT_NEXTJS_PORT]: " FRONTEND_PORT[0m
+[38;5;30mshellcheck|[0m [1;31m                        ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 291:[0m
+[38;5;30mshellcheck|[0m [1;31m			read -p "  Port [default: $NEXT_VITE_PORT]: " FRONTEND_PORT[0m
+[38;5;30mshellcheck|[0m [1;31m                        ^--^ SC2162 (info): read without -r will mangle backslashes.[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mIn tools/setup-project line 426:[0m
+[38;5;30mshellcheck|[0m [1;31m	local pattern="${3:-*}"[0m
+[38;5;30mshellcheck|[0m [1;31m              ^-----^ SC2034 (warning): pattern appears unused. Verify use (or export if used externally).[0m
+[38;5;30mshellcheck|[0m [1;31m[0m
+[38;5;30mshellcheck|[0m [1;31mFor more information:[0m
+[38;5;30mshellcheck|[0m [1;31m  https://www.shellcheck.net/wiki/SC2034 -- pattern appears unused. Verify us...[0m
+[38;5;30mshellcheck|[0m [1;31m  https://www.shellcheck.net/wiki/SC2162 -- read without -r will mangle backs...[0m
+[38;5;117mmypy      |[0m [1;31mtools/update-ci-files.py:47: error: Item "None" of "Match[str] | None" has no attribute "group"  [union-attr][0m
+[38;5;117mmypy      |[0m [1;31mtools/update-ci-files.py:148: error: Incompatible types in assignment (expression has type "None", variable has type "str")  [assignment][0m
+[38;5;117mmypy      |[0m [1;31mtools/update-ci-files.py:151: error: Item "None" of "Match[str] | None" has no attribute "group"  [union-attr][0m
+[38;5;117mmypy      |[0m [1;31mtools/update-ci-files.py:196: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mtools/update-ci-files.py:196: note: Use "-> None" if function does not return a value[0m
+[38;5;117mmypy      |[0m [1;31mtools/update-tasks-json.py:22: error: Missing type parameters for generic type "dict"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mtools/update-tasks-json.py:34: error: Missing type parameters for generic type "dict"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mtools/update-tasks-json.py:189: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mtools/update-tasks-json.py:189: note: Use "-> None" if function does not return a value[0m
+[38;5;117mmypy      |[0m [1;31mtools/update-devcontainer-ports.py:26: error: Missing type parameters for generic type "dict"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mtools/update-devcontainer-ports.py:54: error: Missing type parameters for generic type "dict"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mtools/update-devcontainer-ports.py:56: error: Incompatible default for argument "flower_port" (default has type "None", argument has type "int")  [assignment][0m
+[38;5;117mmypy      |[0m [1;31mtools/update-devcontainer-ports.py:56: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True[0m
+[38;5;117mmypy      |[0m [1;31mtools/update-devcontainer-ports.py:56: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase[0m
+[38;5;117mmypy      |[0m [1;31mtools/update-devcontainer-ports.py:107: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mtools/update-devcontainer-ports.py:140: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mtools/update-devcontainer-ports.py:140: note: Use "-> None" if function does not return a value[0m
+[38;5;117mmypy      |[0m [1;31mtools/setup-celery.py:445: error: Missing type parameters for generic type "dict"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mtools/setup-celery.py:460: error: Incompatible types in assignment (expression has type "bool", target has type "Collection[str]")  [assignment][0m
+[38;5;117mmypy      |[0m [1;31mtools/setup-celery.py:527: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mtools/setup-celery.py:527: note: Use "-> None" if function does not return a value[0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/models.py:31: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/models.py:60: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/models.py:74: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/models.py:84: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/models.py:116: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/models.py:134: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/models.py:150: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/tasks/models.py:15: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/tasks/models.py:31: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/tasks/models.py:64: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/knowledge_base/models.py:14: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/knowledge_base/models.py:33: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/knowledge_base/models.py:51: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/models.py:77: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/models.py:123: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/models.py:172: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/models.py:195: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/models.py:226: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/models.py:252: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/models.py:286: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/models.py:328: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/models.py:384: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/models.py:441: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/models.py:488: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/models.py:519: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/crm/models.py:9: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/crm/models.py:23: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/crm/models.py:47: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/credentials/models.py:10: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/credentials/models.py:41: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/clients/models.py:38: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/clients/models.py:57: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/clients/models.py:89: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/clients/models.py:108: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/clients/models.py:124: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/management/commands/seed_marketing.py:21: error: Function is missing a type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/admin.py:9: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/admin.py:17: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/admin.py:24: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/admin.py:33: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/admin.py:39: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/admin.py:45: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/admin.py:52: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/tasks/admin.py:9: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/tasks/admin.py:14: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/tasks/admin.py:19: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/knowledge_base/admin.py:9: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/knowledge_base/admin.py:14: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/knowledge_base/admin.py:21: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/admin.py:22: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/admin.py:29: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/admin.py:36: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/admin.py:43: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/admin.py:49: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/admin.py:56: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/admin.py:62: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/admin.py:69: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/admin.py:76: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/admin.py:82: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/admin.py:88: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/infrastructure/admin.py:94: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/crm/admin.py:9: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/crm/admin.py:14: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/crm/admin.py:19: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/credentials/admin.py:9: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/credentials/admin.py:14: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/clients/admin.py:9: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/clients/admin.py:16: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/clients/admin.py:23: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/clients/admin.py:30: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/clients/admin.py:37: error: Missing type parameters for generic type "ModelAdmin"  [type-arg][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/views.py:36: error: Function is missing a type annotation for one or more arguments  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/views.py:50: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/views.py:78: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/views.py:100: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/views.py:123: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/views.py:136: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/views.py:187: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/views.py:196: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/views.py:204: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/views.py:218: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/views.py:247: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:42: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:62: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:93: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:134: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:163: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:204: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:218: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:244: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:276: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:300: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:332: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:346: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:366: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:389: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:412: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:426: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:445: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:466: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:487: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:501: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:514: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:549: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:562: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:598: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:612: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:633: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:658: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:683: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:697: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:727: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:761: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31mbackend/apps/website/ninja/admin_views.py:795: error: Function is missing a return type annotation  [no-untyped-def][0m
+[38;5;117mmypy      |[0m [1;31m[0m
+[38;5;117mmypy      |[0m [1;31mSee https://zulip.readthedocs.io/en/latest/testing/mypy.html for debugging tips.[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/clients/models.py:38:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m36 |         ordering = ["-created_at"][0m
+[32mruff      |[0m [1;31m37 |[0m
+[32mruff      |[0m [1;31m38 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m39 |         return self.company or self.name[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/clients/models.py:57:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m55 |         ordering = ["name"][0m
+[32mruff      |[0m [1;31m56 |[0m
+[32mruff      |[0m [1;31m57 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m58 |         return f"{self.name} ({self.client})"[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/clients/models.py:89:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m87 |         ordering = ["-start_date"][0m
+[32mruff      |[0m [1;31m88 |[0m
+[32mruff      |[0m [1;31m89 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m90 |         return f"{self.name} ({self.client})"[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/clients/models.py:108:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m106 |         ordering = ["-date"][0m
+[32mruff      |[0m [1;31m107 |[0m
+[32mruff      |[0m [1;31m108 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m109 |         return f"{self.project} - {self.date} ({self.duration_hours}h)"[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/clients/models.py:124:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m122 |         ordering = ["-created_at"][0m
+[32mruff      |[0m [1;31m123 |[0m
+[32mruff      |[0m [1;31m124 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m125 |         return f"Note on {self.project} - {self.created_at}"[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/credentials/models.py:10:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m 8 |     icon = models.CharField(max_length=50, blank=True)[0m
+[32mruff      |[0m [1;31m 9 |[0m
+[32mruff      |[0m [1;31m10 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m11 |         return self.name[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/credentials/models.py:41:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m39 |         ordering = ["-created_at"][0m
+[32mruff      |[0m [1;31m40 |[0m
+[32mruff      |[0m [1;31m41 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m42 |         return self.name[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/crm/models.py:9:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m 7 |     name = models.CharField(max_length=100, unique=True)[0m
+[32mruff      |[0m [1;31m 8 |[0m
+[32mruff      |[0m [1;31m 9 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m10 |         return self.name[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/crm/models.py:23:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m21 |         verbose_name_plural = "Lead Statuses"[0m
+[32mruff      |[0m [1;31m22 |[0m
+[32mruff      |[0m [1;31m23 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m24 |         return self.name[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/crm/models.py:47:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m45 |         ordering = ["-created_at"][0m
+[32mruff      |[0m [1;31m46 |[0m
+[32mruff      |[0m [1;31m47 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m48 |         return self.name[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/infrastructure/models.py:77:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m75 |         ordering = ["hostname"][0m
+[32mruff      |[0m [1;31m76 |[0m
+[32mruff      |[0m [1;31m77 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m78 |         return self.hostname[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/infrastructure/models.py:123:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m121 |         verbose_name_plural = "Databases"[0m
+[32mruff      |[0m [1;31m122 |[0m
+[32mruff      |[0m [1;31m123 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m124 |         return self.name[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/infrastructure/models.py:172:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m170 |         ordering = ["-created_at"][0m
+[32mruff      |[0m [1;31m171 |[0m
+[32mruff      |[0m [1;31m172 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m173 |         return self.name[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/infrastructure/models.py:195:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m193 |         unique_together = ("website", "technology")[0m
+[32mruff      |[0m [1;31m194 |[0m
+[32mruff      |[0m [1;31m195 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m196 |         return f"{self.website} - {self.technology}"[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/infrastructure/models.py:226:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m224 |         ordering = ["domain_name"][0m
+[32mruff      |[0m [1;31m225 |[0m
+[32mruff      |[0m [1;31m226 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m227 |         return self.domain_name[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/infrastructure/models.py:252:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m250 |         ordering = ["domain"][0m
+[32mruff      |[0m [1;31m251 |[0m
+[32mruff      |[0m [1;31m252 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m253 |         return f"{self.domain} SSL"[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/infrastructure/models.py:286:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m284 |         ordering = ["-renewal_date"][0m
+[32mruff      |[0m [1;31m285 |[0m
+[32mruff      |[0m [1;31m286 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m287 |         return self.name[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/infrastructure/models.py:328:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m326 |         ordering = ["-created_at"][0m
+[32mruff      |[0m [1;31m327 |[0m
+[32mruff      |[0m [1;31m328 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m329 |         return self.name[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/infrastructure/models.py:384:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m382 |         ordering = ["-created_at"][0m
+[32mruff      |[0m [1;31m383 |[0m
+[32mruff      |[0m [1;31m384 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m385 |         return self.name[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/infrastructure/models.py:441:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m439 |         ordering = ["-created_at"][0m
+[32mruff      |[0m [1;31m440 |[0m
+[32mruff      |[0m [1;31m441 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m442 |         return self.name[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/infrastructure/models.py:488:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m486 |         ordering = ["-created_at"][0m
+[32mruff      |[0m [1;31m487 |[0m
+[32mruff      |[0m [1;31m488 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m489 |         return self.name[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/infrastructure/models.py:519:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m517 |         ordering = ["-created_at"][0m
+[32mruff      |[0m [1;31m518 |[0m
+[32mruff      |[0m [1;31m519 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m520 |         return f"{self.provider} Email System"[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/knowledge_base/models.py:14:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m12 |         ordering = ["order"][0m
+[32mruff      |[0m [1;31m13 |[0m
+[32mruff      |[0m [1;31m14 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m15 |         return self.name[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/knowledge_base/models.py:33:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m31 |         ordering = ["-updated_at"][0m
+[32mruff      |[0m [1;31m32 |[0m
+[32mruff      |[0m [1;31m33 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m34 |         return self.title[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/knowledge_base/models.py:51:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m49 |         ordering = ["-version_number"][0m
+[32mruff      |[0m [1;31m50 |[0m
+[32mruff      |[0m [1;31m51 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m52 |         return f"{self.document} - v{self.version_number}"[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/tasks/models.py:15:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m13 |         verbose_name_plural = "Task Statuses"[0m
+[32mruff      |[0m [1;31m14 |[0m
+[32mruff      |[0m [1;31m15 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m16 |         return self.name[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/tasks/models.py:31:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m29 |         ordering = ["-created_at"][0m
+[32mruff      |[0m [1;31m30 |[0m
+[32mruff      |[0m [1;31m31 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m32 |         return self.name[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/tasks/models.py:64:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m62 |         ordering = ["-created_at"][0m
+[32mruff      |[0m [1;31m63 |[0m
+[32mruff      |[0m [1;31m64 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m65 |         return self.title[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `handle`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/website/management/commands/seed_marketing.py:21:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m19 |     help = "Seed marketing content (portfolio, blog, FAQs, testimonials)."[0m
+[32mruff      |[0m [1;31m20 |[0m
+[32mruff      |[0m [1;31m21 |     def handle(self, *args, **options):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^[0m
+[32mruff      |[0m [1;31m22 |         lead_status, _ = LeadStatus.objects.get_or_create(name="New", defaults={"order": 0})[0m
+[32mruff      |[0m [1;31m23 |         lead_source, _ = LeadSource.objects.get_or_create(name="Contact Form")[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `None`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN002 Missing type annotation for `*args`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/website/management/commands/seed_marketing.py:21:22[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m19 |     help = "Seed marketing content (portfolio, blog, FAQs, testimonials)."[0m
+[32mruff      |[0m [1;31m20 |[0m
+[32mruff      |[0m [1;31m21 |     def handle(self, *args, **options):[0m
+[32mruff      |[0m [1;31m   |                      ^^^^^[0m
+[32mruff      |[0m [1;31m22 |         lead_status, _ = LeadStatus.objects.get_or_create(name="New", defaults={"order": 0})[0m
+[32mruff      |[0m [1;31m23 |         lead_source, _ = LeadSource.objects.get_or_create(name="Contact Form")[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN003 Missing type annotation for `**options`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/website/management/commands/seed_marketing.py:21:29[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m19 |     help = "Seed marketing content (portfolio, blog, FAQs, testimonials)."[0m
+[32mruff      |[0m [1;31m20 |[0m
+[32mruff      |[0m [1;31m21 |     def handle(self, *args, **options):[0m
+[32mruff      |[0m [1;31m   |                             ^^^^^^^^^[0m
+[32mruff      |[0m [1;31m22 |         lead_status, _ = LeadStatus.objects.get_or_create(name="New", defaults={"order": 0})[0m
+[32mruff      |[0m [1;31m23 |         lead_source, _ = LeadSource.objects.get_or_create(name="Contact Form")[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/website/models.py:31:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m29 |         ordering = ["-created_at"][0m
+[32mruff      |[0m [1;31m30 |[0m
+[32mruff      |[0m [1;31m31 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m32 |         return self.title[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/website/models.py:60:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m58 |         ordering = ["-created_at"][0m
+[32mruff      |[0m [1;31m59 |[0m
+[32mruff      |[0m [1;31m60 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m61 |         return f"{self.client_name} - {self.company}"[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/website/models.py:74:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m72 |         verbose_name_plural = "Blog Categories"[0m
+[32mruff      |[0m [1;31m73 |[0m
+[32mruff      |[0m [1;31m74 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m75 |         return self.name[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/website/models.py:84:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m82 |     slug = models.SlugField(unique=True)[0m
+[32mruff      |[0m [1;31m83 |[0m
+[32mruff      |[0m [1;31m84 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m85 |         return self.name[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/models.py:116:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m114 |         ordering = ["-published_at", "-created_at"][0m
+[32mruff      |[0m [1;31m115 |[0m
+[32mruff      |[0m [1;31m116 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m117 |         return self.title[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/models.py:134:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m132 |         ordering = ["order"][0m
+[32mruff      |[0m [1;31m133 |[0m
+[32mruff      |[0m [1;31m134 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m135 |         return self.question[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN204 Missing return type annotation for special method `__str__`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/models.py:150:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m148 |         verbose_name_plural = "FAQ Categories"[0m
+[32mruff      |[0m [1;31m149 |[0m
+[32mruff      |[0m [1;31m150 |     def __str__(self):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^[0m
+[32mruff      |[0m [1;31m151 |         return self.name[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `str`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `require_staff`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/website/ninja/admin_views.py:42:5[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m42 | def require_staff(request: HttpRequest):[0m
+[32mruff      |[0m [1;31m   |     ^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m43 |     if not request.user.is_authenticated:[0m
+[32mruff      |[0m [1;31m44 |         return 401, {[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_list_portfolio`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/website/ninja/admin_views.py:62:5[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m60 |     response={200: list[PortfolioOut], 401: ProblemDetail, 403: ProblemDetail},[0m
+[32mruff      |[0m [1;31m61 | )[0m
+[32mruff      |[0m [1;31m62 | def admin_list_portfolio(request: HttpRequest):[0m
+[32mruff      |[0m [1;31m   |     ^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m63 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m64 |     if auth_error:[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_create_portfolio`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/website/ninja/admin_views.py:93:5[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m91 |     response={200: PortfolioOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail},[0m
+[32mruff      |[0m [1;31m92 | )[0m
+[32mruff      |[0m [1;31m93 | def admin_create_portfolio(request: HttpRequest, payload: PortfolioIn):[0m
+[32mruff      |[0m [1;31m   |     ^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m94 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m95 |     if auth_error:[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_get_portfolio`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:134:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m132 |     response={200: PortfolioOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m133 | )[0m
+[32mruff      |[0m [1;31m134 | def admin_get_portfolio(request: HttpRequest, portfolio_id: int):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m135 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m136 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_update_portfolio`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:163:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m161 |     response={200: PortfolioOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m162 | )[0m
+[32mruff      |[0m [1;31m163 | def admin_update_portfolio(request: HttpRequest, portfolio_id: int, payload: PortfolioIn):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m164 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m165 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_delete_portfolio`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:204:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m202 |     response={200: StatusResponse, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m203 | )[0m
+[32mruff      |[0m [1;31m204 | def admin_delete_portfolio(request: HttpRequest, portfolio_id: int):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m205 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m206 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_list_testimonials`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:218:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m216 |     response={200: list[TestimonialOut], 401: ProblemDetail, 403: ProblemDetail},[0m
+[32mruff      |[0m [1;31m217 | )[0m
+[32mruff      |[0m [1;31m218 | def admin_list_testimonials(request: HttpRequest):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m219 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m220 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_create_testimonial`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:244:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m242 |     response={200: TestimonialOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail},[0m
+[32mruff      |[0m [1;31m243 | )[0m
+[32mruff      |[0m [1;31m244 | def admin_create_testimonial(request: HttpRequest, payload: TestimonialIn):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m245 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m246 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_get_testimonial`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:276:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m274 |     response={200: TestimonialOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m275 | )[0m
+[32mruff      |[0m [1;31m276 | def admin_get_testimonial(request: HttpRequest, testimonial_id: int):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m277 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m278 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_update_testimonial`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:300:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m298 |     response={200: TestimonialOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m299 | )[0m
+[32mruff      |[0m [1;31m300 | def admin_update_testimonial(request: HttpRequest, testimonial_id: int, payload: TestimonialIn):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m301 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m302 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_delete_testimonial`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:332:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m330 |     response={200: StatusResponse, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m331 | )[0m
+[32mruff      |[0m [1;31m332 | def admin_delete_testimonial(request: HttpRequest, testimonial_id: int):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m333 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m334 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_list_blog_categories`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:346:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m344 |     response={200: list[BlogCategoryOut], 401: ProblemDetail, 403: ProblemDetail},[0m
+[32mruff      |[0m [1;31m345 | )[0m
+[32mruff      |[0m [1;31m346 | def admin_list_blog_categories(request: HttpRequest):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m347 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m348 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_create_blog_category`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:366:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m364 |     response={200: BlogCategoryOut, 401: ProblemDetail, 403: ProblemDetail},[0m
+[32mruff      |[0m [1;31m365 | )[0m
+[32mruff      |[0m [1;31m366 | def admin_create_blog_category(request: HttpRequest, payload: BlogCategoryIn):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m367 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m368 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_update_blog_category`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:389:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m387 |     response={200: BlogCategoryOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m388 | )[0m
+[32mruff      |[0m [1;31m389 | def admin_update_blog_category(request: HttpRequest, category_id: int, payload: BlogCategoryIn):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m390 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m391 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_delete_blog_category`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:412:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m410 |     response={200: StatusResponse, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m411 | )[0m
+[32mruff      |[0m [1;31m412 | def admin_delete_blog_category(request: HttpRequest, category_id: int):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m413 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m414 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_list_blog_tags`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:426:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m424 |     response={200: list[BlogTagOut], 401: ProblemDetail, 403: ProblemDetail},[0m
+[32mruff      |[0m [1;31m425 | )[0m
+[32mruff      |[0m [1;31m426 | def admin_list_blog_tags(request: HttpRequest):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m427 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m428 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_create_blog_tag`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:445:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m443 |     response={200: BlogTagOut, 401: ProblemDetail, 403: ProblemDetail},[0m
+[32mruff      |[0m [1;31m444 | )[0m
+[32mruff      |[0m [1;31m445 | def admin_create_blog_tag(request: HttpRequest, payload: BlogTagIn):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m446 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m447 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_update_blog_tag`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:466:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m464 |     response={200: BlogTagOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m465 | )[0m
+[32mruff      |[0m [1;31m466 | def admin_update_blog_tag(request: HttpRequest, tag_id: int, payload: BlogTagIn):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m467 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m468 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_delete_blog_tag`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:487:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m485 |     response={200: StatusResponse, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m486 | )[0m
+[32mruff      |[0m [1;31m487 | def admin_delete_blog_tag(request: HttpRequest, tag_id: int):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m488 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m489 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_list_blog_posts`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:501:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m499 |     response={200: list[BlogPostOut], 401: ProblemDetail, 403: ProblemDetail},[0m
+[32mruff      |[0m [1;31m500 | )[0m
+[32mruff      |[0m [1;31m501 | def admin_list_blog_posts(request: HttpRequest):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m502 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m503 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_create_blog_post`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:514:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m512 |     response={200: BlogPostOut, 401: ProblemDetail, 403: ProblemDetail, 400: ProblemDetail},[0m
+[32mruff      |[0m [1;31m513 | )[0m
+[32mruff      |[0m [1;31m514 | def admin_create_blog_post(request: HttpRequest, payload: BlogPostIn):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m515 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m516 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_get_blog_post`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:549:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m547 |     response={200: BlogPostOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m548 | )[0m
+[32mruff      |[0m [1;31m549 | def admin_get_blog_post(request: HttpRequest, post_id: int):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m550 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m551 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_update_blog_post`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:562:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m560 |     response={200: BlogPostOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m561 | )[0m
+[32mruff      |[0m [1;31m562 | def admin_update_blog_post(request: HttpRequest, post_id: int, payload: BlogPostIn):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m563 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m564 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_delete_blog_post`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:598:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m596 |     response={200: StatusResponse, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m597 | )[0m
+[32mruff      |[0m [1;31m598 | def admin_delete_blog_post(request: HttpRequest, post_id: int):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m599 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m600 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_list_faq_categories`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:612:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m610 |     response={200: list[FAQCategoryOut], 401: ProblemDetail, 403: ProblemDetail},[0m
+[32mruff      |[0m [1;31m611 | )[0m
+[32mruff      |[0m [1;31m612 | def admin_list_faq_categories(request: HttpRequest):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m613 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m614 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_create_faq_category`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:633:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m631 |     response={200: FAQCategoryOut, 401: ProblemDetail, 403: ProblemDetail},[0m
+[32mruff      |[0m [1;31m632 | )[0m
+[32mruff      |[0m [1;31m633 | def admin_create_faq_category(request: HttpRequest, payload: FAQCategoryIn):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m634 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m635 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_update_faq_category`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:658:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m656 |     response={200: FAQCategoryOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m657 | )[0m
+[32mruff      |[0m [1;31m658 | def admin_update_faq_category(request: HttpRequest, category_id: int, payload: FAQCategoryIn):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m659 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m660 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_delete_faq_category`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:683:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m681 |     response={200: StatusResponse, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m682 | )[0m
+[32mruff      |[0m [1;31m683 | def admin_delete_faq_category(request: HttpRequest, category_id: int):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m684 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m685 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_list_faqs`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:697:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m695 |     response={200: list[FAQOut], 401: ProblemDetail, 403: ProblemDetail},[0m
+[32mruff      |[0m [1;31m696 | )[0m
+[32mruff      |[0m [1;31m697 | def admin_list_faqs(request: HttpRequest):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m698 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m699 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_create_faq`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:727:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m725 |     response={200: FAQOut, 401: ProblemDetail, 403: ProblemDetail},[0m
+[32mruff      |[0m [1;31m726 | )[0m
+[32mruff      |[0m [1;31m727 | def admin_create_faq(request: HttpRequest, payload: FAQIn):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m728 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m729 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_update_faq`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:761:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m759 |     response={200: FAQOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m760 | )[0m
+[32mruff      |[0m [1;31m761 | def admin_update_faq(request: HttpRequest, faq_id: int, payload: FAQIn):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m762 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m763 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `admin_delete_faq`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/admin_views.py:795:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m793 |     response={200: StatusResponse, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},[0m
+[32mruff      |[0m [1;31m794 | )[0m
+[32mruff      |[0m [1;31m795 | def admin_delete_faq(request: HttpRequest, faq_id: int):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m796 |     auth_error = require_staff(request)[0m
+[32mruff      |[0m [1;31m797 |     if auth_error:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN001 Missing type annotation for function argument `image_field`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/website/ninja/views.py:36:43[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m36 | def build_image_url(request: HttpRequest, image_field) -> str | None:[0m
+[32mruff      |[0m [1;31m   |                                           ^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m37 |     if not image_field:[0m
+[32mruff      |[0m [1;31m38 |         return None[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `list_portfolio`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/website/ninja/views.py:50:5[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m49 | @website_public_router.get("/portfolio", response=list[PortfolioOut])[0m
+[32mruff      |[0m [1;31m50 | def list_portfolio(request: HttpRequest, featured: bool | None = None):[0m
+[32mruff      |[0m [1;31m   |     ^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m51 |     qs = Portfolio.objects.all()[0m
+[32mruff      |[0m [1;31m52 |     if featured is not None:[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `get_portfolio`[0m
+[32mruff      |[0m [1;31m  --> backend/apps/website/ninja/views.py:78:5[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m77 | @website_public_router.get("/portfolio/{slug}", response={200: PortfolioOut, 404: ProblemDetail})[0m
+[32mruff      |[0m [1;31m78 | def get_portfolio(request: HttpRequest, slug: str):[0m
+[32mruff      |[0m [1;31m   |     ^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m79 |     item = get_object_or_404(Portfolio, slug=slug)[0m
+[32mruff      |[0m [1;31m80 |     return 200, PortfolioOut([0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `list_testimonials`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/views.py:100:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m 99 | @website_public_router.get("/testimonials", response=list[TestimonialOut])[0m
+[32mruff      |[0m [1;31m100 | def list_testimonials(request: HttpRequest, featured: bool | None = None):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m101 |     qs = Testimonial.objects.all()[0m
+[32mruff      |[0m [1;31m102 |     if featured is not None:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `list_blog_categories`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/views.py:123:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m122 | @website_public_router.get("/blog/categories", response=list[BlogCategoryOut])[0m
+[32mruff      |[0m [1;31m123 | def list_blog_categories(request: HttpRequest):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m124 |     return [[0m
+[32mruff      |[0m [1;31m125 |         BlogCategoryOut([0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `list_blog_tags`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/views.py:136:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m135 | @website_public_router.get("/blog/tags", response=list[BlogTagOut])[0m
+[32mruff      |[0m [1;31m136 | def list_blog_tags(request: HttpRequest):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m137 |     return [[0m
+[32mruff      |[0m [1;31m138 |         BlogTagOut([0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `list_blog_posts`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/views.py:187:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m186 | @website_public_router.get("/blog/posts", response=list[BlogPostOut])[0m
+[32mruff      |[0m [1;31m187 | def list_blog_posts(request: HttpRequest, featured: bool | None = None):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m188 |     qs = BlogPost.objects.filter(published=True).prefetch_related("categories", "tags")[0m
+[32mruff      |[0m [1;31m189 |     if featured is not None:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `get_blog_post`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/views.py:196:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m195 | @website_public_router.get("/blog/posts/{slug}", response={200: BlogPostOut, 404: ProblemDetail})[0m
+[32mruff      |[0m [1;31m196 | def get_blog_post(request: HttpRequest, slug: str):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m197 |     post = get_object_or_404([0m
+[32mruff      |[0m [1;31m198 |         BlogPost.objects.prefetch_related("categories", "tags"), slug=slug, published=True[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `list_faq_categories`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/views.py:204:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m203 | @website_public_router.get("/faqs/categories", response=list[FAQCategoryOut])[0m
+[32mruff      |[0m [1;31m204 | def list_faq_categories(request: HttpRequest):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m205 |     return [[0m
+[32mruff      |[0m [1;31m206 |         FAQCategoryOut([0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `list_faqs`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/views.py:218:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m217 | @website_public_router.get("/faqs", response=list[FAQOut])[0m
+[32mruff      |[0m [1;31m218 | def list_faqs(request: HttpRequest, category: str | None = None):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^[0m
+[32mruff      |[0m [1;31m219 |     qs = FAQ.objects.select_related("category").all()[0m
+[32mruff      |[0m [1;31m220 |     if category:[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `submit_contact_form`[0m
+[32mruff      |[0m [1;31m   --> backend/apps/website/ninja/views.py:247:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m245 |     response={200: StatusResponse, 400: ProblemDetail, 500: ProblemDetail},[0m
+[32mruff      |[0m [1;31m246 | )[0m
+[32mruff      |[0m [1;31m247 | def submit_contact_form(request: HttpRequest, payload: ContactRequest):[0m
+[32mruff      |[0m [1;31m    |     ^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m248 |     try:[0m
+[32mruff      |[0m [1;31m249 |         status, _ = LeadStatus.objects.get_or_create(name="New", defaults={"order": 0})[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mN999 Invalid module name: 'setup-celery'[0m
+[32mruff      |[0m [1;31m--> tools/setup-celery.py:1:1[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mS608 Possible SQL injection vector through string-based query construction[0m
+[32mruff      |[0m [1;31m   --> tools/setup-celery.py:227:22[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m225 |       # Dockerfile.celery-worker[0m
+[32mruff      |[0m [1;31m226 |       worker_dockerfile = project_root / "Dockerfile.celery-worker"[0m
+[32mruff      |[0m [1;31m227 |       worker_content = f"""# Use official Python base image with slimmed down Debian base[0m
+[32mruff      |[0m [1;31m    |  ______________________^[0m
+[32mruff      |[0m [1;31m228 | | FROM python:3.12-slim[0m
+[32mruff      |[0m [1;31m229 | |[0m
+[32mruff      |[0m [1;31m230 | | # Environment variables[0m
+[32mruff      |[0m [1;31m231 | | ENV PYTHONDONTWRITEBYTECODE=1 \\[0m
+[32mruff      |[0m [1;31m232 | |     PYTHONUNBUFFERED=1 \\[0m
+[32mruff      |[0m [1;31m233 | |     PIP_DISABLE_PIP_VERSION_CHECK=1 \\[0m
+[32mruff      |[0m [1;31m234 | |     LANG=C.UTF-8[0m
+[32mruff      |[0m [1;31m235 | |[0m
+[32mruff      |[0m [1;31m236 | | # System dependencies[0m
+[32mruff      |[0m [1;31m237 | | RUN apt-get update && apt-get install -y --no-install-recommends \\[0m
+[32mruff      |[0m [1;31m238 | |     build-essential \\[0m
+[32mruff      |[0m [1;31m239 | |     libpq-dev \\[0m
+[32mruff      |[0m [1;31m240 | |     gcc \\[0m
+[32mruff      |[0m [1;31m241 | |     curl \\[0m
+[32mruff      |[0m [1;31m242 | |     libffi-dev \\[0m
+[32mruff      |[0m [1;31m243 | |     libxml2-dev \\[0m
+[32mruff      |[0m [1;31m244 | |     libxslt1-dev \\[0m
+[32mruff      |[0m [1;31m245 | |     libjpeg-dev \\[0m
+[32mruff      |[0m [1;31m246 | |     zlib1g-dev \\[0m
+[32mruff      |[0m [1;31m247 | |     libcairo2 \\[0m
+[32mruff      |[0m [1;31m248 | |     libcairo2-dev \\[0m
+[32mruff      |[0m [1;31m249 | |     fontconfig \\[0m
+[32mruff      |[0m [1;31m250 | |     # WeasyPrint dependencies for PDF generation[0m
+[32mruff      |[0m [1;31m251 | |     libpango-1.0-0 \\[0m
+[32mruff      |[0m [1;31m252 | |     libpangocairo-1.0-0 \\[0m
+[32mruff      |[0m [1;31m253 | |     libgdk-pixbuf-2.0-0 \\[0m
+[32mruff      |[0m [1;31m254 | |     shared-mime-info \\[0m
+[32mruff      |[0m [1;31m255 | |     && apt-get clean \\[0m
+[32mruff      |[0m [1;31m256 | |     && rm -rf /var/lib/apt/lists/*[0m
+[32mruff      |[0m [1;31m257 | |[0m
+[32mruff      |[0m [1;31m258 | | # Install Python dependencies[0m
+[32mruff      |[0m [1;31m259 | | COPY backend/requirements/prod.txt /app/requirements.txt[0m
+[32mruff      |[0m [1;31m260 | | RUN pip install --no-cache-dir -r /app/requirements.txt[0m
+[32mruff      |[0m [1;31m261 | |[0m
+[32mruff      |[0m [1;31m262 | | # Set working directory[0m
+[32mruff      |[0m [1;31m263 | | WORKDIR /opt/{slug_name}[0m
+[32mruff      |[0m [1;31m264 | |[0m
+[32mruff      |[0m [1;31m265 | | # Copy project code (backend directory contents)[0m
+[32mruff      |[0m [1;31m266 | | COPY ./backend/ .[0m
+[32mruff      |[0m [1;31m267 | |[0m
+[32mruff      |[0m [1;31m268 | | # Copy health check scripts into the image[0m
+[32mruff      |[0m [1;31m269 | | COPY docker/healthchecks/celery_*.py /opt/healthchecks/[0m
+[32mruff      |[0m [1;31m270 | |[0m
+[32mruff      |[0m [1;31m271 | | COPY ./entrypoint-celery-worker.sh /entrypoint-celery-worker.sh[0m
+[32mruff      |[0m [1;31m272 | | RUN chmod +x /entrypoint-celery-worker.sh[0m
+[32mruff      |[0m [1;31m273 | |[0m
+[32mruff      |[0m [1;31m274 | | ENTRYPOINT [ "/entrypoint-celery-worker.sh" ][0m
+[32mruff      |[0m [1;31m275 | | """[0m
+[32mruff      |[0m [1;31m    | |___^[0m
+[32mruff      |[0m [1;31m276 |       worker_dockerfile.write_text(worker_content)[0m
+[32mruff      |[0m [1;31m277 |       print(f"  ✓ Created {worker_dockerfile.name}")[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mS608 Possible SQL injection vector through string-based query construction[0m
+[32mruff      |[0m [1;31m   --> tools/setup-celery.py:281:20[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m279 |       # Dockerfile.celery-beat[0m
+[32mruff      |[0m [1;31m280 |       beat_dockerfile = project_root / "Dockerfile.celery-beat"[0m
+[32mruff      |[0m [1;31m281 |       beat_content = f"""# Use official Python base image with slimmed down Debian base[0m
+[32mruff      |[0m [1;31m    |  ____________________^[0m
+[32mruff      |[0m [1;31m282 | | FROM python:3.12-slim[0m
+[32mruff      |[0m [1;31m283 | |[0m
+[32mruff      |[0m [1;31m284 | | # Environment variables[0m
+[32mruff      |[0m [1;31m285 | | ENV PYTHONDONTWRITEBYTECODE=1 \\[0m
+[32mruff      |[0m [1;31m286 | |     PYTHONUNBUFFERED=1 \\[0m
+[32mruff      |[0m [1;31m287 | |     PIP_DISABLE_PIP_VERSION_CHECK=1 \\[0m
+[32mruff      |[0m [1;31m288 | |     LANG=C.UTF-8[0m
+[32mruff      |[0m [1;31m289 | |[0m
+[32mruff      |[0m [1;31m290 | | # System dependencies[0m
+[32mruff      |[0m [1;31m291 | | RUN apt-get update && apt-get install -y --no-install-recommends \\[0m
+[32mruff      |[0m [1;31m292 | |     build-essential \\[0m
+[32mruff      |[0m [1;31m293 | |     libpq-dev \\[0m
+[32mruff      |[0m [1;31m294 | |     gcc \\[0m
+[32mruff      |[0m [1;31m295 | |     curl \\[0m
+[32mruff      |[0m [1;31m296 | |     libffi-dev \\[0m
+[32mruff      |[0m [1;31m297 | |     libxml2-dev \\[0m
+[32mruff      |[0m [1;31m298 | |     libxslt1-dev \\[0m
+[32mruff      |[0m [1;31m299 | |     libjpeg-dev \\[0m
+[32mruff      |[0m [1;31m300 | |     zlib1g-dev \\[0m
+[32mruff      |[0m [1;31m301 | |     libcairo2 \\[0m
+[32mruff      |[0m [1;31m302 | |     libcairo2-dev \\[0m
+[32mruff      |[0m [1;31m303 | |     fontconfig \\[0m
+[32mruff      |[0m [1;31m304 | |     procps \\[0m
+[32mruff      |[0m [1;31m305 | |     # WeasyPrint dependencies for PDF generation[0m
+[32mruff      |[0m [1;31m306 | |     libpango-1.0-0 \\[0m
+[32mruff      |[0m [1;31m307 | |     libpangocairo-1.0-0 \\[0m
+[32mruff      |[0m [1;31m308 | |     libgdk-pixbuf-2.0-0 \\[0m
+[32mruff      |[0m [1;31m309 | |     shared-mime-info \\[0m
+[32mruff      |[0m [1;31m310 | |     && apt-get clean \\[0m
+[32mruff      |[0m [1;31m311 | |     && rm -rf /var/lib/apt/lists/*[0m
+[32mruff      |[0m [1;31m312 | |[0m
+[32mruff      |[0m [1;31m313 | | # Install Python dependencies[0m
+[32mruff      |[0m [1;31m314 | | COPY backend/requirements/prod.txt /app/requirements.txt[0m
+[32mruff      |[0m [1;31m315 | | RUN pip install --no-cache-dir -r /app/requirements.txt[0m
+[32mruff      |[0m [1;31m316 | |[0m
+[32mruff      |[0m [1;31m317 | | # Set working directory[0m
+[32mruff      |[0m [1;31m318 | | WORKDIR /opt/{slug_name}[0m
+[32mruff      |[0m [1;31m319 | |[0m
+[32mruff      |[0m [1;31m320 | | # Copy project code (backend directory contents)[0m
+[32mruff      |[0m [1;31m321 | | COPY ./backend/ .[0m
+[32mruff      |[0m [1;31m322 | |[0m
+[32mruff      |[0m [1;31m323 | | CMD ["celery", "-A", "{python_name}", "beat", "-l", "INFO"][0m
+[32mruff      |[0m [1;31m324 | | """[0m
+[32mruff      |[0m [1;31m    | |___^[0m
+[32mruff      |[0m [1;31m325 |       beat_dockerfile.write_text(beat_content)[0m
+[32mruff      |[0m [1;31m326 |       print(f"  ✓ Created {beat_dockerfile.name}")[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mS608 Possible SQL injection vector through string-based query construction[0m
+[32mruff      |[0m [1;31m   --> tools/setup-celery.py:330:22[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m328 |       # Dockerfile.flower[0m
+[32mruff      |[0m [1;31m329 |       flower_dockerfile = project_root / "Dockerfile.flower"[0m
+[32mruff      |[0m [1;31m330 |       flower_content = f"""# Use official Python base image with slimmed down Debian base[0m
+[32mruff      |[0m [1;31m    |  ______________________^[0m
+[32mruff      |[0m [1;31m331 | | FROM python:3.12-slim[0m
+[32mruff      |[0m [1;31m332 | |[0m
+[32mruff      |[0m [1;31m333 | | # Environment variables[0m
+[32mruff      |[0m [1;31m334 | | ENV PYTHONDONTWRITEBYTECODE=1 \\[0m
+[32mruff      |[0m [1;31m335 | |     PYTHONUNBUFFERED=1 \\[0m
+[32mruff      |[0m [1;31m336 | |     PIP_DISABLE_PIP_VERSION_CHECK=1 \\[0m
+[32mruff      |[0m [1;31m337 | |     LANG=C.UTF-8[0m
+[32mruff      |[0m [1;31m338 | |[0m
+[32mruff      |[0m [1;31m339 | | # System dependencies[0m
+[32mruff      |[0m [1;31m340 | | RUN apt-get update && apt-get install -y --no-install-recommends \\[0m
+[32mruff      |[0m [1;31m341 | |     build-essential \\[0m
+[32mruff      |[0m [1;31m342 | |     libpq-dev \\[0m
+[32mruff      |[0m [1;31m343 | |     gcc \\[0m
+[32mruff      |[0m [1;31m344 | |     curl \\[0m
+[32mruff      |[0m [1;31m345 | |     libffi-dev \\[0m
+[32mruff      |[0m [1;31m346 | |     libxml2-dev \\[0m
+[32mruff      |[0m [1;31m347 | |     libxslt1-dev \\[0m
+[32mruff      |[0m [1;31m348 | |     libjpeg-dev \\[0m
+[32mruff      |[0m [1;31m349 | |     zlib1g-dev \\[0m
+[32mruff      |[0m [1;31m350 | |     libcairo2 \\[0m
+[32mruff      |[0m [1;31m351 | |     libcairo2-dev \\[0m
+[32mruff      |[0m [1;31m352 | |     fontconfig \\[0m
+[32mruff      |[0m [1;31m353 | |     procps \\[0m
+[32mruff      |[0m [1;31m354 | |     # WeasyPrint dependencies for PDF generation[0m
+[32mruff      |[0m [1;31m355 | |     libpango-1.0-0 \\[0m
+[32mruff      |[0m [1;31m356 | |     libpangocairo-1.0-0 \\[0m
+[32mruff      |[0m [1;31m357 | |     libgdk-pixbuf-2.0-0 \\[0m
+[32mruff      |[0m [1;31m358 | |     shared-mime-info \\[0m
+[32mruff      |[0m [1;31m359 | |     && apt-get clean \\[0m
+[32mruff      |[0m [1;31m360 | |     && rm -rf /var/lib/apt/lists/*[0m
+[32mruff      |[0m [1;31m361 | |[0m
+[32mruff      |[0m [1;31m362 | | # Install Python dependencies[0m
+[32mruff      |[0m [1;31m363 | | COPY backend/requirements/prod.txt /app/requirements.txt[0m
+[32mruff      |[0m [1;31m364 | | RUN pip install --no-cache-dir -r /app/requirements.txt[0m
+[32mruff      |[0m [1;31m365 | |[0m
+[32mruff      |[0m [1;31m366 | | # Set working directory[0m
+[32mruff      |[0m [1;31m367 | | WORKDIR /opt/{slug_name}[0m
+[32mruff      |[0m [1;31m368 | |[0m
+[32mruff      |[0m [1;31m369 | | # Copy project code (backend directory contents)[0m
+[32mruff      |[0m [1;31m370 | | COPY ./backend/ .[0m
+[32mruff      |[0m [1;31m371 | |[0m
+[32mruff      |[0m [1;31m372 | | # Expose port for Flower[0m
+[32mruff      |[0m [1;31m373 | | EXPOSE 5555[0m
+[32mruff      |[0m [1;31m374 | |[0m
+[32mruff      |[0m [1;31m375 | | COPY ./entrypoint-flower.sh /entrypoint-flower.sh[0m
+[32mruff      |[0m [1;31m376 | | RUN chmod +x /entrypoint-flower.sh[0m
+[32mruff      |[0m [1;31m377 | |[0m
+[32mruff      |[0m [1;31m378 | | ENTRYPOINT ["/entrypoint-flower.sh"][0m
+[32mruff      |[0m [1;31m379 | | """[0m
+[32mruff      |[0m [1;31m    | |___^[0m
+[32mruff      |[0m [1;31m380 |       flower_dockerfile.write_text(flower_content)[0m
+[32mruff      |[0m [1;31m381 |       print(f"  ✓ Created {flower_dockerfile.name}")[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `main`[0m
+[32mruff      |[0m [1;31m   --> tools/setup-celery.py:527:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m527 | def main():[0m
+[32mruff      |[0m [1;31m    |     ^^^^[0m
+[32mruff      |[0m [1;31m528 |     parser = argparse.ArgumentParser(description="Configure Celery for the project template")[0m
+[32mruff      |[0m [1;31m529 |     parser.add_argument("--project-root", required=True, help="Path to project root directory")[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `None`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mN999 Invalid module name: 'update-ci-files'[0m
+[32mruff      |[0m [1;31m--> tools/update-ci-files.py:1:1[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mPERF401 Use `list.extend` to create a transformed list[0m
+[32mruff      |[0m [1;31m  --> tools/update-ci-files.py:57:21[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m55 |                 result.append(f"{indent}pnpm-lock.yaml\n")[0m
+[32mruff      |[0m [1;31m56 |                 for frontend in sorted(frontends):[0m
+[32mruff      |[0m [1;31m57 |                     result.append(f"{indent}{frontend}/pnpm-lock.yaml\n")[0m
+[32mruff      |[0m [1;31m   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m58 |             continue[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Replace for loop with list.extend[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mPERF401 Use `list.extend` to create a transformed list[0m
+[32mruff      |[0m [1;31m   --> tools/update-ci-files.py:160:25[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m158 |                       )[0m
+[32mruff      |[0m [1;31m159 |                       for frontend in sorted(frontends):[0m
+[32mruff      |[0m [1;31m160 | /                         result.append([0m
+[32mruff      |[0m [1;31m161 | |                             f'{indent}echo "$GITHUB_WORKSPACE/{frontend}/node_modules/.bin" >> $GITHUB_PATH\n'[0m
+[32mruff      |[0m [1;31m162 | |                         )[0m
+[32mruff      |[0m [1;31m    | |_________________________^[0m
+[32mruff      |[0m [1;31m163 |[0m
+[32mruff      |[0m [1;31m164 |               # i is now positioned after the PATH entries[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Replace for loop with list.extend[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `main`[0m
+[32mruff      |[0m [1;31m   --> tools/update-ci-files.py:196:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m196 | def main():[0m
+[32mruff      |[0m [1;31m    |     ^^^^[0m
+[32mruff      |[0m [1;31m197 |     parser = argparse.ArgumentParser([0m
+[32mruff      |[0m [1;31m198 |         description="Update GitHub Actions CI workflow files with frontend dependencies"[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `None`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mN999 Invalid module name: 'update-devcontainer-ports'[0m
+[32mruff      |[0m [1;31m--> tools/update-devcontainer-ports.py:1:1[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mRUF013 PEP 484 prohibits implicit `Optional`[0m
+[32mruff      |[0m [1;31m  --> tools/update-devcontainer-ports.py:56:18[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m54 |     extra_frontends: list[dict],[0m
+[32mruff      |[0m [1;31m55 |     postgres_port: int,[0m
+[32mruff      |[0m [1;31m56 |     flower_port: int = None,[0m
+[32mruff      |[0m [1;31m   |                  ^^^[0m
+[32mruff      |[0m [1;31m57 | ) -> None:[0m
+[32mruff      |[0m [1;31m58 |     """Update devcontainer.json with ports."""[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Convert to `T | None`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mPERF401 Use `list.extend` to create a transformed list[0m
+[32mruff      |[0m [1;31m  --> tools/update-devcontainer-ports.py:75:9[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31m73 |     # Add extra frontends[0m
+[32mruff      |[0m [1;31m74 |     for frontend in extra_frontends:[0m
+[32mruff      |[0m [1;31m75 |         ports_config.append((frontend["port"], frontend["label"], True))[0m
+[32mruff      |[0m [1;31m   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m76 |[0m
+[32mruff      |[0m [1;31m77 |     # Add Flower if provided[0m
+[32mruff      |[0m [1;31m   |[0m
+[32mruff      |[0m [1;31mhelp: Replace for loop with list.extend[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN202 Missing return type annotation for private function `replace_port_attrs`[0m
+[32mruff      |[0m [1;31m   --> tools/update-devcontainer-ports.py:107:9[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m105 |     # Replace portsAttributes section[0m
+[32mruff      |[0m [1;31m106 |     # Need to match nested braces properly - find "portsAttributes": { and count braces[0m
+[32mruff      |[0m [1;31m107 |     def replace_port_attrs(content):[0m
+[32mruff      |[0m [1;31m    |         ^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m108 |         start_pattern = r'    "portsAttributes":\s*\{'[0m
+[32mruff      |[0m [1;31m109 |         match = re.search(start_pattern, content)[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN001 Missing type annotation for function argument `content`[0m
+[32mruff      |[0m [1;31m   --> tools/update-devcontainer-ports.py:107:28[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m105 |     # Replace portsAttributes section[0m
+[32mruff      |[0m [1;31m106 |     # Need to match nested braces properly - find "portsAttributes": { and count braces[0m
+[32mruff      |[0m [1;31m107 |     def replace_port_attrs(content):[0m
+[32mruff      |[0m [1;31m    |                            ^^^^^^^[0m
+[32mruff      |[0m [1;31m108 |         start_pattern = r'    "portsAttributes":\s*\{'[0m
+[32mruff      |[0m [1;31m109 |         match = re.search(start_pattern, content)[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `main`[0m
+[32mruff      |[0m [1;31m   --> tools/update-devcontainer-ports.py:140:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m140 | def main():[0m
+[32mruff      |[0m [1;31m    |     ^^^^[0m
+[32mruff      |[0m [1;31m141 |     parser = argparse.ArgumentParser(description="Update devcontainer.json ports configuration")[0m
+[32mruff      |[0m [1;31m142 |     parser.add_argument([0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `None`[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mEXE001 Shebang is present but file is not executable[0m
+[32mruff      |[0m [1;31m --> tools/update-tasks-json.py:1:1[0m
+[32mruff      |[0m [1;31m  |[0m
+[32mruff      |[0m [1;31m1 | #!/usr/bin/env python3[0m
+[32mruff      |[0m [1;31m  | ^^^^^^^^^^^^^^^^^^^^^^[0m
+[32mruff      |[0m [1;31m2 | """[0m
+[32mruff      |[0m [1;31m3 | Update .vscode/tasks.json with new frontend tasks.[0m
+[32mruff      |[0m [1;31m  |[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mN999 Invalid module name: 'update-tasks-json'[0m
+[32mruff      |[0m [1;31m--> tools/update-tasks-json.py:1:1[0m
+[32mruff      |[0m [1;31m[0m
+[32mruff      |[0m [1;31mANN201 Missing return type annotation for public function `main`[0m
+[32mruff      |[0m [1;31m   --> tools/update-tasks-json.py:189:5[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31m189 | def main():[0m
+[32mruff      |[0m [1;31m    |     ^^^^[0m
+[32mruff      |[0m [1;31m190 |     parser = argparse.ArgumentParser([0m
+[32mruff      |[0m [1;31m191 |         description="Update .vscode/tasks.json with new frontend tasks"[0m
+[32mruff      |[0m [1;31m    |[0m
+[32mruff      |[0m [1;31mhelp: Add return type annotation: `None`[0m
+[32mruff      |[0m [1;31m[0m
+No newline at the end of file. Fix with `sed -i '$a\' admin-website/public/adb-software-solutions-logo.svg`
+Run [34mtools/lint --fix[0m to fix errors for the following linters: css,eslint,ruff

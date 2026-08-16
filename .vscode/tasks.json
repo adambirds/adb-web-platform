@@ -230,11 +230,7 @@
         },
         {
             "label": "Test All",
-            "dependsOn": [
-                "Test Backend",
-                "Test Website",
-                "Test Auth Frontend"
-            ],
+            "dependsOn": ["Test Backend", "Test Website", "Test Auth Frontend"],
             "dependsOrder": "parallel",
             "group": "test"
         },

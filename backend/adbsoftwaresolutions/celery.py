@@ -2,7 +2,6 @@ import logging
 import os
 
 from celery import Celery
-from celery.schedules import crontab
 from django.conf import settings
 
 from adbsoftwaresolutions.bootsteps import LivenessProbe
@@ -20,9 +19,7 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 # Define the Celery beat schedule if any.
-app.conf.beat_schedule = {
-    
-}
+app.conf.beat_schedule = {}
 app.conf.timezone = "UTC"
 
 # Setup logging

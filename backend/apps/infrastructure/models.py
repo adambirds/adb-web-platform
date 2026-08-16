@@ -136,7 +136,9 @@ class Website(models.Model):
 
     name = models.CharField(max_length=200)
     primary_url = models.URLField()
-    environment_type = models.CharField(max_length=50, choices=ENVIRONMENT_CHOICES, default="production")
+    environment_type = models.CharField(
+        max_length=50, choices=ENVIRONMENT_CHOICES, default="production"
+    )
 
     # Hosting
     servers = models.ManyToManyField(Server, related_name="websites")
@@ -355,9 +357,13 @@ class MobileApp(models.Model):
     platform = models.CharField(max_length=50, choices=PLATFORM_CHOICES)
     framework = models.CharField(max_length=50, choices=FRAMEWORK_CHOICES)
 
-    bundle_id = models.CharField(max_length=200, blank=True, help_text="Android package name or iOS bundle ID")
+    bundle_id = models.CharField(
+        max_length=200, blank=True, help_text="Android package name or iOS bundle ID"
+    )
     current_version = models.CharField(max_length=50, blank=True)
-    release_status = models.CharField(max_length=50, choices=RELEASE_STATUS_CHOICES, default="development")
+    release_status = models.CharField(
+        max_length=50, choices=RELEASE_STATUS_CHOICES, default="development"
+    )
 
     # Store links
     app_store_link = models.URLField(blank=True)
@@ -409,7 +415,9 @@ class API(models.Model):
     description = models.TextField(blank=True)
 
     base_url = models.URLField()
-    visibility = models.CharField(max_length=50, choices=VISIBILITY_CHOICES, default="private_session")
+    visibility = models.CharField(
+        max_length=50, choices=VISIBILITY_CHOICES, default="private_session"
+    )
     authentication = models.CharField(max_length=50, choices=AUTH_CHOICES, default="session")
 
     # Versioning

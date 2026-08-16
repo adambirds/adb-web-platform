@@ -6,10 +6,10 @@ from django.utils import timezone
 from ninja import Router
 
 from apps.website.models import (
+    FAQ,
     BlogCategory,
     BlogPost,
     BlogTag,
-    FAQ,
     FAQCategory,
     Portfolio,
     Testimonial,

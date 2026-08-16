@@ -6,10 +6,10 @@ from ninja import Router
 
 from apps.crm.models import Lead, LeadSource, LeadStatus
 from apps.website.models import (
+    FAQ,
     BlogCategory,
     BlogPost,
     BlogTag,
-    FAQ,
     FAQCategory,
     Portfolio,
     Testimonial,
@@ -194,7 +194,9 @@ def list_blog_posts(request: HttpRequest, featured: bool | None = None):
 
 @website_public_router.get("/blog/posts/{slug}", response={200: BlogPostOut, 404: ProblemDetail})
 def get_blog_post(request: HttpRequest, slug: str):
-    post = get_object_or_404(BlogPost.objects.prefetch_related("categories", "tags"), slug=slug, published=True)
+    post = get_object_or_404(
+        BlogPost.objects.prefetch_related("categories", "tags"), slug=slug, published=True
+    )
     return 200, build_blog_post_response(request, post)
 
 

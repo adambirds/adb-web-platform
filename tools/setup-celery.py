@@ -7,7 +7,6 @@ creates necessary files and scripts for development and production.
 """
 
 import argparse
-import os
 import sys
 from pathlib import Path
 
@@ -15,7 +14,7 @@ from pathlib import Path
 def create_celery_py(backend_dir: Path, app_name: str, python_name: str) -> None:
     """Create celery.py file in the backend app directory."""
     celery_file = backend_dir / python_name / "celery.py"
-    
+
     content = f"""import logging
 import os
 
@@ -39,7 +38,7 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 # Define the Celery beat schedule if any.
 app.conf.beat_schedule = {{
-    
+
 }}
 app.conf.timezone = "UTC"
 
@@ -49,7 +48,7 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 """
-    
+
     celery_file.write_text(content)
     print(f"  ✓ Created {celery_file.relative_to(backend_dir.parent)}")
 
@@ -57,7 +56,7 @@ logging.basicConfig(
 def create_bootsteps_py(backend_dir: Path, python_name: str) -> None:
     """Create bootsteps.py file in the backend app directory."""
     bootsteps_file = backend_dir / python_name / "bootsteps.py"
-    
+
     content = """# bootsteps.py
 from __future__ import annotations
 
@@ -93,7 +92,7 @@ class LivenessProbe(bootsteps.StartStopStep):
     def update_heartbeat_file(self, worker: WorkController) -> None:
         HEARTBEAT_FILE.touch()
 """
-    
+
     bootsteps_file.write_text(content)
     print(f"  ✓ Created {bootsteps_file.relative_to(backend_dir.parent)}")
 
@@ -115,7 +114,7 @@ celery -A {python_name} beat -l info
     beat_script.write_text(beat_content)
     beat_script.chmod(0o755)
     print(f"  ✓ Created {beat_script.relative_to(scripts_dir.parent.parent)}")
-    
+
     # Individual queue scripts
     for queue in queues:
         queue_script = scripts_dir / f"start-celery-{queue}"
@@ -132,10 +131,10 @@ celery -A {python_name} worker -Q {queue} -l info --concurrency=1 --hostname={qu
         queue_script.write_text(queue_content)
         queue_script.chmod(0o755)
         print(f"  ✓ Created {queue_script.relative_to(scripts_dir.parent.parent)}")
-    
+
     # Multi-worker script
     multi_script = scripts_dir / "start-celery-multi"
-    multi_content = f"""#!/bin/bash
+    multi_content = """#!/bin/bash
 # Start multiple Celery workers with different queues (1 worker per queue for dev)
 set -e
 
@@ -145,23 +144,23 @@ source /opt/venv/bin/activate
 echo "🔄 Starting Celery workers with different queues (dev setup - 1 worker per queue)..."
 
 """
-    
+
     for queue in queues:
         multi_content += f"""echo "Starting {queue} queue worker..."
 celery -A {python_name} worker -Q {queue} -l info --concurrency=1 --hostname={queue}@%h &
 
 """
-    
+
     multi_content += """echo "✅ All Celery workers started (1 per queue)"
 
 # Wait for all background processes
 wait
 """
-    
+
     multi_script.write_text(multi_content)
     multi_script.chmod(0o755)
     print(f"  ✓ Created {multi_script.relative_to(scripts_dir.parent.parent)}")
-    
+
     # Flower script
     flower_script = scripts_dir / "start-flower"
     flower_content = f"""#!/bin/bash
@@ -199,7 +198,7 @@ exec celery -A {python_name} worker \\
     worker_entrypoint.write_text(worker_content)
     worker_entrypoint.chmod(0o755)
     print(f"  ✓ Created {worker_entrypoint.name}")
-    
+
     # Flower entrypoint
     flower_entrypoint = project_root / "entrypoint-flower.sh"
     flower_content = f"""#!/bin/sh
@@ -276,7 +275,7 @@ ENTRYPOINT [ "/entrypoint-celery-worker.sh" ]
 """
     worker_dockerfile.write_text(worker_content)
     print(f"  ✓ Created {worker_dockerfile.name}")
-    
+
     # Dockerfile.celery-beat
     beat_dockerfile = project_root / "Dockerfile.celery-beat"
     beat_content = f"""# Use official Python base image with slimmed down Debian base
@@ -325,7 +324,7 @@ CMD ["celery", "-A", "{python_name}", "beat", "-l", "INFO"]
 """
     beat_dockerfile.write_text(beat_content)
     print(f"  ✓ Created {beat_dockerfile.name}")
-    
+
     # Dockerfile.flower
     flower_dockerfile = project_root / "Dockerfile.flower"
     flower_content = f"""# Use official Python base image with slimmed down Debian base
@@ -385,33 +384,33 @@ ENTRYPOINT ["/entrypoint-flower.sh"]
 def update_backend_ci(workflows_dir: Path) -> None:
     """Update backend-ci.yml to include Celery services."""
     backend_ci = workflows_dir / "backend-ci.yml"
-    
+
     if not backend_ci.exists():
         print(f"  ⚠ Warning: {backend_ci} not found, skipping")
         return
-    
+
     content = backend_ci.read_text()
-    
+
     # Add to matrix images
-    if '- flower' not in content:
+    if "- flower" not in content:
         # Find the backend line and add celery services after it
-        matrix_section = '''                image:
-                    - backend'''
-        
-        new_matrix = '''                image:
+        matrix_section = """                image:
+                    - backend"""
+
+        new_matrix = """                image:
                     - backend
                     - flower
                     - celery-worker
-                    - celery-beat'''
-        
+                    - celery-beat"""
+
         content = content.replace(matrix_section, new_matrix)
-    
+
     # Add Dockerfiles and entrypoints to paths
-    if 'Dockerfile.flower' not in content:
+    if "Dockerfile.flower" not in content:
         # Find the paths section and add new files
         paths_section = '''            - "backend/**"
             - "Dockerfile.backend"'''
-        
+
         new_paths = '''            - "backend/**"
             - "Dockerfile.backend"
             - "Dockerfile.flower"
@@ -419,9 +418,9 @@ def update_backend_ci(workflows_dir: Path) -> None:
             - "Dockerfile.celery-beat"
             - "entrypoint-flower.sh"
             - "entrypoint-celery-worker.sh"'''
-        
+
         content = content.replace(paths_section, new_paths)
-    
+
     backend_ci.write_text(content)
     print(f"  ✓ Updated {backend_ci.relative_to(workflows_dir.parent)}")
 
@@ -429,19 +428,19 @@ def update_backend_ci(workflows_dir: Path) -> None:
 def update_tasks_json(project_root: Path, queues: list[str]) -> None:
     """Update tasks.json with Celery tasks."""
     import json
-    
+
     tasks_json = project_root / ".vscode" / "tasks.json"
-    
+
     if not tasks_json.exists():
         print(f"  ⚠ {tasks_json.relative_to(project_root)} not found, skipping")
         return
-    
+
     with open(tasks_json) as f:
         data = json.load(f)
-    
+
     tasks = data.get("tasks", [])
     existing_commands = {task.get("command") for task in tasks if "command" in task}
-    
+
     # Task template with presentation config
     def create_task(label: str, command: str, is_background: bool = True) -> dict:
         task = {
@@ -454,48 +453,38 @@ def update_tasks_json(project_root: Path, queues: list[str]) -> None:
                 "reveal": "always",
                 "focus": False,
                 "panel": "new",
-                "showReuseMessage": True
-            }
+                "showReuseMessage": True,
+            },
         }
         if is_background:
             task["isBackground"] = True
             task["problemMatcher"] = []
         return task
-    
+
     new_tasks = []
-    
+
     # Add multi-worker task if multiple queues
     if len(queues) > 1:
         if "start-celery-multi" not in existing_commands:
-            new_tasks.append(create_task(
-                "Start All Celery Workers (Multi-Queue)",
-                "start-celery-multi"
-            ))
-    
+            new_tasks.append(
+                create_task("Start All Celery Workers (Multi-Queue)", "start-celery-multi")
+            )
+
     # Add individual queue tasks
     for queue in queues:
         command = f"start-celery-{queue}"
         if command not in existing_commands:
             queue_title = queue.replace("-", " ").replace("_", " ").title()
-            new_tasks.append(create_task(
-                f"Start Celery - {queue_title} Queue",
-                command
-            ))
-    
+            new_tasks.append(create_task(f"Start Celery - {queue_title} Queue", command))
+
     # Add beat task
     if "start-celery-beat" not in existing_commands:
-        new_tasks.append(create_task(
-            "Start Celery Beat",
-            "start-celery-beat"
-        ))
-    
+        new_tasks.append(create_task("Start Celery Beat", "start-celery-beat"))
+
     # Add flower task
     if "start-flower" not in existing_commands:
-        new_tasks.append(create_task(
-            "Start Flower",
-            "start-flower"
-        ))
-    
+        new_tasks.append(create_task("Start Flower", "start-flower"))
+
     if new_tasks:
         # Insert after "Start Backend" task if it exists
         backend_idx = None
@@ -503,32 +492,31 @@ def update_tasks_json(project_root: Path, queues: list[str]) -> None:
             if task.get("label") == "Start Backend":
                 backend_idx = i + 1
                 break
-        
+
         if backend_idx is not None:
             tasks[backend_idx:backend_idx] = new_tasks
         else:
             tasks.extend(new_tasks)
-        
+
         data["tasks"] = tasks
-        
+
         with open(tasks_json, "w") as f:
             json.dump(data, f, indent=4)
-        
+
         print(f"  ✓ Added {len(new_tasks)} Celery task(s) to tasks.json")
     else:
-        print(f"  ✓ Celery tasks already exist in tasks.json")
+        print("  ✓ Celery tasks already exist in tasks.json")
 
 
 def update_devcontainer_json(project_root: Path, flower_port: str) -> None:
     """Update devcontainer.json to add Flower port by calling update-devcontainer-ports.py."""
-    import subprocess
-    
+
     devcontainer_json = project_root / ".devcontainer" / "devcontainer.json"
-    
+
     if not devcontainer_json.exists():
         print(f"  ⚠ {devcontainer_json.relative_to(project_root)} not found, skipping")
         return
-    
+
     # We need to re-run the devcontainer ports script with the flower port
     # The script should be called from setup-project after Celery setup,
     # so we'll just note that it needs to be called with --flower-port
@@ -537,86 +525,70 @@ def update_devcontainer_json(project_root: Path, flower_port: str) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Configure Celery for the project template"
+    parser = argparse.ArgumentParser(description="Configure Celery for the project template")
+    parser.add_argument("--project-root", required=True, help="Path to project root directory")
+    parser.add_argument("--app-name", required=True, help="Application name (e.g., 'fliplytics')")
+    parser.add_argument(
+        "--python-name", required=True, help="Python module name (e.g., 'fliplytics')"
     )
     parser.add_argument(
-        "--project-root",
-        required=True,
-        help="Path to project root directory"
-    )
-    parser.add_argument(
-        "--app-name",
-        required=True,
-        help="Application name (e.g., 'fliplytics')"
-    )
-    parser.add_argument(
-        "--python-name",
-        required=True,
-        help="Python module name (e.g., 'fliplytics')"
-    )
-    parser.add_argument(
-        "--slug-name",
-        required=True,
-        help="Slug name for workdir (e.g., 'fliplytics')"
+        "--slug-name", required=True, help="Slug name for workdir (e.g., 'fliplytics')"
     )
     parser.add_argument(
         "--queues",
         required=True,
-        help="Comma-separated list of Celery queue names (e.g., 'general,email,ebay')"
+        help="Comma-separated list of Celery queue names (e.g., 'general,email,ebay')",
     )
     parser.add_argument(
-        "--flower-port",
-        default="5555",
-        help="Port for Flower monitoring (default: 5555)"
+        "--flower-port", default="5555", help="Port for Flower monitoring (default: 5555)"
     )
-    
+
     args = parser.parse_args()
-    
+
     project_root = Path(args.project_root).resolve()
     backend_dir = project_root / "backend"
     scripts_dir = project_root / ".devcontainer" / "scripts"
     workflows_dir = project_root / ".github" / "workflows"
-    
+
     # Parse queue names
     queues = [q.strip() for q in args.queues.split(",") if q.strip()]
-    
+
     if not queues:
         print("Error: No queue names provided", file=sys.stderr)
         sys.exit(1)
-    
+
     print(f"Configuring Celery with {len(queues)} queues: {', '.join(queues)}")
-    
+
     # Create Celery files
     print("\nCreating Celery configuration files...")
     create_celery_py(backend_dir, args.app_name, args.python_name)
     create_bootsteps_py(backend_dir, args.python_name)
-    
+
     # Create devcontainer scripts
     print("\nCreating devcontainer scripts...")
     create_devcontainer_scripts(scripts_dir, args.python_name, queues)
-    
+
     # Create entrypoint scripts
     print("\nCreating entrypoint scripts...")
     create_entrypoint_scripts(project_root, args.python_name)
-    
+
     # Create Dockerfiles
     print("\nCreating Dockerfiles...")
     create_dockerfiles(project_root, args.python_name, args.slug_name)
-    
+
     # Update backend-ci.yml
     print("\nUpdating CI configuration...")
     update_backend_ci(workflows_dir)
-    
+
     # Update tasks.json
     print("\nUpdating tasks.json...")
     update_tasks_json(project_root, queues)
-    
+
     # Update devcontainer.json
     print("\nUpdating devcontainer.json...")
     update_devcontainer_json(project_root, args.flower_port)
-    
-    print(f"\n✅ Celery configuration complete!")
+
+    print("\n✅ Celery configuration complete!")
     print(f"   Queues: {', '.join(queues)}")
     print(f"   Flower port: {args.flower_port}")
 

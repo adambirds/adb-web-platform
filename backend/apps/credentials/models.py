@@ -18,7 +18,9 @@ class StoredCredential(models.Model):
     # For now, we'll store it plainly but mark where encryption should happen
 
     name = models.CharField(max_length=200)
-    credential_type = models.ForeignKey(CredentialType, on_delete=models.SET_NULL, null=True, blank=True)
+    credential_type = models.ForeignKey(
+        CredentialType, on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     username = models.CharField(max_length=200, blank=True)
     password = models.CharField(max_length=500, blank=True)  # TODO: Encrypt this field

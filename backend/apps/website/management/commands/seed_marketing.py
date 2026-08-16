@@ -5,10 +5,10 @@ from django.utils import timezone
 
 from apps.crm.models import Lead, LeadSource, LeadStatus
 from apps.website.models import (
+    FAQ,
     BlogCategory,
     BlogPost,
     BlogTag,
-    FAQ,
     FAQCategory,
     Portfolio,
     Testimonial,
@@ -75,7 +75,9 @@ class Command(BaseCommand):
             slug="delivery",
             defaults={"name": "Delivery", "description": "Shipping and delivery insights"},
         )
-        blog_tag, _ = BlogTag.objects.get_or_create(slug="automation", defaults={"name": "Automation"})
+        blog_tag, _ = BlogTag.objects.get_or_create(
+            slug="automation", defaults={"name": "Automation"}
+        )
 
         post, _ = BlogPost.objects.get_or_create(
             slug="shipping-without-agency-overhead",

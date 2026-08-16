@@ -19,7 +19,9 @@ class KnowledgeBaseDocument(models.Model):
     """Documentation page in knowledge base"""
 
     title = models.CharField(max_length=200)
-    section = models.ForeignKey(KnowledgeBaseSection, on_delete=models.CASCADE, related_name="documents")
+    section = models.ForeignKey(
+        KnowledgeBaseSection, on_delete=models.CASCADE, related_name="documents"
+    )
     content = models.TextField(help_text="Markdown content")
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -35,7 +37,9 @@ class KnowledgeBaseDocument(models.Model):
 class DocumentVersion(models.Model):
     """Version history for a document"""
 
-    document = models.ForeignKey(KnowledgeBaseDocument, on_delete=models.CASCADE, related_name="versions")
+    document = models.ForeignKey(
+        KnowledgeBaseDocument, on_delete=models.CASCADE, related_name="versions"
+    )
     version_number = models.IntegerField()
     content = models.TextField()
 

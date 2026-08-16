@@ -198,7 +198,7 @@ Please click the link below to verify your email address:
 If you didn't create an account, you can ignore this email.
 
 Thanks,
-The {getattr(settings, 'SITE_NAME', 'App')} Team
+The {getattr(settings, "SITE_NAME", "App")} Team
         """.strip(),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
@@ -868,7 +868,7 @@ This link will expire in 1 hour.
 If you didn't request a password reset, you can ignore this email.
 
 Thanks,
-The {getattr(settings, 'SITE_NAME', 'App')} Team
+The {getattr(settings, "SITE_NAME", "App")} Team
                 """.strip(),
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[user.email],

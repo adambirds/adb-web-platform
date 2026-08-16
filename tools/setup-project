@@ -33,33 +33,33 @@ PROGRESS_FILE="$PROJECT_ROOT/.setup-progress"
 
 # Check if a step has been completed
 step_completed() {
-    local step_name="$1"
-    if [[ -f "$PROGRESS_FILE" ]]; then
-        grep -q "^$step_name$" "$PROGRESS_FILE" 2>/dev/null
-        return $?
-    fi
-    return 1
+	local step_name="$1"
+	if [[ -f "$PROGRESS_FILE" ]]; then
+		grep -q "^$step_name$" "$PROGRESS_FILE" 2>/dev/null
+		return $?
+	fi
+	return 1
 }
 
 # Mark a step as completed
 mark_step_complete() {
-    local step_name="$1"
-    echo "$step_name" >> "$PROGRESS_FILE"
+	local step_name="$1"
+	echo "$step_name" >>"$PROGRESS_FILE"
 }
 
 # Run a step if not already completed
 run_step() {
-    local step_num="$1"
-    local step_name="$2"
-    local step_desc="$3"
-    
-    if step_completed "$step_name"; then
-        echo -e "${BLUE}[$step_num/12]${NC} $step_desc... ${GREEN}(already done, skipping)${NC}"
-        return 1  # Return 1 to indicate step was skipped
-    fi
-    
-    echo -e "${BLUE}[$step_num/12]${NC} $step_desc..."
-    return 0  # Return 0 to indicate step should run
+	local step_num="$1"
+	local step_name="$2"
+	local step_desc="$3"
+
+	if step_completed "$step_name"; then
+		echo -e "${BLUE}[$step_num/12]${NC} $step_desc... ${GREEN}(already done, skipping)${NC}"
+		return 1 # Return 1 to indicate step was skipped
+	fi
+
+	echo -e "${BLUE}[$step_num/12]${NC} $step_desc..."
+	return 0 # Return 0 to indicate step should run
 }
 
 # Default config file location
@@ -81,233 +81,233 @@ EXTRA_FRONTEND_PORTS=()
 
 # If no config file passed, check if default exists
 if [[ -z "$CONFIG_FILE" && -f "$DEFAULT_CONFIG_FILE" ]]; then
-    echo -e "${YELLOW}Found existing configuration file: $DEFAULT_CONFIG_FILE${NC}"
-    if [[ -f "$PROGRESS_FILE" ]]; then
-        COMPLETED_STEPS=$(wc -l < "$PROGRESS_FILE" | tr -d ' ')
-        echo -e "${YELLOW}Previous progress: $COMPLETED_STEPS/11 steps completed${NC}"
-    fi
-    echo ""
-    read -p "Would you like to (R)esume with existing config or (S)tart fresh? [R/s]: " -r RESUME_CHOICE
-    if [[ ! $RESUME_CHOICE =~ ^[Ss]$ ]]; then
-        CONFIG_FILE="$DEFAULT_CONFIG_FILE"
-        echo -e "${GREEN}Resuming with existing configuration...${NC}"
-        echo ""
-    else
-        echo -e "${CYAN}Starting fresh configuration...${NC}"
-        rm -f "$DEFAULT_CONFIG_FILE" "$PROGRESS_FILE"
-        echo ""
-    fi
+	echo -e "${YELLOW}Found existing configuration file: $DEFAULT_CONFIG_FILE${NC}"
+	if [[ -f "$PROGRESS_FILE" ]]; then
+		COMPLETED_STEPS=$(wc -l <"$PROGRESS_FILE" | tr -d ' ')
+		echo -e "${YELLOW}Previous progress: $COMPLETED_STEPS/11 steps completed${NC}"
+	fi
+	echo ""
+	read -p "Would you like to (R)esume with existing config or (S)tart fresh? [R/s]: " -r RESUME_CHOICE
+	if [[ ! $RESUME_CHOICE =~ ^[Ss]$ ]]; then
+		CONFIG_FILE="$DEFAULT_CONFIG_FILE"
+		echo -e "${GREEN}Resuming with existing configuration...${NC}"
+		echo ""
+	else
+		echo -e "${CYAN}Starting fresh configuration...${NC}"
+		rm -f "$DEFAULT_CONFIG_FILE" "$PROGRESS_FILE"
+		echo ""
+	fi
 fi
 
 if [[ -n "$CONFIG_FILE" ]]; then
-    if [[ -f "$CONFIG_FILE" ]]; then
-        echo -e "${GREEN}Loading configuration from: $CONFIG_FILE${NC}"
-        # shellcheck source=/dev/null
-        source "$CONFIG_FILE"
-        LOAD_FROM_CONFIG=true
-        
-        # Rebuild arrays from space-separated strings if present
-        if [[ -n "${EXTRA_FRONTENDS_STR:-}" ]]; then
-            IFS=' ' read -ra EXTRA_FRONTENDS <<< "$EXTRA_FRONTENDS_STR"
-        else
-            EXTRA_FRONTENDS=()
-        fi
-        if [[ -n "${EXTRA_FRONTEND_TYPES_STR:-}" ]]; then
-            IFS=' ' read -ra EXTRA_FRONTEND_TYPES <<< "$EXTRA_FRONTEND_TYPES_STR"
-        else
-            EXTRA_FRONTEND_TYPES=()
-        fi
-        if [[ -n "${EXTRA_FRONTEND_PORTS_STR:-}" ]]; then
-            IFS=' ' read -ra EXTRA_FRONTEND_PORTS <<< "$EXTRA_FRONTEND_PORTS_STR"
-        else
-            EXTRA_FRONTEND_PORTS=()
-        fi
-        echo ""
-    else
-        echo -e "${RED}Error: Config file not found: $CONFIG_FILE${NC}"
-        exit 1
-    fi
+	if [[ -f "$CONFIG_FILE" ]]; then
+		echo -e "${GREEN}Loading configuration from: $CONFIG_FILE${NC}"
+		# shellcheck source=/dev/null
+		source "$CONFIG_FILE"
+		LOAD_FROM_CONFIG=true
+
+		# Rebuild arrays from space-separated strings if present
+		if [[ -n "${EXTRA_FRONTENDS_STR:-}" ]]; then
+			IFS=' ' read -ra EXTRA_FRONTENDS <<<"$EXTRA_FRONTENDS_STR"
+		else
+			EXTRA_FRONTENDS=()
+		fi
+		if [[ -n "${EXTRA_FRONTEND_TYPES_STR:-}" ]]; then
+			IFS=' ' read -ra EXTRA_FRONTEND_TYPES <<<"$EXTRA_FRONTEND_TYPES_STR"
+		else
+			EXTRA_FRONTEND_TYPES=()
+		fi
+		if [[ -n "${EXTRA_FRONTEND_PORTS_STR:-}" ]]; then
+			IFS=' ' read -ra EXTRA_FRONTEND_PORTS <<<"$EXTRA_FRONTEND_PORTS_STR"
+		else
+			EXTRA_FRONTEND_PORTS=()
+		fi
+		echo ""
+	else
+		echo -e "${RED}Error: Config file not found: $CONFIG_FILE${NC}"
+		exit 1
+	fi
 fi
 
 # Check if already configured
 if [[ -f "$PROJECT_ROOT/.project-configured" ]]; then
-    echo -e "${YELLOW}⚠️  This project appears to already be configured.${NC}"
-    read -p "Do you want to reconfigure? This may cause issues. (y/N): " -r
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Aborting."
-        exit 0
-    fi
-    # Reset progress if reconfiguring
-    rm -f "$PROGRESS_FILE"
+	echo -e "${YELLOW}⚠️  This project appears to already be configured.${NC}"
+	read -p "Do you want to reconfigure? This may cause issues. (y/N): " -r
+	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+		echo "Aborting."
+		exit 0
+	fi
+	# Reset progress if reconfiguring
+	rm -f "$PROGRESS_FILE"
 fi
 
 if [[ "$LOAD_FROM_CONFIG" == "false" ]]; then
-# ============================================================================
-# Collect user input
-# ============================================================================
-echo -e "${GREEN}Please provide the following information:${NC}"
-echo ""
+	# ============================================================================
+	# Collect user input
+	# ============================================================================
+	echo -e "${GREEN}Please provide the following information:${NC}"
+	echo ""
 
-# App Name (display name)
-read -p "App Name (e.g., 'ADB Software Solutions'): " APP_NAME
-if [[ -z "$APP_NAME" ]]; then
-    echo -e "${RED}Error: App Name is required${NC}"
-    exit 1
-fi
+	# App Name (display name)
+	read -p "App Name (e.g., 'ADB Software Solutions'): " APP_NAME
+	if [[ -z "$APP_NAME" ]]; then
+		echo -e "${RED}Error: App Name is required${NC}"
+		exit 1
+	fi
 
-# App Name for Python (module name, lowercase, no spaces/special chars)
-read -p "App Name for Python (e.g., 'adbsoftwaresolutions'): " PYTHON_NAME
-if [[ -z "$PYTHON_NAME" ]]; then
-    echo -e "${RED}Error: Python App Name is required${NC}"
-    exit 1
-fi
+	# App Name for Python (module name, lowercase, no spaces/special chars)
+	read -p "App Name for Python (e.g., 'adbsoftwaresolutions'): " PYTHON_NAME
+	if [[ -z "$PYTHON_NAME" ]]; then
+		echo -e "${RED}Error: Python App Name is required${NC}"
+		exit 1
+	fi
 
-# Validate Python name
-if [[ ! "$PYTHON_NAME" =~ ^[a-z][a-z0-9_]*$ ]]; then
-    echo -e "${RED}Error: Python name must start with a lowercase letter and contain only lowercase letters, numbers, and underscores${NC}"
-    exit 1
-fi
+	# Validate Python name
+	if [[ ! "$PYTHON_NAME" =~ ^[a-z][a-z0-9_]*$ ]]; then
+		echo -e "${RED}Error: Python name must start with a lowercase letter and contain only lowercase letters, numbers, and underscores${NC}"
+		exit 1
+	fi
 
-# GitHub URLs
-read -p "GitHub URL for upstream (e.g., 'git@github.com:org/repo.git'): " GITHUB_UPSTREAM
-read -p "GitHub URL for origin (e.g., 'git@github.com:you/repo.git'): " GITHUB_ORIGIN
+	# GitHub URLs
+	read -p "GitHub URL for upstream (e.g., 'git@github.com:org/repo.git'): " GITHUB_UPSTREAM
+	read -p "GitHub URL for origin (e.g., 'git@github.com:you/repo.git'): " GITHUB_ORIGIN
 
-# Slug version (for URLs, docker images, etc.)
-SLUG_NAME=$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/[^a-z0-9-]//g')
+	# Slug version (for URLs, docker images, etc.)
+	SLUG_NAME=$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/[^a-z0-9-]//g')
 
-# Database name (use python name)
-DB_NAME="${PYTHON_NAME}_dev"
-DB_USER="${PYTHON_NAME}"
-DB_PASSWORD="${PYTHON_NAME}_dev_password"
+	# Database name (use python name)
+	DB_NAME="${PYTHON_NAME}_dev"
+	DB_USER="${PYTHON_NAME}"
+	DB_PASSWORD="${PYTHON_NAME}_dev_password"
 
-# ============================================================================
-# Port Configuration
-# ============================================================================
-echo ""
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}Port Configuration:${NC}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo ""
+	# ============================================================================
+	# Port Configuration
+	# ============================================================================
+	echo ""
+	echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+	echo -e "${GREEN}Port Configuration:${NC}"
+	echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+	echo ""
 
-read -p "Backend port [default: 8000]: " BACKEND_PORT
-BACKEND_PORT="${BACKEND_PORT:-8000}"
+	read -p "Backend port [default: 8000]: " BACKEND_PORT
+	BACKEND_PORT="${BACKEND_PORT:-8000}"
 
-read -p "Website (Next.js) port [default: 3000]: " WEBSITE_PORT
-WEBSITE_PORT="${WEBSITE_PORT:-3000}"
+	read -p "Website (Next.js) port [default: 3000]: " WEBSITE_PORT
+	WEBSITE_PORT="${WEBSITE_PORT:-3000}"
 
-read -p "Auth Frontend (Vite) port [default: 5173]: " AUTH_FRONTEND_PORT
-AUTH_FRONTEND_PORT="${AUTH_FRONTEND_PORT:-5173}"
+	read -p "Auth Frontend (Vite) port [default: 5173]: " AUTH_FRONTEND_PORT
+	AUTH_FRONTEND_PORT="${AUTH_FRONTEND_PORT:-5173}"
 
-read -p "PostgreSQL port [default: 5432]: " POSTGRES_PORT
-POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+	read -p "PostgreSQL port [default: 5432]: " POSTGRES_PORT
+	POSTGRES_PORT="${POSTGRES_PORT:-5432}"
 
-read -p "Redis port [default: 6379]: " REDIS_PORT
-REDIS_PORT="${REDIS_PORT:-6379}"
+	read -p "Redis port [default: 6379]: " REDIS_PORT
+	REDIS_PORT="${REDIS_PORT:-6379}"
 
-# ============================================================================
-# Celery Configuration
-# ============================================================================
-echo ""
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}Celery Configuration (Optional):${NC}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo ""
-echo -e "Celery is a distributed task queue for handling background jobs."
-echo ""
+	# ============================================================================
+	# Celery Configuration
+	# ============================================================================
+	echo ""
+	echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+	echo -e "${GREEN}Celery Configuration (Optional):${NC}"
+	echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+	echo ""
+	echo -e "Celery is a distributed task queue for handling background jobs."
+	echo ""
 
-read -p "Do you want to configure Celery? (y/n): " CONFIGURE_CELERY
-CONFIGURE_CELERY="${CONFIGURE_CELERY:-n}"
+	read -p "Do you want to configure Celery? (y/n): " CONFIGURE_CELERY
+	CONFIGURE_CELERY="${CONFIGURE_CELERY:-n}"
 
-if [[ "$CONFIGURE_CELERY" =~ ^[Yy]$ ]]; then
-    echo ""
-    echo "Enter Celery queue names (comma-separated):"
-    echo "Example: general,email,notifications"
-    read -p "Queue names: " CELERY_QUEUES
-    
-    if [[ -z "$CELERY_QUEUES" ]]; then
-        echo -e "${YELLOW}⚠ No queues specified, Celery will not be configured${NC}"
-        CONFIGURE_CELERY="n"
-    else
-        read -p "Enter Flower monitoring port [default: 5555]: " FLOWER_PORT
-        FLOWER_PORT="${FLOWER_PORT:-5555}"
-    fi
-else
-    CELERY_QUEUES=""
-    FLOWER_PORT="5555"
-fi
+	if [[ "$CONFIGURE_CELERY" =~ ^[Yy]$ ]]; then
+		echo ""
+		echo "Enter Celery queue names (comma-separated):"
+		echo "Example: general,email,notifications"
+		read -p "Queue names: " CELERY_QUEUES
 
-# ============================================================================
-# Additional Frontends
-# ============================================================================
-echo ""
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}Additional Frontends:${NC}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo ""
-echo -e "You can add extra frontend applications (e.g., admin-frontend, docs-frontend)"
-echo -e "Press Enter with no name when done adding frontends."
-echo ""
+		if [[ -z "$CELERY_QUEUES" ]]; then
+			echo -e "${YELLOW}⚠ No queues specified, Celery will not be configured${NC}"
+			CONFIGURE_CELERY="n"
+		else
+			read -p "Enter Flower monitoring port [default: 5555]: " FLOWER_PORT
+			FLOWER_PORT="${FLOWER_PORT:-5555}"
+		fi
+	else
+		CELERY_QUEUES=""
+		FLOWER_PORT="5555"
+	fi
 
-# Use parallel arrays instead of associative arrays (for bash 3.x compatibility)
-EXTRA_FRONTENDS=()
-EXTRA_FRONTEND_TYPES=()
-EXTRA_FRONTEND_PORTS=()
+	# ============================================================================
+	# Additional Frontends
+	# ============================================================================
+	echo ""
+	echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+	echo -e "${GREEN}Additional Frontends:${NC}"
+	echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+	echo ""
+	echo -e "You can add extra frontend applications (e.g., admin-frontend, docs-frontend)"
+	echo -e "Press Enter with no name when done adding frontends."
+	echo ""
 
-NEXT_VITE_PORT=$((AUTH_FRONTEND_PORT + 1))
-NEXT_NEXTJS_PORT=$((WEBSITE_PORT + 1))
+	# Use parallel arrays instead of associative arrays (for bash 3.x compatibility)
+	EXTRA_FRONTENDS=()
+	EXTRA_FRONTEND_TYPES=()
+	EXTRA_FRONTEND_PORTS=()
 
-while true; do
-    read -p "Frontend name (e.g., 'admin-frontend') or Enter to finish: " FRONTEND_NAME
-    if [[ -z "$FRONTEND_NAME" ]]; then
-        break
-    fi
-    
-    # Validate frontend name
-    if [[ ! "$FRONTEND_NAME" =~ ^[a-z][a-z0-9-]*$ ]]; then
-        echo -e "${RED}Error: Frontend name must start with a lowercase letter and contain only lowercase letters, numbers, and hyphens${NC}"
-        continue
-    fi
-    
-    # Check if directory already exists
-    if [[ -d "$PROJECT_ROOT/$FRONTEND_NAME" ]]; then
-        echo -e "${RED}Error: Directory '$FRONTEND_NAME' already exists${NC}"
-        continue
-    fi
-    
-    echo -e "  Select framework:"
-    echo -e "    1) Next.js"
-    echo -e "    2) React/Vite"
-    read -p "  Choice [1/2]: " FRAMEWORK_CHOICE
-    
-    case "$FRAMEWORK_CHOICE" in
-        1)
-            FRONTEND_TYPE="nextjs"
-            read -p "  Port [default: $NEXT_NEXTJS_PORT]: " FRONTEND_PORT
-            FRONTEND_PORT="${FRONTEND_PORT:-$NEXT_NEXTJS_PORT}"
-            NEXT_NEXTJS_PORT=$((FRONTEND_PORT + 1))
-            ;;
-        2|*)
-            FRONTEND_TYPE="vite"
-            read -p "  Port [default: $NEXT_VITE_PORT]: " FRONTEND_PORT
-            FRONTEND_PORT="${FRONTEND_PORT:-$NEXT_VITE_PORT}"
-            NEXT_VITE_PORT=$((FRONTEND_PORT + 1))
-            ;;
-    esac
-    
-    EXTRA_FRONTENDS+=("$FRONTEND_NAME")
-    EXTRA_FRONTEND_TYPES+=("$FRONTEND_TYPE")
-    EXTRA_FRONTEND_PORTS+=("$FRONTEND_PORT")
-    echo -e "  ${GREEN}✓ Added $FRONTEND_NAME ($FRONTEND_TYPE) on port $FRONTEND_PORT${NC}"
-    echo ""
-done
+	NEXT_VITE_PORT=$((AUTH_FRONTEND_PORT + 1))
+	NEXT_NEXTJS_PORT=$((WEBSITE_PORT + 1))
 
-fi  # End of LOAD_FROM_CONFIG check
+	while true; do
+		read -p "Frontend name (e.g., 'admin-frontend') or Enter to finish: " FRONTEND_NAME
+		if [[ -z "$FRONTEND_NAME" ]]; then
+			break
+		fi
+
+		# Validate frontend name
+		if [[ ! "$FRONTEND_NAME" =~ ^[a-z][a-z0-9-]*$ ]]; then
+			echo -e "${RED}Error: Frontend name must start with a lowercase letter and contain only lowercase letters, numbers, and hyphens${NC}"
+			continue
+		fi
+
+		# Check if directory already exists
+		if [[ -d "$PROJECT_ROOT/$FRONTEND_NAME" ]]; then
+			echo -e "${RED}Error: Directory '$FRONTEND_NAME' already exists${NC}"
+			continue
+		fi
+
+		echo -e "  Select framework:"
+		echo -e "    1) Next.js"
+		echo -e "    2) React/Vite"
+		read -p "  Choice [1/2]: " FRAMEWORK_CHOICE
+
+		case "$FRAMEWORK_CHOICE" in
+		1)
+			FRONTEND_TYPE="nextjs"
+			read -p "  Port [default: $NEXT_NEXTJS_PORT]: " FRONTEND_PORT
+			FRONTEND_PORT="${FRONTEND_PORT:-$NEXT_NEXTJS_PORT}"
+			NEXT_NEXTJS_PORT=$((FRONTEND_PORT + 1))
+			;;
+		2 | *)
+			FRONTEND_TYPE="vite"
+			read -p "  Port [default: $NEXT_VITE_PORT]: " FRONTEND_PORT
+			FRONTEND_PORT="${FRONTEND_PORT:-$NEXT_VITE_PORT}"
+			NEXT_VITE_PORT=$((FRONTEND_PORT + 1))
+			;;
+		esac
+
+		EXTRA_FRONTENDS+=("$FRONTEND_NAME")
+		EXTRA_FRONTEND_TYPES+=("$FRONTEND_TYPE")
+		EXTRA_FRONTEND_PORTS+=("$FRONTEND_PORT")
+		echo -e "  ${GREEN}✓ Added $FRONTEND_NAME ($FRONTEND_TYPE) on port $FRONTEND_PORT${NC}"
+		echo ""
+	done
+
+fi # End of LOAD_FROM_CONFIG check
 
 # Build FRONTEND_DIRS list for tools/lint
 FRONTEND_DIRS_LIST='"website"'
 FRONTEND_DIRS_LIST+=',\n        "auth-frontend"'
 for frontend in "${EXTRA_FRONTENDS[@]:-}"; do
-    FRONTEND_DIRS_LIST+=",\n        \"$frontend\""
+	FRONTEND_DIRS_LIST+=",\n        \"$frontend\""
 done
 
 echo ""
@@ -328,27 +328,27 @@ echo -e "  Auth Frontend:   ${YELLOW}$AUTH_FRONTEND_PORT${NC}"
 echo -e "  PostgreSQL:      ${YELLOW}$POSTGRES_PORT${NC}"
 echo -e "  Redis:           ${YELLOW}$REDIS_PORT${NC}"
 if [[ "$CONFIGURE_CELERY" =~ ^[Yy]$ ]] && [[ -n "$CELERY_QUEUES" ]]; then
-    echo -e "  Flower:          ${YELLOW}$FLOWER_PORT${NC}"
+	echo -e "  Flower:          ${YELLOW}$FLOWER_PORT${NC}"
 fi
 if [[ ${#EXTRA_FRONTENDS[@]} -gt 0 ]]; then
-    echo ""
-    echo -e "${GREEN}Extra Frontends:${NC}"
-    for i in "${!EXTRA_FRONTENDS[@]}"; do
-        echo -e "  ${EXTRA_FRONTENDS[$i]}: ${YELLOW}${EXTRA_FRONTEND_TYPES[$i]} on port ${EXTRA_FRONTEND_PORTS[$i]}${NC}"
-    done
+	echo ""
+	echo -e "${GREEN}Extra Frontends:${NC}"
+	for i in "${!EXTRA_FRONTENDS[@]}"; do
+		echo -e "  ${EXTRA_FRONTENDS[$i]}: ${YELLOW}${EXTRA_FRONTEND_TYPES[$i]} on port ${EXTRA_FRONTEND_PORTS[$i]}${NC}"
+	done
 fi
 if [[ "$CONFIGURE_CELERY" =~ ^[Yy]$ ]] && [[ -n "$CELERY_QUEUES" ]]; then
-    echo ""
-    echo -e "${GREEN}Celery:${NC}"
-    echo -e "  Queues:          ${YELLOW}$CELERY_QUEUES${NC}"
+	echo ""
+	echo -e "${GREEN}Celery:${NC}"
+	echo -e "  Queues:          ${YELLOW}$CELERY_QUEUES${NC}"
 fi
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
 read -p "Proceed with these settings? (y/N): " -r
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "Aborting."
-    exit 0
+	echo "Aborting."
+	exit 0
 fi
 
 # ============================================================================
@@ -362,7 +362,7 @@ EXTRA_FRONTENDS_STR="${EXTRA_FRONTENDS[*]:-}"
 EXTRA_FRONTEND_TYPES_STR="${EXTRA_FRONTEND_TYPES[*]:-}"
 EXTRA_FRONTEND_PORTS_STR="${EXTRA_FRONTEND_PORTS[*]:-}"
 
-cat > "$CONFIG_SAVE_FILE" << CONFIGEOF
+cat >"$CONFIG_SAVE_FILE" <<CONFIGEOF
 # Project Setup Configuration
 # Generated on $(date)
 # To reuse: ./tools/setup-project $CONFIG_SAVE_FILE
@@ -404,91 +404,91 @@ echo ""
 
 # Function to replace text in files
 replace_in_file() {
-    local file="$1"
-    local search="$2"
-    local replace="$3"
-    
-    if [[ -f "$file" ]]; then
-        if grep -q "$search" "$file" 2>/dev/null; then
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                sed -i '' "s|$search|$replace|g" "$file"
-            else
-                sed -i "s|$search|$replace|g" "$file"
-            fi
-        fi
-    fi
+	local file="$1"
+	local search="$2"
+	local replace="$3"
+
+	if [[ -f "$file" ]]; then
+		if grep -q "$search" "$file" 2>/dev/null; then
+			if [[ "$OSTYPE" == "darwin"* ]]; then
+				sed -i '' "s|$search|$replace|g" "$file"
+			else
+				sed -i "s|$search|$replace|g" "$file"
+			fi
+		fi
+	fi
 }
 
 # Function to replace text in all matching files
 replace_in_files() {
-    local search="$1"
-    local replace="$2"
-    local pattern="${3:-*}"
-    
-    # Find files with common extensions
-    local files
-    files=$(find "$PROJECT_ROOT" -type f \( -name "*.py" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" \
-        -o -name "*.json" -o -name "*.yaml" -o -name "*.yml" -o -name "*.md" -o -name "*.html" \
-        -o -name "*.txt" -o -name "*.sh" -o -name "*.toml" -o -name "*.cfg" -o -name "*.ini" \
-        -o -name "Dockerfile*" -o -name "*.jsonc" -o -name "*.env*" -o -name "*.css" \) \
-        ! -path "*/node_modules/*" ! -path "*/.git/*" ! -path "*/__pycache__/*" \
-        ! -path "*/.next/*" ! -path "*/dist/*" ! -path "*/build/*" \
-        ! -path "*/coverage/*" ! -path "*/.venv/*" ! -path "*/venv/*" \
-        ! -path "*/.mypy_cache/*" ! -path "*/.pnpm-store/*" ! -path "*/.ruff_cache/*" \
-        ! -path "*/.swc/*" ! -name ".eslintcache" \
-        -exec grep -l "$search" {} \; 2>/dev/null) || true
-    
-    if [[ -n "$files" ]]; then
-        echo "$files" | while read -r file; do
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                sed -i '' "s|$search|$replace|g" "$file"
-            else
-                sed -i "s|$search|$replace|g" "$file"
-            fi
-        done
-    fi
-    
-    # Also check executable scripts in tools/ directory (no extension)
-    local tool_files
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        tool_files=$(find "$PROJECT_ROOT/tools" -maxdepth 1 -type f -perm +111 \
-            -exec grep -l "$search" {} \; 2>/dev/null) || true
-    else
-        tool_files=$(find "$PROJECT_ROOT/tools" -maxdepth 1 -type f -executable \
-            -exec grep -l "$search" {} \; 2>/dev/null) || true
-    fi
-    
-    if [[ -n "$tool_files" ]]; then
-        echo "$tool_files" | while read -r file; do
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                sed -i '' "s|$search|$replace|g" "$file"
-            else
-                sed -i "s|$search|$replace|g" "$file"
-            fi
-        done
-    fi
-    
-    # Also check executable scripts in .devcontainer/scripts/ directory (no extension)
-    local devcontainer_files
-    if [[ -d "$PROJECT_ROOT/.devcontainer/scripts" ]]; then
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            devcontainer_files=$(find "$PROJECT_ROOT/.devcontainer/scripts" -maxdepth 1 -type f -perm +111 \
-                -exec grep -l "$search" {} \; 2>/dev/null) || true
-        else
-            devcontainer_files=$(find "$PROJECT_ROOT/.devcontainer/scripts" -maxdepth 1 -type f -executable \
-                -exec grep -l "$search" {} \; 2>/dev/null) || true
-        fi
-        
-        if [[ -n "$devcontainer_files" ]]; then
-            echo "$devcontainer_files" | while read -r file; do
-                if [[ "$OSTYPE" == "darwin"* ]]; then
-                    sed -i '' "s|$search|$replace|g" "$file"
-                else
-                    sed -i "s|$search|$replace|g" "$file"
-                fi
-            done
-        fi
-    fi
+	local search="$1"
+	local replace="$2"
+	local pattern="${3:-*}"
+
+	# Find files with common extensions
+	local files
+	files=$(find "$PROJECT_ROOT" -type f \( -name "*.py" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" \
+		-o -name "*.json" -o -name "*.yaml" -o -name "*.yml" -o -name "*.md" -o -name "*.html" \
+		-o -name "*.txt" -o -name "*.sh" -o -name "*.toml" -o -name "*.cfg" -o -name "*.ini" \
+		-o -name "Dockerfile*" -o -name "*.jsonc" -o -name "*.env*" -o -name "*.css" \) \
+		! -path "*/node_modules/*" ! -path "*/.git/*" ! -path "*/__pycache__/*" \
+		! -path "*/.next/*" ! -path "*/dist/*" ! -path "*/build/*" \
+		! -path "*/coverage/*" ! -path "*/.venv/*" ! -path "*/venv/*" \
+		! -path "*/.mypy_cache/*" ! -path "*/.pnpm-store/*" ! -path "*/.ruff_cache/*" \
+		! -path "*/.swc/*" ! -name ".eslintcache" \
+		-exec grep -l "$search" {} \; 2>/dev/null) || true
+
+	if [[ -n "$files" ]]; then
+		echo "$files" | while read -r file; do
+			if [[ "$OSTYPE" == "darwin"* ]]; then
+				sed -i '' "s|$search|$replace|g" "$file"
+			else
+				sed -i "s|$search|$replace|g" "$file"
+			fi
+		done
+	fi
+
+	# Also check executable scripts in tools/ directory (no extension)
+	local tool_files
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		tool_files=$(find "$PROJECT_ROOT/tools" -maxdepth 1 -type f -perm +111 \
+			-exec grep -l "$search" {} \; 2>/dev/null) || true
+	else
+		tool_files=$(find "$PROJECT_ROOT/tools" -maxdepth 1 -type f -executable \
+			-exec grep -l "$search" {} \; 2>/dev/null) || true
+	fi
+
+	if [[ -n "$tool_files" ]]; then
+		echo "$tool_files" | while read -r file; do
+			if [[ "$OSTYPE" == "darwin"* ]]; then
+				sed -i '' "s|$search|$replace|g" "$file"
+			else
+				sed -i "s|$search|$replace|g" "$file"
+			fi
+		done
+	fi
+
+	# Also check executable scripts in .devcontainer/scripts/ directory (no extension)
+	local devcontainer_files
+	if [[ -d "$PROJECT_ROOT/.devcontainer/scripts" ]]; then
+		if [[ "$OSTYPE" == "darwin"* ]]; then
+			devcontainer_files=$(find "$PROJECT_ROOT/.devcontainer/scripts" -maxdepth 1 -type f -perm +111 \
+				-exec grep -l "$search" {} \; 2>/dev/null) || true
+		else
+			devcontainer_files=$(find "$PROJECT_ROOT/.devcontainer/scripts" -maxdepth 1 -type f -executable \
+				-exec grep -l "$search" {} \; 2>/dev/null) || true
+		fi
+
+		if [[ -n "$devcontainer_files" ]]; then
+			echo "$devcontainer_files" | while read -r file; do
+				if [[ "$OSTYPE" == "darwin"* ]]; then
+					sed -i '' "s|$search|$replace|g" "$file"
+				else
+					sed -i "s|$search|$replace|g" "$file"
+				fi
+			done
+		fi
+	fi
 }
 
 # ============================================================================
@@ -496,36 +496,36 @@ replace_in_files() {
 # ============================================================================
 if run_step "1" "step_1_django_rename" "Renaming Django module folder"; then
 
-DJANGO_OLD="$PROJECT_ROOT/backend/app"
-DJANGO_NEW="$PROJECT_ROOT/backend/$PYTHON_NAME"
+	DJANGO_OLD="$PROJECT_ROOT/backend/app"
+	DJANGO_NEW="$PROJECT_ROOT/backend/$PYTHON_NAME"
 
-if [[ -d "$DJANGO_NEW" ]]; then
-    # Destination already exists (possibly from a previous failed run)
-    if [[ -d "$DJANGO_OLD" ]]; then
-        # Both exist - old has the template, new is leftover
-        echo -e "  ${YELLOW}⚠ Destination folder backend/$PYTHON_NAME already exists${NC}"
-        echo -e "  ${YELLOW}  (This can happen if you reverted git changes after a previous run)${NC}"
-        read -p "  Remove existing backend/$PYTHON_NAME and proceed? (y/N): " -r
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            rm -rf "$DJANGO_NEW"
-            mv "$DJANGO_OLD" "$DJANGO_NEW"
-            echo "  ✓ Removed old folder and renamed backend/app → backend/$PYTHON_NAME"
-        else
-            echo -e "  ${RED}Cannot proceed with existing destination folder. Please resolve manually.${NC}"
-            exit 1
-        fi
-    else
-        # Only new exists - already renamed in previous run
-        echo "  ✓ backend/$PYTHON_NAME already exists (from previous run)"
-    fi
-elif [[ -d "$DJANGO_OLD" ]]; then
-    mv "$DJANGO_OLD" "$DJANGO_NEW"
-    echo "  ✓ Renamed backend/app → backend/$PYTHON_NAME"
-else
-    echo -e "  ${YELLOW}⚠ backend/app not found, skipping folder rename${NC}"
-fi
+	if [[ -d "$DJANGO_NEW" ]]; then
+		# Destination already exists (possibly from a previous failed run)
+		if [[ -d "$DJANGO_OLD" ]]; then
+			# Both exist - old has the template, new is leftover
+			echo -e "  ${YELLOW}⚠ Destination folder backend/$PYTHON_NAME already exists${NC}"
+			echo -e "  ${YELLOW}  (This can happen if you reverted git changes after a previous run)${NC}"
+			read -p "  Remove existing backend/$PYTHON_NAME and proceed? (y/N): " -r
+			if [[ $REPLY =~ ^[Yy]$ ]]; then
+				rm -rf "$DJANGO_NEW"
+				mv "$DJANGO_OLD" "$DJANGO_NEW"
+				echo "  ✓ Removed old folder and renamed backend/app → backend/$PYTHON_NAME"
+			else
+				echo -e "  ${RED}Cannot proceed with existing destination folder. Please resolve manually.${NC}"
+				exit 1
+			fi
+		else
+			# Only new exists - already renamed in previous run
+			echo "  ✓ backend/$PYTHON_NAME already exists (from previous run)"
+		fi
+	elif [[ -d "$DJANGO_OLD" ]]; then
+		mv "$DJANGO_OLD" "$DJANGO_NEW"
+		echo "  ✓ Renamed backend/app → backend/$PYTHON_NAME"
+	else
+		echo -e "  ${YELLOW}⚠ backend/app not found, skipping folder rename${NC}"
+	fi
 
-mark_step_complete "step_1_django_rename"
+	mark_step_complete "step_1_django_rename"
 fi
 
 # ============================================================================
@@ -533,22 +533,22 @@ fi
 # ============================================================================
 if run_step "2" "step_2_django_imports" "Updating Django module references"; then
 
-# These are specific patterns we created - not generic "app" usage
-# Django settings module references
-replace_in_files "app\.settings" "${PYTHON_NAME}.settings"
-replace_in_files "app\.asgi" "${PYTHON_NAME}.asgi"
-replace_in_files "app\.wsgi" "${PYTHON_NAME}.wsgi"
-replace_in_files "app\.urls" "${PYTHON_NAME}.urls"
-replace_in_files "app\.ninja" "${PYTHON_NAME}.ninja"
-replace_in_files "app\.asgi_handler_logging" "${PYTHON_NAME}.asgi_handler_logging"
-replace_in_files "app\.asgi_middleware" "${PYTHON_NAME}.asgi_middleware"
+	# These are specific patterns we created - not generic "app" usage
+	# Django settings module references
+	replace_in_files "app\.settings" "${PYTHON_NAME}.settings"
+	replace_in_files "app\.asgi" "${PYTHON_NAME}.asgi"
+	replace_in_files "app\.wsgi" "${PYTHON_NAME}.wsgi"
+	replace_in_files "app\.urls" "${PYTHON_NAME}.urls"
+	replace_in_files "app\.ninja" "${PYTHON_NAME}.ninja"
+	replace_in_files "app\.asgi_handler_logging" "${PYTHON_NAME}.asgi_handler_logging"
+	replace_in_files "app\.asgi_middleware" "${PYTHON_NAME}.asgi_middleware"
 
-# Import statements with 'from adbsoftwaresolutions.'
-replace_in_files "from app\." "from ${PYTHON_NAME}."
-replace_in_files "import app\." "import ${PYTHON_NAME}."
+	# Import statements with 'from adbsoftwaresolutions.'
+	replace_in_files "from app\." "from ${PYTHON_NAME}."
+	replace_in_files "import app\." "import ${PYTHON_NAME}."
 
-echo "  ✓ Updated Django module imports"
-mark_step_complete "step_2_django_imports"
+	echo "  ✓ Updated Django module imports"
+	mark_step_complete "step_2_django_imports"
 fi
 
 # ============================================================================
@@ -556,22 +556,22 @@ fi
 # ============================================================================
 if run_step "3" "step_3_database" "Updating database configuration"; then
 
-# Database names (specific patterns we created)
-replace_in_files "adbsoftwaresolutions_dev" "$DB_NAME"
-replace_in_files "POSTGRES_USER: adbsoftwaresolutions" "POSTGRES_USER: $DB_USER"
-replace_in_files "POSTGRES_PASSWORD: adbsoftwaresolutions_dev_password" "POSTGRES_PASSWORD: $DB_PASSWORD"
-replace_in_files "SQL_USER=adbsoftwaresolutions" "SQL_USER=$DB_USER"
-replace_in_files "SQL_PASSWORD=adbsoftwaresolutions_dev_password" "SQL_PASSWORD=$DB_PASSWORD"
-replace_in_files "user='adbsoftwaresolutions'" "user='$DB_USER'"
-replace_in_files "password='adbsoftwaresolutions_dev_password'" "password='$DB_PASSWORD'"
-replace_in_files 'user="adbsoftwaresolutions"' "user=\"$DB_USER\""
-# Update post-create.sh database connection check
-replace_in_files "dbname='adbsoftwaresolutions_dev'" "dbname='$DB_NAME'"
-replace_in_files "user='adbsoftwaresolutions'" "user='$DB_USER'"
-replace_in_files "password='adbsoftwaresolutions_dev_password'" "password='$DB_PASSWORD'"
+	# Database names (specific patterns we created)
+	replace_in_files "adbsoftwaresolutions_dev" "$DB_NAME"
+	replace_in_files "POSTGRES_USER: adbsoftwaresolutions" "POSTGRES_USER: $DB_USER"
+	replace_in_files "POSTGRES_PASSWORD: adbsoftwaresolutions_dev_password" "POSTGRES_PASSWORD: $DB_PASSWORD"
+	replace_in_files "SQL_USER=adbsoftwaresolutions" "SQL_USER=$DB_USER"
+	replace_in_files "SQL_PASSWORD=adbsoftwaresolutions_dev_password" "SQL_PASSWORD=$DB_PASSWORD"
+	replace_in_files "user='adbsoftwaresolutions'" "user='$DB_USER'"
+	replace_in_files "password='adbsoftwaresolutions_dev_password'" "password='$DB_PASSWORD'"
+	replace_in_files 'user="adbsoftwaresolutions"' "user=\"$DB_USER\""
+	# Update post-create.sh database connection check
+	replace_in_files "dbname='adbsoftwaresolutions_dev'" "dbname='$DB_NAME'"
+	replace_in_files "user='adbsoftwaresolutions'" "user='$DB_USER'"
+	replace_in_files "password='adbsoftwaresolutions_dev_password'" "password='$DB_PASSWORD'"
 
-echo "  ✓ Updated database configuration"
-mark_step_complete "step_3_database"
+	echo "  ✓ Updated database configuration"
+	mark_step_complete "step_3_database"
 fi
 
 # ============================================================================
@@ -579,26 +579,26 @@ fi
 # ============================================================================
 if run_step "4" "step_4_docker" "Updating Docker and container references"; then
 
-# Docker image names (specific patterns)
-replace_in_files "adbsoftwaresolutions/adb-software-solutions-backend" "adbsoftwaresolutions/${SLUG_NAME}-backend"
-replace_in_files "adbsoftwaresolutions/adb-software-solutions-website" "adbsoftwaresolutions/${SLUG_NAME}-website"
+	# Docker image names (specific patterns)
+	replace_in_files "adbsoftwaresolutions/adb-software-solutions-backend" "adbsoftwaresolutions/${SLUG_NAME}-backend"
+	replace_in_files "adbsoftwaresolutions/adb-software-solutions-website" "adbsoftwaresolutions/${SLUG_NAME}-website"
 
-# Container network names
-replace_in_files "adbsoftwaresolutions-dev:" "${PYTHON_NAME}-dev:"
-replace_in_files "- app-dev" "- ${PYTHON_NAME}-dev"
+	# Container network names
+	replace_in_files "adbsoftwaresolutions-dev:" "${PYTHON_NAME}-dev:"
+	replace_in_files "- app-dev" "- ${PYTHON_NAME}-dev"
 
-# Volume names  
-replace_in_files "adbsoftwaresolutions-bash-history" "${PYTHON_NAME}-bash-history"
-replace_in_files "adbsoftwaresolutions-dev-static" "${PYTHON_NAME}-dev-static"
+	# Volume names
+	replace_in_files "adbsoftwaresolutions-bash-history" "${PYTHON_NAME}-bash-history"
+	replace_in_files "adbsoftwaresolutions-dev-static" "${PYTHON_NAME}-dev-static"
 
-# Devcontainer network name
-replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "app-dev" "${PYTHON_NAME}-dev"
+	# Devcontainer network name
+	replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "app-dev" "${PYTHON_NAME}-dev"
 
-# Update WORKDIR in Dockerfiles to use slug name
-replace_in_file "$PROJECT_ROOT/Dockerfile.backend" "WORKDIR /opt/app" "WORKDIR /opt/${SLUG_NAME}"
+	# Update WORKDIR in Dockerfiles to use slug name
+	replace_in_file "$PROJECT_ROOT/Dockerfile.backend" "WORKDIR /opt/app" "WORKDIR /opt/${SLUG_NAME}"
 
-echo "  ✓ Updated Docker configuration"
-mark_step_complete "step_4_docker"
+	echo "  ✓ Updated Docker configuration"
+	mark_step_complete "step_4_docker"
 fi
 
 # ============================================================================
@@ -606,18 +606,18 @@ fi
 # ============================================================================
 if run_step "5" "step_5_packages" "Updating package names and metadata"; then
 
-# package.json names (root and subprojects)
-replace_in_file "$PROJECT_ROOT/package.json" '"name": "adb-software-solutions"' "\"name\": \"$SLUG_NAME\""
-replace_in_file "$PROJECT_ROOT/website/package.json" '"name": "website"' "\"name\": \"${SLUG_NAME}-website\""
-replace_in_file "$PROJECT_ROOT/auth-frontend/package.json" '"name": "auth-frontend"' "\"name\": \"${SLUG_NAME}-auth\""
+	# package.json names (root and subprojects)
+	replace_in_file "$PROJECT_ROOT/package.json" '"name": "adb-software-solutions"' "\"name\": \"$SLUG_NAME\""
+	replace_in_file "$PROJECT_ROOT/website/package.json" '"name": "website"' "\"name\": \"${SLUG_NAME}-website\""
+	replace_in_file "$PROJECT_ROOT/auth-frontend/package.json" '"name": "auth-frontend"' "\"name\": \"${SLUG_NAME}-auth\""
 
-# ADB Software Solutions display name replacements
-replace_in_files "ADB Software Solutions" "$APP_NAME"
-replace_in_files "adb-software-solutions" "$SLUG_NAME"
-replace_in_files "ADB Software Solutions" "$APP_NAME"
+	# ADB Software Solutions display name replacements
+	replace_in_files "ADB Software Solutions" "$APP_NAME"
+	replace_in_files "adb-software-solutions" "$SLUG_NAME"
+	replace_in_files "ADB Software Solutions" "$APP_NAME"
 
-echo "  ✓ Updated package names and metadata"
-mark_step_complete "step_5_packages"
+	echo "  ✓ Updated package names and metadata"
+	mark_step_complete "step_5_packages"
 fi
 
 # ============================================================================
@@ -625,36 +625,36 @@ fi
 # ============================================================================
 if run_step "6" "step_6_branding" "Updating site name and branding"; then
 
-# Settings SITE_NAME
-replace_in_file "$PROJECT_ROOT/backend/$PYTHON_NAME/settings.py" 'SITE_NAME = "ADB Software Solutions"' "SITE_NAME = \"$APP_NAME\""
+	# Settings SITE_NAME
+	replace_in_file "$PROJECT_ROOT/backend/$PYTHON_NAME/settings.py" 'SITE_NAME = "ADB Software Solutions"' "SITE_NAME = \"$APP_NAME\""
 
-# DevContainer name
-replace_in_file "$PROJECT_ROOT/.devcontainer/devcontainer.json" '"name": "ADB Software Solutions Dev Container"' "\"name\": \"$APP_NAME Dev Container\""
+	# DevContainer name
+	replace_in_file "$PROJECT_ROOT/.devcontainer/devcontainer.json" '"name": "ADB Software Solutions Dev Container"' "\"name\": \"$APP_NAME Dev Container\""
 
-# Admin titles
-replace_in_file "$PROJECT_ROOT/backend/$PYTHON_NAME/settings.py" '"SITE_TITLE": "Admin"' "\"SITE_TITLE\": \"$APP_NAME Admin\""
-replace_in_file "$PROJECT_ROOT/backend/$PYTHON_NAME/settings.py" '"SITE_HEADER": "Admin"' "\"SITE_HEADER\": \"$APP_NAME Admin\""
+	# Admin titles
+	replace_in_file "$PROJECT_ROOT/backend/$PYTHON_NAME/settings.py" '"SITE_TITLE": "Admin"' "\"SITE_TITLE\": \"$APP_NAME Admin\""
+	replace_in_file "$PROJECT_ROOT/backend/$PYTHON_NAME/settings.py" '"SITE_HEADER": "Admin"' "\"SITE_HEADER\": \"$APP_NAME Admin\""
 
-# API title
-replace_in_file "$PROJECT_ROOT/backend/$PYTHON_NAME/ninja/routers.py" 'title="ADB Software Solutions API"' "title=\"$APP_NAME API\""
-replace_in_file "$PROJECT_ROOT/backend/$PYTHON_NAME/ninja/routers.py" 'description="API for the ADB Software Solutions"' "description=\"API for $APP_NAME\""
+	# API title
+	replace_in_file "$PROJECT_ROOT/backend/$PYTHON_NAME/ninja/routers.py" 'title="ADB Software Solutions API"' "title=\"$APP_NAME API\""
+	replace_in_file "$PROJECT_ROOT/backend/$PYTHON_NAME/ninja/routers.py" 'description="API for the ADB Software Solutions"' "description=\"API for $APP_NAME\""
 
-# Site manifest
-replace_in_file "$PROJECT_ROOT/auth-frontend/public/site.webmanifest" '"name": "ADB Software Solutions"' "\"name\": \"$APP_NAME\""
-replace_in_file "$PROJECT_ROOT/auth-frontend/public/site.webmanifest" '"short_name": "App"' "\"short_name\": \"$APP_NAME\""
+	# Site manifest
+	replace_in_file "$PROJECT_ROOT/auth-frontend/public/site.webmanifest" '"name": "ADB Software Solutions"' "\"name\": \"$APP_NAME\""
+	replace_in_file "$PROJECT_ROOT/auth-frontend/public/site.webmanifest" '"short_name": "App"' "\"short_name\": \"$APP_NAME\""
 
-# HTML meta tags
-replace_in_file "$PROJECT_ROOT/auth-frontend/index.html" 'content="App"' "content=\"$APP_NAME\""
-replace_in_file "$PROJECT_ROOT/website/src/app/layout.tsx" 'content="ADB Software Solutions"' "content=\"$APP_NAME\""
-replace_in_file "$PROJECT_ROOT/website/src/app/layout.tsx" 'title: "ADB Software Solutions"' "title: \"$APP_NAME\""
-replace_in_file "$PROJECT_ROOT/website/src/app/page.tsx" 'title: "ADB Software Solutions"' "title: \"$APP_NAME\""
+	# HTML meta tags
+	replace_in_file "$PROJECT_ROOT/auth-frontend/index.html" 'content="App"' "content=\"$APP_NAME\""
+	replace_in_file "$PROJECT_ROOT/website/src/app/layout.tsx" 'content="ADB Software Solutions"' "content=\"$APP_NAME\""
+	replace_in_file "$PROJECT_ROOT/website/src/app/layout.tsx" 'title: "ADB Software Solutions"' "title: \"$APP_NAME\""
+	replace_in_file "$PROJECT_ROOT/website/src/app/page.tsx" 'title: "ADB Software Solutions"' "title: \"$APP_NAME\""
 
-# Logo component
-replace_in_file "$PROJECT_ROOT/auth-frontend/src/components/logo/LogoComponent.tsx" '>Your<' ">${APP_NAME%% *}<"
-replace_in_file "$PROJECT_ROOT/auth-frontend/src/components/logo/LogoComponent.tsx" '>App<' ">${APP_NAME#* }<"
+	# Logo component
+	replace_in_file "$PROJECT_ROOT/auth-frontend/src/components/logo/LogoComponent.tsx" '>Your<' ">${APP_NAME%% *}<"
+	replace_in_file "$PROJECT_ROOT/auth-frontend/src/components/logo/LogoComponent.tsx" '>App<' ">${APP_NAME#* }<"
 
-echo "  ✓ Updated site name and branding"
-mark_step_complete "step_6_branding"
+	echo "  ✓ Updated site name and branding"
+	mark_step_complete "step_6_branding"
 fi
 
 # ============================================================================
@@ -662,49 +662,49 @@ fi
 # ============================================================================
 if run_step "7" "step_7_ports" "Updating port configurations"; then
 
-# Backend port
-replace_in_file "$PROJECT_ROOT/.devcontainer/scripts/start-backend" "--port 8000" "--port $BACKEND_PORT"
-replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "8000:8000" "$BACKEND_PORT:$BACKEND_PORT"
+	# Backend port
+	replace_in_file "$PROJECT_ROOT/.devcontainer/scripts/start-backend" "--port 8000" "--port $BACKEND_PORT"
+	replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "8000:8000" "$BACKEND_PORT:$BACKEND_PORT"
 
-# Website port (Next.js uses -p flag)
-replace_in_file "$PROJECT_ROOT/website/package.json" '"dev": "next dev"' "\"dev\": \"next dev -p $WEBSITE_PORT\""
+	# Website port (Next.js uses -p flag)
+	replace_in_file "$PROJECT_ROOT/website/package.json" '"dev": "next dev"' "\"dev\": \"next dev -p $WEBSITE_PORT\""
 
-# Auth frontend port (Vite uses --port flag)
-replace_in_file "$PROJECT_ROOT/auth-frontend/package.json" '"dev": "vite"' "\"dev\": \"vite --port $AUTH_FRONTEND_PORT\""
-replace_in_file "$PROJECT_ROOT/auth-frontend/vite.config.ts" "port: 5173" "port: $AUTH_FRONTEND_PORT"
+	# Auth frontend port (Vite uses --port flag)
+	replace_in_file "$PROJECT_ROOT/auth-frontend/package.json" '"dev": "vite"' "\"dev\": \"vite --port $AUTH_FRONTEND_PORT\""
+	replace_in_file "$PROJECT_ROOT/auth-frontend/vite.config.ts" "port: 5173" "port: $AUTH_FRONTEND_PORT"
 
-# PostgreSQL port
-replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "5432:5432" "$POSTGRES_PORT:5432"
-replace_in_file "$PROJECT_ROOT/.devcontainer/.env.example" "SQL_PORT=5432" "SQL_PORT=$POSTGRES_PORT"
+	# PostgreSQL port
+	replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "5432:5432" "$POSTGRES_PORT:5432"
+	replace_in_file "$PROJECT_ROOT/.devcontainer/.env.example" "SQL_PORT=5432" "SQL_PORT=$POSTGRES_PORT"
 
-# PostgreSQL credentials
-replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "POSTGRES_DB: app_dev" "POSTGRES_DB: $DB_NAME"
-replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "POSTGRES_USER: app" "POSTGRES_USER: $DB_USER"
-replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "POSTGRES_PASSWORD: app_dev_password" "POSTGRES_PASSWORD: $DB_PASSWORD"
-replace_in_file "$PROJECT_ROOT/.devcontainer/.env.example" "SQL_DATABASE=app_dev" "SQL_DATABASE=$DB_NAME"
-replace_in_file "$PROJECT_ROOT/.devcontainer/.env.example" "SQL_USER=app" "SQL_USER=$DB_USER"
-replace_in_file "$PROJECT_ROOT/.devcontainer/.env.example" "SQL_PASSWORD=app_dev_password" "SQL_PASSWORD=$DB_PASSWORD"
+	# PostgreSQL credentials
+	replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "POSTGRES_DB: app_dev" "POSTGRES_DB: $DB_NAME"
+	replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "POSTGRES_USER: app" "POSTGRES_USER: $DB_USER"
+	replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "POSTGRES_PASSWORD: app_dev_password" "POSTGRES_PASSWORD: $DB_PASSWORD"
+	replace_in_file "$PROJECT_ROOT/.devcontainer/.env.example" "SQL_DATABASE=app_dev" "SQL_DATABASE=$DB_NAME"
+	replace_in_file "$PROJECT_ROOT/.devcontainer/.env.example" "SQL_USER=app" "SQL_USER=$DB_USER"
+	replace_in_file "$PROJECT_ROOT/.devcontainer/.env.example" "SQL_PASSWORD=app_dev_password" "SQL_PASSWORD=$DB_PASSWORD"
 
-# Redis port
-replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "6379:6379" "$REDIS_PORT:6379"
+	# Redis port
+	replace_in_file "$PROJECT_ROOT/.devcontainer/docker-compose.yml" "6379:6379" "$REDIS_PORT:6379"
 
-# Update devcontainer.json forwardPorts
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    sed -i '' "s/8000/$BACKEND_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
-    sed -i '' "s/3000/$WEBSITE_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
-    sed -i '' "s/5173/$AUTH_FRONTEND_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
-    sed -i '' "s/5432/$POSTGRES_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
-    sed -i '' "s/6379/$REDIS_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
-else
-    sed -i "s/8000/$BACKEND_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
-    sed -i "s/3000/$WEBSITE_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
-    sed -i "s/5173/$AUTH_FRONTEND_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
-    sed -i "s/5432/$POSTGRES_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
-    sed -i "s/6379/$REDIS_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
-fi
+	# Update devcontainer.json forwardPorts
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		sed -i '' "s/8000/$BACKEND_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
+		sed -i '' "s/3000/$WEBSITE_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
+		sed -i '' "s/5173/$AUTH_FRONTEND_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
+		sed -i '' "s/5432/$POSTGRES_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
+		sed -i '' "s/6379/$REDIS_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
+	else
+		sed -i "s/8000/$BACKEND_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
+		sed -i "s/3000/$WEBSITE_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
+		sed -i "s/5173/$AUTH_FRONTEND_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
+		sed -i "s/5432/$POSTGRES_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
+		sed -i "s/6379/$REDIS_PORT/g" "$PROJECT_ROOT/.devcontainer/devcontainer.json"
+	fi
 
-echo "  ✓ Updated port configurations"
-mark_step_complete "step_7_ports"
+	echo "  ✓ Updated port configurations"
+	mark_step_complete "step_7_ports"
 fi
 
 # ============================================================================
@@ -712,22 +712,22 @@ fi
 # ============================================================================
 if run_step "8" "step_8_git_config" "Updating Git-related configurations"; then
 
-# Extract org/repo from GitHub upstream URL for commit-message-lint
-if [[ -n "$GITHUB_UPSTREAM" ]]; then
-    # Handle both SSH (git@github.com:org/repo.git) and HTTPS (https://github.com/org/repo.git)
-    if [[ "$GITHUB_UPSTREAM" =~ github\.com[:/]([^/]+/[^/]+)(\.git)?$ ]]; then
-        GITHUB_SLUG="${BASH_REMATCH[1]}"
-        GITHUB_SLUG="${GITHUB_SLUG%.git}"  # Remove .git suffix if present
-        replace_in_file "$PROJECT_ROOT/tools/commit-message-lint" 'repository="your-org/your-repo"' "repository=\"$GITHUB_SLUG\""
-        echo "  ✓ Updated commit-message-lint with repository: $GITHUB_SLUG"
-    else
-        echo -e "  ${YELLOW}⚠ Could not extract org/repo from GitHub URL, skipping commit-message-lint${NC}"
-    fi
-else
-    echo -e "  ${YELLOW}⚠ No GitHub upstream URL provided, skipping commit-message-lint${NC}"
-fi
+	# Extract org/repo from GitHub upstream URL for commit-message-lint
+	if [[ -n "$GITHUB_UPSTREAM" ]]; then
+		# Handle both SSH (git@github.com:org/repo.git) and HTTPS (https://github.com/org/repo.git)
+		if [[ "$GITHUB_UPSTREAM" =~ github\.com[:/]([^/]+/[^/]+)(\.git)?$ ]]; then
+			GITHUB_SLUG="${BASH_REMATCH[1]}"
+			GITHUB_SLUG="${GITHUB_SLUG%.git}" # Remove .git suffix if present
+			replace_in_file "$PROJECT_ROOT/tools/commit-message-lint" 'repository="your-org/your-repo"' "repository=\"$GITHUB_SLUG\""
+			echo "  ✓ Updated commit-message-lint with repository: $GITHUB_SLUG"
+		else
+			echo -e "  ${YELLOW}⚠ Could not extract org/repo from GitHub URL, skipping commit-message-lint${NC}"
+		fi
+	else
+		echo -e "  ${YELLOW}⚠ No GitHub upstream URL provided, skipping commit-message-lint${NC}"
+	fi
 
-mark_step_complete "step_8_git_config"
+	mark_step_complete "step_8_git_config"
 fi
 
 # ============================================================================
@@ -735,23 +735,23 @@ fi
 # ============================================================================
 if run_step "9" "step_9_git_remotes" "Configuring Git remotes"; then
 
-cd "$PROJECT_ROOT"
+	cd "$PROJECT_ROOT"
 
-if [[ -n "$GITHUB_UPSTREAM" ]]; then
-    if git remote get-url upstream &>/dev/null; then
-        git remote set-url upstream "$GITHUB_UPSTREAM"
-    else
-        git remote add upstream "$GITHUB_UPSTREAM"
-    fi
-    echo "  ✓ Set upstream remote to $GITHUB_UPSTREAM"
-fi
+	if [[ -n "$GITHUB_UPSTREAM" ]]; then
+		if git remote get-url upstream &>/dev/null; then
+			git remote set-url upstream "$GITHUB_UPSTREAM"
+		else
+			git remote add upstream "$GITHUB_UPSTREAM"
+		fi
+		echo "  ✓ Set upstream remote to $GITHUB_UPSTREAM"
+	fi
 
-if [[ -n "$GITHUB_ORIGIN" ]]; then
-    git remote set-url origin "$GITHUB_ORIGIN"
-    echo "  ✓ Set origin remote to $GITHUB_ORIGIN"
-fi
+	if [[ -n "$GITHUB_ORIGIN" ]]; then
+		git remote set-url origin "$GITHUB_ORIGIN"
+		echo "  ✓ Set origin remote to $GITHUB_ORIGIN"
+	fi
 
-mark_step_complete "step_9_git_remotes"
+	mark_step_complete "step_9_git_remotes"
 fi
 
 # ============================================================================
@@ -759,78 +759,78 @@ fi
 # ============================================================================
 if run_step "10" "step_10_frontends" "Creating additional frontends"; then
 
-if [[ ${#EXTRA_FRONTENDS[@]} -eq 0 ]]; then
-    echo "  No additional frontends to create"
-else
-    for i in "${!EXTRA_FRONTENDS[@]}"; do
-        frontend="${EXTRA_FRONTENDS[$i]}"
-        FRONTEND_TYPE="${EXTRA_FRONTEND_TYPES[$i]}"
-        FRONTEND_PORT="${EXTRA_FRONTEND_PORTS[$i]}"
-        FRONTEND_DIR="$PROJECT_ROOT/$frontend"
-        
-        # Check if directory already exists (from previous run)
-        if [[ -d "$FRONTEND_DIR" ]]; then
-            echo -e "  ${YELLOW}⚠ $frontend already exists, skipping creation${NC}"
-            continue
-        fi
-        
-        echo "  Creating $frontend ($FRONTEND_TYPE on port $FRONTEND_PORT)..."
-        
-        cd "$PROJECT_ROOT"
-        
-        if [[ "$FRONTEND_TYPE" == "nextjs" ]]; then
-            # Create Next.js frontend using official create-next-app
-            echo "    Running create-next-app..."
-            npx create-next-app@latest "$frontend" \
-                --typescript \
-                --tailwind \
-                --eslint \
-                --app \
-                --src-dir \
-                --use-pnpm \
-                --yes \
-                --no-git
-            
-            cd "$FRONTEND_DIR"
-            
-            # Update port in package.json
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                sed -i '' "s/\"dev\": \"next dev\"/\"dev\": \"next dev -p $FRONTEND_PORT\"/" package.json
-                sed -i '' "s/\"start\": \"next start\"/\"start\": \"next start -p $FRONTEND_PORT\"/" package.json
-                # Add test scripts
-                sed -i '' 's/"lint": "next lint"/"lint": "next lint",\n    "test": "jest",\n    "test:watch": "jest --watch",\n    "test:coverage": "jest --coverage"/' package.json
-            else
-                sed -i "s/\"dev\": \"next dev\"/\"dev\": \"next dev -p $FRONTEND_PORT\"/" package.json
-                sed -i "s/\"start\": \"next start\"/\"start\": \"next start -p $FRONTEND_PORT\"/" package.json
-                sed -i 's/"lint": "next lint"/"lint": "next lint",\n    "test": "jest",\n    "test:watch": "jest --watch",\n    "test:coverage": "jest --coverage"/' package.json
-            fi
-            
-            # Update name in package.json
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                sed -i '' "s/\"name\": \"$frontend\"/\"name\": \"${SLUG_NAME}-${frontend}\"/" package.json
-            else
-                sed -i "s/\"name\": \"$frontend\"/\"name\": \"${SLUG_NAME}-${frontend}\"/" package.json
-            fi
-            
-            # Install additional dev dependencies
-            echo "    Installing additional dependencies..."
-            pnpm add -D \
-                @next/eslint-plugin-next \
-                @tailwindcss/forms \
-                @tailwindcss/postcss \
-                jest \
-                jest-environment-jsdom \
-                @testing-library/react \
-                @testing-library/jest-dom \
-                prettier \
-                prettier-plugin-tailwindcss \
-                stylelint \
-                stylelint-config-standard \
-                stylelint-config-tailwindcss \
-                stylelint-order
-            
-            # Create stylelint.config.js
-            cat > stylelint.config.js << 'STYLELINTCONFIG'
+	if [[ ${#EXTRA_FRONTENDS[@]} -eq 0 ]]; then
+		echo "  No additional frontends to create"
+	else
+		for i in "${!EXTRA_FRONTENDS[@]}"; do
+			frontend="${EXTRA_FRONTENDS[$i]}"
+			FRONTEND_TYPE="${EXTRA_FRONTEND_TYPES[$i]}"
+			FRONTEND_PORT="${EXTRA_FRONTEND_PORTS[$i]}"
+			FRONTEND_DIR="$PROJECT_ROOT/$frontend"
+
+			# Check if directory already exists (from previous run)
+			if [[ -d "$FRONTEND_DIR" ]]; then
+				echo -e "  ${YELLOW}⚠ $frontend already exists, skipping creation${NC}"
+				continue
+			fi
+
+			echo "  Creating $frontend ($FRONTEND_TYPE on port $FRONTEND_PORT)..."
+
+			cd "$PROJECT_ROOT"
+
+			if [[ "$FRONTEND_TYPE" == "nextjs" ]]; then
+				# Create Next.js frontend using official create-next-app
+				echo "    Running create-next-app..."
+				npx create-next-app@latest "$frontend" \
+					--typescript \
+					--tailwind \
+					--eslint \
+					--app \
+					--src-dir \
+					--use-pnpm \
+					--yes \
+					--no-git
+
+				cd "$FRONTEND_DIR"
+
+				# Update port in package.json
+				if [[ "$OSTYPE" == "darwin"* ]]; then
+					sed -i '' "s/\"dev\": \"next dev\"/\"dev\": \"next dev -p $FRONTEND_PORT\"/" package.json
+					sed -i '' "s/\"start\": \"next start\"/\"start\": \"next start -p $FRONTEND_PORT\"/" package.json
+					# Add test scripts
+					sed -i '' 's/"lint": "next lint"/"lint": "next lint",\n    "test": "jest",\n    "test:watch": "jest --watch",\n    "test:coverage": "jest --coverage"/' package.json
+				else
+					sed -i "s/\"dev\": \"next dev\"/\"dev\": \"next dev -p $FRONTEND_PORT\"/" package.json
+					sed -i "s/\"start\": \"next start\"/\"start\": \"next start -p $FRONTEND_PORT\"/" package.json
+					sed -i 's/"lint": "next lint"/"lint": "next lint",\n    "test": "jest",\n    "test:watch": "jest --watch",\n    "test:coverage": "jest --coverage"/' package.json
+				fi
+
+				# Update name in package.json
+				if [[ "$OSTYPE" == "darwin"* ]]; then
+					sed -i '' "s/\"name\": \"$frontend\"/\"name\": \"${SLUG_NAME}-${frontend}\"/" package.json
+				else
+					sed -i "s/\"name\": \"$frontend\"/\"name\": \"${SLUG_NAME}-${frontend}\"/" package.json
+				fi
+
+				# Install additional dev dependencies
+				echo "    Installing additional dependencies..."
+				pnpm add -D \
+					@next/eslint-plugin-next \
+					@tailwindcss/forms \
+					@tailwindcss/postcss \
+					jest \
+					jest-environment-jsdom \
+					@testing-library/react \
+					@testing-library/jest-dom \
+					prettier \
+					prettier-plugin-tailwindcss \
+					stylelint \
+					stylelint-config-standard \
+					stylelint-config-tailwindcss \
+					stylelint-order
+
+				# Create stylelint.config.js
+				cat >stylelint.config.js <<'STYLELINTCONFIG'
 "use strict";
 
 module.exports = {
@@ -892,9 +892,9 @@ module.exports = {
     ],
 };
 STYLELINTCONFIG
-            
-            # Create prettier.config.js
-            cat > prettier.config.js << 'PRETTIERCONFIG'
+
+				# Create prettier.config.js
+				cat >prettier.config.js <<'PRETTIERCONFIG'
 "use strict";
 
 module.exports = {
@@ -919,9 +919,9 @@ module.exports = {
     plugins: ["prettier-plugin-tailwindcss"],
 };
 PRETTIERCONFIG
-            
-            # Create jest.config.js
-            cat > jest.config.js << 'JESTCONFIG'
+
+				# Create jest.config.js
+				cat >jest.config.js <<'JESTCONFIG'
 const nextJest = require("next/jest");
 
 const createJestConfig = nextJest({
@@ -949,14 +949,14 @@ const customJestConfig = {
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
 module.exports = createJestConfig(customJestConfig);
 JESTCONFIG
-            
-            # Create jest.setup.js
-            cat > jest.setup.js << 'JESTSETUP'
+
+				# Create jest.setup.js
+				cat >jest.setup.js <<'JESTSETUP'
 import "@testing-library/jest-dom";
 JESTSETUP
-            
-            # Create eslint.config.mjs
-            cat > eslint.config.mjs << 'ESLINTCONFIG'
+
+				# Create eslint.config.mjs
+				cat >eslint.config.mjs <<'ESLINTCONFIG'
 import pluginNext from "@next/eslint-plugin-next";
 import parser from "@typescript-eslint/parser";
 
@@ -988,53 +988,53 @@ export default [
     },
 ];
 ESLINTCONFIG
-            
-            cd "$PROJECT_ROOT"
-            
-        else
-            # Create Vite/React frontend using official create-vite
-            echo "    Running create-vite..."
-            printf "n\nn\n" | npm create vite@latest "$frontend" -- --template react-ts
-            
-            cd "$FRONTEND_DIR"
-            
-            # Remove package-lock.json and node_modules (npm creates these)
-            rm -f package-lock.json
-            rm -rf node_modules
-            
-            # Update name in package.json and add test scripts
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                sed -i '' "s/\"name\": \"$frontend\"/\"name\": \"${SLUG_NAME}-${frontend}\"/" package.json
-                sed -i '' 's/"preview": "vite preview"/"preview": "vite preview",\n    "test": "vitest",\n    "test:watch": "vitest --watch",\n    "test:coverage": "vitest --coverage"/' package.json
-            else
-                sed -i "s/\"name\": \"$frontend\"/\"name\": \"${SLUG_NAME}-${frontend}\"/" package.json
-                sed -i 's/"preview": "vite preview"/"preview": "vite preview",\n    "test": "vitest",\n    "test:watch": "vitest --watch",\n    "test:coverage": "vitest --coverage"/' package.json
-            fi
-            
-            # Install Tailwind CSS v4 and other dependencies
-            echo "    Setting up Tailwind CSS v4 and other dependencies..."
-            pnpm add -D \
-                @tailwindcss/vite \
-                @tailwindcss/forms \
-                tailwindcss \
-                @testing-library/jest-dom \
-                @testing-library/react \
-                @testing-library/user-event \
-                @typescript-eslint/eslint-plugin \
-                @typescript-eslint/parser \
-                eslint-plugin-react \
-                eslint-plugin-react-hooks \
-                eslint-plugin-react-refresh \
-                globals \
-                jsdom \
-                vitest \
-                @vitest/coverage-v8 \
-                stylelint \
-                stylelint-config-standard \
-                prettier
-            
-            # Update vite.config.ts with Tailwind v4, path alias, and test config
-            cat > vite.config.ts << VITECONFIG
+
+				cd "$PROJECT_ROOT"
+
+			else
+				# Create Vite/React frontend using official create-vite
+				echo "    Running create-vite..."
+				printf "n\nn\n" | npm create vite@latest "$frontend" -- --template react-ts
+
+				cd "$FRONTEND_DIR"
+
+				# Remove package-lock.json and node_modules (npm creates these)
+				rm -f package-lock.json
+				rm -rf node_modules
+
+				# Update name in package.json and add test scripts
+				if [[ "$OSTYPE" == "darwin"* ]]; then
+					sed -i '' "s/\"name\": \"$frontend\"/\"name\": \"${SLUG_NAME}-${frontend}\"/" package.json
+					sed -i '' 's/"preview": "vite preview"/"preview": "vite preview",\n    "test": "vitest",\n    "test:watch": "vitest --watch",\n    "test:coverage": "vitest --coverage"/' package.json
+				else
+					sed -i "s/\"name\": \"$frontend\"/\"name\": \"${SLUG_NAME}-${frontend}\"/" package.json
+					sed -i 's/"preview": "vite preview"/"preview": "vite preview",\n    "test": "vitest",\n    "test:watch": "vitest --watch",\n    "test:coverage": "vitest --coverage"/' package.json
+				fi
+
+				# Install Tailwind CSS v4 and other dependencies
+				echo "    Setting up Tailwind CSS v4 and other dependencies..."
+				pnpm add -D \
+					@tailwindcss/vite \
+					@tailwindcss/forms \
+					tailwindcss \
+					@testing-library/jest-dom \
+					@testing-library/react \
+					@testing-library/user-event \
+					@typescript-eslint/eslint-plugin \
+					@typescript-eslint/parser \
+					eslint-plugin-react \
+					eslint-plugin-react-hooks \
+					eslint-plugin-react-refresh \
+					globals \
+					jsdom \
+					vitest \
+					@vitest/coverage-v8 \
+					stylelint \
+					stylelint-config-standard \
+					prettier
+
+				# Update vite.config.ts with Tailwind v4, path alias, and test config
+				cat >vite.config.ts <<VITECONFIG
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -1063,14 +1063,14 @@ export default defineConfig({
     },
 });
 VITECONFIG
-            
-            # Create src/index.css with Tailwind v4 imports
-            cat > src/index.css << 'INDEXCSS'
+
+				# Create src/index.css with Tailwind v4 imports
+				cat >src/index.css <<'INDEXCSS'
 @import "tailwindcss";
 INDEXCSS
-            
-            # Update main.tsx to import index.css
-            cat > src/main.tsx << 'MAINTSX'
+
+				# Update main.tsx to import index.css
+				cat >src/main.tsx <<'MAINTSX'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
@@ -1082,13 +1082,13 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 MAINTSX
-            
-            # Update App.tsx with Tailwind classes
-            FRONTEND_DISPLAY_NAME="${frontend}"
-            FRONTEND_DISPLAY_NAME="${FRONTEND_DISPLAY_NAME//-/ }"
-            FRONTEND_DISPLAY_NAME="$(echo "$FRONTEND_DISPLAY_NAME" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1')"
-            
-            cat > src/App.tsx << APPTSX
+
+				# Update App.tsx with Tailwind classes
+				FRONTEND_DISPLAY_NAME="${frontend}"
+				FRONTEND_DISPLAY_NAME="${FRONTEND_DISPLAY_NAME//-/ }"
+				FRONTEND_DISPLAY_NAME="$(echo "$FRONTEND_DISPLAY_NAME" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1')"
+
+				cat >src/App.tsx <<APPTSX
 function App() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-24">
@@ -1100,10 +1100,10 @@ function App() {
 
 export default App
 APPTSX
-            
-            # Create test directory and setup file
-            mkdir -p src/test
-            cat > src/test/setup.ts << 'TESTSETUP'
+
+				# Create test directory and setup file
+				mkdir -p src/test
+				cat >src/test/setup.ts <<'TESTSETUP'
 import "@testing-library/jest-dom";
 
 // Mock window.matchMedia for theme detection
@@ -1121,9 +1121,9 @@ Object.defineProperty(window, "matchMedia", {
     }),
 });
 TESTSETUP
-            
-            # Create stylelint.config.js
-            cat > stylelint.config.js << 'STYLELINTCONFIG'
+
+				# Create stylelint.config.js
+				cat >stylelint.config.js <<'STYLELINTCONFIG'
 /** @type {import('stylelint').Config} */
 export default {
     extends: ["stylelint-config-standard"],
@@ -1160,9 +1160,9 @@ export default {
     ignoreFiles: ["dist/**", "node_modules/**"],
 };
 STYLELINTCONFIG
-            
-            # Create eslint.config.mjs
-            cat > eslint.config.mjs << 'ESLINTCONFIG'
+
+				# Create eslint.config.mjs
+				cat >eslint.config.mjs <<'ESLINTCONFIG'
 import typescriptPlugin from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 import reactPlugin from "eslint-plugin-react";
@@ -1218,7 +1218,7 @@ export default [
                 "error",
                 {argsIgnorePattern: "^_"},
             ],
-            
+
             // React rules
             "react/react-in-jsx-scope": "off",
             "react/prop-types": "off",
@@ -1232,17 +1232,17 @@ export default [
     },
 ];
 ESLINTCONFIG
-            
-            # Install dependencies with pnpm
-            echo "    Installing dependencies with pnpm..."
-            pnpm install
-            
-            cd "$PROJECT_ROOT"
-        fi
-        
-        # Create devcontainer script for this frontend
-        SCRIPT_NAME="start-${frontend}"
-        cat > "$PROJECT_ROOT/.devcontainer/scripts/$SCRIPT_NAME" << STARTSCRIPT
+
+				# Install dependencies with pnpm
+				echo "    Installing dependencies with pnpm..."
+				pnpm install
+
+				cd "$PROJECT_ROOT"
+			fi
+
+			# Create devcontainer script for this frontend
+			SCRIPT_NAME="start-${frontend}"
+			cat >"$PROJECT_ROOT/.devcontainer/scripts/$SCRIPT_NAME" <<STARTSCRIPT
 #!/bin/bash
 # Start $frontend development server
 set -e
@@ -1257,14 +1257,14 @@ cd /workspace/$frontend
 echo "🚀 Starting $frontend development server..."
 pnpm run dev
 STARTSCRIPT
-        chmod +x "$PROJECT_ROOT/.devcontainer/scripts/$SCRIPT_NAME"
-        
-        # Create test script in .devcontainer/scripts/ (proper format with coverage)
-        TEST_SCRIPT_NAME="test-${frontend}"
-        FRONTEND_LABEL="${frontend//-/ }"
-        FRONTEND_LABEL="$(echo "$FRONTEND_LABEL" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1')"
-        
-        cat > "$PROJECT_ROOT/.devcontainer/scripts/$TEST_SCRIPT_NAME" << 'TESTSCRIPT'
+			chmod +x "$PROJECT_ROOT/.devcontainer/scripts/$SCRIPT_NAME"
+
+			# Create test script in .devcontainer/scripts/ (proper format with coverage)
+			TEST_SCRIPT_NAME="test-${frontend}"
+			FRONTEND_LABEL="${frontend//-/ }"
+			FRONTEND_LABEL="$(echo "$FRONTEND_LABEL" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1')"
+
+			cat >"$PROJECT_ROOT/.devcontainer/scripts/$TEST_SCRIPT_NAME" <<'TESTSCRIPT'
 #!/bin/bash
 
 # Test script for FRONTEND_NAME
@@ -1291,16 +1291,16 @@ pnpm run test:coverage
 echo ""
 echo "✅ FRONTEND_LABEL tests completed successfully!"
 TESTSCRIPT
-        
-        # Replace placeholders in test script
-        sed -i.bak "s/FRONTEND_NAME/$frontend/g" "$PROJECT_ROOT/.devcontainer/scripts/$TEST_SCRIPT_NAME"
-        sed -i.bak "s/FRONTEND_LABEL/$FRONTEND_LABEL/g" "$PROJECT_ROOT/.devcontainer/scripts/$TEST_SCRIPT_NAME"
-        sed -i.bak "s/FRONTEND_DIR/$frontend/g" "$PROJECT_ROOT/.devcontainer/scripts/$TEST_SCRIPT_NAME"
-        rm "$PROJECT_ROOT/.devcontainer/scripts/$TEST_SCRIPT_NAME.bak"
-        chmod +x "$PROJECT_ROOT/.devcontainer/scripts/$TEST_SCRIPT_NAME"
-        
-        # Create test script in tools/ directory (simple format)
-        cat > "$PROJECT_ROOT/tools/$TEST_SCRIPT_NAME" << 'TOOLSTESTSCRIPT'
+
+			# Replace placeholders in test script
+			sed -i.bak "s/FRONTEND_NAME/$frontend/g" "$PROJECT_ROOT/.devcontainer/scripts/$TEST_SCRIPT_NAME"
+			sed -i.bak "s/FRONTEND_LABEL/$FRONTEND_LABEL/g" "$PROJECT_ROOT/.devcontainer/scripts/$TEST_SCRIPT_NAME"
+			sed -i.bak "s/FRONTEND_DIR/$frontend/g" "$PROJECT_ROOT/.devcontainer/scripts/$TEST_SCRIPT_NAME"
+			rm "$PROJECT_ROOT/.devcontainer/scripts/$TEST_SCRIPT_NAME.bak"
+			chmod +x "$PROJECT_ROOT/.devcontainer/scripts/$TEST_SCRIPT_NAME"
+
+			# Create test script in tools/ directory (simple format)
+			cat >"$PROJECT_ROOT/tools/$TEST_SCRIPT_NAME" <<'TOOLSTESTSCRIPT'
 #!/bin/bash
 
 # Test FRONTEND_NAME
@@ -1311,26 +1311,26 @@ if ! pnpm test; then
 	exit 1
 fi
 TOOLSTESTSCRIPT
-        
-        # Replace placeholders in tools test script
-        sed -i.bak "s/FRONTEND_NAME/$frontend/g" "$PROJECT_ROOT/tools/$TEST_SCRIPT_NAME"
-        sed -i.bak "s/FRONTEND_LABEL/$FRONTEND_LABEL/g" "$PROJECT_ROOT/tools/$TEST_SCRIPT_NAME"
-        sed -i.bak "s/FRONTEND_DIR/$frontend/g" "$PROJECT_ROOT/tools/$TEST_SCRIPT_NAME"
-        rm "$PROJECT_ROOT/tools/$TEST_SCRIPT_NAME.bak"
-        chmod +x "$PROJECT_ROOT/tools/$TEST_SCRIPT_NAME"
-        
-        # Create CI workflow
-        FRONTEND_DISPLAY_NAME="${frontend//-/ }"
-        FRONTEND_DISPLAY_NAME="$(echo "$FRONTEND_DISPLAY_NAME" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1')"
-        
-        # Determine if it's a Next.js or Vite frontend for Dockerfile reference
-        if [[ "$FRONTEND_TYPE" == "nextjs" ]]; then
-            DOCKERFILE_NAME="Dockerfile.${frontend}"
-        else
-            DOCKERFILE_NAME="Dockerfile.${frontend}"
-        fi
-        
-        cat > "$PROJECT_ROOT/.github/workflows/${frontend}-ci.yml" << CIWORKFLOW
+
+			# Replace placeholders in tools test script
+			sed -i.bak "s/FRONTEND_NAME/$frontend/g" "$PROJECT_ROOT/tools/$TEST_SCRIPT_NAME"
+			sed -i.bak "s/FRONTEND_LABEL/$FRONTEND_LABEL/g" "$PROJECT_ROOT/tools/$TEST_SCRIPT_NAME"
+			sed -i.bak "s/FRONTEND_DIR/$frontend/g" "$PROJECT_ROOT/tools/$TEST_SCRIPT_NAME"
+			rm "$PROJECT_ROOT/tools/$TEST_SCRIPT_NAME.bak"
+			chmod +x "$PROJECT_ROOT/tools/$TEST_SCRIPT_NAME"
+
+			# Create CI workflow
+			FRONTEND_DISPLAY_NAME="${frontend//-/ }"
+			FRONTEND_DISPLAY_NAME="$(echo "$FRONTEND_DISPLAY_NAME" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1')"
+
+			# Determine if it's a Next.js or Vite frontend for Dockerfile reference
+			if [[ "$FRONTEND_TYPE" == "nextjs" ]]; then
+				DOCKERFILE_NAME="Dockerfile.${frontend}"
+			else
+				DOCKERFILE_NAME="Dockerfile.${frontend}"
+			fi
+
+			cat >"$PROJECT_ROOT/.github/workflows/${frontend}-ci.yml" <<CIWORKFLOW
 name: $APP_NAME $FRONTEND_DISPLAY_NAME CI (Monorepo)
 
 on:
@@ -1559,11 +1559,11 @@ jobs:
                   name: trivy-docker-image-scan-${frontend}
                   path: trivy-image-scan.txt
 CIWORKFLOW
-        
-        # Create Dockerfile for the frontend
-        if [[ "$FRONTEND_TYPE" == "vite" ]]; then
-            # Create nginx.conf for Vite frontend
-            cat > "$PROJECT_ROOT/$frontend/nginx.conf" << 'NGINXCONF'
+
+			# Create Dockerfile for the frontend
+			if [[ "$FRONTEND_TYPE" == "vite" ]]; then
+				# Create nginx.conf for Vite frontend
+				cat >"$PROJECT_ROOT/$frontend/nginx.conf" <<'NGINXCONF'
 server {
     listen 80;
 
@@ -1577,9 +1577,9 @@ server {
     error_page 404 /index.html;
 }
 NGINXCONF
-            
-            # Create Vite Dockerfile
-            cat > "$PROJECT_ROOT/Dockerfile.$frontend" << VITEDOCKERFILE
+
+				# Create Vite Dockerfile
+				cat >"$PROJECT_ROOT/Dockerfile.$frontend" <<VITEDOCKERFILE
 # Stage 1: Build the Vite frontend using pnpm
 FROM node:22-alpine AS build
 
@@ -1610,9 +1610,9 @@ EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
 VITEDOCKERFILE
-        else
-            # Create Next.js Dockerfile
-            cat > "$PROJECT_ROOT/Dockerfile.$frontend" << NEXTDOCKERFILE
+			else
+				# Create Next.js Dockerfile
+				cat >"$PROJECT_ROOT/Dockerfile.$frontend" <<NEXTDOCKERFILE
 # Stage 1: Build the Next.js app
 FROM node:22-alpine AS builder
 
@@ -1652,148 +1652,151 @@ USER nextjs
 EXPOSE 3000
 CMD ["node_modules/.bin/next", "start"]
 NEXTDOCKERFILE
-        fi
-        
-        echo "    ✓ Created $frontend"
-    done
-    
-    # Update all existing CI workflow files using Python script
-    echo "  Updating existing CI workflows to include all frontends..."
-    
-    # Build comma-separated list of all frontends
-    ALL_FRONTENDS=(website auth-frontend "${EXTRA_FRONTENDS[@]:-}")
-    FRONTENDS_LIST=$(IFS=,; echo "${ALL_FRONTENDS[*]}")
-    
-    # Call Python script to update CI files
-    if ! python3 "$PROJECT_ROOT/tools/update-ci-files.py" \
-        --workflows-dir "$PROJECT_ROOT/.github/workflows" \
-        --frontends "$FRONTENDS_LIST"; then
-        echo "Error: Failed to update CI workflow files" >&2
-        exit 1
-    fi
-    
-    echo "    ✓ Updated existing CI workflows"
-    
-    # Update post-create.sh with new frontends
-    echo "  Updating post-create.sh..."
-    
-    POSTCREATE_FILE="$PROJECT_ROOT/.devcontainer/post-create.sh"
-    if [[ -f "$POSTCREATE_FILE" ]]; then
-        # 1. Update pnpm install section (lines 31-34 area)
-        # Build install commands for all frontends
-        INSTALL_COMMANDS="pnpm install"
-        for frontend in "${ALL_FRONTENDS[@]}"; do
-            INSTALL_COMMANDS="$INSTALL_COMMANDS\ncd /workspace/$frontend && pnpm install"
-        done
-        
-        # Replace the install section
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            perl -i -0pe "s|(echo \"Installing frontend dependencies\\.\\.\\.\"\n)pnpm install\n(cd /workspace/[^\n]+\n)+|\$1$INSTALL_COMMANDS\n|" "$POSTCREATE_FILE"
-        else
-            perl -i -0pe "s|(echo \"Installing frontend dependencies\\.\\.\\.\"\n)pnpm install\n(cd /workspace/[^\n]+\n)+|\$1$INSTALL_COMMANDS\n|" "$POSTCREATE_FILE"
-        fi
-        
-        # 2. Update database connection details (lines 36-55 area)
-        # Update dbname, user, password
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            sed -i '' "s/dbname='adbsoftwaresolutions_dev'/dbname='$DB_NAME'/" "$POSTCREATE_FILE"
-            sed -i '' "s/user='adbsoftwaresolutions'/user='$DB_USER'/" "$POSTCREATE_FILE"
-            sed -i '' "s/password='adbsoftwaresolutions_dev_password'/password='${DB_USER}_dev_password'/" "$POSTCREATE_FILE"
-        else
-            sed -i "s/dbname='adbsoftwaresolutions_dev'/dbname='$DB_NAME'/" "$POSTCREATE_FILE"
-            sed -i "s/user='adbsoftwaresolutions'/user='$DB_USER'/" "$POSTCREATE_FILE"
-            sed -i "s/password='adbsoftwaresolutions_dev_password'/password='${DB_USER}_dev_password'/" "$POSTCREATE_FILE"
-        fi
-        
-        # 3. Update Quick start commands section (lines 259-272 area)
-        QUICK_START_COMMANDS="echo \"Quick start commands:\"\necho \"  Backend:         cd /workspace && python backend/manage.py runserver 0.0.0.0:$BACKEND_PORT\""
-        for frontend in "${ALL_FRONTENDS[@]}"; do
-            FRONTEND_LABEL="${frontend//-/ }"
-            FRONTEND_LABEL="$(echo "$FRONTEND_LABEL" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1')"
-            # Calculate padding to align at 17 characters
-            PADDING=$(printf '%*s' $((17 - ${#FRONTEND_LABEL})) '')
-            QUICK_START_COMMANDS="$QUICK_START_COMMANDS\necho \"  $FRONTEND_LABEL:${PADDING}cd /workspace/$frontend && pnpm dev\""
-        done
-        
-        # Replace using perl multiline matching
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            perl -i -0pe "s|echo \"Quick start commands:\"\necho \"  Backend:[^\n]+\n(echo \"  [^\n]+\n)*|$QUICK_START_COMMANDS\n|" "$POSTCREATE_FILE"
-        else
-            perl -i -0pe "s|echo \"Quick start commands:\"\necho \"  Backend:[^\n]+\n(echo \"  [^\n]+\n)*|$QUICK_START_COMMANDS\n|" "$POSTCREATE_FILE"
-        fi
-        
-        # 4. Update Access URLs section
-        ACCESS_URLS="echo \"Access URLs:\"\necho \"  Django Admin:    http://localhost:$BACKEND_PORT/admin/ (admin/admin)\""
-        
-        # Add website
-        if [[ -n "${WEBSITE_PORT:-}" ]]; then
-            ACCESS_URLS="$ACCESS_URLS\necho \"  Website:         http://localhost:$WEBSITE_PORT/\""
-        else
-            ACCESS_URLS="$ACCESS_URLS\necho \"  Website:         http://localhost:3000/\""
-        fi
-        
-        # Add auth-frontend
-        if [[ -n "${AUTH_FRONTEND_PORT:-}" ]]; then
-            ACCESS_URLS="$ACCESS_URLS\necho \"  Auth Frontend:   http://localhost:$AUTH_FRONTEND_PORT/\""
-        else
-            ACCESS_URLS="$ACCESS_URLS\necho \"  Auth Frontend:   http://localhost:5173/\""
-        fi
-        
-        # Add extra frontends with their ports
-        NEXT_PORT=5174
-        for frontend in "${EXTRA_FRONTENDS[@]:-}"; do
-            FRONTEND_LABEL="${frontend//-/ }"
-            FRONTEND_LABEL="$(echo "$FRONTEND_LABEL" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1')"
-            # Calculate padding to align at 17 characters
-            PADDING=$(printf '%*s' $((17 - ${#FRONTEND_LABEL})) '')
-            ACCESS_URLS="$ACCESS_URLS\necho \"  $FRONTEND_LABEL:${PADDING}http://localhost:$NEXT_PORT/\""
-            NEXT_PORT=$((NEXT_PORT + 1))
-        done
-        
-        # Replace using perl multiline matching
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            perl -i -0pe "s|echo \"Access URLs:\"\necho \"  Django Admin:[^\n]+\n(echo \"  [^\n]+\n)*|$ACCESS_URLS\n|" "$POSTCREATE_FILE"
-        else
-            perl -i -0pe "s|echo \"Access URLs:\"\necho \"  Django Admin:[^\n]+\n(echo \"  [^\n]+\n)*|$ACCESS_URLS\n|" "$POSTCREATE_FILE"
-        fi
-        
-        echo "    ✓ Updated post-create.sh"
-    fi
-    
-    # Update devcontainer.json with new frontend ports (will be updated again if Celery is configured)
-    echo "  Updating devcontainer.json..."
-    
-    DEVCONTAINER_FILE="$PROJECT_ROOT/.devcontainer/devcontainer.json"
-    if [[ -f "$DEVCONTAINER_FILE" ]]; then
-        # Build extra frontends argument for Python script
-        EXTRA_FRONTENDS_ARG=""
-        NEXT_PORT=5174
-        for frontend in "${EXTRA_FRONTENDS[@]:-}"; do
-            # Convert frontend name to label (e.g., admin-frontend -> Admin Frontend)
-            LABEL=$(echo "$frontend" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
-            
-            if [[ -z "$EXTRA_FRONTENDS_ARG" ]]; then
-                EXTRA_FRONTENDS_ARG="${frontend}:${NEXT_PORT}:${LABEL}"
-            else
-                EXTRA_FRONTENDS_ARG="${EXTRA_FRONTENDS_ARG},${frontend}:${NEXT_PORT}:${LABEL}"
-            fi
-            NEXT_PORT=$((NEXT_PORT + 1))
-        done
-        
-        # Call Python script to update devcontainer.json (without Flower port for now)
-        python3 "$PROJECT_ROOT/tools/update-devcontainer-ports.py" \
-            --devcontainer-path "$DEVCONTAINER_FILE" \
-            --backend-port "$BACKEND_PORT" \
-            --website-port "$WEBSITE_PORT" \
-            --auth-frontend-port "$AUTH_FRONTEND_PORT" \
-            --postgres-port "$POSTGRES_PORT" \
-            --extra-frontends "$EXTRA_FRONTENDS_ARG"
-        
-        echo "    ✓ Updated devcontainer.json (will add Flower port if Celery is configured)"
-    fi
-fi
+			fi
 
-mark_step_complete "step_10_frontends"
+			echo "    ✓ Created $frontend"
+		done
+
+		# Update all existing CI workflow files using Python script
+		echo "  Updating existing CI workflows to include all frontends..."
+
+		# Build comma-separated list of all frontends
+		ALL_FRONTENDS=(website auth-frontend "${EXTRA_FRONTENDS[@]:-}")
+		FRONTENDS_LIST=$(
+			IFS=,
+			echo "${ALL_FRONTENDS[*]}"
+		)
+
+		# Call Python script to update CI files
+		if ! python3 "$PROJECT_ROOT/tools/update-ci-files.py" \
+			--workflows-dir "$PROJECT_ROOT/.github/workflows" \
+			--frontends "$FRONTENDS_LIST"; then
+			echo "Error: Failed to update CI workflow files" >&2
+			exit 1
+		fi
+
+		echo "    ✓ Updated existing CI workflows"
+
+		# Update post-create.sh with new frontends
+		echo "  Updating post-create.sh..."
+
+		POSTCREATE_FILE="$PROJECT_ROOT/.devcontainer/post-create.sh"
+		if [[ -f "$POSTCREATE_FILE" ]]; then
+			# 1. Update pnpm install section (lines 31-34 area)
+			# Build install commands for all frontends
+			INSTALL_COMMANDS="pnpm install"
+			for frontend in "${ALL_FRONTENDS[@]}"; do
+				INSTALL_COMMANDS="$INSTALL_COMMANDS\ncd /workspace/$frontend && pnpm install"
+			done
+
+			# Replace the install section
+			if [[ "$OSTYPE" == "darwin"* ]]; then
+				perl -i -0pe "s|(echo \"Installing frontend dependencies\\.\\.\\.\"\n)pnpm install\n(cd /workspace/[^\n]+\n)+|\$1$INSTALL_COMMANDS\n|" "$POSTCREATE_FILE"
+			else
+				perl -i -0pe "s|(echo \"Installing frontend dependencies\\.\\.\\.\"\n)pnpm install\n(cd /workspace/[^\n]+\n)+|\$1$INSTALL_COMMANDS\n|" "$POSTCREATE_FILE"
+			fi
+
+			# 2. Update database connection details (lines 36-55 area)
+			# Update dbname, user, password
+			if [[ "$OSTYPE" == "darwin"* ]]; then
+				sed -i '' "s/dbname='adbsoftwaresolutions_dev'/dbname='$DB_NAME'/" "$POSTCREATE_FILE"
+				sed -i '' "s/user='adbsoftwaresolutions'/user='$DB_USER'/" "$POSTCREATE_FILE"
+				sed -i '' "s/password='adbsoftwaresolutions_dev_password'/password='${DB_USER}_dev_password'/" "$POSTCREATE_FILE"
+			else
+				sed -i "s/dbname='adbsoftwaresolutions_dev'/dbname='$DB_NAME'/" "$POSTCREATE_FILE"
+				sed -i "s/user='adbsoftwaresolutions'/user='$DB_USER'/" "$POSTCREATE_FILE"
+				sed -i "s/password='adbsoftwaresolutions_dev_password'/password='${DB_USER}_dev_password'/" "$POSTCREATE_FILE"
+			fi
+
+			# 3. Update Quick start commands section (lines 259-272 area)
+			QUICK_START_COMMANDS="echo \"Quick start commands:\"\necho \"  Backend:         cd /workspace && python backend/manage.py runserver 0.0.0.0:$BACKEND_PORT\""
+			for frontend in "${ALL_FRONTENDS[@]}"; do
+				FRONTEND_LABEL="${frontend//-/ }"
+				FRONTEND_LABEL="$(echo "$FRONTEND_LABEL" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1')"
+				# Calculate padding to align at 17 characters
+				PADDING=$(printf '%*s' $((17 - ${#FRONTEND_LABEL})) '')
+				QUICK_START_COMMANDS="$QUICK_START_COMMANDS\necho \"  $FRONTEND_LABEL:${PADDING}cd /workspace/$frontend && pnpm dev\""
+			done
+
+			# Replace using perl multiline matching
+			if [[ "$OSTYPE" == "darwin"* ]]; then
+				perl -i -0pe "s|echo \"Quick start commands:\"\necho \"  Backend:[^\n]+\n(echo \"  [^\n]+\n)*|$QUICK_START_COMMANDS\n|" "$POSTCREATE_FILE"
+			else
+				perl -i -0pe "s|echo \"Quick start commands:\"\necho \"  Backend:[^\n]+\n(echo \"  [^\n]+\n)*|$QUICK_START_COMMANDS\n|" "$POSTCREATE_FILE"
+			fi
+
+			# 4. Update Access URLs section
+			ACCESS_URLS="echo \"Access URLs:\"\necho \"  Django Admin:    http://localhost:$BACKEND_PORT/admin/ (admin/admin)\""
+
+			# Add website
+			if [[ -n "${WEBSITE_PORT:-}" ]]; then
+				ACCESS_URLS="$ACCESS_URLS\necho \"  Website:         http://localhost:$WEBSITE_PORT/\""
+			else
+				ACCESS_URLS="$ACCESS_URLS\necho \"  Website:         http://localhost:3000/\""
+			fi
+
+			# Add auth-frontend
+			if [[ -n "${AUTH_FRONTEND_PORT:-}" ]]; then
+				ACCESS_URLS="$ACCESS_URLS\necho \"  Auth Frontend:   http://localhost:$AUTH_FRONTEND_PORT/\""
+			else
+				ACCESS_URLS="$ACCESS_URLS\necho \"  Auth Frontend:   http://localhost:5173/\""
+			fi
+
+			# Add extra frontends with their ports
+			NEXT_PORT=5174
+			for frontend in "${EXTRA_FRONTENDS[@]:-}"; do
+				FRONTEND_LABEL="${frontend//-/ }"
+				FRONTEND_LABEL="$(echo "$FRONTEND_LABEL" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1')"
+				# Calculate padding to align at 17 characters
+				PADDING=$(printf '%*s' $((17 - ${#FRONTEND_LABEL})) '')
+				ACCESS_URLS="$ACCESS_URLS\necho \"  $FRONTEND_LABEL:${PADDING}http://localhost:$NEXT_PORT/\""
+				NEXT_PORT=$((NEXT_PORT + 1))
+			done
+
+			# Replace using perl multiline matching
+			if [[ "$OSTYPE" == "darwin"* ]]; then
+				perl -i -0pe "s|echo \"Access URLs:\"\necho \"  Django Admin:[^\n]+\n(echo \"  [^\n]+\n)*|$ACCESS_URLS\n|" "$POSTCREATE_FILE"
+			else
+				perl -i -0pe "s|echo \"Access URLs:\"\necho \"  Django Admin:[^\n]+\n(echo \"  [^\n]+\n)*|$ACCESS_URLS\n|" "$POSTCREATE_FILE"
+			fi
+
+			echo "    ✓ Updated post-create.sh"
+		fi
+
+		# Update devcontainer.json with new frontend ports (will be updated again if Celery is configured)
+		echo "  Updating devcontainer.json..."
+
+		DEVCONTAINER_FILE="$PROJECT_ROOT/.devcontainer/devcontainer.json"
+		if [[ -f "$DEVCONTAINER_FILE" ]]; then
+			# Build extra frontends argument for Python script
+			EXTRA_FRONTENDS_ARG=""
+			NEXT_PORT=5174
+			for frontend in "${EXTRA_FRONTENDS[@]:-}"; do
+				# Convert frontend name to label (e.g., admin-frontend -> Admin Frontend)
+				LABEL=$(echo "$frontend" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
+
+				if [[ -z "$EXTRA_FRONTENDS_ARG" ]]; then
+					EXTRA_FRONTENDS_ARG="${frontend}:${NEXT_PORT}:${LABEL}"
+				else
+					EXTRA_FRONTENDS_ARG="${EXTRA_FRONTENDS_ARG},${frontend}:${NEXT_PORT}:${LABEL}"
+				fi
+				NEXT_PORT=$((NEXT_PORT + 1))
+			done
+
+			# Call Python script to update devcontainer.json (without Flower port for now)
+			python3 "$PROJECT_ROOT/tools/update-devcontainer-ports.py" \
+				--devcontainer-path "$DEVCONTAINER_FILE" \
+				--backend-port "$BACKEND_PORT" \
+				--website-port "$WEBSITE_PORT" \
+				--auth-frontend-port "$AUTH_FRONTEND_PORT" \
+				--postgres-port "$POSTGRES_PORT" \
+				--extra-frontends "$EXTRA_FRONTENDS_ARG"
+
+			echo "    ✓ Updated devcontainer.json (will add Flower port if Celery is configured)"
+		fi
+	fi
+
+	mark_step_complete "step_10_frontends"
 fi
 
 # ============================================================================
@@ -1801,35 +1804,38 @@ fi
 # ============================================================================
 if run_step "11" "step_11_lint_tasks" "Updating lint config and VS Code tasks"; then
 
-# Update FRONTEND_DIRS in tools/lint
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    sed -i '' 's/FRONTEND_DIRS = \[/FRONTEND_DIRS = [/' "$PROJECT_ROOT/tools/lint"
-    # Replace the entire FRONTEND_DIRS block
-    perl -i -0pe "s/FRONTEND_DIRS = \[\n        \"website\",\n        \"auth-frontend\",\n    \]/FRONTEND_DIRS = [\n        $FRONTEND_DIRS_LIST,\n    ]/s" "$PROJECT_ROOT/tools/lint"
-else
-    perl -i -0pe "s/FRONTEND_DIRS = \[\n        \"website\",\n        \"auth-frontend\",\n    \]/FRONTEND_DIRS = [\n        $FRONTEND_DIRS_LIST,\n    ]/s" "$PROJECT_ROOT/tools/lint"
-fi
+	# Update FRONTEND_DIRS in tools/lint
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		sed -i '' 's/FRONTEND_DIRS = \[/FRONTEND_DIRS = [/' "$PROJECT_ROOT/tools/lint"
+		# Replace the entire FRONTEND_DIRS block
+		perl -i -0pe "s/FRONTEND_DIRS = \[\n        \"website\",\n        \"auth-frontend\",\n    \]/FRONTEND_DIRS = [\n        $FRONTEND_DIRS_LIST,\n    ]/s" "$PROJECT_ROOT/tools/lint"
+	else
+		perl -i -0pe "s/FRONTEND_DIRS = \[\n        \"website\",\n        \"auth-frontend\",\n    \]/FRONTEND_DIRS = [\n        $FRONTEND_DIRS_LIST,\n    ]/s" "$PROJECT_ROOT/tools/lint"
+	fi
 
-# Update VS Code tasks.json with new frontends using Python script
-TASKS_FILE="$PROJECT_ROOT/.vscode/tasks.json"
-if [[ -f "$TASKS_FILE" ]]; then
-    echo "  Updating VS Code tasks.json..."
-    
-    # Build comma-separated list of all frontends
-    ALL_FRONTENDS=(website auth-frontend "${EXTRA_FRONTENDS[@]:-}")
-    FRONTENDS_LIST=$(IFS=,; echo "${ALL_FRONTENDS[*]}")
-    
-    # Call Python script to update tasks.json
-    if ! python3 "$PROJECT_ROOT/tools/update-tasks-json.py" \
-        --tasks-file "$TASKS_FILE" \
-        --frontends "$FRONTENDS_LIST"; then
-        echo "Error: Failed to update tasks.json" >&2
-        exit 1
-    fi
-fi
+	# Update VS Code tasks.json with new frontends using Python script
+	TASKS_FILE="$PROJECT_ROOT/.vscode/tasks.json"
+	if [[ -f "$TASKS_FILE" ]]; then
+		echo "  Updating VS Code tasks.json..."
 
-echo "  ✓ Updated lint config and VS Code tasks"
-mark_step_complete "step_11_lint_tasks"
+		# Build comma-separated list of all frontends
+		ALL_FRONTENDS=(website auth-frontend "${EXTRA_FRONTENDS[@]:-}")
+		FRONTENDS_LIST=$(
+			IFS=,
+			echo "${ALL_FRONTENDS[*]}"
+		)
+
+		# Call Python script to update tasks.json
+		if ! python3 "$PROJECT_ROOT/tools/update-tasks-json.py" \
+			--tasks-file "$TASKS_FILE" \
+			--frontends "$FRONTENDS_LIST"; then
+			echo "Error: Failed to update tasks.json" >&2
+			exit 1
+		fi
+	fi
+
+	echo "  ✓ Updated lint config and VS Code tasks"
+	mark_step_complete "step_11_lint_tasks"
 fi
 
 # ============================================================================
@@ -1837,92 +1843,92 @@ fi
 # ============================================================================
 if run_step "12" "step_12_celery" "Configuring Celery"; then
 
-if [[ "$CONFIGURE_CELERY" =~ ^[Yy]$ ]] && [[ -n "$CELERY_QUEUES" ]]; then
-    echo "  Configuring Celery with queues: $CELERY_QUEUES"
-    
-    # Call the Python script to set up Celery
-    if ! python3 "$PROJECT_ROOT/tools/setup-celery.py" \
-        --project-root "$PROJECT_ROOT" \
-        --app-name "$APP_NAME" \
-        --python-name "$PYTHON_NAME" \
-        --slug-name "$SLUG_NAME" \
-        --queues "$CELERY_QUEUES" \
-        --flower-port "$FLOWER_PORT"; then
-        echo "Error: Failed to configure Celery" >&2
-        exit 1
-    fi
-    
-    # Update post-create.sh with Flower info
-    POSTCREATE_FILE="$PROJECT_ROOT/.devcontainer/post-create.sh"
-    if [[ -f "$POSTCREATE_FILE" ]]; then
-        # Add Flower to Quick start commands
-        if ! grep -q "Flower:" "$POSTCREATE_FILE"; then
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                sed -i '' "/echo \"  Backend:/a\\
+	if [[ "$CONFIGURE_CELERY" =~ ^[Yy]$ ]] && [[ -n "$CELERY_QUEUES" ]]; then
+		echo "  Configuring Celery with queues: $CELERY_QUEUES"
+
+		# Call the Python script to set up Celery
+		if ! python3 "$PROJECT_ROOT/tools/setup-celery.py" \
+			--project-root "$PROJECT_ROOT" \
+			--app-name "$APP_NAME" \
+			--python-name "$PYTHON_NAME" \
+			--slug-name "$SLUG_NAME" \
+			--queues "$CELERY_QUEUES" \
+			--flower-port "$FLOWER_PORT"; then
+			echo "Error: Failed to configure Celery" >&2
+			exit 1
+		fi
+
+		# Update post-create.sh with Flower info
+		POSTCREATE_FILE="$PROJECT_ROOT/.devcontainer/post-create.sh"
+		if [[ -f "$POSTCREATE_FILE" ]]; then
+			# Add Flower to Quick start commands
+			if ! grep -q "Flower:" "$POSTCREATE_FILE"; then
+				if [[ "$OSTYPE" == "darwin"* ]]; then
+					sed -i '' "/echo \"  Backend:/a\\
 echo \"  Flower:          cd /workspace/backend && source /opt/venv/bin/activate && celery -A $PYTHON_NAME flower --port=$FLOWER_PORT --address=0.0.0.0\"
 " "$POSTCREATE_FILE"
-            else
-                sed -i "/echo \"  Backend:/a\\
+				else
+					sed -i "/echo \"  Backend:/a\\
 echo \"  Flower:          cd /workspace/backend && source /opt/venv/bin/activate && celery -A $PYTHON_NAME flower --port=$FLOWER_PORT --address=0.0.0.0\"" "$POSTCREATE_FILE"
-            fi
-        fi
-        
-        # Add Flower to Access URLs
-        if ! grep -q "Flower:" "$POSTCREATE_FILE"; then
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                sed -i '' "/echo \"  Django Admin:/a\\
+				fi
+			fi
+
+			# Add Flower to Access URLs
+			if ! grep -q "Flower:" "$POSTCREATE_FILE"; then
+				if [[ "$OSTYPE" == "darwin"* ]]; then
+					sed -i '' "/echo \"  Django Admin:/a\\
 echo \"  Flower:          http://localhost:$FLOWER_PORT/\"
 " "$POSTCREATE_FILE"
-            else
-                sed -i "/echo \"  Django Admin:/a\\
+				else
+					sed -i "/echo \"  Django Admin:/a\\
 echo \"  Flower:          http://localhost:$FLOWER_PORT/\"" "$POSTCREATE_FILE"
-            fi
-        fi
-    fi
-    
-    # Update devcontainer.json with Flower port
-    echo "  Updating devcontainer.json with Flower port..."
-    DEVCONTAINER_FILE="$PROJECT_ROOT/.devcontainer/devcontainer.json"
-    if [[ -f "$DEVCONTAINER_FILE" ]]; then
-        # Build extra frontends argument for Python script
-        EXTRA_FRONTENDS_ARG=""
-        NEXT_PORT=5174
-        for frontend in "${EXTRA_FRONTENDS[@]:-}"; do
-            # Convert frontend name to label (e.g., admin-frontend -> Admin Frontend)
-            LABEL=$(echo "$frontend" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
-            
-            if [[ -z "$EXTRA_FRONTENDS_ARG" ]]; then
-                EXTRA_FRONTENDS_ARG="${frontend}:${NEXT_PORT}:${LABEL}"
-            else
-                EXTRA_FRONTENDS_ARG="${EXTRA_FRONTENDS_ARG},${frontend}:${NEXT_PORT}:${LABEL}"
-            fi
-            NEXT_PORT=$((NEXT_PORT + 1))
-        done
-        
-        # Re-run Python script to update devcontainer.json with Flower port
-        python3 "$PROJECT_ROOT/tools/update-devcontainer-ports.py" \
-            --devcontainer-path "$DEVCONTAINER_FILE" \
-            --backend-port "$BACKEND_PORT" \
-            --website-port "$WEBSITE_PORT" \
-            --auth-frontend-port "$AUTH_FRONTEND_PORT" \
-            --postgres-port "$POSTGRES_PORT" \
-            --extra-frontends "$EXTRA_FRONTENDS_ARG" \
-            --flower-port "$FLOWER_PORT"
-    fi
-    
-    echo "  ✓ Celery configuration complete"
-else
-    echo "  ⊘ Celery not configured"
-fi
+				fi
+			fi
+		fi
 
-mark_step_complete "step_12_celery"
+		# Update devcontainer.json with Flower port
+		echo "  Updating devcontainer.json with Flower port..."
+		DEVCONTAINER_FILE="$PROJECT_ROOT/.devcontainer/devcontainer.json"
+		if [[ -f "$DEVCONTAINER_FILE" ]]; then
+			# Build extra frontends argument for Python script
+			EXTRA_FRONTENDS_ARG=""
+			NEXT_PORT=5174
+			for frontend in "${EXTRA_FRONTENDS[@]:-}"; do
+				# Convert frontend name to label (e.g., admin-frontend -> Admin Frontend)
+				LABEL=$(echo "$frontend" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
+
+				if [[ -z "$EXTRA_FRONTENDS_ARG" ]]; then
+					EXTRA_FRONTENDS_ARG="${frontend}:${NEXT_PORT}:${LABEL}"
+				else
+					EXTRA_FRONTENDS_ARG="${EXTRA_FRONTENDS_ARG},${frontend}:${NEXT_PORT}:${LABEL}"
+				fi
+				NEXT_PORT=$((NEXT_PORT + 1))
+			done
+
+			# Re-run Python script to update devcontainer.json with Flower port
+			python3 "$PROJECT_ROOT/tools/update-devcontainer-ports.py" \
+				--devcontainer-path "$DEVCONTAINER_FILE" \
+				--backend-port "$BACKEND_PORT" \
+				--website-port "$WEBSITE_PORT" \
+				--auth-frontend-port "$AUTH_FRONTEND_PORT" \
+				--postgres-port "$POSTGRES_PORT" \
+				--extra-frontends "$EXTRA_FRONTENDS_ARG" \
+				--flower-port "$FLOWER_PORT"
+		fi
+
+		echo "  ✓ Celery configuration complete"
+	else
+		echo "  ⊘ Celery not configured"
+	fi
+
+	mark_step_complete "step_12_celery"
 fi
 
 # ============================================================================
 # Mark project as configured and clean up progress file
 # ============================================================================
 EXTRA_FRONTENDS_STR="${EXTRA_FRONTENDS[*]:-}"
-cat > "$PROJECT_ROOT/.project-configured" << EOF
+cat >"$PROJECT_ROOT/.project-configured" <<EOF
 # Project Configuration
 # Generated by setup-project on $(date)
 APP_NAME="$APP_NAME"
@@ -1945,12 +1951,12 @@ EOF
 
 # Clean up progress file since setup completed successfully
 if [[ -f "$PROGRESS_FILE" ]]; then
-    rm -f "$PROGRESS_FILE"
+	rm -f "$PROGRESS_FILE"
 fi
 
 # Clean up config file if setup completed successfully
 if [[ -f "$CONFIG_FILE" ]]; then
-    rm -f "$CONFIG_FILE"
+	rm -f "$CONFIG_FILE"
 fi
 
 echo ""
