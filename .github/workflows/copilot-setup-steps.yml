@@ -1,25 +1,30 @@
-name: "Copilot Setup Steps"
+name: Repository Copilot Setup
 
 on:
     workflow_dispatch:
     push:
         paths:
             - .github/workflows/copilot-setup-steps.yml
+            - backend/**
+            - sites/**
+            - packages/**
             - package.json
             - pnpm-workspace.yaml
             - pnpm-lock.yaml
     pull_request:
         paths:
             - .github/workflows/copilot-setup-steps.yml
+            - backend/**
+            - sites/**
+            - packages/**
             - package.json
             - pnpm-workspace.yaml
             - pnpm-lock.yaml
 
 jobs:
-    copilot-setup-steps:
+    setup:
+        name: Validate Development Setup
         runs-on: ubuntu-latest
-        permissions:
-            contents: read
         services:
             postgres:
                 image: postgres:14.4
@@ -28,62 +33,27 @@ jobs:
                     POSTGRES_USER: user
                     POSTGRES_PASSWORD: pass
                 ports: ["5432:5432"]
-                options: >-
-                    --health-cmd="pg_isready -U user"
-                    --health-interval=10s
-                    --health-timeout=5s
-                    --health-retries=5
             redis:
                 image: redis:7.0.4
                 ports: ["6379:6379"]
-        env:
-            SQL_ENGINE: django.db.backends.postgresql
-            SQL_DATABASE: app_dev
-            SQL_USER: user
-            SQL_PASSWORD: pass
-            SQL_HOST: localhost
-            SQL_PORT: 5432
-            SECRET_KEY: test
-            DEBUG: 1
-            DEBUG_TOOLBAR_ENABLED: 0
-            SITE_DOMAIN: testserver
-            SESSION_BACKEND_URL: redis://localhost:6379/1
-            CACHE_BACKEND_URL: redis://localhost:6379/2
         steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
-            - name: Set up Python
-              uses: actions/setup-python@v5
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
               with:
                   python-version: "3.12"
-            - name: Cache pip
-              uses: actions/cache@v4
-              with:
-                  path: ~/.cache/pip
-                  key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements/*.txt') }}
-                  restore-keys: ${{ runner.os }}-pip-
-            - name: Install Python dependencies
-              run: pip install -r backend/requirements/dev.txt
-            - name: Set up pnpm
-              uses: pnpm/action-setup@v4.1.0
+                  cache: pip
+                  cache-dependency-path: backend/requirements/dev.txt
+            - run: pip install -r backend/requirements/dev.txt
+            - uses: pnpm/action-setup@v4.1.0
               with:
                   version: 10.15.0
-            - name: Set up Node.js
-              uses: actions/setup-node@v4
+            - uses: actions/setup-node@v4
               with:
                   node-version: "22"
-                  cache: "pnpm"
+                  cache: pnpm
                   cache-dependency-path: pnpm-lock.yaml
-            - name: Install Node dependencies
-              run: pnpm install --no-frozen-lockfile
-            - name: Add Node binaries to PATH
-              run: |
-                  echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
-                  echo "$GITHUB_WORKSPACE/admin-website/node_modules/.bin" >> "$GITHUB_PATH"
-                  echo "$GITHUB_WORKSPACE/auth-frontend/node_modules/.bin" >> "$GITHUB_PATH"
-                  echo "$GITHUB_WORKSPACE/sites/adb-software-solutions/node_modules/.bin" >> "$GITHUB_PATH"
-                  echo "$GITHUB_WORKSPACE/sites/adb-web-designs/node_modules/.bin" >> "$GITHUB_PATH"
-            - name: Install ShellCheck and shfmt
+            - run: pnpm install --no-frozen-lockfile
+            - name: Install shell tooling
               run: |
                   tools/setup/install-shellcheck
                   tools/setup/install-shfmt

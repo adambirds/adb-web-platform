@@ -1,43 +1,36 @@
 #!/bin/bash
+set -u
 
-# Test all components
-echo "🧪 Running all tests..."
+echo "Running all application tests..."
 echo ""
 
 FAILED_COMPONENTS=()
 
-# Test Backend (Django)
-echo "📊 Backend (Django)..."
-cd backend || exit 1
-if DJANGO_SETTINGS_MODULE=adbsoftwaresolutions.settings_test coverage run manage.py test -v 2; then
-	echo "✅ Backend tests passed"
-else
-	echo "❌ Backend tests failed"
-	FAILED_COMPONENTS+=("Backend")
-fi
-echo ""
+run_test() {
+	local name="$1"
+	shift
 
-cd .. || exit 1
+	echo "Testing ${name}..."
+	if "$@"; then
+		echo "${name} tests passed"
+	else
+		echo "${name} tests failed"
+		FAILED_COMPONENTS+=("${name}")
+	fi
+	echo ""
+}
 
-# Test Website (Next.js)
-echo "🌐 Website (Next.js)..."
-cd website || exit 1
-if pnpm test; then
-	echo "✅ Website tests passed"
-else
-	echo "❌ Website tests failed"
-	FAILED_COMPONENTS+=("Website")
-fi
-echo ""
+run_test "Backend" bash -c 'cd backend && DJANGO_SETTINGS_MODULE=adbsoftwaresolutions.settings_test coverage run manage.py test -v 2'
+run_test "ADB Software Solutions" pnpm --dir sites/adb-software-solutions test --passWithNoTests
+run_test "ADB Web Designs" pnpm --dir sites/adb-web-designs test --passWithNoTests
+run_test "ADB Technology" pnpm --dir sites/adb-technology test --passWithNoTests
+run_test "ADB Software Solutions Auth" pnpm --dir sites/auth-adb-software-solutions test --passWithNoTests
+run_test "ADB Software Solutions Admin" pnpm --dir sites/admin-adb-software-solutions test --passWithNoTests
 
-cd .. || exit 1
-
-# Summary
-echo "📋 Test Summary:"
 if [ ${#FAILED_COMPONENTS[@]} -eq 0 ]; then
-	echo "🎉 All tests passed!"
+	echo "All tests passed."
 	exit 0
-else
-	echo "❌ Failed components: ${FAILED_COMPONENTS[*]}"
-	exit 1
 fi
+
+echo "Failed components: ${FAILED_COMPONENTS[*]}"
+exit 1

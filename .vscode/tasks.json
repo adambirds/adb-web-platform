@@ -5,8 +5,11 @@
             "label": "Start Full Stack",
             "dependsOn": [
                 "Start Backend",
-                "Start Website",
-                "Start Auth Frontend"
+                "Start Admin",
+                "Start Auth",
+                "Start ADB Software Solutions",
+                "Start ADB Web Designs",
+                "Start ADB Technology"
             ],
             "dependsOrder": "parallel",
             "group": "build"
@@ -16,103 +19,78 @@
             "type": "shell",
             "command": "start-backend",
             "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true
-            },
             "isBackground": true,
             "problemMatcher": []
         },
         {
-            "label": "Start All Celery Workers (Multi-Queue)",
+            "label": "Start Admin",
+            "type": "shell",
+            "command": "pnpm dev:admin",
+            "group": "build",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "Start Auth",
+            "type": "shell",
+            "command": "pnpm dev:auth",
+            "group": "build",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "Start ADB Software Solutions",
+            "type": "shell",
+            "command": "pnpm dev:software-solutions",
+            "group": "build",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "Start ADB Web Designs",
+            "type": "shell",
+            "command": "pnpm dev:web-designs",
+            "group": "build",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "Start ADB Technology",
+            "type": "shell",
+            "command": "pnpm dev:technology",
+            "group": "build",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "Lint Code",
+            "type": "shell",
+            "command": "tools/lint",
+            "group": "test"
+        },
+        {
+            "label": "Lint and Fix Code",
+            "type": "shell",
+            "command": "tools/lint --fix",
+            "group": "test"
+        },
+        {
+            "label": "Test All",
+            "type": "shell",
+            "command": "tools/test-all",
+            "group": "test"
+        },
+        {
+            "label": "Django Shell",
+            "type": "shell",
+            "command": "cd /workspace/backend && source /opt/venv/bin/activate && python manage.py shell",
+            "group": "build"
+        },
+        {
+            "label": "Start All Celery Workers",
             "type": "shell",
             "command": "start-celery-multi",
             "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true
-            },
-            "isBackground": true,
-            "problemMatcher": []
-        },
-        {
-            "label": "Start Celery - General Queue",
-            "type": "shell",
-            "command": "start-celery-general",
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true
-            },
-            "isBackground": true,
-            "problemMatcher": []
-        },
-        {
-            "label": "Start Celery - Email Queue",
-            "type": "shell",
-            "command": "start-celery-email",
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true
-            },
-            "isBackground": true,
-            "problemMatcher": []
-        },
-        {
-            "label": "Start Celery - Notifications Queue",
-            "type": "shell",
-            "command": "start-celery-notifications",
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true
-            },
-            "isBackground": true,
-            "problemMatcher": []
-        },
-        {
-            "label": "Start Celery - Scheduled Queue",
-            "type": "shell",
-            "command": "start-celery-scheduled",
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true
-            },
-            "isBackground": true,
-            "problemMatcher": []
-        },
-        {
-            "label": "Start Celery - External Queue",
-            "type": "shell",
-            "command": "start-celery-external",
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true
-            },
             "isBackground": true,
             "problemMatcher": []
         },
@@ -121,13 +99,6 @@
             "type": "shell",
             "command": "start-celery-beat",
             "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true
-            },
             "isBackground": true,
             "problemMatcher": []
         },
@@ -136,142 +107,8 @@
             "type": "shell",
             "command": "start-flower",
             "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true
-            },
             "isBackground": true,
             "problemMatcher": []
-        },
-        {
-            "label": "Lint Code",
-            "type": "shell",
-            "command": "lint",
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true
-            }
-        },
-        {
-            "label": "Lint and Fix Code",
-            "type": "shell",
-            "command": "lint-fix",
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true
-            }
-        },
-        {
-            "label": "Update Requirements",
-            "type": "shell",
-            "command": "update-requirements",
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true
-            }
-        },
-        {
-            "label": "Django Shell",
-            "type": "shell",
-            "command": "cd /workspace/backend && source /opt/venv/bin/activate && python manage.py shell",
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "new",
-                "showReuseMessage": true
-            }
-        },
-        {
-            "label": "Start Website",
-            "type": "shell",
-            "command": "start-website",
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true
-            },
-            "isBackground": true,
-            "problemMatcher": []
-        },
-        {
-            "label": "Start Auth Frontend",
-            "type": "shell",
-            "command": "start-auth-frontend",
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true
-            },
-            "isBackground": true,
-            "problemMatcher": []
-        },
-        {
-            "label": "Test All",
-            "dependsOn": ["Test Backend", "Test Website", "Test Auth Frontend"],
-            "dependsOrder": "parallel",
-            "group": "test"
-        },
-        {
-            "label": "Test Backend",
-            "type": "shell",
-            "command": "test-backend",
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true
-            }
-        },
-        {
-            "label": "Test Website",
-            "type": "shell",
-            "command": "test-website",
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true
-            }
-        },
-        {
-            "label": "Test Auth Frontend",
-            "type": "shell",
-            "command": "test-auth-frontend",
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true
-            }
         }
     ]
 }

@@ -22,13 +22,8 @@ if [ ! -f .devcontainer/.env ]; then
 	echo "Please update .devcontainer/.env with your actual credentials"
 fi
 
-echo "Installing Node dependencies..."
+echo "Installing Node dependencies from the root workspace..."
 pnpm install
-cd /workspace/admin-website && pnpm install
-cd /workspace/auth-frontend && pnpm install
-cd /workspace/sites/adb-software-solutions && pnpm install
-cd /workspace/sites/adb-web-designs && pnpm install
-cd /workspace
 
 echo "Waiting for database to be ready..."
 until /opt/venv/bin/python -c "
@@ -202,10 +197,11 @@ echo "Development environment setup complete!"
 echo ""
 echo "Quick start commands:"
 echo "  Backend:               python backend/manage.py runserver 0.0.0.0:8000"
-echo "  Internal Admin:        cd /workspace/admin-website && pnpm dev"
-echo "  Software Solutions:    cd /workspace/sites/adb-software-solutions && pnpm dev"
-echo "  Web Designs:           cd /workspace/sites/adb-web-designs && pnpm dev"
-echo "  Auth Frontend:         cd /workspace/auth-frontend && pnpm dev"
+echo "  Admin:                 pnpm dev:admin"
+echo "  Software Solutions:    pnpm dev:software-solutions"
+echo "  Web Designs:           pnpm dev:web-designs"
+echo "  ADB Technology:        pnpm dev:technology"
+echo "  Auth:                  pnpm dev:auth"
 echo "  Flower:                cd /workspace/backend && celery -A adbsoftwaresolutions flower --port=5555 --address=0.0.0.0"
 echo ""
 echo "Access URLs:"
@@ -213,4 +209,5 @@ echo "  Django Admin:          http://localhost:8000/admin/"
 echo "  Internal Admin:        http://localhost:3000/"
 echo "  Software Solutions:    http://localhost:3001/"
 echo "  Web Designs:           http://localhost:3002/"
+echo "  ADB Technology:        http://localhost:3003/"
 echo "  Auth Frontend:         http://localhost:5173/"

@@ -1,4 +1,4 @@
-name: Deploy Full Stack to Production
+name: Production Deployment
 
 on:
     push:
@@ -7,33 +7,28 @@ on:
 
 jobs:
     deploy:
-        name: Deploy Full Stack to Production
+        name: Deploy Full Stack
         runs-on: ubuntu-latest
-        # Skip deployment on the template repository
         if: github.repository != 'adb-software-solutions/project-template' && github.ref == 'refs/heads/deploy'
         container:
             image: adbsoftwaresolutions/ansible-runner:latest
             options: --user root
             env:
                 HOME: /root
-
         steps:
-            - name: Checkout deploy repo
-              uses: actions/checkout@v3
+            - name: Checkout deploy repository
+              uses: actions/checkout@v4
               with:
                   repository: adb-software-solutions/adb-deploy
                   token: ${{ secrets.DEPLOY_REPO_PAT }}
-
             - name: Set up SSH
               run: |
                   mkdir -p /root/.ssh
                   echo "${{ secrets.DEPLOY_SSH_KEY }}" > /root/.ssh/id_ed25519
                   chmod 600 /root/.ssh/id_ed25519
                   ssh-keyscan -p 1999 206.189.28.66 >> /root/.ssh/known_hosts
-
-            - name: Install Ansible Collections
+            - name: Install Ansible collections
               run: ansible-galaxy collection install -r requirements.yml
-
             - name: Deploy full stack
               run: |
                   ansible-playbook site.yml -i inventories/production/hosts.ini \

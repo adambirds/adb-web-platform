@@ -1,13 +1,8 @@
 #!/bin/bash
-# Start the internal Next.js admin application.
+# Start the internal ADB Software Solutions admin application.
 set -e
 
-if [ ! -d "/workspace/admin-website" ]; then
-	echo "Admin website directory not found at /workspace/admin-website."
-	exit 1
-fi
+cd /workspace/sites/admin-adb-software-solutions
 
-cd /workspace/admin-website
-
-echo "Starting internal admin website..."
+echo "Starting ADB Software Solutions admin..."
 pnpm run dev

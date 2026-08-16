@@ -2,12 +2,13 @@
     "name": "adb-web-platform",
     "version": "1.0.0",
     "private": true,
-    "description": "Shared platform for ADB Software Solutions and ADB Web Designs.",
+    "description": "Shared platform for the ADB businesses.",
     "scripts": {
-        "dev:admin": "pnpm --dir admin-website dev",
-        "dev:auth": "pnpm --dir auth-frontend dev",
+        "dev:admin": "pnpm --dir sites/admin-adb-software-solutions dev",
+        "dev:auth": "pnpm --dir sites/auth-adb-software-solutions dev",
         "dev:software-solutions": "pnpm --dir sites/adb-software-solutions dev",
         "dev:web-designs": "pnpm --dir sites/adb-web-designs dev",
+        "dev:technology": "pnpm --dir sites/adb-technology dev",
         "lint": "tools/lint",
         "test": "tools/test-all"
     },

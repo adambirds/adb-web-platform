@@ -4,11 +4,15 @@ Shared codebase for the ADB businesses.
 
 ## Applications
 
-- `backend/` — Django backend and shared operations platform.
-- `auth-frontend/` — authentication/account frontend.
-- `admin-website/` — internal Next.js administration application.
+All browser-facing applications live under `sites/`:
+
 - `sites/adb-software-solutions/` — public ADB Software Solutions website.
 - `sites/adb-web-designs/` — public ADB Web Designs website.
+- `sites/adb-technology/` — public ADB Technology website for DevOps, IT consultancy, infrastructure, and support services.
+- `sites/auth-adb-software-solutions/` — authentication and account frontend.
+- `sites/admin-adb-software-solutions/` — internal Next.js administration application.
+
+The shared Django backend remains at `backend/`, while reusable frontend/tooling packages live under `packages/`.
 
 ## Shared packages
 
@@ -28,6 +32,7 @@ Django backend             http://localhost:8000
 Internal admin website     http://localhost:3000
 ADB Software Solutions     http://localhost:3001
 ADB Web Designs            http://localhost:3002
+ADB Technology             http://localhost:3003
 Authentication frontend    http://localhost:5173
 Flower                      http://localhost:5555
 ```
@@ -39,6 +44,7 @@ pnpm dev:admin
 pnpm dev:auth
 pnpm dev:software-solutions
 pnpm dev:web-designs
+pnpm dev:technology
 tools/lint
 tools/test-all
 ```
@@ -47,8 +53,6 @@ Read `AGENTS.md` and `CONTRIBUTING.md` before making changes. Scoped `AGENTS.md`
 
 ## Architecture
 
-The Django backend is shared across all public brands and the internal administration applications. Public websites remain independent Next.js applications so their branding, content and conversion journeys can evolve independently.
+The Django backend is shared across all ADB brands and internal operations. Browser-facing applications are grouped under `sites/`, but remain independent applications so public brands, authentication, and administration can evolve independently.
 
-The repository intentionally does not use Turborepo or another monorepo orchestration framework. pnpm workspaces provide shared-package resolution while the existing deployment and CI/CD approach remains application-focused.
-
-ADB Technology may be added as another public site in the future, but is intentionally not scaffolded until it is needed.
+The repository intentionally does not use Turborepo or another monorepo orchestration framework. pnpm workspaces provide shared-package resolution while CI/CD and container images remain application-focused.
