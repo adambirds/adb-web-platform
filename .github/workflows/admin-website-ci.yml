@@ -10,6 +10,8 @@ on:
             - ".github/workflows/admin-website-ci.yml"
             - "tools/**"
             - "package.json"
+            - "pnpm-workspace.yaml"
+            - "pnpm-lock.yaml"
     pull_request:
         paths:
             - "admin-website/**"
@@ -17,6 +19,8 @@ on:
             - ".github/workflows/admin-website-ci.yml"
             - "tools/**"
             - "package.json"
+            - "pnpm-workspace.yaml"
+            - "pnpm-lock.yaml"
     workflow_dispatch:
 
 concurrency:
@@ -51,23 +55,22 @@ jobs:
               with:
                   ref: ${{ github.event.pull_request.head.sha }}
             - uses: pnpm/action-setup@v4.1.0
+              with:
+                  version: 10.15.0
             - uses: actions/setup-node@v4
               with:
                   node-version: "22"
                   cache: "pnpm"
-                  cache-dependency-path: |
-                      pnpm-lock.yaml
-                      admin-website/pnpm-lock.yaml
-                      auth-frontend/pnpm-lock.yaml
-                      sites/adb-software-solutions/pnpm-lock.yaml
-                      sites/adb-web-designs/pnpm-lock.yaml
+                  cache-dependency-path: pnpm-lock.yaml
             - name: Install Node dependencies
+              run: pnpm install --no-frozen-lockfile
+            - name: Add Node binaries to PATH
               run: |
-                  pnpm install --frozen-lockfile
-                  pnpm --dir admin-website install --frozen-lockfile
-                  pnpm --dir auth-frontend install --frozen-lockfile
-                  pnpm --dir sites/adb-software-solutions install --frozen-lockfile
-                  pnpm --dir sites/adb-web-designs install --frozen-lockfile
+                  echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
+                  echo "$GITHUB_WORKSPACE/admin-website/node_modules/.bin" >> "$GITHUB_PATH"
+                  echo "$GITHUB_WORKSPACE/auth-frontend/node_modules/.bin" >> "$GITHUB_PATH"
+                  echo "$GITHUB_WORKSPACE/sites/adb-software-solutions/node_modules/.bin" >> "$GITHUB_PATH"
+                  echo "$GITHUB_WORKSPACE/sites/adb-web-designs/node_modules/.bin" >> "$GITHUB_PATH"
             - uses: actions/setup-python@v5
               with:
                   python-version: "3.12"
@@ -88,14 +91,15 @@ jobs:
         steps:
             - uses: actions/checkout@v4
             - uses: pnpm/action-setup@v4.1.0
+              with:
+                  version: 10.15.0
             - uses: actions/setup-node@v4
               with:
                   node-version: "22"
                   cache: "pnpm"
-                  cache-dependency-path: admin-website/pnpm-lock.yaml
-            - name: Install dependencies
-              working-directory: admin-website
-              run: pnpm install --frozen-lockfile
+                  cache-dependency-path: pnpm-lock.yaml
+            - name: Install Node dependencies
+              run: pnpm install --no-frozen-lockfile
             - name: Run tests
               working-directory: admin-website
               run: pnpm test --passWithNoTests
