@@ -6,14 +6,9 @@ RUN pnpm install --frozen-lockfile --filter ./sites/adb-technology...
 RUN pnpm --dir sites/adb-technology build
 
 FROM node:22-alpine AS runner
+RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
 ENV NODE_ENV=production
 WORKDIR /app
-RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
-COPY --from=builder /app/sites/adb-technology/public ./public
-COPY --from=builder /app/sites/adb-technology/.next ./.next
-COPY --from=builder /app/sites/adb-technology/package.json ./package.json
-COPY --from=builder /app/sites/adb-technology/node_modules ./node_modules
-COPY --from=builder /app/sites/adb-technology/next.config.js ./next.config.js
-USER nextjs
+COPY --from=builder /app /app
 EXPOSE 3000
-CMD ["node_modules/.bin/next", "start", "-p", "3000"]
+CMD ["pnpm", "--dir", "sites/adb-technology", "start", "-p", "3000"]

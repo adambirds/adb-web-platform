@@ -94,11 +94,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
-            - uses: aquasecurity/trivy-action@0.29.0
+            - uses: aquasecurity/trivy-action@master
               with:
                   scan-type: fs
                   severity: HIGH,CRITICAL
                   output: trivy-fs-scan.txt
+              env:
+                  TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db,public.ecr.aws/aquasecurity/trivy-db
+                  TRIVY_JAVA_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-java-db,public.ecr.aws/aquasecurity/trivy-java-db
             - uses: actions/upload-artifact@v4
               with:
                   name: trivy-fs-scan-backend
