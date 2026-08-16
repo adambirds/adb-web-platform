@@ -1,8 +1,7 @@
 "use strict";
 
 module.exports = {
-    extends: ["stylelint-config-standard", "stylelint-config-tailwindcss"],
-    plugins: ["stylelint-order"],
+    extends: ["stylelint-config-standard"],
     rules: {
         "at-rule-no-unknown": [
             true,
