@@ -1,8 +1,8 @@
 packages:
-  - sites/*
-  - packages/*
+    - sites/*
+    - packages/*
 
 onlyBuiltDependencies:
-  - esbuild
-  - sharp
-  - unrs-resolver
+    - esbuild
+    - sharp
+    - unrs-resolver
