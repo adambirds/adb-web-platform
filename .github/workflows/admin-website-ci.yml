@@ -133,10 +133,10 @@ jobs:
               run: |
                   docker build \
                     -f Dockerfile.admin-website \
-                    -t registry.digitalocean.com/adbsoftwaresolutions/app-website:${{ steps.meta.outputs.tag_suffix }} \
+                    -t registry.digitalocean.com/adbsoftwaresolutions/app-admin-website:${{ steps.meta.outputs.tag_suffix }} \
                     .
             - name: Push Docker image
-              run: docker push registry.digitalocean.com/adbsoftwaresolutions/app-website:${{ steps.meta.outputs.tag_suffix }}
+              run: docker push registry.digitalocean.com/adbsoftwaresolutions/app-admin-website:${{ steps.meta.outputs.tag_suffix }}
 
     scan-docker-image:
         name: Trivy Image Scan
@@ -156,7 +156,7 @@ jobs:
               uses: aquasecurity/trivy-action@0.29.0
               with:
                   scan-type: image
-                  image-ref: registry.digitalocean.com/adbsoftwaresolutions/app-website:${{ steps.meta.outputs.tag_suffix }}
+                  image-ref: registry.digitalocean.com/adbsoftwaresolutions/app-admin-website:${{ steps.meta.outputs.tag_suffix }}
                   severity: HIGH,CRITICAL
                   output: trivy-image-scan.txt
               env:
