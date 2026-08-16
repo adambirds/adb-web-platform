@@ -5,9 +5,15 @@ on:
     push:
         paths:
             - .github/workflows/copilot-setup-steps.yml
+            - package.json
+            - pnpm-workspace.yaml
+            - pnpm-lock.yaml
     pull_request:
         paths:
             - .github/workflows/copilot-setup-steps.yml
+            - package.json
+            - pnpm-workspace.yaml
+            - pnpm-lock.yaml
 
 jobs:
     copilot-setup-steps:
@@ -60,29 +66,23 @@ jobs:
               run: pip install -r backend/requirements/dev.txt
             - name: Set up pnpm
               uses: pnpm/action-setup@v4.1.0
+              with:
+                  version: 10.15.0
             - name: Set up Node.js
               uses: actions/setup-node@v4
               with:
                   node-version: "22"
                   cache: "pnpm"
-                  cache-dependency-path: |
-                      pnpm-lock.yaml
-                      admin-website/pnpm-lock.yaml
-                      auth-frontend/pnpm-lock.yaml
-                      sites/adb-software-solutions/pnpm-lock.yaml
-                      sites/adb-web-designs/pnpm-lock.yaml
+                  cache-dependency-path: pnpm-lock.yaml
             - name: Install Node dependencies
+              run: pnpm install --no-frozen-lockfile
+            - name: Add Node binaries to PATH
               run: |
-                  pnpm install --frozen-lockfile
-                  pnpm --dir admin-website install --frozen-lockfile
-                  pnpm --dir auth-frontend install --frozen-lockfile
-                  pnpm --dir sites/adb-software-solutions install --frozen-lockfile
-                  pnpm --dir sites/adb-web-designs install --frozen-lockfile
-            - name: Add node bin paths to PATH
-              run: |
-                  echo "$GITHUB_WORKSPACE/node_modules/.bin" >> $GITHUB_PATH
-                  echo "$GITHUB_WORKSPACE/admin-website/node_modules/.bin" >> $GITHUB_PATH
-                  echo "$GITHUB_WORKSPACE/auth-frontend/node_modules/.bin" >> $GITHUB_PATH
+                  echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
+                  echo "$GITHUB_WORKSPACE/admin-website/node_modules/.bin" >> "$GITHUB_PATH"
+                  echo "$GITHUB_WORKSPACE/auth-frontend/node_modules/.bin" >> "$GITHUB_PATH"
+                  echo "$GITHUB_WORKSPACE/sites/adb-software-solutions/node_modules/.bin" >> "$GITHUB_PATH"
+                  echo "$GITHUB_WORKSPACE/sites/adb-web-designs/node_modules/.bin" >> "$GITHUB_PATH"
             - name: Install ShellCheck and shfmt
               run: |
                   tools/setup/install-shellcheck
