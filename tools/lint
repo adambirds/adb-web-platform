@@ -45,7 +45,6 @@ def run() -> None:
         "auth-frontend",
         "sites/adb-software-solutions",
         "sites/adb-web-designs",
-        ".",
     ]
 
     for frontend_dir in FRONTEND_DIRS:
