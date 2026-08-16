@@ -365,7 +365,6 @@ pre[class*="language-"] {
 
 .prose blockquote {
     border-left: 4px solid #3b82f6;
-    padding-left: 1em;
     margin-left: 0;
     margin-top: 1.5em;
     margin-bottom: 1.5em;
@@ -396,7 +395,7 @@ pre[class*="language-"] {
 }
 
 .prose tr:nth-child(even) {
-    background-color: rgba(31, 41, 55, 0.3);
+    background-color: rgb(31 41 55 / 30%);
 }
 
 .prose img {
