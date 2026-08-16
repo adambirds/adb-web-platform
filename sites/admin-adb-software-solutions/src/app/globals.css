@@ -395,7 +395,7 @@ pre[class*="language-"] {
 }
 
 .prose tr:nth-child(even) {
-    background-color: rgb(31 41 55 / 30%);
+    background-color: rgb(31 41 55 / 0.3);
 }
 
 .prose img {
