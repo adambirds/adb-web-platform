@@ -187,9 +187,9 @@ class CustomGroup(Group):
         verbose_name_plural = _("groups")
 
 
-from authentication.passkeys.models import Passkey, PasskeyChallenge  # noqa: E402,F401
-from authentication.sessions.models import UserSession  # noqa: E402,F401
-from authentication.twofactor.models import (  # noqa: E402,F401
+from authentication.passkeys.models import Passkey, PasskeyChallenge  # noqa: F401
+from authentication.sessions.models import UserSession  # noqa: F401
+from authentication.twofactor.models import (  # noqa: F401
     RecoveryCode,
     TwoFactorChallenge,
     TwoFactorMethod,
