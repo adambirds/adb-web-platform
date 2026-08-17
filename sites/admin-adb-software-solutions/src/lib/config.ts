@@ -5,7 +5,7 @@ export const API_URL = stripTrailingSlash(
 );
 
 export const AUTH_URL = stripTrailingSlash(
-    process.env.NEXT_PUBLIC_AUTH_URL || "http://localhost:5175",
+    process.env.NEXT_PUBLIC_AUTH_URL || "http://localhost:3004",
 );
 
 export function getAdminLoginUrl(returnTo?: string): string {
