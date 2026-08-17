@@ -22,10 +22,8 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     isAuthenticated: boolean;
-    // 2FA state for login
     requires2fa: boolean;
     challengeToken: string | null;
-    // Auth methods
     login: (email: string, password: string) => Promise<void>;
     loginWithPasskey: () => Promise<void>;
     logout: () => Promise<void>;
@@ -43,19 +41,15 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
     const [challengeToken, setChallengeToken] = useState<string | null>(null);
 
     const refreshUser = useCallback(async () => {
-        console.log("[AUTH] Fetching current user");
         try {
             const data = await authApi.getCurrentUser();
-            console.log("[AUTH] Current user response:", data);
             if (data.success && data.user) {
-                console.log("[AUTH] User authenticated:", data.user.email);
                 setUser(data.user);
             } else {
-                console.log("[AUTH] User not authenticated");
                 setUser(null);
             }
-        } catch (err) {
-            console.error("[AUTH] Error fetching user:", err);
+        } catch (error) {
+            console.error("Failed to refresh authenticated user", error);
             setUser(null);
         } finally {
             setLoading(false);
@@ -63,39 +57,32 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
     }, []);
 
     useEffect(() => {
-        // Initialize CSRF token on app startup
-        ensureCsrfToken().catch(console.error);
+        ensureCsrfToken().catch((error) => {
+            console.error("Failed to initialise CSRF token", error);
+        });
         refreshUser();
     }, [refreshUser]);
 
     const login = async (email: string, password: string) => {
-        console.log("[AUTH] Starting login for:", email);
         const data = await authApi.login(email, password);
-        console.log("[AUTH] Login response:", data);
 
         if (!data.success) {
             throw new Error(data.message || "Login failed");
         }
 
-        // Check if 2FA is required
         if (data.requires2fa && data.challengeToken) {
-            console.log("[AUTH] 2FA required");
             setChallengeToken(data.challengeToken);
             setRequires2fa(true);
             return;
         }
 
-        console.log("[AUTH] Refreshing user after login");
         await refreshUser();
-        console.log("[AUTH] Login complete");
     };
 
     const loginWithPasskey = async () => {
-        // Import dynamically to avoid SSR issues
         const {authenticateWithDiscoverableCredential} =
             await import("@/utils/webauthn");
 
-        // Step 1: Begin discoverable auth
         const beginData = await authApi.beginDiscoverableAuth();
         if (!beginData.success || !beginData.options) {
             throw new Error(
@@ -103,7 +90,6 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
             );
         }
 
-        // Step 2: Get credential from browser
         let options = beginData.options;
         if (typeof options === "string") {
             options = JSON.parse(options);
@@ -111,7 +97,6 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
         const credential =
             await authenticateWithDiscoverableCredential(options);
 
-        // Step 3: Complete authentication
         const completeData = await authApi.completeDiscoverableAuth(credential);
         if (!completeData.success) {
             throw new Error(
@@ -137,7 +122,6 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
             throw new Error(data.message || "Verification failed");
         }
 
-        // Clear 2FA state
         setRequires2fa(false);
         setChallengeToken(null);
 
