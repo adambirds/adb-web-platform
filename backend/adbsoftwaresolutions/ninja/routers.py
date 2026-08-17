@@ -7,6 +7,7 @@ from ninja import NinjaAPI, Router
 from ninja.errors import HttpError
 from pydantic import ValidationError
 
+from apps.core.ninja.admin_views import core_admin_router
 from apps.website.ninja.admin_views import website_admin_router
 from apps.website.ninja.views import website_misc_router, website_public_router
 from authentication.auth_service.views import auth_service_router
@@ -21,12 +22,10 @@ api = NinjaAPI(
     description="Shared API for the ADB Business Platform and public ADB websites.",
 )
 
-# Register nested routers.
-api.add_router("/auth", auth_router)  # Staff/admin authentication.
-api.add_router("/auth-service", auth_service_router)  # General account authentication.
-api.add_router("/sessions", sessions_router)  # Session/device management.
+api.add_router("/auth", auth_router)
+api.add_router("/auth-service", auth_service_router)
+api.add_router("/sessions", sessions_router)
 
-# Public content, website ingestion and internal administration APIs.
 public_router = Router(tags=["public"])
 public_router.add_router("", website_public_router)
 api.add_router("/public", public_router)
@@ -36,6 +35,7 @@ website_router.add_router("", website_misc_router)
 api.add_router("/website", website_router)
 
 admin_router = Router(tags=["admin"])
+admin_router.add_router("", core_admin_router)
 admin_router.add_router("", website_admin_router)
 api.add_router("/admin", admin_router)
 
