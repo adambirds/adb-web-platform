@@ -6,7 +6,7 @@ import { Footer } from "./Footer";
 import { Header } from "./Header";
 
 export function AdminLayout({ children }: { children: ReactNode }) {
-    const { isAuthenticated, isLoading, user } = useAuth();
+    const { isAuthenticated, isLoading, login } = useAuth();
 
     if (isLoading) {
         return (
@@ -23,18 +23,19 @@ export function AdminLayout({ children }: { children: ReactNode }) {
         return (
             <div className="dark:bg-adb-navy-950 flex h-screen items-center justify-center bg-white">
                 <div className="text-center">
-                    <h1 className="text-adb-navy text-2xl font-bold">
-                        Access Denied
+                    <h1 className="text-adb-navy text-2xl font-bold dark:text-white">
+                        Sign in required
                     </h1>
                     <p className="text-adb-navy-600 dark:text-adb-navy-300 mt-2">
-                        You must be logged in to access this page.
+                        Sign in with an authorised staff account to continue.
                     </p>
-                    <a
-                        href="http://localhost:5175/login"
+                    <button
+                        type="button"
+                        onClick={login}
                         className="bg-adb-cyan text-adb-navy-950 hover:bg-adb-cyan-600 mt-4 inline-block rounded-lg px-6 py-2 font-medium transition"
                     >
                         Go to Login
-                    </a>
+                    </button>
                 </div>
             </div>
         );
