@@ -4,10 +4,8 @@
 
 export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-const DEFAULT_APP_URL =
-    import.meta.env.VITE_APP_URL || "http://localhost:3001";
-const ADMIN_URL =
-    import.meta.env.VITE_ADMIN_URL || "http://localhost:3000";
+const DEFAULT_APP_URL = import.meta.env.VITE_APP_URL || "http://localhost:3001";
+const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || "http://localhost:3000";
 const WEB_DESIGNS_URL =
     import.meta.env.VITE_WEB_DESIGNS_URL || "http://localhost:3002";
 const TECHNOLOGY_URL =
