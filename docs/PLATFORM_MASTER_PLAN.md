@@ -197,6 +197,7 @@ This applies to resources such as:
 - future contracts and commercial records.
 
 Do not misuse Brand as the ownership mechanism. A resource may be internal yet related to one brand, client-owned yet serviced under another brand, or not brand-specific at all.
+
 ### 3.3 Client is the main operational context
 
 A Client represents a customer/business rather than merely a row of company details.
@@ -396,6 +397,7 @@ At minimum, distinguish:
 - deleting the credential.
 
 Credential reveals must be auditable.
+
 ### 5.6 Backend authority
 
 Every API query and mutation involving restricted data must enforce permissions in Django.
@@ -595,6 +597,7 @@ project = null
 internal = true
 recurrence = monthly
 ```
+
 Required concepts over time include:
 
 - title;
