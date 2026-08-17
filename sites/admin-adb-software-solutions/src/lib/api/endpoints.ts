@@ -26,7 +26,8 @@ export const AdminAPI = {
     website: {
         portfolio: {
             list: () => `${API_BASE_URL}/admin/website/portfolio`,
-            get: (id: number) => `${API_BASE_URL}/admin/website/portfolio/${id}`,
+            get: (id: number) =>
+                `${API_BASE_URL}/admin/website/portfolio/${id}`,
             create: () => `${API_BASE_URL}/admin/website/portfolio`,
             update: (id: number) =>
                 `${API_BASE_URL}/admin/website/portfolio/${id}`,
