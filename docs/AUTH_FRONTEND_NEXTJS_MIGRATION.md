@@ -81,20 +81,18 @@ Use `src/` only if it makes the application materially clearer and is consistent
 
 ## Route mapping
 
-The current authentication routes must continue to exist with equivalent behaviour.
+The current authentication routes must continue to exist with equivalent behaviour:
 
-| Current route | Target Next.js route | Notes |
-| --- | --- | --- |
-| `/login` | `app/login/page.tsx` | Preserve `next` return URL behaviour. |
-| `/signup` | `app/signup/page.tsx` | Preserve registration and verification flow. |
-| `/verify-email/:token` | `app/verify-email/[token]/page.tsx` | Dynamic route token. |
-| `/forgot-password` | `app/forgot-password/page.tsx` | Preserve non-enumerating UX/API behaviour. |
-| `/reset-password/:token` | `app/reset-password/[token]/page.tsx` | Dynamic route token. |
-| `/logout` | implementation decision | Prefer a deliberate page/action flow rather than hidden framework magic. |
-| `/setup-passkey` | `app/setup-passkey/page.tsx` | Browser WebAuthn APIs require client-side interaction. |
-| `/setup-2fa` | `app/setup-2fa/page.tsx` | Preserve setup/confirmation/recovery-code handling. |
-| `/account` | `app/account/page.tsx` | Continue redirecting to the security dashboard unless product requirements change. |
-| `/account/security` | `app/account/security/page.tsx` | Password, passkeys, TOTP and session/device management. |
+- `/login` -> `app/login/page.tsx`; preserve `next` return URL behaviour.
+- `/signup` -> `app/signup/page.tsx`; preserve registration and verification flow.
+- `/verify-email/:token` -> `app/verify-email/[token]/page.tsx`; use a dynamic token route.
+- `/forgot-password` -> `app/forgot-password/page.tsx`; preserve non-enumerating UX/API behaviour.
+- `/reset-password/:token` -> `app/reset-password/[token]/page.tsx`; use a dynamic token route.
+- `/logout` -> deliberate page/action implementation; avoid hidden framework magic.
+- `/setup-passkey` -> `app/setup-passkey/page.tsx`; browser WebAuthn APIs require client-side interaction.
+- `/setup-2fa` -> `app/setup-2fa/page.tsx`; preserve setup, confirmation and recovery-code handling.
+- `/account` -> `app/account/page.tsx`; continue redirecting to the security dashboard unless product requirements change.
+- `/account/security` -> `app/account/security/page.tsx`; preserve password, passkey, TOTP and session/device management.
 
 Any historic aliases or externally used URLs discovered during migration must either be retained or receive explicit redirects.
 
