@@ -2,7 +2,7 @@ from django.contrib.auth.models import Permission
 from django.test import TestCase
 
 from apps.core.models import Brand
-from apps.website.models import FAQ, BlogPost, FAQCategory, Testimonial
+from apps.website.models import FAQ, BlogPost, FAQCategory, Portfolio, Testimonial
 from authentication.models import User
 
 
@@ -67,6 +67,26 @@ class BrandAwarePublicContentTests(TestCase):
         )
         web_faq.brands.add(self.web)
 
+        software_portfolio = Portfolio.objects.create(
+            title="Software case study",
+            slug="software-case-study",
+            description="Software project",
+            challenge="Challenge",
+            solution="Solution",
+            results="Results",
+        )
+        software_portfolio.brands.add(self.software)
+
+        web_portfolio = Portfolio.objects.create(
+            title="Web case study",
+            slug="web-case-study",
+            description="Web project",
+            challenge="Challenge",
+            solution="Solution",
+            results="Results",
+        )
+        web_portfolio.brands.add(self.web)
+
     def test_testimonials_are_scoped_to_requested_brand(self) -> None:
         response = self.client.get(
             "/api/public/testimonials",
@@ -99,6 +119,17 @@ class BrandAwarePublicContentTests(TestCase):
         payload = response.json()
         self.assertEqual([faq["question"] for faq in payload], ["Software question?"])
 
+    def test_portfolio_is_scoped_to_requested_brand(self) -> None:
+        response = self.client.get(
+            "/api/public/portfolio",
+            {"brand": self.software.slug},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual([item["slug"] for item in payload], ["software-case-study"])
+        self.assertEqual(payload[0]["brand_slugs"], [self.software.slug])
+
     def test_unknown_brand_does_not_return_cross_brand_content(self) -> None:
         response = self.client.get(
             "/api/public/testimonials",
@@ -128,9 +159,14 @@ class CMSAdminPermissionTests(TestCase):
         )
         self.staff.user_permissions.add(permission)
 
+    def assert_brands(self, item, expected: set[str]) -> None:
+        self.assertSetEqual(
+            set(item.brands.values_list("slug", flat=True)),
+            expected,
+        )
+
     def test_staff_without_capability_cannot_list_testimonials(self) -> None:
         response = self.client.get("/api/admin/website/testimonials")
-
         self.assertEqual(response.status_code, 403)
 
     def test_staff_with_view_capability_can_list_testimonials(self) -> None:
@@ -164,8 +200,74 @@ class CMSAdminPermissionTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         testimonial = Testimonial.objects.get(quote="Cross-brand testimonial")
-        self.assertSetEqual(
-            set(testimonial.brands.values_list("slug", flat=True)),
+        self.assert_brands(testimonial, {self.software.slug, self.web.slug})
+
+    def test_create_blog_post_persists_selected_brands(self) -> None:
+        self.grant("add_blogpost")
+
+        response = self.client.post(
+            "/api/admin/website/blog/posts",
+            data={
+                "title": "Shared post",
+                "slug": "shared-post",
+                "excerpt": "Shared",
+                "content": "Shared body",
+                "brand_ids": [self.software.id, self.web.id],
+                "category_ids": [],
+                "tag_ids": [],
+            },
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assert_brands(
+            BlogPost.objects.get(slug="shared-post"),
+            {self.software.slug, self.web.slug},
+        )
+
+    def test_create_faq_persists_selected_brands(self) -> None:
+        self.grant("add_faq")
+        category = FAQCategory.objects.create(name="Shared", slug="shared")
+        category.brands.add(self.software, self.web)
+
+        response = self.client.post(
+            "/api/admin/website/faqs",
+            data={
+                "question": "Shared question?",
+                "answer": "Shared answer",
+                "category_id": category.id,
+                "brand_ids": [self.software.id, self.web.id],
+            },
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assert_brands(
+            FAQ.objects.get(question="Shared question?"),
+            {self.software.slug, self.web.slug},
+        )
+
+    def test_create_portfolio_persists_selected_brands(self) -> None:
+        self.grant("add_portfolio")
+
+        response = self.client.post(
+            "/api/admin/website/portfolio",
+            data={
+                "title": "Shared case study",
+                "slug": "shared-case-study",
+                "description": "Description",
+                "challenge": "Challenge",
+                "solution": "Solution",
+                "results": "Results",
+                "technologies": ["Django", "Next.js"],
+                "brand_ids": [self.software.id, self.web.id],
+            },
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assert_brands(
+            Portfolio.objects.get(slug="shared-case-study"),
             {self.software.slug, self.web.slug},
         )
 
