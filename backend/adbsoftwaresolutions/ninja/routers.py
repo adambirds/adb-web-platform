@@ -36,7 +36,7 @@ api.add_router("/website", website_router)
 
 admin_router = Router(tags=["admin"])
 admin_router.add_router("", core_admin_router)
-admin_router.add_router("", website_admin_router)
+admin_router.add_router("/website", website_admin_router)
 api.add_router("/admin", admin_router)
 
 
