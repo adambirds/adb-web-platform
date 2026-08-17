@@ -67,11 +67,5 @@ jobs:
               run: |
                   tools/setup/install-shellcheck
                   tools/setup/install-shfmt
-            - name: Capture formatter output
-              run: |
-                  ruff check --fix backend/apps/website/tests.py
-                  pnpm exec prettier --write docs/PLATFORM_MASTER_PLAN.md sites/admin-adb-software-solutions/src/lib/api/endpoints.ts
-                  git diff -- backend/apps/website/tests.py docs/PLATFORM_MASTER_PLAN.md sites/admin-adb-software-solutions/src/lib/api/endpoints.ts
-                  test -z "$(git status --porcelain -- backend/apps/website/tests.py docs/PLATFORM_MASTER_PLAN.md sites/admin-adb-software-solutions/src/lib/api/endpoints.ts)"
             - run: git fetch origin main
             - run: tools/lint
