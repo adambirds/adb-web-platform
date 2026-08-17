@@ -1,4 +1,5 @@
-/* eslint-disable react-refresh/only-export-components */
+"use client";
+
 import {authApi, ensureCsrfToken} from "@/utils/api";
 import React, {
     createContext,
@@ -57,10 +58,10 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
     }, []);
 
     useEffect(() => {
-        ensureCsrfToken().catch((error) => {
+        void ensureCsrfToken().catch((error) => {
             console.error("Failed to initialise CSRF token", error);
         });
-        refreshUser();
+        void refreshUser();
     }, [refreshUser]);
 
     const login = async (email: string, password: string) => {

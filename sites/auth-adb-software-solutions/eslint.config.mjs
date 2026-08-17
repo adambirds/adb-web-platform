@@ -1,75 +1,30 @@
-import typescriptPlugin from "@typescript-eslint/eslint-plugin";
-import typescriptParser from "@typescript-eslint/parser";
-import reactPlugin from "eslint-plugin-react";
-import reactHooksPlugin from "eslint-plugin-react-hooks";
-import reactRefreshPlugin from "eslint-plugin-react-refresh";
-import globals from "globals";
-import path from "path";
-import {fileURLToPath} from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import pluginNext from "@next/eslint-plugin-next";
+import parser from "@typescript-eslint/parser";
 
 export default [
     {
-        ignores: [
-            "dist/**",
-            "node_modules/**",
-            "stylelint.config.js",
-            "*.config.js",
-        ],
-    },
-    {
+        name: "ESLint Config - nextjs",
         languageOptions: {
-            globals: {
-                ...globals.browser,
-                ...globals.es2020,
-            },
-            parser: typescriptParser,
-            ecmaVersion: 5,
-            sourceType: "module",
+            parser,
             parserOptions: {
-                project: ["./tsconfig.json", "./tsconfig.node.json"],
-                tsconfigRootDir: __dirname,
-            },
-        },
-        files: ["**/*.ts", "**/*.tsx"],
-        plugins: {
-            "@typescript-eslint": typescriptPlugin,
-            react: reactPlugin,
-            "react-hooks": reactHooksPlugin,
-            "react-refresh": reactRefreshPlugin,
-        },
-        settings: {
-            react: {
-                version: "detect",
-            },
-        },
-        rules: {
-            // TypeScript rules
-            "@typescript-eslint/no-var-requires": "off",
-            "@typescript-eslint/no-explicit-any": "off",
-            "@typescript-eslint/no-empty-function": "off",
-            "@typescript-eslint/no-empty-interface": "off",
-            "@typescript-eslint/prefer-for-of": "off",
-            "@typescript-eslint/no-unused-vars": [
-                "warn",
-                {
-                    args: "none",
-                    ignoreRestSiblings: true,
+                ecmaVersion: "latest",
+                sourceType: "module",
+                ecmaFeatures: {
+                    jsx: true,
                 },
-            ],
-            // React rules
-            "react/prop-types": "off",
-            // React Refresh rules
-            "react-refresh/only-export-components": [
-                "warn",
-                {allowConstantExport: true},
-            ],
-            // React Hooks rules
-            "react-hooks/exhaustive-deps": "warn",
-            // General rules
-            "no-unused-vars": "off",
+            },
         },
+        plugins: {
+            "@next/next": pluginNext,
+        },
+        files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
+        rules: {
+            ...pluginNext.configs.recommended.rules,
+            ...pluginNext.configs["core-web-vitals"].rules,
+            "no-html-link-for-pages": 0,
+            "@next/next/no-html-link-for-pages": "off",
+            "react-hooks/exhaustive-deps": 0,
+        },
+        ignores: ["node_modules/**", ".next/**", "out", "coverage/**"],
     },
 ];
