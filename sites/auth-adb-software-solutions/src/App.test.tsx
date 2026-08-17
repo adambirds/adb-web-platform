@@ -2,11 +2,13 @@ import {render, waitFor} from "@testing-library/react";
 import {BrowserRouter} from "react-router-dom";
 import {describe, expect, it, vi} from "vitest";
 
-const getCurrentUser = vi.fn().mockResolvedValue({
-    success: true,
-    user: null,
-});
-const ensureCsrfToken = vi.fn().mockResolvedValue(undefined);
+const {getCurrentUser, ensureCsrfToken} = vi.hoisted(() => ({
+    getCurrentUser: vi.fn().mockResolvedValue({
+        success: true,
+        user: null,
+    }),
+    ensureCsrfToken: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock("@/utils/api", async (importOriginal) => {
     const actual = await importOriginal<typeof import("@/utils/api")>();
