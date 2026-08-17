@@ -84,6 +84,6 @@ jobs:
             - name: Push Docker image
               if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
               run: |
-                  image="registry.digitalocean.com/${{ vars.DO_REGISTRY_NAME }}/app-adb-software-solutions:${{ steps.meta.outputs.tag }}"
+                  image="registry.digitalocean.com/${{ vars.DO_REGISTRY_NAME }}/adb-web-platform-adb-software-solutions:${{ steps.meta.outputs.tag }}"
                   docker tag adb-web-platform/adb-software-solutions:ci "$image"
                   docker push "$image"
