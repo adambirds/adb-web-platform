@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.http import HttpRequest
 from unfold.admin import ModelAdmin
 
 from apps.core.models import AuditEvent, Brand
@@ -29,11 +30,11 @@ class AuditEventAdmin(ModelAdmin):
         "created_at",
     )
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request: HttpRequest) -> bool:
         return False
 
-    def has_change_permission(self, request, obj=None):
+    def has_change_permission(self, request: HttpRequest, obj: AuditEvent | None = None) -> bool:
         return False
 
-    def has_delete_permission(self, request, obj=None):
+    def has_delete_permission(self, request: HttpRequest, obj: AuditEvent | None = None) -> bool:
         return False
