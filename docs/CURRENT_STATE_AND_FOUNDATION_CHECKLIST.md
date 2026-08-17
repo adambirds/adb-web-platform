@@ -29,223 +29,77 @@ The monorepo structure, pnpm workspace, per-application CI and Dockerfiles were 
 
 Authentication is currently the most mature backend subsystem.
 
-Existing capabilities include:
+Existing capabilities include custom users, email/password authentication, email verification, password reset, TOTP two-factor authentication, recovery codes, WebAuthn/passkeys, authentication logs, tracked sessions/devices, rate limiting, staff `/api/auth` endpoints and general `/api/auth-service` account endpoints.
 
-- custom User model;
-- email/password authentication;
-- email verification;
-- password reset;
-- TOTP two-factor authentication;
-- recovery codes;
-- WebAuthn/passkeys;
-- authentication logs;
-- tracked sessions/devices;
-- login/register/2FA rate limiting;
-- staff/superuser-only `/api/auth` endpoints;
-- general `/api/auth-service` account endpoints.
-
-Foundation work completed so far:
-
-- platform/template naming has been removed from the main API/settings;
-- the legacy eBay-specific User field has been removed;
-- the staff `/api/auth/me` response now exposes capability permissions and object scopes;
-- verbose staff-auth stage logging has been removed;
-- request bodies are no longer logged by the top-level API validation/error handlers;
-- admin logout now uses the CSRF-safe API helper;
-- admin/auth return URL configuration has been centralised and validated.
+Foundation work completed so far includes removal of template naming and the legacy eBay-specific User field, exposing staff capability permissions/object scopes, reducing verbose staff-auth logging, removing request bodies from top-level validation/error logs, CSRF-safe admin logout and centralised/validated return URL configuration.
 
 Remaining foundation work:
 
 - remove remaining verbose logging from the general auth service/API client;
 - continue reviewing API response conventions where practical;
 - move verification/reset email delivery behind the future Celery/email service;
-- verify all session/cookie/CORS/CSRF flows in local and production domain arrangements;
+- verify session/cookie/CORS/CSRF flows in local and production domain arrangements;
 - strengthen automated auth/admin integration tests.
 
 ### Website/content app
 
-Existing content models include:
+Existing content models include Portfolio, Testimonial, BlogCategory, BlogTag, BlogPost, FAQ and FAQCategory.
 
-- Portfolio;
-- Testimonial;
-- BlogCategory;
-- BlogTag;
-- BlogPost;
-- FAQ;
-- FAQCategory.
+The models support explicit Brand assignment. Public content APIs require a Brand slug and scope queries accordingly. Contact submissions carry the originating Brand into CRM Leads. The Django admin exposes Brand assignment and the Django Ninja administration API accepts `brand_ids` and returns `brand_slugs`.
 
-The models now support explicit Brand assignment. Public content APIs require a Brand slug and scope queries accordingly. Contact submissions also carry the originating Brand into CRM Leads.
-
-The Django admin exposes Brand assignment. The custom Next.js content administration UI and its Django Ninja CRUD API still need to expose and persist Brand assignment consistently.
+The custom Next.js CMS is being brought onto that contract. A reusable Brand selector has been introduced and testimonial administration now supports required multi-brand assignment, editing and brand filtering. Blog, FAQ and portfolio administration still need the same treatment before this foundation item is complete.
 
 Portfolio remains public case-study content and is explicitly separate from operational `clients.Project`. A future model rename to `CaseStudy` remains optional and should only be performed when the migration/API/UI churn is justified.
-
-Remaining foundation work:
-
-- make custom admin CRUD fully Brand-aware;
-- add brand assignment/filtering to the custom admin UI;
-- populate Brand metadata accurately in admin API output;
-- expand cross-brand isolation tests beyond the initial testimonial coverage;
-- replace contact-submission-only behaviour with the future ticket/lead ingestion architecture when ticketing is implemented.
 
 ### Clients app
 
 Existing data models and Django admin exist for client/business records. The admin Next.js client page is currently mostly a placeholder and the general business API surface is incomplete.
 
-The model audit establishes that Client is the organisation/account root and ClientContact is the individual identity used for future email matching and portal access.
-
-Future implementation must provide:
-
-- improved Client field semantics;
-- ClientContact primary/billing/technical contact flags;
-- normalised contact email identity matching;
-- future portal relationship extension points;
-- client active/archive lifecycle;
-- explicit client/internal operational ownership without a fake Internal Client.
+The model audit establishes that Client is the organisation/account root and ClientContact is the individual identity used for future email matching and portal access. The first operational phase after foundation will implement these concepts properly.
 
 ### CRM app
 
-Existing CRM models/admin primarily cover lead concepts. General admin APIs/UI are incomplete.
-
-`Lead` now supports an originating Brand. CRM remains the sales pipeline and must remain separate from support ticketing.
-
-Future work includes:
-
-- linked communication/tickets;
-- lead ownership/assignee;
-- lead-to-client conversion;
-- value/currency where useful;
-- richer source metadata.
+Existing CRM models/admin primarily cover lead concepts. `Lead` supports an originating Brand. CRM remains the sales pipeline and must remain separate from support ticketing.
 
 ### Infrastructure app
 
-The infrastructure model is broad and already contains structured records for servers, databases, websites, domains, certificates and other asset/application types.
-
-The admin UI currently has an infrastructure landing page but several linked detail routes are not implemented.
-
-The initial domain audit keeps the existing concepts but defers a deeper field-by-field redesign until the infrastructure workspace is implemented. Before then the platform must:
-
-- apply client/internal ownership consistently;
-- reference credentials rather than duplicate secrets;
-- preserve logical Application as a grouping abstraction;
-- modernise static provider/OS choices where appropriate;
-- enforce permission boundaries and client scope.
+The infrastructure model is broad and already contains structured records for servers, databases, websites, domains, certificates and other asset/application types. A deeper field-by-field redesign remains deferred until the infrastructure workspace is implemented.
 
 ### Credentials app
 
-Credential models/admin exist, but the current secret fields remain plaintext legacy storage and are explicitly not production-ready.
-
-The foundation now defines separate Django permissions for revealing and copying secrets. The final vault still requires:
-
-- encrypted-at-rest secret storage and deliberate key management;
-- client/internal ownership;
-- metadata-only list/search APIs;
-- audited secret reveal;
-- related infrastructure/application references;
-- safe rotation/expiry/export behaviour.
-
-Do not put production credentials into the current table before this work is complete.
+Credential models/admin exist, but current secret fields remain plaintext legacy storage and are explicitly not production-ready. Separate Django permissions for viewing metadata, revealing secrets and copying secrets have been established. Do not put production credentials into the current table before the encrypted vault work is complete.
 
 ### Knowledge base app
 
-Knowledge-base models/admin exist. The custom admin frontend is not yet a complete IT Glue-style documentation workspace.
-
-Foundation requirements remain:
-
-- client/internal ownership;
-- sections/categories/tags;
-- author/editor metadata;
-- reliable document version history;
-- permission scope;
-- search strategy;
-- future portal visibility that is explicit and private by default.
+Knowledge-base models/admin exist. The custom admin frontend is not yet a complete IT Glue-style documentation workspace. Client/internal ownership, versioning, permission scope, search and future portal visibility remain required.
 
 ### Tasks app
 
-Task-related models/admin exist, but the operational task product is incomplete.
-
-The model audit confirms the target behaviour:
-
-- tasks may be project-linked, client-linked, ticket-linked or standalone;
-- project/list membership must not be mandatory;
-- internal standalone tasks are valid;
-- recurring tasks are required, including monthly invoice reminders;
-- assignments and permissions must support multiple staff users over time.
+Task-related models/admin exist, but the operational task product is incomplete. Tasks may be project-linked, client-linked, ticket-linked or standalone; project/list membership must not be mandatory; internal standalone and recurring tasks are valid requirements.
 
 ### Platform core
 
-A new `apps.core` domain now contains:
-
-- `Brand` — first-class identity for the three public ADB brands;
-- `AuditEvent` — append-only audit foundation for sensitive/important actions.
-
-The initial migration deterministically seeds:
-
-- `adb-software-solutions`;
-- `adb-web-designs`;
-- `adb-technology`.
+`apps.core` contains first-class `Brand` and append-only `AuditEvent` foundations. Initial data deterministically seeds ADB Software Solutions, ADB Web Designs and ADB Technology.
 
 ### Access control
 
-A new `apps.access_control` domain provides the first object-scope layer that complements Django's capability permissions.
-
-Current models/helpers include:
-
-- `StaffAccessProfile`;
-- `ClientAccessGrant`;
-- all-clients versus selected-client scope;
-- a reserved all-ticket-queues flag for the future ticket domain;
-- reusable `can_access_client` and `scope_clients_for_user` policy helpers;
-- tests for selected-client scope, global client scope and superuser bypass.
-
-TicketQueue grants are intentionally deferred until the ticket domain exists rather than inventing a generic ACL table prematurely.
+`apps.access_control` complements Django capability permissions with object scope. Current foundations include `StaffAccessProfile`, `ClientAccessGrant`, all-clients versus selected-client scope, reusable client policy helpers and tests. TicketQueue grants remain deferred until the ticket domain exists.
 
 ### Celery/background work
 
-Celery configuration and development worker commands already exist. Business background workflows remain incomplete.
-
-Future Celery responsibilities include:
-
-- transactional email;
-- Microsoft Graph ingestion/sync;
-- ticket classification/routing;
-- notifications;
-- recurring/scheduled task workflows;
-- other integration jobs.
-
-Business logic should live in reusable services; Celery tasks should orchestrate asynchronous execution.
+Celery configuration and development worker commands exist. Future responsibilities include transactional email, Microsoft Graph ingestion/sync, ticket classification/routing, notifications and recurring task workflows. Business logic belongs in reusable services; Celery tasks orchestrate asynchronous execution.
 
 ## 3. Admin frontend status
 
-Existing routes include areas for dashboard, clients, projects, leads, time tracking, credentials, content and infrastructure.
+Existing routes include dashboard, clients, projects, leads, time tracking, credentials, content and infrastructure. Content administration is substantially more complete than the other operational screens.
 
-The content-management screens are considerably more complete than the other business-operation screens.
+Foundation work has removed the duplicate TechWiki auth implementation, corrected the real AuthContext contract, centralised API/auth URLs, removed stale marketing metadata, added CSRF-safe mutations, exposed effective permissions/scopes and added `hasPermission()` for UI affordances.
 
-Foundation changes already made include:
-
-- removed duplicate TechWiki-derived auth implementation;
-- corrected the active AuthContext to the real `/api/auth/me` response;
-- centralised API/auth URLs;
-- removed stale marketing metadata;
-- added CSRF-safe mutating API requests;
-- exposed effective permissions and client/ticket-queue scope in the AuthContext;
-- added a `hasPermission()` helper for future UI affordances.
-
-Remaining issues include placeholder business pages, missing infrastructure detail routes, brand assignment in CMS forms and actual permission-driven navigation/action affordances.
+The CMS now has a reusable brand-selection primitive. Testimonial CRUD uses it and can filter the list by Brand. Blog, FAQ and portfolio screens remain to migrate to the same pattern.
 
 ## 4. Auth frontend status
 
-Existing routes/capabilities include login, signup, logout, email verification, password reset, passkeys, TOTP, account security and session/device management.
-
-Foundation changes already made include updated redirect allow-list/defaults for all ADB applications and removal of verbose logging from the AuthContext.
-
-Remaining work:
-
-- remove verbose diagnostic logging from the underlying API utility;
-- review security-sensitive API types;
-- verify CSRF/session behaviour in local and production domain arrangements;
-- ensure all return flows use validated `next` URLs;
-- later support client portal users through this same identity system.
+Existing capabilities include login, signup, logout, email verification, password reset, passkeys, TOTP, account security and session/device management. Redirect configuration supports all current ADB applications. Remaining work includes diagnostic-log cleanup, security-sensitive type review, production cookie/session verification and validated return-flow coverage.
 
 ## 5. Foundational domain decisions
 
@@ -255,28 +109,15 @@ Implemented as first-class `apps.core.Brand`. Brand is independent of Client own
 
 ### Ownership
 
-The architectural rule is decided: operational resources are either client-owned or explicitly internal. The reusable model/validation pattern has not yet been implemented across every operational domain.
+Operational resources are either client-owned or explicitly internal. The reusable model/validation pattern has not yet been implemented across every operational domain.
 
 ### Permissions
-
-The permission architecture is documented in `PERMISSIONS_AND_ACCESS_MODEL.md`.
 
 Capability uses Django Permission/Group primitives. Object scope is independent. Client scope has an initial concrete implementation. TicketQueue scope will be implemented with ticketing. Credential reveal/copy are explicit sensitive permissions.
 
 ### Audit logging
 
-`apps.core.AuditEvent` is the initial append-only audit foundation. Sensitive actions still need to begin emitting events as their APIs are implemented.
-
-### API conventions
-
-Still to standardise progressively:
-
-- response contracts;
-- error representation;
-- collection pagination;
-- reusable capability checks;
-- reusable queryset scoping;
-- secret-field handling.
+`apps.core.AuditEvent` is the initial append-only audit foundation. Sensitive actions still need to emit events as their APIs are implemented.
 
 ## 6. Foundation branch checklist
 
@@ -290,8 +131,9 @@ Still to standardise progressively:
 - [x] Remove stale public marketing metadata from the internal admin root layout.
 - [x] Update auth redirect configuration for the current multi-site local layout.
 - [x] Remove `Project Template` API/site names from Django settings/router.
-- [ ] Search for remaining TechWiki/wiki-specific identifiers outside intentionally unrelated history/docs.
-- [ ] Search for stale `auth-frontend`, `admin-website`, old port and old path references.
+- [x] Search for remaining TechWiki/wiki-specific identifiers outside intentionally unrelated history/docs.
+- [x] Search for stale `auth-frontend` and `admin-website` path references.
+- [ ] Search for stale old-port references and confirm intentional development ports.
 - [ ] Remove or gate remaining verbose auth debug logging.
 - [ ] Review stale comments and TODOs that describe superseded architecture.
 
@@ -315,7 +157,11 @@ Still to standardise progressively:
 - [x] Make blog content brand-aware at model/public-API level.
 - [x] Reframe public Portfolio as separate public case-study content while retaining its existing name for now.
 - [x] Update public content APIs to scope by Brand.
-- [ ] Update custom content admin API/UI for Brand assignment/filtering.
+- [x] Add reusable Brand selector to the custom admin frontend.
+- [x] Make testimonial custom-admin CRUD and filtering Brand-aware.
+- [ ] Make blog custom-admin CRUD and filtering Brand-aware.
+- [ ] Make FAQ custom-admin CRUD and filtering Brand-aware.
+- [ ] Make portfolio custom-admin CRUD and filtering Brand-aware.
 - [x] Add initial test proving cross-brand content isolation.
 - [ ] Expand cross-brand tests across content types.
 
