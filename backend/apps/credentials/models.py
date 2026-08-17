@@ -2,20 +2,21 @@ from django.db import models
 
 
 class CredentialType(models.Model):
-    """Type of credential (e.g., SSH, MySQL, API Key)"""
+    """Type of credential such as SSH, database login or API key."""
 
     name = models.CharField(max_length=100, unique=True)
     icon = models.CharField(max_length=50, blank=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
 class StoredCredential(models.Model):
-    """Encrypted credential storage"""
+    """Credential record.
 
-    # This should be encrypted in production using django-encrypted-model-fields
-    # For now, we'll store it plainly but mark where encryption should happen
+    Secret fields are currently plaintext legacy storage and MUST NOT be used for
+    production credentials until encrypted-at-rest storage is implemented.
+    """
 
     name = models.CharField(max_length=200)
     credential_type = models.ForeignKey(
@@ -23,12 +24,11 @@ class StoredCredential(models.Model):
     )
 
     username = models.CharField(max_length=200, blank=True)
-    password = models.CharField(max_length=500, blank=True)  # TODO: Encrypt this field
-    api_key = models.CharField(max_length=500, blank=True)  # TODO: Encrypt this field
-    secret_key = models.CharField(max_length=500, blank=True)  # TODO: Encrypt this field
-    private_key = models.TextField(blank=True)  # TODO: Encrypt this field (SSH keys, etc)
+    password = models.CharField(max_length=500, blank=True)
+    api_key = models.CharField(max_length=500, blank=True)
+    secret_key = models.CharField(max_length=500, blank=True)
+    private_key = models.TextField(blank=True)
 
-    # Additional metadata
     url = models.URLField(blank=True)
     notes = models.TextField(blank=True)
 
@@ -37,6 +37,10 @@ class StoredCredential(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        permissions = [
+            ("reveal_storedcredential", "Can reveal stored credential secrets"),
+            ("copy_storedcredential_secret", "Can copy stored credential secrets"),
+        ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
