@@ -1,42 +1,85 @@
+import { API_URL } from "@/lib/config";
 import { useCallback } from "react";
 
-export async function fetchAPI(url: string, options: RequestInit = {}) {
-    const defaultOptions: RequestInit = {
-        headers: {
-            "Content-Type": "application/json",
-        },
-    };
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
-    const mergedOptions: RequestInit = {
-        ...defaultOptions,
-        ...options,
-        headers: {
-            ...defaultOptions.headers,
-            ...options.headers,
-        },
-    };
-
-    const response = await fetch(url, mergedOptions);
-
-    if (!response.ok) {
-        const error = await response
-            .json()
-            .catch(() => ({ detail: "Unknown error" }));
-        throw new Error(error.detail || "API request failed");
+function getCookie(name: string): string | null {
+    if (typeof document === "undefined") {
+        return null;
     }
 
-    return response.json();
+    const prefix = `${name}=`;
+    for (const cookie of document.cookie.split(";")) {
+        const value = cookie.trim();
+        if (value.startsWith(prefix)) {
+            return decodeURIComponent(value.slice(prefix.length));
+        }
+    }
+    return null;
+}
+
+async function ensureCsrfToken(): Promise<string | null> {
+    const existing = getCookie("csrftoken");
+    if (existing) {
+        return existing;
+    }
+
+    const response = await fetch(`${API_URL}/api/auth/csrf`, {
+        credentials: "include",
+    });
+    if (!response.ok) {
+        throw new Error("Unable to initialise CSRF protection");
+    }
+
+    const payload = (await response.json()) as { token?: string };
+    return getCookie("csrftoken") ?? payload.token ?? null;
+}
+
+export async function fetchAPI<T = unknown>(
+    url: string,
+    options: RequestInit = {},
+): Promise<T> {
+    const method = (options.method ?? "GET").toUpperCase();
+    const headers = new Headers(options.headers);
+
+    if (!headers.has("Content-Type") && options.body) {
+        headers.set("Content-Type", "application/json");
+    }
+
+    if (!SAFE_METHODS.has(method)) {
+        const csrfToken = await ensureCsrfToken();
+        if (!csrfToken) {
+            throw new Error("Unable to obtain a CSRF token");
+        }
+        headers.set("X-CSRFToken", csrfToken);
+    }
+
+    const response = await fetch(url, {
+        ...options,
+        method,
+        headers,
+        credentials: "include",
+    });
+
+    if (!response.ok) {
+        const error = (await response.json().catch(() => ({
+            message: "Unknown error",
+        }))) as { detail?: string; message?: string };
+        throw new Error(error.detail || error.message || "API request failed");
+    }
+
+    return (await response.json()) as T;
 }
 
 export function useAPI<T>(url: string) {
-    const fetch = useCallback(async () => {
+    const fetchData = useCallback(async () => {
         try {
-            return await fetchAPI(url);
+            return await fetchAPI<T>(url);
         } catch (error) {
             console.error("API Error:", error);
             throw error;
         }
     }, [url]);
 
-    return { fetch };
+    return { fetch: fetchData };
 }
