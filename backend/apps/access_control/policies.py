@@ -1,21 +1,24 @@
 from __future__ import annotations
 
+from typing import Any
+
 from django.db.models import QuerySet
 
+from apps.access_control.models import StaffAccessProfile
 from apps.clients.models import Client
 
 
-def get_access_profile(user):
+def get_access_profile(user: Any) -> StaffAccessProfile | None:
     """Return a staff access profile when one exists."""
     if not getattr(user, "is_authenticated", False):
         return None
     try:
         return user.access_profile
-    except Exception:
+    except StaffAccessProfile.DoesNotExist:
         return None
 
 
-def can_access_client(user, client: Client) -> bool:
+def can_access_client(user: Any, client: Client) -> bool:
     """Check object-scope access to a client, independent of capability permission."""
     if not getattr(user, "is_authenticated", False):
         return False
@@ -31,7 +34,10 @@ def can_access_client(user, client: Client) -> bool:
     return profile.client_grants.filter(client=client).exists()
 
 
-def scope_clients_for_user(user, queryset: QuerySet[Client] | None = None) -> QuerySet[Client]:
+def scope_clients_for_user(
+    user: Any,
+    queryset: QuerySet[Client] | None = None,
+) -> QuerySet[Client]:
     """Restrict a Client queryset to the object scope available to a user."""
     queryset = queryset if queryset is not None else Client.objects.all()
 
