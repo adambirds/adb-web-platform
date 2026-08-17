@@ -1,0 +1,59 @@
+name: Foundation Lint Autofix
+
+on:
+  push:
+    branches:
+      - feat/platform-foundations
+
+permissions:
+  contents: write
+
+jobs:
+  autofix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/platform-foundations
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4.1.0
+        with:
+          version: 10.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements/dev.txt
+
+      - run: pip install -r backend/requirements/dev.txt
+
+      - name: Install shell tooling
+        run: |
+          tools/setup/install-shellcheck
+          tools/setup/install-shfmt
+
+      - name: Apply repository lint fixes
+        run: tools/lint --fix || true
+
+      - name: Commit automatic formatting fixes
+        run: |
+          if git diff --quiet; then
+            echo "No automatic fixes required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "style: Apply repository lint fixes."
+          git push origin HEAD:feat/platform-foundations
