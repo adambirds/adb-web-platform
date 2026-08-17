@@ -53,7 +53,7 @@
             }
         }
     },
-    "forwardPorts": [8000, 3000, 3001, 3002, 3003, 5173, 5555, 5432],
+    "forwardPorts": [8000, 3000, 3001, 3002, 3003, 5175, 5555, 5432],
     "portsAttributes": {
         "8000": {
             "label": "Django Backend",
@@ -75,7 +75,7 @@
             "label": "ADB Technology",
             "onAutoForward": "notify"
         },
-        "5173": {
+        "5175": {
             "label": "ADB Software Solutions Auth",
             "onAutoForward": "notify"
         },

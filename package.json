@@ -14,7 +14,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/adb-software-solutions/adbsoftwaresolutions.co.uk.git"
+        "url": "git+https://github.com/adb-software-solutions/adb-web-platform.git"
     },
     "license": "UNLICENSED",
     "dependencies": {
