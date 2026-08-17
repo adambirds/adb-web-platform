@@ -2,13 +2,18 @@
 
 Guidance for AI coding agents working in this repository.
 
-## Canonical platform plan
+## Canonical platform documentation
 
-Before making architectural, domain-model, permissions, CMS, CRM, ticketing, credential, infrastructure, authentication or admin-platform changes, read `docs/PLATFORM_MASTER_PLAN.md`.
+Before making architectural, domain-model, permissions, CMS, CRM, ticketing, credential, infrastructure, authentication or admin-platform changes, read the relevant canonical documents:
 
-That document is the canonical product and architecture plan for the ADB Business Platform. Older planning documents are historical context and must not override it when they conflict.
+- `docs/PLATFORM_MASTER_PLAN.md` — overall product and architecture plan;
+- `docs/PERMISSIONS_AND_ACCESS_MODEL.md` — authorisation, roles, sensitive capabilities and object scoping;
+- `docs/DOMAIN_MODEL_AUDIT.md` — current model review and keep/amend/defer decisions;
+- `docs/CURRENT_STATE_AND_FOUNDATION_CHECKLIST.md` — implementation state and ordered foundation work.
 
-Do not invent a new architecture from partial code or stale documentation. If code conflicts with the master plan, determine whether the code is legacy/incomplete before copying its pattern into new work.
+These documents are the canonical product and architecture guidance for the ADB Business Platform. Older planning documents are historical context and must not override them when they conflict.
+
+Do not invent a new architecture from partial code or stale documentation. If code conflicts with the canonical plan, determine whether the code is legacy/incomplete before copying its pattern into new work.
 
 ## Project
 
@@ -65,6 +70,8 @@ The public marketing sites must not gain privileged admin functionality. Interna
 
 Permissions must support meaningful capabilities and scope. A permission such as viewing tickets does not automatically imply access to every client or ticket queue. Credentials require particularly deliberate handling: viewing metadata and revealing a secret are separate capabilities, and secret reveals must be audit logged.
 
+Use Django Groups/Permissions for capability grants and the access-control scope layer for object visibility. Do not introduce a generic content-type ACL system unless the canonical permissions plan is explicitly changed.
+
 When implementing restricted APIs, add tests for both permitted and denied access paths. Never rely on a React component hiding an action as the permission check.
 
 ## Public websites and CMS
@@ -107,4 +114,4 @@ When creating a commit, use `<type>: <Imperative summary>.`, keep the complete t
 
 Update README/docs when adding a public application, environment variable, port, deployment requirement, data-store requirement, authentication change or breaking API/configuration change. Keep repository structure documentation accurate whenever an application is moved or renamed.
 
-Architectural decisions that affect the platform plan must update `docs/PLATFORM_MASTER_PLAN.md` in the same change so a future agent does not need chat history to reconstruct the intent.
+Architectural decisions that affect the platform plan must update the canonical docs in the same change so a future agent does not need chat history to reconstruct the intent.
