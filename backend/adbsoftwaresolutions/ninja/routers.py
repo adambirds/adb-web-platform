@@ -16,17 +16,17 @@ from authentication.sessions.views import sessions_router
 logger = logging.getLogger(__name__)
 
 api = NinjaAPI(
-    title="Project Template API",
+    title="ADB Business Platform API",
     version="1.0",
-    description="API for the Project Template",
+    description="Shared API for the ADB Business Platform and public ADB websites.",
 )
 
-# Register nested routers
-api.add_router("/auth", auth_router)  # Admin auth (staff/superuser only)
-api.add_router("/auth-service", auth_service_router)  # User auth (registration, login, 2FA, etc.)
-api.add_router("/sessions", sessions_router)  # Session/device management
+# Register nested routers.
+api.add_router("/auth", auth_router)  # Staff/admin authentication.
+api.add_router("/auth-service", auth_service_router)  # General account authentication.
+api.add_router("/sessions", sessions_router)  # Session/device management.
 
-# Grouped routers for public, website, admin areas
+# Public content, website ingestion and internal administration APIs.
 public_router = Router(tags=["public"])
 public_router.add_router("", website_public_router)
 api.add_router("/public", public_router)
@@ -43,20 +43,15 @@ api.add_router("/admin", admin_router)
 @api.get("/csrf", auth=None)
 @ensure_csrf_cookie
 def get_csrf_token(request: HttpRequest) -> JsonResponse:
-    """Get CSRF token - this endpoint doesn't require CSRF validation.
-
-    The @ensure_csrf_cookie decorator ensures the CSRF cookie is set in the response.
-    """
-    # This will set the CSRF cookie and return the token value
+    """Return a CSRF token while ensuring the CSRF cookie is set."""
     token = get_token(request)
     return JsonResponse({"csrf_token": token})
 
 
 @api.exception_handler(ValidationError)
 def custom_validation_errors(request: HttpRequest, exc: ValidationError) -> HttpResponse:
-    logger.info("Validation error on %s %s", request.method, request.path)
-    logger.info("Request body: %s", request.body.decode("utf-8"))
-    logger.info("Validation errors: %s", exc.errors())
+    """Return validation details without logging potentially sensitive request bodies."""
+    logger.info("Validation error on %s %s: %s", request.method, request.path, exc.errors())
 
     return api.create_response(
         request,
@@ -67,9 +62,8 @@ def custom_validation_errors(request: HttpRequest, exc: ValidationError) -> Http
 
 @api.exception_handler(HttpError)
 def custom_http_errors(request: HttpRequest, exc: HttpError) -> HttpResponse:
-    logger.info("HTTP error on %s %s", request.method, request.path)
-    logger.info("Request body: %s", request.body.decode("utf-8"))
-    logger.info("HTTP error: %s", exc)
+    """Return Django Ninja HTTP errors without logging request bodies."""
+    logger.info("HTTP error on %s %s: %s", request.method, request.path, exc)
 
     return api.create_response(
         request,
