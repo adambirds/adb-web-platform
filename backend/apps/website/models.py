@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Portfolio(models.Model):
-    """Portfolio project"""
+    """Public case study/portfolio entry; separate from operational client projects."""
 
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
@@ -13,27 +13,25 @@ class Portfolio(models.Model):
     image = models.ImageField(upload_to="portfolio/", blank=True)
     featured = models.BooleanField(default=False)
     featured_image = models.ImageField(upload_to="portfolio/featured/", blank=True)
+    brands = models.ManyToManyField("core.Brand", related_name="portfolio_entries")
 
-    # Tech stack
     technologies = models.TextField(help_text="Comma-separated list of technologies")
 
-    # Links
     project_url = models.URLField(blank=True, null=True)
     github_url = models.URLField(blank=True, null=True)
 
-    # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-created_at"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title
 
 
 class Testimonial(models.Model):
-    """Client testimonial"""
+    """Client testimonial that can be published on one or more ADB brands."""
 
     RATING_CHOICES = [
         (5, "⭐⭐⭐⭐⭐"),
@@ -50,6 +48,7 @@ class Testimonial(models.Model):
     rating = models.IntegerField(choices=RATING_CHOICES, default=5)
     image = models.ImageField(upload_to="testimonials/", blank=True)
     featured = models.BooleanField(default=False)
+    brands = models.ManyToManyField("core.Brand", related_name="testimonials")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -57,36 +56,38 @@ class Testimonial(models.Model):
     class Meta:
         ordering = ["-created_at"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.client_name} - {self.company}"
 
 
 class BlogCategory(models.Model):
-    """Blog post category"""
+    """Blog category available to one or more ADB brands."""
 
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True)
+    brands = models.ManyToManyField("core.Brand", related_name="blog_categories")
 
     class Meta:
         verbose_name_plural = "Blog Categories"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
 class BlogTag(models.Model):
-    """Blog post tag"""
+    """Blog tag available to one or more ADB brands."""
 
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
+    brands = models.ManyToManyField("core.Brand", related_name="blog_tags")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
 class BlogPost(models.Model):
-    """Blog post"""
+    """Brand-aware blog post managed through the shared CMS."""
 
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
@@ -99,10 +100,10 @@ class BlogPost(models.Model):
     published = models.BooleanField(default=False)
     featured = models.BooleanField(default=False)
 
+    brands = models.ManyToManyField("core.Brand", related_name="blog_posts")
     categories = models.ManyToManyField(BlogCategory, related_name="posts")
     tags = models.ManyToManyField(BlogTag, related_name="posts")
 
-    # SEO
     meta_description = models.CharField(max_length=160, blank=True)
     meta_keywords = models.CharField(max_length=200, blank=True)
 
@@ -113,16 +114,17 @@ class BlogPost(models.Model):
     class Meta:
         ordering = ["-published_at", "-created_at"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title
 
 
 class FAQ(models.Model):
-    """FAQ item"""
+    """FAQ item that can be published on one or more ADB brands."""
 
     question = models.CharField(max_length=500)
     answer = models.TextField(help_text="Markdown content")
     category = models.ForeignKey("FAQCategory", on_delete=models.CASCADE, related_name="faqs")
+    brands = models.ManyToManyField("core.Brand", related_name="faqs")
     order = models.IntegerField(default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -131,21 +133,22 @@ class FAQ(models.Model):
     class Meta:
         ordering = ["order"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.question
 
 
 class FAQCategory(models.Model):
-    """FAQ category"""
+    """FAQ category available to one or more ADB brands."""
 
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True)
+    brands = models.ManyToManyField("core.Brand", related_name="faq_categories")
     order = models.IntegerField(default=0)
 
     class Meta:
         ordering = ["order"]
         verbose_name_plural = "FAQ Categories"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
