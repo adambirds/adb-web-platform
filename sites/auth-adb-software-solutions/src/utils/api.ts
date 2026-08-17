@@ -1,4 +1,4 @@
-import {API_URL} from "./config";
+import { API_URL } from "./config";
 
 let storedCsrfToken: string | null = null;
 
@@ -74,7 +74,7 @@ export async function ensureCsrfToken(): Promise<void> {
         }
 
         try {
-            const data = (await response.json()) as {token?: string};
+            const data = (await response.json()) as { token?: string };
             if (data.token) {
                 setCsrfToken(data.token);
             }
@@ -90,8 +90,8 @@ async function postJson<T>(url: string, body?: unknown): Promise<T> {
     await ensureCsrfToken();
     const response = await fetchWithCSRF(url, {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        ...(body === undefined ? {} : {body: JSON.stringify(body)}),
+        headers: { "Content-Type": "application/json" },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
     return response.json() as Promise<T>;
 }
@@ -107,21 +107,24 @@ export const authApi = {
             user?: unknown;
         }
     > {
-        return postJson(`${API_URL}/api/auth-service/login`, {email, password});
+        return postJson(`${API_URL}/api/auth-service/login`, {
+            email,
+            password,
+        });
     },
 
     async beginDiscoverableAuth(): Promise<
-        ApiResult & {options?: Record<string, unknown>}
+        ApiResult & { options?: Record<string, unknown> }
     > {
         return postJson(`${API_URL}/api/auth-service/webauthn/discover-auth`);
     },
 
     async completeDiscoverableAuth(
         credential: Record<string, unknown>,
-    ): Promise<ApiResult & {user?: unknown}> {
+    ): Promise<ApiResult & { user?: unknown }> {
         return postJson(
             `${API_URL}/api/auth-service/webauthn/complete-discover-auth`,
-            {credential},
+            { credential },
         );
     },
 
@@ -140,14 +143,14 @@ export const authApi = {
     },
 
     async verifyEmail(token: string): Promise<ApiResult> {
-        return postJson(`${API_URL}/api/auth-service/verify-email`, {token});
+        return postJson(`${API_URL}/api/auth-service/verify-email`, { token });
     },
 
     async verify2FA(
         challengeToken: string,
         code: string,
         isRecoveryCode = false,
-    ): Promise<ApiResult & {user?: unknown}> {
+    ): Promise<ApiResult & { user?: unknown }> {
         return postJson(`${API_URL}/api/auth-service/2fa/verify`, {
             challenge_token: challengeToken,
             code,
@@ -161,14 +164,14 @@ export const authApi = {
         user?: CurrentUser;
     }> {
         const response = await fetchWithCSRF(`${API_URL}/api/auth-service/me`, {
-            headers: {"Content-Type": "application/json"},
+            headers: { "Content-Type": "application/json" },
         });
         const data = (await response.json()) as ApiResult & {
             user?: RawCurrentUser;
         };
 
         if (!data.success || !data.user) {
-            return {success: data.success, message: data.message};
+            return { success: data.success, message: data.message };
         }
 
         return {
@@ -192,7 +195,7 @@ export const authApi = {
 
     async beginPasskeyRegistration(
         passkeyName: string,
-    ): Promise<ApiResult & {options?: Record<string, unknown>}> {
+    ): Promise<ApiResult & { options?: Record<string, unknown> }> {
         return postJson(`${API_URL}/api/auth-service/webauthn/begin-register`, {
             passkey_name: passkeyName,
         });
@@ -200,10 +203,10 @@ export const authApi = {
 
     async completePasskeyRegistration(
         credential: Record<string, unknown>,
-    ): Promise<ApiResult & {passkey?: unknown}> {
+    ): Promise<ApiResult & { passkey?: unknown }> {
         return postJson(
             `${API_URL}/api/auth-service/webauthn/complete-register`,
-            {credential},
+            { credential },
         );
     },
 
@@ -220,7 +223,7 @@ export const authApi = {
     }> {
         const response = await fetchWithCSRF(
             `${API_URL}/api/auth-service/webauthn/passkeys`,
-            {headers: {"Content-Type": "application/json"}},
+            { headers: { "Content-Type": "application/json" } },
         );
         return response.json();
     },
@@ -234,7 +237,7 @@ export const authApi = {
     async renamePasskey(
         passkeyId: string,
         newName: string,
-    ): Promise<ApiResult & {passkey?: unknown}> {
+    ): Promise<ApiResult & { passkey?: unknown }> {
         return postJson(`${API_URL}/api/auth-service/webauthn/rename`, {
             passkey_id: passkeyId,
             new_name: newName,
@@ -252,19 +255,19 @@ export const authApi = {
     },
 
     async begin2FASetup(): Promise<
-        ApiResult & {secret?: string; qrCodeUri?: string}
+        ApiResult & { secret?: string; qrCodeUri?: string }
     > {
         return postJson(`${API_URL}/api/auth-service/2fa/setup`);
     },
 
     async confirm2FASetup(
         code: string,
-    ): Promise<ApiResult & {recoveryCodes?: string[]}> {
-        return postJson(`${API_URL}/api/auth-service/2fa/confirm`, {code});
+    ): Promise<ApiResult & { recoveryCodes?: string[] }> {
+        return postJson(`${API_URL}/api/auth-service/2fa/confirm`, { code });
     },
 
     async disable2FA(password: string): Promise<ApiResult> {
-        return postJson(`${API_URL}/api/auth-service/2fa/disable`, {password});
+        return postJson(`${API_URL}/api/auth-service/2fa/disable`, { password });
     },
 
     async get2FAStatus(): Promise<{
@@ -274,21 +277,21 @@ export const authApi = {
     }> {
         const response = await fetchWithCSRF(
             `${API_URL}/api/auth-service/2fa/status`,
-            {headers: {"Content-Type": "application/json"}},
+            { headers: { "Content-Type": "application/json" } },
         );
         return response.json();
     },
 
     async regenerateRecoveryCodes(
         password: string,
-    ): Promise<ApiResult & {recoveryCodes?: string[]}> {
+    ): Promise<ApiResult & { recoveryCodes?: string[] }> {
         return postJson(`${API_URL}/api/auth-service/2fa/recovery-codes`, {
             password,
         });
     },
 
     async requestPasswordReset(email: string): Promise<ApiResult> {
-        return postJson(`${API_URL}/api/auth-service/forgot-password`, {email});
+        return postJson(`${API_URL}/api/auth-service/forgot-password`, { email });
     },
 
     async resetPassword(token: string, newPassword: string): Promise<ApiResult> {
@@ -316,7 +319,7 @@ export const authApi = {
     },
 
     async revokeAllSessions(): Promise<
-        ApiResult & {revoked_count?: number}
+        ApiResult & { revoked_count?: number }
     > {
         return postJson(`${API_URL}/api/sessions/revoke-all`);
     },
