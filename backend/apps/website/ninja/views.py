@@ -4,6 +4,7 @@ from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from ninja import Router
 
+from apps.core.models import Brand
 from apps.crm.models import Lead, LeadSource, LeadStatus
 from apps.website.models import (
     FAQ,
@@ -33,6 +34,11 @@ website_public_router = Router()
 website_misc_router = Router()
 
 
+def get_brand(slug: str) -> Brand:
+    """Resolve an active brand slug or return a 404 response."""
+    return get_object_or_404(Brand, slug=slug, is_active=True)
+
+
 def build_image_url(request: HttpRequest, image_field) -> str | None:
     if not image_field:
         return None
@@ -47,8 +53,9 @@ def parse_technologies(value: str) -> list[str]:
 
 
 @website_public_router.get("/portfolio", response=list[PortfolioOut])
-def list_portfolio(request: HttpRequest, featured: bool | None = None):
-    qs = Portfolio.objects.all()
+def list_portfolio(request: HttpRequest, brand: str, featured: bool | None = None):
+    selected_brand = get_brand(brand)
+    qs = Portfolio.objects.filter(brands=selected_brand).distinct()
     if featured is not None:
         qs = qs.filter(featured=featured)
 
@@ -75,8 +82,9 @@ def list_portfolio(request: HttpRequest, featured: bool | None = None):
 
 
 @website_public_router.get("/portfolio/{slug}", response={200: PortfolioOut, 404: ProblemDetail})
-def get_portfolio(request: HttpRequest, slug: str):
-    item = get_object_or_404(Portfolio, slug=slug)
+def get_portfolio(request: HttpRequest, slug: str, brand: str):
+    selected_brand = get_brand(brand)
+    item = get_object_or_404(Portfolio.objects.filter(brands=selected_brand), slug=slug)
     return 200, PortfolioOut(
         id=item.id,
         title=item.title,
@@ -97,8 +105,9 @@ def get_portfolio(request: HttpRequest, slug: str):
 
 
 @website_public_router.get("/testimonials", response=list[TestimonialOut])
-def list_testimonials(request: HttpRequest, featured: bool | None = None):
-    qs = Testimonial.objects.all()
+def list_testimonials(request: HttpRequest, brand: str, featured: bool | None = None):
+    selected_brand = get_brand(brand)
+    qs = Testimonial.objects.filter(brands=selected_brand).distinct()
     if featured is not None:
         qs = qs.filter(featured=featured)
 
@@ -120,7 +129,8 @@ def list_testimonials(request: HttpRequest, featured: bool | None = None):
 
 
 @website_public_router.get("/blog/categories", response=list[BlogCategoryOut])
-def list_blog_categories(request: HttpRequest):
+def list_blog_categories(request: HttpRequest, brand: str):
+    selected_brand = get_brand(brand)
     return [
         BlogCategoryOut(
             id=item.id,
@@ -128,19 +138,20 @@ def list_blog_categories(request: HttpRequest):
             slug=item.slug,
             description=item.description,
         )
-        for item in BlogCategory.objects.all()
+        for item in BlogCategory.objects.filter(brands=selected_brand).distinct()
     ]
 
 
 @website_public_router.get("/blog/tags", response=list[BlogTagOut])
-def list_blog_tags(request: HttpRequest):
+def list_blog_tags(request: HttpRequest, brand: str):
+    selected_brand = get_brand(brand)
     return [
         BlogTagOut(
             id=item.id,
             name=item.name,
             slug=item.slug,
         )
-        for item in BlogTag.objects.all()
+        for item in BlogTag.objects.filter(brands=selected_brand).distinct()
     ]
 
 
@@ -184,8 +195,13 @@ def build_blog_post_response(request: HttpRequest, post: BlogPost) -> BlogPostOu
 
 
 @website_public_router.get("/blog/posts", response=list[BlogPostOut])
-def list_blog_posts(request: HttpRequest, featured: bool | None = None):
-    qs = BlogPost.objects.filter(published=True).prefetch_related("categories", "tags")
+def list_blog_posts(request: HttpRequest, brand: str, featured: bool | None = None):
+    selected_brand = get_brand(brand)
+    qs = (
+        BlogPost.objects.filter(published=True, brands=selected_brand)
+        .prefetch_related("categories", "tags")
+        .distinct()
+    )
     if featured is not None:
         qs = qs.filter(featured=featured)
 
@@ -193,15 +209,19 @@ def list_blog_posts(request: HttpRequest, featured: bool | None = None):
 
 
 @website_public_router.get("/blog/posts/{slug}", response={200: BlogPostOut, 404: ProblemDetail})
-def get_blog_post(request: HttpRequest, slug: str):
+def get_blog_post(request: HttpRequest, slug: str, brand: str):
+    selected_brand = get_brand(brand)
     post = get_object_or_404(
-        BlogPost.objects.prefetch_related("categories", "tags"), slug=slug, published=True
+        BlogPost.objects.filter(brands=selected_brand).prefetch_related("categories", "tags"),
+        slug=slug,
+        published=True,
     )
     return 200, build_blog_post_response(request, post)
 
 
 @website_public_router.get("/faqs/categories", response=list[FAQCategoryOut])
-def list_faq_categories(request: HttpRequest):
+def list_faq_categories(request: HttpRequest, brand: str):
+    selected_brand = get_brand(brand)
     return [
         FAQCategoryOut(
             id=item.id,
@@ -210,15 +230,16 @@ def list_faq_categories(request: HttpRequest):
             description=item.description,
             order=item.order,
         )
-        for item in FAQCategory.objects.all()
+        for item in FAQCategory.objects.filter(brands=selected_brand).distinct()
     ]
 
 
 @website_public_router.get("/faqs", response=list[FAQOut])
-def list_faqs(request: HttpRequest, category: str | None = None):
-    qs = FAQ.objects.select_related("category").all()
+def list_faqs(request: HttpRequest, brand: str, category: str | None = None):
+    selected_brand = get_brand(brand)
+    qs = FAQ.objects.select_related("category").filter(brands=selected_brand).distinct()
     if category:
-        qs = qs.filter(category__slug=category)
+        qs = qs.filter(category__slug=category, category__brands=selected_brand).distinct()
 
     return [
         FAQOut(
@@ -242,14 +263,16 @@ def list_faqs(request: HttpRequest, category: str | None = None):
 
 @website_misc_router.post(
     "/contact",
-    response={200: StatusResponse, 400: ProblemDetail, 500: ProblemDetail},
+    response={200: StatusResponse, 400: ProblemDetail, 404: ProblemDetail, 500: ProblemDetail},
 )
-def submit_contact_form(request: HttpRequest, payload: ContactRequest):
+def submit_contact_form(request: HttpRequest, payload: ContactRequest, brand: str):
     try:
+        selected_brand = get_brand(brand)
         status, _ = LeadStatus.objects.get_or_create(name="New", defaults={"order": 0})
         source, _ = LeadSource.objects.get_or_create(name="Contact Form")
 
         Lead.objects.create(
+            brand=selected_brand,
             name=payload.name,
             email=payload.email,
             phone=payload.phone or "",
