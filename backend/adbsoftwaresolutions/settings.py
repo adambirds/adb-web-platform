@@ -55,6 +55,7 @@ else:
 
 INSTALLED_APPS = [
     "authentication",
+    "apps.core",
     "apps.website",
     "apps.clients",
     "apps.infrastructure",
