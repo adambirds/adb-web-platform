@@ -168,7 +168,7 @@ export const authApi = {
         };
 
         if (!data.success || !data.user) {
-            return data;
+            return {success: data.success, message: data.message};
         }
 
         return {
