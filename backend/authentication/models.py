@@ -17,13 +17,10 @@ class UserManager(BaseUserManager["User"]):
 
     @classmethod
     def normalize_email(cls, email: str | None) -> str:
-        """
-        Normalize the email address by stripping whitespace and lowercasing the entire address.
-        """
+        """Strip whitespace and lowercase an email address consistently."""
         if not email:
             return ""
         email = email.strip()
-        # If it's malformed (no "@"), just lowercase what we have
         try:
             local, domain = email.rsplit("@", 1)
         except ValueError:
@@ -106,7 +103,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(
         verbose_name=_("staff status"),
         default=False,
-        help_text=_("Designates whether the user can log into this admin site."),
+        help_text=_("Designates whether the user can log into the internal admin platform."),
     )
     is_active = models.BooleanField(
         verbose_name=_("active"),
@@ -143,9 +140,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         null=True,
         blank=True,
     )
-    ebay_account_not_yet_linked_email_sent = models.BooleanField(
-        default=False, verbose_name="Ebay Account Not Yet Linked Email Sent"
-    )
 
     objects = UserManager()
 
@@ -180,11 +174,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
     def generate_verification_token(self) -> uuid.UUID:
-        verification_token = uuid.uuid4()
-        return verification_token
+        return uuid.uuid4()
 
 
 class CustomGroup(Group):
+    """Proxy used to present Django Groups within the authentication app."""
+
     class Meta:
         proxy = True
         app_label = "authentication"
@@ -192,14 +187,9 @@ class CustomGroup(Group):
         verbose_name_plural = _("groups")
 
 
-# Import passkey models so they are registered with Django
-from authentication.passkeys.models import Passkey, PasskeyChallenge  # noqa: F401
-
-# Import session models so they are registered with Django
-from authentication.sessions.models import UserSession  # noqa: F401
-
-# Import 2FA models so they are registered with Django
-from authentication.twofactor.models import (  # noqa: F401
+from authentication.passkeys.models import Passkey, PasskeyChallenge  # noqa: E402,F401
+from authentication.sessions.models import UserSession  # noqa: E402,F401
+from authentication.twofactor.models import (  # noqa: E402,F401
     RecoveryCode,
     TwoFactorChallenge,
     TwoFactorMethod,
