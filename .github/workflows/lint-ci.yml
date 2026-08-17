@@ -8,20 +8,30 @@ on:
             - "sites/**"
             - "packages/**"
             - "tools/**"
-            - "package.json"
-            - "pnpm-workspace.yaml"
+            - "docs/**"
+            - "*.json"
+            - "*.md"
+            - "*.yaml"
+            - "*.yml"
+            - "pyproject.toml"
             - "pnpm-lock.yaml"
-            - ".github/workflows/**"
+            - "pnpm-workspace.yaml"
+            - ".github/workflows/lint-ci.yml"
     pull_request:
         paths:
             - "backend/**"
             - "sites/**"
             - "packages/**"
             - "tools/**"
-            - "package.json"
-            - "pnpm-workspace.yaml"
+            - "docs/**"
+            - "*.json"
+            - "*.md"
+            - "*.yaml"
+            - "*.yml"
+            - "pyproject.toml"
             - "pnpm-lock.yaml"
-            - ".github/workflows/**"
+            - "pnpm-workspace.yaml"
+            - ".github/workflows/lint-ci.yml"
     workflow_dispatch:
 
 concurrency:
@@ -32,6 +42,8 @@ jobs:
     lint:
         name: Run Repository Linters
         runs-on: ubuntu-latest
+        env:
+            SECRET_KEY: lint-only-secret-key
         steps:
             - uses: actions/checkout@v4
               with:
@@ -44,20 +56,16 @@ jobs:
                   node-version: "22"
                   cache: pnpm
                   cache-dependency-path: pnpm-lock.yaml
-            - name: Install Node dependencies
-              run: pnpm install --frozen-lockfile
+            - run: pnpm install --frozen-lockfile
             - uses: actions/setup-python@v5
               with:
                   python-version: "3.12"
                   cache: pip
                   cache-dependency-path: backend/requirements/dev.txt
-            - name: Install Python tooling
-              run: pip install -r backend/requirements/dev.txt
-            - name: Install shell tooling
+            - run: pip install -r backend/requirements/dev.txt
+            - name: Install shell lint tools
               run: |
                   tools/setup/install-shellcheck
                   tools/setup/install-shfmt
-            - name: Fetch main for comparison
-              run: git fetch origin main
-            - name: Run repository linters
-              run: tools/lint
+            - run: git fetch origin main
+            - run: tools/lint

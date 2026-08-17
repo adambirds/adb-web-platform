@@ -123,12 +123,14 @@ django_settings_module = "adbsoftwaresolutions.settings"
 
 [tool.ruff.lint.per-file-ignores]
 "backend/apps/wedding/migrations/*" = ["PERF401"]
+"backend/apps/core/migrations/*.py" = ["I001"]
 # Django models conventionally expose __str__; annotating every model adds noise without value.
 "backend/apps/*/models.py" = ["ANN204"]
 # Django management commands receive dynamically populated positional/keyword arguments from Django.
 "backend/apps/website/management/commands/seed_marketing.py" = ["ANN002", "ANN003", "ANN201"]
 # Django Ninja uses decorators to define and validate endpoint response shapes. Explicit Python return
 # annotations here duplicate the response= declarations and become unwieldy for multi-status responses.
+"backend/apps/core/ninja/admin_views.py" = ["ANN201"]
 "backend/apps/website/ninja/admin_views.py" = ["ANN201"]
 "backend/apps/website/ninja/views.py" = ["ANN001", "ANN201"]
 # These are executable repository utility scripts, not importable Python modules. Their hyphenated

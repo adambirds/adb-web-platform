@@ -25,7 +25,6 @@ class UserAdmin(ModelAdmin[User]):
         "is_staff",
         "is_active",
         "date_joined",
-        "ebay_account_not_yet_linked_email_sent",
     )
     list_filter = (
         "email_verified",
@@ -33,13 +32,11 @@ class UserAdmin(ModelAdmin[User]):
         "is_staff",
         "is_active",
         "date_joined",
-        "ebay_account_not_yet_linked_email_sent",
     )
     list_editable = (
         "is_active",
         "is_staff",
         "email_verified",
-        "ebay_account_not_yet_linked_email_sent",
     )
     search_fields = ("email", "first_name", "last_name")
     ordering = ("-date_joined", "email")
