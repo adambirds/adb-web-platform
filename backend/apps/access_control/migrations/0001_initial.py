@@ -1,6 +1,6 @@
+import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
@@ -15,19 +15,33 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="StaffAccessProfile",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 (
                     "all_clients",
                     models.BooleanField(
                         default=False,
-                        help_text="Allow access to every client when the user also has the required capability permission.",
+                        help_text=(
+                            "Allow access to every client when the user also has the required "
+                            "capability permission."
+                        ),
                     ),
                 ),
                 (
                     "all_ticket_queues",
                     models.BooleanField(
                         default=False,
-                        help_text="Reserved for ticketing; selected queue grants will be added with the ticket domain.",
+                        help_text=(
+                            "Reserved for ticketing; selected queue grants will be added with "
+                            "the ticket domain."
+                        ),
                     ),
                 ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
@@ -48,7 +62,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="ClientAccessGrant",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 (
                     "client",
