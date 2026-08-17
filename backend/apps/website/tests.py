@@ -1,9 +1,10 @@
 from django.contrib.auth.models import Permission
 from django.test import TestCase
 
+from authentication.models import User
+
 from apps.core.models import Brand
 from apps.website.models import BlogPost, FAQ, FAQCategory, Testimonial
-from authentication.models import User
 
 
 class BrandAwarePublicContentTests(TestCase):
