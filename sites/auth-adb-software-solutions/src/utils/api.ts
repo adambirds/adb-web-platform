@@ -1,13 +1,33 @@
 import {API_URL} from "./config";
 
-// Store CSRF token in memory as fallback
 let storedCsrfToken: string | null = null;
 
-/**
- * Get the CSRF token from cookies.
- */
+interface ApiResult {
+    success: boolean;
+    message?: string;
+}
+
+interface CurrentUser {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    emailVerified: boolean;
+    has2faEnabled: boolean;
+    hasPasskeys: boolean;
+}
+
+interface RawCurrentUser {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    email_verified: boolean;
+    has_2fa_enabled: boolean;
+    has_passkeys: boolean;
+}
+
 function getCsrfToken(): string | null {
-    // First check cookies
     const cookies = document.cookie.split(";");
     for (const cookie of cookies) {
         const [name, value] = cookie.trim().split("=");
@@ -15,26 +35,18 @@ function getCsrfToken(): string | null {
             return value;
         }
     }
-    // Fall back to stored token
     return storedCsrfToken;
 }
 
-/**
- * Set the CSRF token in memory.
- */
 function setCsrfToken(token: string): void {
     storedCsrfToken = token;
 }
 
-/**
- * Fetch with CSRF token and credentials included.
- */
 export async function fetchWithCSRF(
     url: string,
     options: RequestInit = {},
 ): Promise<Response> {
     const csrfToken = getCsrfToken();
-
     const headers: Record<string, string> = {
         ...(options.headers as Record<string, string>),
     };
@@ -43,344 +55,158 @@ export async function fetchWithCSRF(
         headers["X-CSRFToken"] = csrfToken;
     }
 
-    console.log("[FETCH] Making request", {
-        url,
-        method: options.method,
-        csrfToken: csrfToken ? "SET" : "NOT SET",
-        headers,
-    });
-
-    const response = await fetch(url, {
+    return fetch(url, {
         ...options,
         headers,
-        credentials: "include", // Always include cookies
+        credentials: "include",
     });
-
-    console.log("[FETCH] Got response", {url, status: response.status});
-    return response;
 }
 
-/**
- * Ensure CSRF token is available before making requests.
- */
 export async function ensureCsrfToken(): Promise<void> {
     try {
-        // Always fetch to ensure the CSRF cookie is set
         const response = await fetch(`${API_URL}/api/auth/csrf`, {
             method: "GET",
             credentials: "include",
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to get CSRF token: ${response.status}`);
+            return;
         }
 
-        // Try to extract token from response
         try {
-            const data = await response.json();
+            const data = (await response.json()) as {token?: string};
             if (data.token) {
                 setCsrfToken(data.token);
             }
         } catch {
-            // Response might not be JSON, that's ok
+            // The CSRF cookie may already have been set even without a JSON body.
         }
-    } catch (error) {
-        console.error("Error fetching CSRF token:", error);
-        // Continue anyway - might already be set
+    } catch {
+        // A subsequent request may still succeed when a CSRF cookie already exists.
     }
 }
 
-/**
- * API client for auth service.
- */
+async function postJson<T>(url: string, body?: unknown): Promise<T> {
+    await ensureCsrfToken();
+    const response = await fetchWithCSRF(url, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        ...(body === undefined ? {} : {body: JSON.stringify(body)}),
+    });
+    return response.json() as Promise<T>;
+}
+
 export const authApi = {
-    /**
-     * Login with email and password.
-     */
     async login(
         email: string,
         password: string,
-    ): Promise<{
-        success: boolean;
-        message?: string;
-        requires2fa?: boolean;
-        challengeToken?: string;
-        user?: unknown;
-    }> {
-        console.log("[API] Ensuring CSRF token");
-        await ensureCsrfToken();
-        console.log("[API] CSRF token ensured");
-
-        console.log("[API] Making login request", {
-            url: `${API_URL}/api/auth-service/login`,
-            email,
-        });
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/login`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({email, password}),
-            },
-        );
-
-        console.log("[API] Got login response", response.status);
-        const data = await response.json();
-        console.log("[API] Parsed login response", data);
-        return data;
+    ): Promise<
+        ApiResult & {
+            requires2fa?: boolean;
+            challengeToken?: string;
+            user?: unknown;
+        }
+    > {
+        return postJson(`${API_URL}/api/auth-service/login`, {email, password});
     },
 
-    /**
-     * Begin discoverable credential authentication (no email required).
-     */
-    async beginDiscoverableAuth(): Promise<{
-        success: boolean;
-        message?: string;
-        options?: Record<string, unknown>;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/webauthn/discover-auth`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            },
-        );
-
-        return response.json();
+    async beginDiscoverableAuth(): Promise<
+        ApiResult & {options?: Record<string, unknown>}
+    > {
+        return postJson(`${API_URL}/api/auth-service/webauthn/discover-auth`);
     },
 
-    /**
-     * Complete discoverable credential authentication.
-     */
     async completeDiscoverableAuth(
         credential: Record<string, unknown>,
-    ): Promise<{
-        success: boolean;
-        message?: string;
-        user?: unknown;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
+    ): Promise<ApiResult & {user?: unknown}> {
+        return postJson(
             `${API_URL}/api/auth-service/webauthn/complete-discover-auth`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({credential}),
-            },
+            {credential},
         );
-
-        return response.json();
     },
 
-    /**
-     * Register a new user.
-     */
     async register(data: {
         email: string;
         password: string;
         firstName: string;
         lastName: string;
-    }): Promise<{
-        success: boolean;
-        message?: string;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/register`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    email: data.email,
-                    password: data.password,
-                    first_name: data.firstName,
-                    last_name: data.lastName,
-                }),
-            },
-        );
-
-        return response.json();
+    }): Promise<ApiResult> {
+        return postJson(`${API_URL}/api/auth-service/register`, {
+            email: data.email,
+            password: data.password,
+            first_name: data.firstName,
+            last_name: data.lastName,
+        });
     },
 
-    /**
-     * Verify email with token.
-     */
-    async verifyEmail(token: string): Promise<{
-        success: boolean;
-        message?: string;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/verify-email`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({token}),
-            },
-        );
-
-        return response.json();
+    async verifyEmail(token: string): Promise<ApiResult> {
+        return postJson(`${API_URL}/api/auth-service/verify-email`, {token});
     },
 
-    /**
-     * Verify 2FA code.
-     */
     async verify2FA(
         challengeToken: string,
         code: string,
-        isRecoveryCode: boolean = false,
-    ): Promise<{
-        success: boolean;
-        message?: string;
-        user?: unknown;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/2fa/verify`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    challenge_token: challengeToken,
-                    code,
-                    is_recovery_code: isRecoveryCode,
-                }),
-            },
-        );
-
-        return response.json();
+        isRecoveryCode = false,
+    ): Promise<ApiResult & {user?: unknown}> {
+        return postJson(`${API_URL}/api/auth-service/2fa/verify`, {
+            challenge_token: challengeToken,
+            code,
+            is_recovery_code: isRecoveryCode,
+        });
     },
 
-    /**
-     * Get current user info.
-     */
     async getCurrentUser(): Promise<{
         success: boolean;
-        user?: {
-            id: string;
-            email: string;
-            firstName: string;
-            lastName: string;
-            emailVerified: boolean;
-            has2faEnabled: boolean;
-            hasPasskeys: boolean;
-        };
+        message?: string;
+        user?: CurrentUser;
     }> {
         const response = await fetchWithCSRF(`${API_URL}/api/auth-service/me`, {
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: {"Content-Type": "application/json"},
         });
+        const data = (await response.json()) as ApiResult & {
+            user?: RawCurrentUser;
+        };
 
-        const data = await response.json();
-        if (data.success && data.user) {
-            // Transform snake_case to camelCase
-            return {
-                success: true,
-                user: {
-                    id: data.user.id,
-                    email: data.user.email,
-                    firstName: data.user.first_name,
-                    lastName: data.user.last_name,
-                    emailVerified: data.user.email_verified,
-                    has2faEnabled: data.user.has_2fa_enabled,
-                    hasPasskeys: data.user.has_passkeys,
-                },
-            };
+        if (!data.success || !data.user) {
+            return data;
         }
-        return data;
-    },
 
-    /**
-     * Logout.
-     */
-    async logout(): Promise<{success: boolean; message?: string}> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/logout`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+        return {
+            success: true,
+            message: data.message,
+            user: {
+                id: data.user.id,
+                email: data.user.email,
+                firstName: data.user.first_name,
+                lastName: data.user.last_name,
+                emailVerified: data.user.email_verified,
+                has2faEnabled: data.user.has_2fa_enabled,
+                hasPasskeys: data.user.has_passkeys,
             },
-        );
-
-        return response.json();
+        };
     },
 
-    /**
-     * Begin passkey registration.
-     */
-    async beginPasskeyRegistration(passkeyName: string): Promise<{
-        success: boolean;
-        message?: string;
-        options?: Record<string, unknown>;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/webauthn/begin-register`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({passkey_name: passkeyName}),
-            },
-        );
-
-        return response.json();
+    async logout(): Promise<ApiResult> {
+        return postJson(`${API_URL}/api/auth-service/logout`);
     },
 
-    /**
-     * Complete passkey registration.
-     */
+    async beginPasskeyRegistration(
+        passkeyName: string,
+    ): Promise<ApiResult & {options?: Record<string, unknown>}> {
+        return postJson(`${API_URL}/api/auth-service/webauthn/begin-register`, {
+            passkey_name: passkeyName,
+        });
+    },
+
     async completePasskeyRegistration(
         credential: Record<string, unknown>,
-    ): Promise<{
-        success: boolean;
-        message?: string;
-        passkey?: unknown;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
+    ): Promise<ApiResult & {passkey?: unknown}> {
+        return postJson(
             `${API_URL}/api/auth-service/webauthn/complete-register`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({credential}),
-            },
+            {credential},
         );
-
-        return response.json();
     },
 
-    /**
-     * Get list of passkeys.
-     */
     async getPasskeys(): Promise<{
         success: boolean;
         passkeys?: Array<{
@@ -394,172 +220,53 @@ export const authApi = {
     }> {
         const response = await fetchWithCSRF(
             `${API_URL}/api/auth-service/webauthn/passkeys`,
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            },
+            {headers: {"Content-Type": "application/json"}},
         );
-
         return response.json();
     },
 
-    /**
-     * Delete a passkey.
-     */
-    async deletePasskey(passkeyId: string): Promise<{
-        success: boolean;
-        message?: string;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/webauthn/delete`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({passkey_id: passkeyId}),
-            },
-        );
-
-        return response.json();
+    async deletePasskey(passkeyId: string): Promise<ApiResult> {
+        return postJson(`${API_URL}/api/auth-service/webauthn/delete`, {
+            passkey_id: passkeyId,
+        });
     },
 
-    /**
-     * Rename a passkey.
-     */
     async renamePasskey(
         passkeyId: string,
         newName: string,
-    ): Promise<{
-        success: boolean;
-        message?: string;
-        passkey?: unknown;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/webauthn/rename`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    passkey_id: passkeyId,
-                    new_name: newName,
-                }),
-            },
-        );
-
-        return response.json();
+    ): Promise<ApiResult & {passkey?: unknown}> {
+        return postJson(`${API_URL}/api/auth-service/webauthn/rename`, {
+            passkey_id: passkeyId,
+            new_name: newName,
+        });
     },
 
-    /**
-     * Change password.
-     */
     async changePassword(
         currentPassword: string,
         newPassword: string,
-    ): Promise<{
-        success: boolean;
-        message?: string;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/change-password`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    current_password: currentPassword,
-                    new_password: newPassword,
-                }),
-            },
-        );
-
-        return response.json();
+    ): Promise<ApiResult> {
+        return postJson(`${API_URL}/api/auth-service/change-password`, {
+            current_password: currentPassword,
+            new_password: newPassword,
+        });
     },
 
-    /**
-     * Begin 2FA setup.
-     */
-    async begin2FASetup(): Promise<{
-        success: boolean;
-        message?: string;
-        secret?: string;
-        qrCodeUri?: string;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/2fa/setup`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            },
-        );
-
-        return response.json();
+    async begin2FASetup(): Promise<
+        ApiResult & {secret?: string; qrCodeUri?: string}
+    > {
+        return postJson(`${API_URL}/api/auth-service/2fa/setup`);
     },
 
-    /**
-     * Confirm 2FA setup with verification code.
-     */
-    async confirm2FASetup(code: string): Promise<{
-        success: boolean;
-        message?: string;
-        recoveryCodes?: string[];
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/2fa/confirm`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({code}),
-            },
-        );
-
-        return response.json();
+    async confirm2FASetup(
+        code: string,
+    ): Promise<ApiResult & {recoveryCodes?: string[]}> {
+        return postJson(`${API_URL}/api/auth-service/2fa/confirm`, {code});
     },
 
-    /**
-     * Disable 2FA.
-     */
-    async disable2FA(password: string): Promise<{
-        success: boolean;
-        message?: string;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/2fa/disable`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({password}),
-            },
-        );
-
-        return response.json();
+    async disable2FA(password: string): Promise<ApiResult> {
+        return postJson(`${API_URL}/api/auth-service/2fa/disable`, {password});
     },
 
-    /**
-     * Get 2FA status.
-     */
     async get2FAStatus(): Promise<{
         success: boolean;
         enabled: boolean;
@@ -567,96 +274,30 @@ export const authApi = {
     }> {
         const response = await fetchWithCSRF(
             `${API_URL}/api/auth-service/2fa/status`,
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            },
+            {headers: {"Content-Type": "application/json"}},
         );
-
         return response.json();
     },
 
-    /**
-     * Regenerate recovery codes.
-     */
-    async regenerateRecoveryCodes(password: string): Promise<{
-        success: boolean;
-        message?: string;
-        recoveryCodes?: string[];
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/2fa/recovery-codes`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({password}),
-            },
-        );
-
-        return response.json();
+    async regenerateRecoveryCodes(
+        password: string,
+    ): Promise<ApiResult & {recoveryCodes?: string[]}> {
+        return postJson(`${API_URL}/api/auth-service/2fa/recovery-codes`, {
+            password,
+        });
     },
 
-    /**
-     * Request password reset.
-     */
-    async requestPasswordReset(email: string): Promise<{
-        success: boolean;
-        message?: string;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/forgot-password`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({email}),
-            },
-        );
-
-        return response.json();
+    async requestPasswordReset(email: string): Promise<ApiResult> {
+        return postJson(`${API_URL}/api/auth-service/forgot-password`, {email});
     },
 
-    /**
-     * Reset password with token.
-     */
-    async resetPassword(
-        token: string,
-        newPassword: string,
-    ): Promise<{
-        success: boolean;
-        message?: string;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/auth-service/reset-password`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({token, new_password: newPassword}),
-            },
-        );
-
-        return response.json();
+    async resetPassword(token: string, newPassword: string): Promise<ApiResult> {
+        return postJson(`${API_URL}/api/auth-service/reset-password`, {
+            token,
+            new_password: newPassword,
+        });
     },
 
-    // ========================================================================
-    // Session/Device Management
-    // ========================================================================
-
-    /**
-     * Get all active sessions for the current user.
-     */
     async getSessions(): Promise<{
         success: boolean;
         sessions?: Session[];
@@ -665,54 +306,22 @@ export const authApi = {
         const response = await fetchWithCSRF(`${API_URL}/api/sessions/list`, {
             method: "GET",
         });
-
         return response.json();
     },
 
-    /**
-     * Revoke (log out) a specific session.
-     */
-    async revokeSession(sessionId: string): Promise<{
-        success: boolean;
-        message?: string;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(`${API_URL}/api/sessions/revoke`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({session_id: sessionId}),
+    async revokeSession(sessionId: string): Promise<ApiResult> {
+        return postJson(`${API_URL}/api/sessions/revoke`, {
+            session_id: sessionId,
         });
-
-        return response.json();
     },
 
-    /**
-     * Revoke all sessions except the current one.
-     */
-    async revokeAllSessions(): Promise<{
-        success: boolean;
-        message?: string;
-        revoked_count?: number;
-    }> {
-        await ensureCsrfToken();
-
-        const response = await fetchWithCSRF(
-            `${API_URL}/api/sessions/revoke-all`,
-            {
-                method: "POST",
-            },
-        );
-
-        return response.json();
+    async revokeAllSessions(): Promise<
+        ApiResult & {revoked_count?: number}
+    > {
+        return postJson(`${API_URL}/api/sessions/revoke-all`);
     },
 };
 
-/**
- * Session/device information.
- */
 export interface Session {
     id: string;
     device_type: string;
