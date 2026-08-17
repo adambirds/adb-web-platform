@@ -2,6 +2,14 @@
 
 Guidance for AI coding agents working in this repository.
 
+## Canonical platform plan
+
+Before making architectural, domain-model, permissions, CMS, CRM, ticketing, credential, infrastructure, authentication or admin-platform changes, read `docs/PLATFORM_MASTER_PLAN.md`.
+
+That document is the canonical product and architecture plan for the ADB Business Platform. Older planning documents are historical context and must not override it when they conflict.
+
+Do not invent a new architecture from partial code or stale documentation. If code conflicts with the master plan, determine whether the code is legacy/incomplete before copying its pattern into new work.
+
 ## Project
 
 This repository is the shared application platform for the ADB businesses. It contains a shared Django backend, shared packages, three separate public websites, a dedicated authentication frontend, and an internal administration application.
@@ -10,7 +18,7 @@ All browser-facing applications belong under `sites/`. Public marketing function
 
 ## Repository layout
 
-- `backend/` — Django backend, Django Ninja APIs, CRM, clients, infrastructure, credentials, knowledge base, tasks, email integrations, Celery and shared business data.
+- `backend/` — Django backend, Django Ninja APIs, CRM, clients, infrastructure, credentials, knowledge base, tasks, ticketing/email integrations, Celery and shared business data.
 - `sites/adb-software-solutions/` — public ADB Software Solutions website.
 - `sites/adb-web-designs/` — public ADB Web Designs website.
 - `sites/adb-technology/` — public ADB Technology website for DevOps, infrastructure, IT consultancy, and support services.
@@ -26,12 +34,18 @@ All browser-facing applications belong under `sites/`. Public marketing function
 
 1. Keep the Django backend as the single business-data and operations backend for all ADB brands.
 2. Keep authentication and the internal administration experience separate from public marketing websites.
-3. Public-site enquiries should ultimately enter the shared CRM with an explicit brand/source rather than creating separate backends.
-4. Microsoft 365/Graph email integration belongs in the shared backend/admin platform, not in individual marketing sites.
-5. Prefer straightforward, maintainable implementations over new infrastructure or abstractions added pre-emptively.
-6. Shared packages must contain code that is genuinely shared. Do not force public brands to use identical layouts or visual identities merely because they live in one repository.
-7. Preserve strict typing and explicit API contracts between Django and TypeScript applications.
-8. Keep CI/CD and container images application-focused even though frontend applications share a pnpm workspace.
+3. Treat ADB Software Solutions, ADB Web Designs and ADB Technology as first-class Brands; do not scatter brand identity as hard-coded strings through business logic.
+4. Keep Brand scope separate from operational ownership. Operational resources are client-owned or explicitly internal.
+5. Treat Client as the main operational context linking contacts, tickets, projects, tasks, time, documentation, credentials and infrastructure.
+6. Public-site enquiries should ultimately become tickets and sales/CRM records with an explicit originating brand/source rather than creating separate communication silos.
+7. Microsoft 365/Graph email integration belongs in the shared backend/admin platform, not in individual marketing sites.
+8. Fine-grained permissions and access scopes are foundational. Do not assume every staff user is a superuser.
+9. Backend Django permission checks are authoritative. Frontend visibility is UX, not security.
+10. Sensitive actions such as credential reveals and permission changes must be auditable.
+11. Prefer straightforward, maintainable implementations over new infrastructure or abstractions added pre-emptively.
+12. Shared packages must contain code that is genuinely shared. Do not force public brands to use identical layouts or visual identities merely because they live in one repository.
+13. Preserve strict typing and explicit API contracts between Django and TypeScript applications.
+14. Keep CI/CD and container images application-focused even though frontend applications share a pnpm workspace.
 
 ## Stack
 
@@ -43,13 +57,17 @@ All browser-facing applications belong under `sites/`. Public marketing function
 
 Do not replace Django, Django Ninja, the existing authentication subsystem or the established deployment pipeline without an explicit architectural decision.
 
-## Authentication
+## Authentication and permissions
 
 Authentication is a first-class subsystem. Preserve `sites/auth-adb-software-solutions/` and the backend authentication flows unless a task explicitly changes them. Passwords, 2FA, passkeys, sessions and account-security behaviour are security-sensitive. Use established libraries and never implement cryptographic primitives manually.
 
 The public marketing sites must not gain privileged admin functionality. Internal administration routes belong in `sites/admin-adb-software-solutions/` and authenticated account/security flows belong in `sites/auth-adb-software-solutions/`.
 
-## Public websites
+Permissions must support meaningful capabilities and scope. A permission such as viewing tickets does not automatically imply access to every client or ticket queue. Credentials require particularly deliberate handling: viewing metadata and revealing a secret are separate capabilities, and secret reveals must be audit logged.
+
+When implementing restricted APIs, add tests for both permitted and denied access paths. Never rely on a React component hiding an action as the permission check.
+
+## Public websites and CMS
 
 The three public websites serve different commercial purposes and must not become recoloured copies of one template.
 
@@ -57,7 +75,21 @@ The three public websites serve different commercial purposes and must not becom
 - ADB Web Designs focuses on websites, WordPress/Next.js delivery, website rescue, hosting, maintenance, performance and ongoing support.
 - ADB Technology focuses on DevOps, cloud/infrastructure engineering, IT consultancy and technical support.
 
+Main marketing pages are code-owned. CMS-managed content is intentionally limited to editorial content such as blog posts, testimonials, FAQs and optionally public case studies/projects. CMS content must be brand-aware and public APIs must not leak content between brands.
+
+Operational `Project` records are not public case studies. A public case study may reference an operational Project, but they must remain separate models/concepts.
+
 Share low-level primitives when useful, but keep brand messaging, page composition, navigation, imagery and visual identity owned by each site.
+
+## Business platform domains
+
+The internal platform is intended to cover clients/contacts, CRM/leads, projects, standalone and project-linked tasks, time tracking, ticketing/communications, knowledge base, credentials, infrastructure inventory and content management.
+
+Future capabilities include client portals, quotes, contracts, invoicing and Stripe payments. These future features may influence clean extension points but must not be implemented speculatively during unrelated work.
+
+Tasks do not require projects. Standalone and recurring internal work, such as monthly invoice reminders, is a valid first-class use case.
+
+Inbound communication should ultimately unify around Tickets. Microsoft Graph email, contact forms and future portal messages should not become unrelated communication stores.
 
 ## Working rules
 
@@ -74,3 +106,5 @@ When creating a commit, use `<type>: <Imperative summary>.`, keep the complete t
 ## Documentation
 
 Update README/docs when adding a public application, environment variable, port, deployment requirement, data-store requirement, authentication change or breaking API/configuration change. Keep repository structure documentation accurate whenever an application is moved or renamed.
+
+Architectural decisions that affect the platform plan must update `docs/PLATFORM_MASTER_PLAN.md` in the same change so a future agent does not need chat history to reconstruct the intent.
