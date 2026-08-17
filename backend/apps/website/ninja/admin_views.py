@@ -1,10 +1,14 @@
-import logging
+from __future__ import annotations
+
+from typing import Any
 
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from ninja import Router
+from ninja.errors import HttpError
 
+from apps.core.models import Brand
 from apps.website.models import (
     FAQ,
     BlogCategory,
@@ -32,14 +36,22 @@ from .schemas import (
     TestimonialIn,
     TestimonialOut,
 )
-from .views import build_blog_post_response, build_image_url, parse_technologies
-
-logger = logging.getLogger(__name__)
+from .views import (
+    build_blog_category_response,
+    build_blog_post_response,
+    build_blog_tag_response,
+    build_faq_category_response,
+    build_image_url,
+    build_portfolio_response,
+    build_testimonial_response,
+    get_brand_slugs,
+)
 
 website_admin_router = Router()
 
 
-def require_staff(request: HttpRequest):
+def require_permission(request: HttpRequest, permission: str):
+    """Require an authenticated staff user with a specific Django capability."""
     if not request.user.is_authenticated:
         return 401, {
             "message": "User not authenticated",
@@ -52,7 +64,37 @@ def require_staff(request: HttpRequest):
             "success": False,
             "code": "forbidden",
         }
+    if not request.user.has_perm(permission):
+        return 403, {
+            "message": "You do not have permission to perform this action.",
+            "success": False,
+            "code": "forbidden",
+        }
     return None
+
+
+def set_brands(item: Any, brand_ids: list[int]) -> None:
+    """Replace an item's Brand assignments after validating every supplied ID."""
+    brands = list(Brand.objects.filter(id__in=brand_ids))
+    if len(brands) != len(set(brand_ids)):
+        raise HttpError(400, "One or more selected brands do not exist.")
+    item.brands.set(brands)
+
+
+def build_faq_response(item: FAQ) -> FAQOut:
+    return FAQOut(
+        id=item.id,
+        question=item.question,
+        answer=item.answer,
+        category=build_faq_category_response(item.category),
+        order=item.order,
+        brand_slugs=get_brand_slugs(item),
+        created_at=item.created_at,
+        updated_at=item.updated_at,
+    )
+
+
+# Portfolio / public case studies
 
 
 @website_admin_router.get(
@@ -60,30 +102,11 @@ def require_staff(request: HttpRequest):
     response={200: list[PortfolioOut], 401: ProblemDetail, 403: ProblemDetail},
 )
 def admin_list_portfolio(request: HttpRequest):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.view_portfolio")
     if auth_error:
         return auth_error
-
-    return [
-        PortfolioOut(
-            id=item.id,
-            title=item.title,
-            slug=item.slug,
-            description=item.description,
-            challenge=item.challenge,
-            solution=item.solution,
-            results=item.results,
-            technologies=parse_technologies(item.technologies),
-            project_url=item.project_url,
-            github_url=item.github_url,
-            image_url=build_image_url(request, item.image),
-            featured_image_url=build_image_url(request, item.featured_image),
-            featured=item.featured,
-            created_at=item.created_at,
-            updated_at=item.updated_at,
-        )
-        for item in Portfolio.objects.all()
-    ]
+    qs = Portfolio.objects.prefetch_related("brands").all()
+    return [build_portfolio_response(request, item) for item in qs]
 
 
 @website_admin_router.post(
@@ -91,7 +114,7 @@ def admin_list_portfolio(request: HttpRequest):
     response={200: PortfolioOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail},
 )
 def admin_create_portfolio(request: HttpRequest, payload: PortfolioIn):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.add_portfolio")
     if auth_error:
         return auth_error
 
@@ -107,24 +130,8 @@ def admin_create_portfolio(request: HttpRequest, payload: PortfolioIn):
         github_url=payload.github_url,
         featured=payload.featured,
     )
-
-    return PortfolioOut(
-        id=item.id,
-        title=item.title,
-        slug=item.slug,
-        description=item.description,
-        challenge=item.challenge,
-        solution=item.solution,
-        results=item.results,
-        technologies=parse_technologies(item.technologies),
-        project_url=item.project_url,
-        github_url=item.github_url,
-        image_url=build_image_url(request, item.image),
-        featured_image_url=build_image_url(request, item.featured_image),
-        featured=item.featured,
-        created_at=item.created_at,
-        updated_at=item.updated_at,
-    )
+    set_brands(item, payload.brand_ids)
+    return build_portfolio_response(request, item)
 
 
 @website_admin_router.get(
@@ -132,36 +139,19 @@ def admin_create_portfolio(request: HttpRequest, payload: PortfolioIn):
     response={200: PortfolioOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_get_portfolio(request: HttpRequest, portfolio_id: int):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.view_portfolio")
     if auth_error:
         return auth_error
-
-    item = get_object_or_404(Portfolio, id=portfolio_id)
-    return PortfolioOut(
-        id=item.id,
-        title=item.title,
-        slug=item.slug,
-        description=item.description,
-        challenge=item.challenge,
-        solution=item.solution,
-        results=item.results,
-        technologies=parse_technologies(item.technologies),
-        project_url=item.project_url,
-        github_url=item.github_url,
-        image_url=build_image_url(request, item.image),
-        featured_image_url=build_image_url(request, item.featured_image),
-        featured=item.featured,
-        created_at=item.created_at,
-        updated_at=item.updated_at,
-    )
+    item = get_object_or_404(Portfolio.objects.prefetch_related("brands"), id=portfolio_id)
+    return build_portfolio_response(request, item)
 
 
 @website_admin_router.put(
     "/website/portfolio/{portfolio_id}",
-    response={200: PortfolioOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
+    response={200: PortfolioOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_update_portfolio(request: HttpRequest, portfolio_id: int, payload: PortfolioIn):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.change_portfolio")
     if auth_error:
         return auth_error
 
@@ -177,24 +167,8 @@ def admin_update_portfolio(request: HttpRequest, portfolio_id: int, payload: Por
     item.github_url = payload.github_url
     item.featured = payload.featured
     item.save()
-
-    return PortfolioOut(
-        id=item.id,
-        title=item.title,
-        slug=item.slug,
-        description=item.description,
-        challenge=item.challenge,
-        solution=item.solution,
-        results=item.results,
-        technologies=parse_technologies(item.technologies),
-        project_url=item.project_url,
-        github_url=item.github_url,
-        image_url=build_image_url(request, item.image),
-        featured_image_url=build_image_url(request, item.featured_image),
-        featured=item.featured,
-        created_at=item.created_at,
-        updated_at=item.updated_at,
-    )
+    set_brands(item, payload.brand_ids)
+    return build_portfolio_response(request, item)
 
 
 @website_admin_router.delete(
@@ -202,13 +176,14 @@ def admin_update_portfolio(request: HttpRequest, portfolio_id: int, payload: Por
     response={200: StatusResponse, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_delete_portfolio(request: HttpRequest, portfolio_id: int):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.delete_portfolio")
     if auth_error:
         return auth_error
-
-    item = get_object_or_404(Portfolio, id=portfolio_id)
-    item.delete()
+    get_object_or_404(Portfolio, id=portfolio_id).delete()
     return 200, {"message": "Portfolio deleted", "success": True}
+
+
+# Testimonials
 
 
 @website_admin_router.get(
@@ -216,25 +191,11 @@ def admin_delete_portfolio(request: HttpRequest, portfolio_id: int):
     response={200: list[TestimonialOut], 401: ProblemDetail, 403: ProblemDetail},
 )
 def admin_list_testimonials(request: HttpRequest):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.view_testimonial")
     if auth_error:
         return auth_error
-
-    return [
-        TestimonialOut(
-            id=item.id,
-            quote=item.quote,
-            client_name=item.client_name,
-            company=item.company,
-            job_title=item.job_title,
-            rating=item.rating,
-            image_url=build_image_url(request, item.image),
-            featured=item.featured,
-            created_at=item.created_at,
-            updated_at=item.updated_at,
-        )
-        for item in Testimonial.objects.all()
-    ]
+    qs = Testimonial.objects.prefetch_related("brands").all()
+    return [build_testimonial_response(request, item) for item in qs]
 
 
 @website_admin_router.post(
@@ -242,7 +203,7 @@ def admin_list_testimonials(request: HttpRequest):
     response={200: TestimonialOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail},
 )
 def admin_create_testimonial(request: HttpRequest, payload: TestimonialIn):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.add_testimonial")
     if auth_error:
         return auth_error
 
@@ -254,19 +215,8 @@ def admin_create_testimonial(request: HttpRequest, payload: TestimonialIn):
         rating=payload.rating,
         featured=payload.featured,
     )
-
-    return TestimonialOut(
-        id=item.id,
-        quote=item.quote,
-        client_name=item.client_name,
-        company=item.company,
-        job_title=item.job_title,
-        rating=item.rating,
-        image_url=build_image_url(request, item.image),
-        featured=item.featured,
-        created_at=item.created_at,
-        updated_at=item.updated_at,
-    )
+    set_brands(item, payload.brand_ids)
+    return build_testimonial_response(request, item)
 
 
 @website_admin_router.get(
@@ -274,31 +224,22 @@ def admin_create_testimonial(request: HttpRequest, payload: TestimonialIn):
     response={200: TestimonialOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_get_testimonial(request: HttpRequest, testimonial_id: int):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.view_testimonial")
     if auth_error:
         return auth_error
-
-    item = get_object_or_404(Testimonial, id=testimonial_id)
-    return TestimonialOut(
-        id=item.id,
-        quote=item.quote,
-        client_name=item.client_name,
-        company=item.company,
-        job_title=item.job_title,
-        rating=item.rating,
-        image_url=build_image_url(request, item.image),
-        featured=item.featured,
-        created_at=item.created_at,
-        updated_at=item.updated_at,
+    item = get_object_or_404(
+        Testimonial.objects.prefetch_related("brands"),
+        id=testimonial_id,
     )
+    return build_testimonial_response(request, item)
 
 
 @website_admin_router.put(
     "/website/testimonials/{testimonial_id}",
-    response={200: TestimonialOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
+    response={200: TestimonialOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_update_testimonial(request: HttpRequest, testimonial_id: int, payload: TestimonialIn):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.change_testimonial")
     if auth_error:
         return auth_error
 
@@ -310,19 +251,8 @@ def admin_update_testimonial(request: HttpRequest, testimonial_id: int, payload:
     item.rating = payload.rating
     item.featured = payload.featured
     item.save()
-
-    return TestimonialOut(
-        id=item.id,
-        quote=item.quote,
-        client_name=item.client_name,
-        company=item.company,
-        job_title=item.job_title,
-        rating=item.rating,
-        image_url=build_image_url(request, item.image),
-        featured=item.featured,
-        created_at=item.created_at,
-        updated_at=item.updated_at,
-    )
+    set_brands(item, payload.brand_ids)
+    return build_testimonial_response(request, item)
 
 
 @website_admin_router.delete(
@@ -330,13 +260,14 @@ def admin_update_testimonial(request: HttpRequest, testimonial_id: int, payload:
     response={200: StatusResponse, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_delete_testimonial(request: HttpRequest, testimonial_id: int):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.delete_testimonial")
     if auth_error:
         return auth_error
-
-    item = get_object_or_404(Testimonial, id=testimonial_id)
-    item.delete()
+    get_object_or_404(Testimonial, id=testimonial_id).delete()
     return 200, {"message": "Testimonial deleted", "success": True}
+
+
+# Blog categories
 
 
 @website_admin_router.get(
@@ -344,27 +275,21 @@ def admin_delete_testimonial(request: HttpRequest, testimonial_id: int):
     response={200: list[BlogCategoryOut], 401: ProblemDetail, 403: ProblemDetail},
 )
 def admin_list_blog_categories(request: HttpRequest):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.view_blogcategory")
     if auth_error:
         return auth_error
-
     return [
-        BlogCategoryOut(
-            id=item.id,
-            name=item.name,
-            slug=item.slug,
-            description=item.description,
-        )
-        for item in BlogCategory.objects.all()
+        build_blog_category_response(item)
+        for item in BlogCategory.objects.prefetch_related("brands").all()
     ]
 
 
 @website_admin_router.post(
     "/website/blog/categories",
-    response={200: BlogCategoryOut, 401: ProblemDetail, 403: ProblemDetail},
+    response={200: BlogCategoryOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail},
 )
 def admin_create_blog_category(request: HttpRequest, payload: BlogCategoryIn):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.add_blogcategory")
     if auth_error:
         return auth_error
 
@@ -373,21 +298,16 @@ def admin_create_blog_category(request: HttpRequest, payload: BlogCategoryIn):
         slug=payload.slug,
         description=payload.description or "",
     )
-
-    return BlogCategoryOut(
-        id=item.id,
-        name=item.name,
-        slug=item.slug,
-        description=item.description,
-    )
+    set_brands(item, payload.brand_ids)
+    return build_blog_category_response(item)
 
 
 @website_admin_router.put(
     "/website/blog/categories/{category_id}",
-    response={200: BlogCategoryOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
+    response={200: BlogCategoryOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_update_blog_category(request: HttpRequest, category_id: int, payload: BlogCategoryIn):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.change_blogcategory")
     if auth_error:
         return auth_error
 
@@ -396,13 +316,8 @@ def admin_update_blog_category(request: HttpRequest, category_id: int, payload: 
     item.slug = payload.slug
     item.description = payload.description or ""
     item.save()
-
-    return BlogCategoryOut(
-        id=item.id,
-        name=item.name,
-        slug=item.slug,
-        description=item.description,
-    )
+    set_brands(item, payload.brand_ids)
+    return build_blog_category_response(item)
 
 
 @website_admin_router.delete(
@@ -410,13 +325,14 @@ def admin_update_blog_category(request: HttpRequest, category_id: int, payload: 
     response={200: StatusResponse, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_delete_blog_category(request: HttpRequest, category_id: int):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.delete_blogcategory")
     if auth_error:
         return auth_error
-
-    item = get_object_or_404(BlogCategory, id=category_id)
-    item.delete()
+    get_object_or_404(BlogCategory, id=category_id).delete()
     return 200, {"message": "Blog category deleted", "success": True}
+
+
+# Blog tags
 
 
 @website_admin_router.get(
@@ -424,47 +340,32 @@ def admin_delete_blog_category(request: HttpRequest, category_id: int):
     response={200: list[BlogTagOut], 401: ProblemDetail, 403: ProblemDetail},
 )
 def admin_list_blog_tags(request: HttpRequest):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.view_blogtag")
     if auth_error:
         return auth_error
-
-    return [
-        BlogTagOut(
-            id=item.id,
-            name=item.name,
-            slug=item.slug,
-        )
-        for item in BlogTag.objects.all()
-    ]
+    return [build_blog_tag_response(item) for item in BlogTag.objects.prefetch_related("brands").all()]
 
 
 @website_admin_router.post(
     "/website/blog/tags",
-    response={200: BlogTagOut, 401: ProblemDetail, 403: ProblemDetail},
+    response={200: BlogTagOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail},
 )
 def admin_create_blog_tag(request: HttpRequest, payload: BlogTagIn):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.add_blogtag")
     if auth_error:
         return auth_error
 
-    item = BlogTag.objects.create(
-        name=payload.name,
-        slug=payload.slug,
-    )
-
-    return BlogTagOut(
-        id=item.id,
-        name=item.name,
-        slug=item.slug,
-    )
+    item = BlogTag.objects.create(name=payload.name, slug=payload.slug)
+    set_brands(item, payload.brand_ids)
+    return build_blog_tag_response(item)
 
 
 @website_admin_router.put(
     "/website/blog/tags/{tag_id}",
-    response={200: BlogTagOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
+    response={200: BlogTagOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_update_blog_tag(request: HttpRequest, tag_id: int, payload: BlogTagIn):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.change_blogtag")
     if auth_error:
         return auth_error
 
@@ -472,12 +373,8 @@ def admin_update_blog_tag(request: HttpRequest, tag_id: int, payload: BlogTagIn)
     item.name = payload.name
     item.slug = payload.slug
     item.save()
-
-    return BlogTagOut(
-        id=item.id,
-        name=item.name,
-        slug=item.slug,
-    )
+    set_brands(item, payload.brand_ids)
+    return build_blog_tag_response(item)
 
 
 @website_admin_router.delete(
@@ -485,13 +382,14 @@ def admin_update_blog_tag(request: HttpRequest, tag_id: int, payload: BlogTagIn)
     response={200: StatusResponse, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_delete_blog_tag(request: HttpRequest, tag_id: int):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.delete_blogtag")
     if auth_error:
         return auth_error
-
-    item = get_object_or_404(BlogTag, id=tag_id)
-    item.delete()
+    get_object_or_404(BlogTag, id=tag_id).delete()
     return 200, {"message": "Blog tag deleted", "success": True}
+
+
+# Blog posts
 
 
 @website_admin_router.get(
@@ -499,26 +397,21 @@ def admin_delete_blog_tag(request: HttpRequest, tag_id: int):
     response={200: list[BlogPostOut], 401: ProblemDetail, 403: ProblemDetail},
 )
 def admin_list_blog_posts(request: HttpRequest):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.view_blogpost")
     if auth_error:
         return auth_error
-
-    qs = BlogPost.objects.prefetch_related("categories", "tags")
+    qs = BlogPost.objects.prefetch_related("brands", "categories__brands", "tags__brands")
     return [build_blog_post_response(request, post) for post in qs]
 
 
 @website_admin_router.post(
     "/website/blog/posts",
-    response={200: BlogPostOut, 401: ProblemDetail, 403: ProblemDetail, 400: ProblemDetail},
+    response={200: BlogPostOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail},
 )
 def admin_create_blog_post(request: HttpRequest, payload: BlogPostIn):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.add_blogpost")
     if auth_error:
         return auth_error
-
-    published_at = payload.published_at
-    if payload.published and not published_at:
-        published_at = timezone.now()
 
     post = BlogPost.objects.create(
         title=payload.title,
@@ -530,15 +423,11 @@ def admin_create_blog_post(request: HttpRequest, payload: BlogPostIn):
         featured=payload.featured,
         meta_description=payload.meta_description or "",
         meta_keywords=payload.meta_keywords or "",
-        published_at=published_at,
+        published_at=payload.published_at or (timezone.now() if payload.published else None),
     )
-
-    if payload.category_ids:
-        post.categories.set(BlogCategory.objects.filter(id__in=payload.category_ids))
-    if payload.tag_ids:
-        post.tags.set(BlogTag.objects.filter(id__in=payload.tag_ids))
-
-    post.refresh_from_db()
+    set_brands(post, payload.brand_ids)
+    post.categories.set(BlogCategory.objects.filter(id__in=payload.category_ids))
+    post.tags.set(BlogTag.objects.filter(id__in=payload.tag_ids))
     return build_blog_post_response(request, post)
 
 
@@ -547,20 +436,22 @@ def admin_create_blog_post(request: HttpRequest, payload: BlogPostIn):
     response={200: BlogPostOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_get_blog_post(request: HttpRequest, post_id: int):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.view_blogpost")
     if auth_error:
         return auth_error
-
-    post = get_object_or_404(BlogPost.objects.prefetch_related("categories", "tags"), id=post_id)
+    post = get_object_or_404(
+        BlogPost.objects.prefetch_related("brands", "categories__brands", "tags__brands"),
+        id=post_id,
+    )
     return build_blog_post_response(request, post)
 
 
 @website_admin_router.put(
     "/website/blog/posts/{post_id}",
-    response={200: BlogPostOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
+    response={200: BlogPostOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_update_blog_post(request: HttpRequest, post_id: int, payload: BlogPostIn):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.change_blogpost")
     if auth_error:
         return auth_error
 
@@ -569,25 +460,18 @@ def admin_update_blog_post(request: HttpRequest, post_id: int, payload: BlogPost
     post.slug = payload.slug
     post.excerpt = payload.excerpt
     post.content = payload.content
-    post.author = payload.author or "ADB Software Solutions"
+    post.author = payload.author or post.author
     post.published = payload.published
     post.featured = payload.featured
     post.meta_description = payload.meta_description or ""
     post.meta_keywords = payload.meta_keywords or ""
-
-    if payload.published and not post.published_at:
-        post.published_at = payload.published_at or timezone.now()
-    elif payload.published_at:
-        post.published_at = payload.published_at
-
+    post.published_at = payload.published_at
+    if post.published and post.published_at is None:
+        post.published_at = timezone.now()
     post.save()
-
-    if payload.category_ids is not None:
-        post.categories.set(BlogCategory.objects.filter(id__in=payload.category_ids))
-    if payload.tag_ids is not None:
-        post.tags.set(BlogTag.objects.filter(id__in=payload.tag_ids))
-
-    post.refresh_from_db()
+    set_brands(post, payload.brand_ids)
+    post.categories.set(BlogCategory.objects.filter(id__in=payload.category_ids))
+    post.tags.set(BlogTag.objects.filter(id__in=payload.tag_ids))
     return build_blog_post_response(request, post)
 
 
@@ -596,13 +480,14 @@ def admin_update_blog_post(request: HttpRequest, post_id: int, payload: BlogPost
     response={200: StatusResponse, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_delete_blog_post(request: HttpRequest, post_id: int):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.delete_blogpost")
     if auth_error:
         return auth_error
-
-    post = get_object_or_404(BlogPost, id=post_id)
-    post.delete()
+    get_object_or_404(BlogPost, id=post_id).delete()
     return 200, {"message": "Blog post deleted", "success": True}
+
+
+# FAQ categories
 
 
 @website_admin_router.get(
@@ -610,28 +495,21 @@ def admin_delete_blog_post(request: HttpRequest, post_id: int):
     response={200: list[FAQCategoryOut], 401: ProblemDetail, 403: ProblemDetail},
 )
 def admin_list_faq_categories(request: HttpRequest):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.view_faqcategory")
     if auth_error:
         return auth_error
-
     return [
-        FAQCategoryOut(
-            id=item.id,
-            name=item.name,
-            slug=item.slug,
-            description=item.description,
-            order=item.order,
-        )
-        for item in FAQCategory.objects.all()
+        build_faq_category_response(item)
+        for item in FAQCategory.objects.prefetch_related("brands").all()
     ]
 
 
 @website_admin_router.post(
     "/website/faqs/categories",
-    response={200: FAQCategoryOut, 401: ProblemDetail, 403: ProblemDetail},
+    response={200: FAQCategoryOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail},
 )
 def admin_create_faq_category(request: HttpRequest, payload: FAQCategoryIn):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.add_faqcategory")
     if auth_error:
         return auth_error
 
@@ -641,22 +519,16 @@ def admin_create_faq_category(request: HttpRequest, payload: FAQCategoryIn):
         description=payload.description or "",
         order=payload.order,
     )
-
-    return FAQCategoryOut(
-        id=item.id,
-        name=item.name,
-        slug=item.slug,
-        description=item.description,
-        order=item.order,
-    )
+    set_brands(item, payload.brand_ids)
+    return build_faq_category_response(item)
 
 
 @website_admin_router.put(
     "/website/faqs/categories/{category_id}",
-    response={200: FAQCategoryOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
+    response={200: FAQCategoryOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_update_faq_category(request: HttpRequest, category_id: int, payload: FAQCategoryIn):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.change_faqcategory")
     if auth_error:
         return auth_error
 
@@ -666,14 +538,8 @@ def admin_update_faq_category(request: HttpRequest, category_id: int, payload: F
     item.description = payload.description or ""
     item.order = payload.order
     item.save()
-
-    return FAQCategoryOut(
-        id=item.id,
-        name=item.name,
-        slug=item.slug,
-        description=item.description,
-        order=item.order,
-    )
+    set_brands(item, payload.brand_ids)
+    return build_faq_category_response(item)
 
 
 @website_admin_router.delete(
@@ -681,13 +547,14 @@ def admin_update_faq_category(request: HttpRequest, category_id: int, payload: F
     response={200: StatusResponse, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_delete_faq_category(request: HttpRequest, category_id: int):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.delete_faqcategory")
     if auth_error:
         return auth_error
-
-    item = get_object_or_404(FAQCategory, id=category_id)
-    item.delete()
+    get_object_or_404(FAQCategory, id=category_id).delete()
     return 200, {"message": "FAQ category deleted", "success": True}
+
+
+# FAQs
 
 
 @website_admin_router.get(
@@ -695,37 +562,19 @@ def admin_delete_faq_category(request: HttpRequest, category_id: int):
     response={200: list[FAQOut], 401: ProblemDetail, 403: ProblemDetail},
 )
 def admin_list_faqs(request: HttpRequest):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.view_faq")
     if auth_error:
         return auth_error
-
-    qs = FAQ.objects.select_related("category").all()
-    return [
-        FAQOut(
-            id=item.id,
-            question=item.question,
-            answer=item.answer,
-            category=FAQCategoryOut(
-                id=item.category.id,
-                name=item.category.name,
-                slug=item.category.slug,
-                description=item.category.description,
-                order=item.category.order,
-            ),
-            order=item.order,
-            created_at=item.created_at,
-            updated_at=item.updated_at,
-        )
-        for item in qs
-    ]
+    qs = FAQ.objects.select_related("category").prefetch_related("brands", "category__brands")
+    return [build_faq_response(item) for item in qs]
 
 
 @website_admin_router.post(
     "/website/faqs",
-    response={200: FAQOut, 401: ProblemDetail, 403: ProblemDetail},
+    response={200: FAQOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail},
 )
 def admin_create_faq(request: HttpRequest, payload: FAQIn):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.add_faq")
     if auth_error:
         return auth_error
 
@@ -736,56 +585,27 @@ def admin_create_faq(request: HttpRequest, payload: FAQIn):
         category=category,
         order=payload.order,
     )
-
-    return FAQOut(
-        id=item.id,
-        question=item.question,
-        answer=item.answer,
-        category=FAQCategoryOut(
-            id=category.id,
-            name=category.name,
-            slug=category.slug,
-            description=category.description,
-            order=category.order,
-        ),
-        order=item.order,
-        created_at=item.created_at,
-        updated_at=item.updated_at,
-    )
+    set_brands(item, payload.brand_ids)
+    return build_faq_response(item)
 
 
 @website_admin_router.put(
     "/website/faqs/{faq_id}",
-    response={200: FAQOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
+    response={200: FAQOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_update_faq(request: HttpRequest, faq_id: int, payload: FAQIn):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.change_faq")
     if auth_error:
         return auth_error
 
     item = get_object_or_404(FAQ, id=faq_id)
-    category = get_object_or_404(FAQCategory, id=payload.category_id)
     item.question = payload.question
     item.answer = payload.answer
-    item.category = category
+    item.category = get_object_or_404(FAQCategory, id=payload.category_id)
     item.order = payload.order
     item.save()
-
-    return FAQOut(
-        id=item.id,
-        question=item.question,
-        answer=item.answer,
-        category=FAQCategoryOut(
-            id=category.id,
-            name=category.name,
-            slug=category.slug,
-            description=category.description,
-            order=category.order,
-        ),
-        order=item.order,
-        created_at=item.created_at,
-        updated_at=item.updated_at,
-    )
+    set_brands(item, payload.brand_ids)
+    return build_faq_response(item)
 
 
 @website_admin_router.delete(
@@ -793,10 +613,8 @@ def admin_update_faq(request: HttpRequest, faq_id: int, payload: FAQIn):
     response={200: StatusResponse, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
 )
 def admin_delete_faq(request: HttpRequest, faq_id: int):
-    auth_error = require_staff(request)
+    auth_error = require_permission(request, "website.delete_faq")
     if auth_error:
         return auth_error
-
-    item = get_object_or_404(FAQ, id=faq_id)
-    item.delete()
+    get_object_or_404(FAQ, id=faq_id).delete()
     return 200, {"message": "FAQ deleted", "success": True}
