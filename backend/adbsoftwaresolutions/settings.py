@@ -16,9 +16,9 @@ DEBUG_TOOLBAR_ENABLED = bool(int(os.environ.get("DEBUG_TOOLBAR_ENABLED", "0")))
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY", "django-insecure-fdg2(_6j#^s=!x*$-t#f1q6y9bu-k-4i$xrsnuv%xn@xe_r(r2"
-)
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY must be set.")
 
 if DEBUG:
     logging.basicConfig(

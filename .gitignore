@@ -125,6 +125,14 @@ venv.bak/
 .envs/.unleash
 !*dev-example
 
+# Environment files
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+
 # Devcontainer environment files
 .devcontainer/.env
 
@@ -179,6 +187,7 @@ _old/
 test.js
 schema.json
 .eslintcache
+lint-output.txt
 
 !**/src/lib/
 
