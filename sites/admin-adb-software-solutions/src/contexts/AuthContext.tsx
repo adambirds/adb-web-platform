@@ -1,5 +1,6 @@
 "use client";
 
+import { fetchAPI } from "@/lib/api/fetch";
 import { API_URL, getAdminLoginUrl } from "@/lib/config";
 import {
     createContext,
@@ -7,8 +8,19 @@ import {
     useCallback,
     useContext,
     useEffect,
+    useMemo,
     useState,
 } from "react";
+
+interface ObjectScope {
+    all: boolean;
+    ids: number[];
+}
+
+interface AccessScope {
+    clients: ObjectScope;
+    ticketQueues: ObjectScope;
+}
 
 interface User {
     id: string;
@@ -16,6 +28,9 @@ interface User {
     firstName: string;
     lastName: string;
     isStaff: boolean;
+    isSuperuser: boolean;
+    permissions: string[];
+    scope: AccessScope;
 }
 
 interface AuthResponse {
@@ -27,6 +42,12 @@ interface AuthResponse {
         first_name: string;
         last_name: string;
         is_staff: boolean;
+        is_superuser: boolean;
+        permissions: string[];
+        scope: {
+            clients: ObjectScope;
+            ticket_queues: ObjectScope;
+        };
     };
 }
 
@@ -37,6 +58,7 @@ interface AuthContextType {
     login: () => void;
     logout: () => Promise<void>;
     refreshUser: () => Promise<void>;
+    hasPermission: (permission: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,6 +70,12 @@ function transformUser(data: NonNullable<AuthResponse["user"]>): User {
         firstName: data.first_name,
         lastName: data.last_name,
         isStaff: data.is_staff,
+        isSuperuser: data.is_superuser,
+        permissions: data.permissions,
+        scope: {
+            clients: data.scope.clients,
+            ticketQueues: data.scope.ticket_queues,
+        },
     };
 }
 
@@ -67,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 return;
             }
 
-            const data: AuthResponse = await response.json();
+            const data = (await response.json()) as AuthResponse;
             if (data.success && data.user) {
                 setUser(transformUser(data.user));
             } else {
@@ -90,32 +118,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const logout = async () => {
         try {
-            await fetch(`${API_URL}/api/auth/logout`, {
+            await fetchAPI(`${API_URL}/api/auth/logout`, {
                 method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
             });
         } finally {
             setUser(null);
         }
     };
 
-    return (
-        <AuthContext.Provider
-            value={{
-                user,
-                isLoading,
-                isAuthenticated: user !== null,
-                login,
-                logout,
-                refreshUser,
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
+    const hasPermission = useCallback(
+        (permission: string) =>
+            user?.isSuperuser === true ||
+            user?.permissions.includes(permission) === true,
+        [user],
     );
+
+    const value = useMemo<AuthContextType>(
+        () => ({
+            user,
+            isLoading,
+            isAuthenticated: user !== null,
+            login,
+            logout,
+            refreshUser,
+            hasPermission,
+        }),
+        [user, isLoading, refreshUser, hasPermission],
+    );
+
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
