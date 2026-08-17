@@ -159,7 +159,11 @@ class CMSAdminPermissionTests(TestCase):
         )
         self.staff.user_permissions.add(permission)
 
-    def assert_brands(self, item, expected: set[str]) -> None:
+    def assert_brands(
+        self,
+        item: FAQ | BlogPost | Portfolio | Testimonial,
+        expected: set[str],
+    ) -> None:
         self.assertSetEqual(
             set(item.brands.values_list("slug", flat=True)),
             expected,
