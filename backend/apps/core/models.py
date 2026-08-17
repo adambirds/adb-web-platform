@@ -65,7 +65,7 @@ class AuditEvent(models.Model):
         metadata: dict[str, Any] | None = None,
         ip_address: str | None = None,
         user_agent: str = "",
-    ) -> "AuditEvent":
+    ) -> AuditEvent:
         """Create an audit event without serialising sensitive target fields."""
         return cls.objects.create(
             actor=actor if getattr(actor, "is_authenticated", False) else None,
