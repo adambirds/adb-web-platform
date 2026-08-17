@@ -56,6 +56,7 @@ else:
 INSTALLED_APPS = [
     "authentication",
     "apps.core",
+    "apps.access_control",
     "apps.website",
     "apps.clients",
     "apps.infrastructure",
@@ -269,8 +270,6 @@ CACHES = {
 }
 
 if DEBUG:
-    # Local HTTPS/proxy setups require cross-origin cookies between the local
-    # frontend ports and Django API. These values are intentionally explicit.
     SESSION_COOKIE_SAMESITE = "None"
     SESSION_COOKIE_SECURE = True
     RATE_LIMIT_DISABLED = True
