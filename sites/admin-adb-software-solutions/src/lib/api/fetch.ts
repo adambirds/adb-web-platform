@@ -35,10 +35,7 @@ async function ensureCsrfToken(): Promise<string | null> {
     return getCookie("csrftoken") ?? payload.token ?? null;
 }
 
-export async function fetchAPI<T = unknown>(
-    url: string,
-    options: RequestInit = {},
-): Promise<T> {
+export async function fetchAPI(url: string, options: RequestInit = {}) {
     const method = (options.method ?? "GET").toUpperCase();
     const headers = new Headers(options.headers);
 
@@ -68,13 +65,13 @@ export async function fetchAPI<T = unknown>(
         throw new Error(error.detail || error.message || "API request failed");
     }
 
-    return (await response.json()) as T;
+    return response.json();
 }
 
-export function useAPI<T>(url: string) {
+export function useAPI(url: string) {
     const fetchData = useCallback(async () => {
         try {
-            return await fetchAPI<T>(url);
+            return await fetchAPI(url);
         } catch (error) {
             console.error("API Error:", error);
             throw error;
