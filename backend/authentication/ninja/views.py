@@ -1,4 +1,4 @@
-"""Authentication views for Django Ninja API with proper HTTP status codes and response mapping."""
+"""Authentication views for the internal ADB Business Platform."""
 
 import logging
 from typing import Any
@@ -8,10 +8,13 @@ from django.http import HttpRequest
 from django.middleware.csrf import get_token
 from ninja import Router
 
+from apps.access_control.policies import get_access_profile
 from authentication.models import User
 from authentication.ninja.schemas import (
+    AccessScopeResponse,
     AuthResponse,
     LoginRequest,
+    ObjectScopeResponse,
     ProblemDetail,
     StatusResponse,
     UserResponse,
@@ -21,18 +24,30 @@ from authentication.passkeys.security_logs_views import security_logs_router
 logger = logging.getLogger(__name__)
 
 auth_router = Router(tags=["auth"])
-
-# Add security logs routes
 auth_router.add_router("/security-logs", security_logs_router)
 
 
 def transform_user_to_response(user: User) -> UserResponse:
-    author = None
-    if hasattr(user, "author") and user.author:
-        author = {
-            "avatar": getattr(user.author, "avatar", None),
-            "bio": getattr(user.author, "bio", None),
-        }
+    """Build the current staff user's effective capability and object scopes."""
+    profile = get_access_profile(user)
+
+    if user.is_superuser:
+        client_scope = ObjectScopeResponse(all=True, ids=[])
+        ticket_queue_scope = ObjectScopeResponse(all=True, ids=[])
+    elif profile is None:
+        client_scope = ObjectScopeResponse()
+        ticket_queue_scope = ObjectScopeResponse()
+    else:
+        client_scope = ObjectScopeResponse(
+            all=profile.all_clients,
+            ids=[]
+            if profile.all_clients
+            else list(profile.client_grants.values_list("client_id", flat=True)),
+        )
+        ticket_queue_scope = ObjectScopeResponse(
+            all=profile.all_ticket_queues,
+            ids=[],
+        )
 
     return UserResponse(
         id=str(user.id),
@@ -40,7 +55,12 @@ def transform_user_to_response(user: User) -> UserResponse:
         first_name=user.first_name,
         last_name=user.last_name,
         is_staff=user.is_staff,
-        author=author,
+        is_superuser=user.is_superuser,
+        permissions=sorted(user.get_all_permissions()),
+        scope=AccessScopeResponse(
+            clients=client_scope,
+            ticket_queues=ticket_queue_scope,
+        ),
     )
 
 
@@ -50,12 +70,10 @@ def transform_user_to_response(user: User) -> UserResponse:
 )
 def get_csrf_token(request: HttpRequest) -> tuple[int, dict[str, Any]]:
     try:
-        # Explicitly get and set the CSRF token
         token = get_token(request)
-        # The middleware will set the cookie, but let's ensure it's there
         return 200, {"message": "CSRF token set", "success": True, "token": token}
-    except Exception as e:
-        logger.error("CSRF error: %s", str(e))
+    except Exception as exc:
+        logger.exception("Failed to issue a CSRF token: %s", exc)
         return 500, {"message": "An error has occurred.", "success": False, "code": "server_error"}
 
 
@@ -69,46 +87,27 @@ def get_csrf_token(request: HttpRequest) -> tuple[int, dict[str, Any]]:
     },
 )
 def login_user(request: HttpRequest, login_data: LoginRequest) -> tuple[int, dict[str, Any]]:
-    """
-    200: success (or 2FA required)
-    401: invalid credentials
-    403: authenticated but not staff/superuser
-    500: server error
-    """
+    """Authenticate a staff user, optionally requiring a 2FA challenge."""
     from authentication.twofactor.utils import create_2fa_challenge, is_2fa_enabled
 
     try:
-        logger.info("[LOGIN] Attempting login for email: %s", login_data.email)
         user = authenticate(request, username=login_data.email, password=login_data.password)
-        logger.info("[LOGIN] Authentication result: %s", user is not None)
 
         if user is None:
-            logger.warning("[LOGIN] Invalid credentials for email: %s", login_data.email)
             return 401, {
                 "message": "The username and password entered are incorrect.",
                 "success": False,
                 "code": "invalid_credentials",
             }
 
-        logger.info(
-            "[LOGIN] User authenticated: %s, is_staff: %s, is_superuser: %s",
-            user.email,
-            user.is_staff,
-            user.is_superuser,
-        )
         if not (user.is_staff or user.is_superuser):
-            logger.warning("[LOGIN] User not staff/superuser: %s", user.email)
             return 403, {
                 "message": "You do not have permission to access this resource.",
                 "success": False,
                 "code": "forbidden",
             }
 
-        # Check if 2FA is enabled
-        logger.info("[LOGIN] Checking 2FA status for: %s", user.email)
         if is_2fa_enabled(user):
-            logger.info("[LOGIN] 2FA required for: %s", user.email)
-            # Create a 2FA challenge instead of logging in
             token = create_2fa_challenge(user, request)
             return 200, {
                 "success": True,
@@ -117,11 +116,8 @@ def login_user(request: HttpRequest, login_data: LoginRequest) -> tuple[int, dic
                 "message": "Two-factor authentication is required",
             }
 
-        logger.info("[LOGIN] Calling Django login for: %s", user.email)
         login(request, user)
-        logger.info("[LOGIN] Getting CSRF token")
-        get_token(request)  # rotate/ensure CSRF with new session
-        logger.info("[LOGIN] Login successful for: %s", user.email)
+        get_token(request)
         return 200, {
             "user": transform_user_to_response(user),
             "message": "Login successful",
@@ -129,8 +125,8 @@ def login_user(request: HttpRequest, login_data: LoginRequest) -> tuple[int, dic
             "requires_2fa": False,
         }
 
-    except Exception as e:
-        logger.error("Login error: %s", str(e))
+    except Exception as exc:
+        logger.exception("Staff login failed unexpectedly: %s", exc)
         return 500, {"message": "An error has occurred.", "success": False, "code": "server_error"}
 
 
@@ -150,8 +146,8 @@ def logout_user(request: HttpRequest) -> tuple[int, dict[str, Any]]:
         logout(request)
         return 200, {"message": "Logout successful", "success": True}
 
-    except Exception as e:
-        logger.error("Logout error: %s", str(e))
+    except Exception as exc:
+        logger.exception("Staff logout failed unexpectedly: %s", exc)
         return 500, {"message": "An error has occurred.", "success": False, "code": "server_error"}
 
 
@@ -181,6 +177,6 @@ def get_current_user(request: HttpRequest) -> tuple[int, dict[str, Any]]:
             "success": True,
         }
 
-    except Exception as e:
-        logger.error("Get current user error: %s", str(e))
+    except Exception as exc:
+        logger.exception("Failed to resolve the current staff user: %s", exc)
         return 500, {"message": "An error has occurred.", "success": False, "code": "server_error"}
