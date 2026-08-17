@@ -17,29 +17,29 @@ The design must remain pragmatic. Features described as future work should influ
 ADB operates three distinct public brands:
 
 1. **ADB Software Solutions** — `adbsoftwaresolutions.co.uk`
-   - Bespoke software development.
-   - SaaS and application development.
-   - API and third-party integrations.
-   - Automation.
-   - Mobile applications.
-   - Software consultancy.
-   - ADB-owned software products.
+    - Bespoke software development.
+    - SaaS and application development.
+    - API and third-party integrations.
+    - Automation.
+    - Mobile applications.
+    - Software consultancy.
+    - ADB-owned software products.
 
 2. **ADB Web Designs** — `adbwebdesigns.co.uk`
-   - Website design and development.
-   - WordPress and Next.js delivery.
-   - Website rescue and remediation.
-   - Performance improvements.
-   - Hosting and maintenance.
-   - Ongoing website support.
+    - Website design and development.
+    - WordPress and Next.js delivery.
+    - Website rescue and remediation.
+    - Performance improvements.
+    - Hosting and maintenance.
+    - Ongoing website support.
 
 3. **ADB Technology** — `adbtechnology.co.uk`
-   - DevOps.
-   - Cloud and infrastructure engineering.
-   - IT consultancy.
-   - Systems administration.
-   - Technical support.
-   - Infrastructure and operational support services.
+    - DevOps.
+    - Cloud and infrastructure engineering.
+    - IT consultancy.
+    - Systems administration.
+    - Technical support.
+    - Infrastructure and operational support services.
 
 These brands have separate public websites and should not be treated as recoloured versions of one template. They share infrastructure and business operations, but their public positioning, information architecture, content and presentation may differ significantly.
 
@@ -197,7 +197,6 @@ This applies to resources such as:
 - future contracts and commercial records.
 
 Do not misuse Brand as the ownership mechanism. A resource may be internal yet related to one brand, client-owned yet serviced under another brand, or not brand-specific at all.
-
 ### 3.3 Client is the main operational context
 
 A Client represents a customer/business rather than merely a row of company details.
@@ -397,7 +396,6 @@ At minimum, distinguish:
 - deleting the credential.
 
 Credential reveals must be auditable.
-
 ### 5.6 Backend authority
 
 Every API query and mutation involving restricted data must enforce permissions in Django.
@@ -597,7 +595,6 @@ project = null
 internal = true
 recurrence = monthly
 ```
-
 Required concepts over time include:
 
 - title;
