@@ -2,15 +2,19 @@
  * Configuration for the shared ADB authentication service.
  */
 
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+export const API_URL =
+    process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-const DEFAULT_APP_URL = import.meta.env.VITE_APP_URL || "http://localhost:3001";
-const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || "http://localhost:3000";
+const DEFAULT_APP_URL =
+    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+const ADMIN_URL =
+    process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3000";
 const WEB_DESIGNS_URL =
-    import.meta.env.VITE_WEB_DESIGNS_URL || "http://localhost:3002";
+    process.env.NEXT_PUBLIC_WEB_DESIGNS_URL ?? "http://localhost:3002";
 const TECHNOLOGY_URL =
-    import.meta.env.VITE_TECHNOLOGY_URL || "http://localhost:3003";
-const AUTH_URL = import.meta.env.VITE_AUTH_URL || "http://localhost:5175";
+    process.env.NEXT_PUBLIC_TECHNOLOGY_URL ?? "http://localhost:3003";
+const AUTH_URL =
+    process.env.NEXT_PUBLIC_AUTH_URL ?? "http://localhost:3004";
 
 const ALLOWED_REDIRECT_ORIGINS = [
     DEFAULT_APP_URL,
@@ -49,6 +53,10 @@ export function isValidRedirectUrl(url: string): boolean {
  * Get the validated return URL from the current query string.
  */
 export function getRedirectUrl(): string {
+    if (typeof window === "undefined") {
+        return DEFAULT_APP_URL;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const next = params.get("next");
 

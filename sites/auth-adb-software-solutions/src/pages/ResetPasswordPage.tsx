@@ -1,10 +1,12 @@
 import Alert from "@/components/Alert";
 import {authApi} from "@/utils/api";
 import {useState} from "react";
-import {useParams} from "react-router-dom";
 
-export default function ResetPasswordPage() {
-    const {token} = useParams<{token: string}>();
+interface ResetPasswordPageProps {
+    token?: string;
+}
+
+export default function ResetPasswordPage({token}: ResetPasswordPageProps) {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);

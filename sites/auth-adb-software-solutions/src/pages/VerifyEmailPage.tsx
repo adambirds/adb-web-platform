@@ -2,10 +2,12 @@ import Alert from "@/components/Alert";
 import {authApi} from "@/utils/api";
 import {getRedirectUrl} from "@/utils/config";
 import {useEffect, useState} from "react";
-import {useParams} from "react-router-dom";
 
-export default function VerifyEmailPage() {
-    const {token} = useParams<{token: string}>();
+interface VerifyEmailPageProps {
+    token?: string;
+}
+
+export default function VerifyEmailPage({token}: VerifyEmailPageProps) {
     const [status, setStatus] = useState<"loading" | "success" | "error">(
         "loading",
     );
@@ -34,7 +36,7 @@ export default function VerifyEmailPage() {
             }
         };
 
-        verifyEmail();
+        void verifyEmail();
     }, [token]);
 
     if (status === "loading") {
@@ -70,9 +72,9 @@ export default function VerifyEmailPage() {
                             Set up 2FA (optional)
                         </a>
                         <button
+                            type="button"
                             onClick={() => {
-                                const redirectUrl = getRedirectUrl();
-                                window.location.href = redirectUrl;
+                                window.location.href = getRedirectUrl();
                             }}
                             className="btn btn-primary"
                         >
