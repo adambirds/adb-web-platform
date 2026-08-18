@@ -1,11 +1,7 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 
-from apps.access_control.models import (
-    ClientAccessGrant,
-    StaffAccessProfile,
-    TicketQueueAccessGrant,
-)
+from apps.access_control.models import ClientAccessGrant, StaffAccessProfile, TicketQueueAccessGrant
 
 
 @admin.register(StaffAccessProfile)

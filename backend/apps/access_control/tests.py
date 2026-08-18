@@ -1,10 +1,6 @@
 from django.test import TestCase
 
-from apps.access_control.models import (
-    ClientAccessGrant,
-    StaffAccessProfile,
-    TicketQueueAccessGrant,
-)
+from apps.access_control.models import ClientAccessGrant, StaffAccessProfile, TicketQueueAccessGrant
 from apps.access_control.policies import (
     can_access_client,
     can_access_ticket_queue,
