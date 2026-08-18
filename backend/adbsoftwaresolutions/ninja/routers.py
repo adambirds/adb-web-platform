@@ -15,6 +15,7 @@ from apps.infrastructure.ninja.admin_views import infrastructure_admin_router
 from apps.infrastructure.ninja.extended_views import infrastructure_extended_router
 from apps.tasks.ninja.admin_views import tasks_admin_router
 from apps.ticketing.ninja.admin_views import ticketing_admin_router
+from apps.ticketing.ninja.settings_views import ticketing_settings_router
 from apps.website.ninja.admin_views import website_admin_router
 from apps.website.ninja.views import website_misc_router, website_public_router
 from authentication.auth_service.views import auth_service_router
@@ -47,6 +48,7 @@ admin_router.add_router("", clients_admin_router)
 admin_router.add_router("", crm_admin_router)
 admin_router.add_router("", tasks_admin_router)
 admin_router.add_router("", ticketing_admin_router)
+admin_router.add_router("", ticketing_settings_router)
 admin_router.add_router("", infrastructure_admin_router)
 admin_router.add_router("", infrastructure_extended_router)
 admin_router.add_router("", resource_admin_router)
