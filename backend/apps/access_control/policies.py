@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django.db.models import QuerySet
 
 from apps.access_control.models import StaffAccessProfile
 from apps.clients.models import Client
+
+if TYPE_CHECKING:
+    from apps.ticketing.models import TicketQueue
 
 
 def get_access_profile(user: Any) -> StaffAccessProfile | None:
@@ -53,6 +56,22 @@ def scope_clients_for_user(
         return queryset
 
     return queryset.filter(access_grants__profile=profile).distinct()
+
+
+def can_access_ticket_queue(user: Any, queue: TicketQueue) -> bool:
+    """Check object-scope access to a ticket queue, independent of capability permission."""
+    if not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+
+    profile = get_access_profile(user)
+    if profile is None:
+        return False
+    if profile.all_ticket_queues:
+        return True
+
+    return profile.ticket_queue_grants.filter(queue=queue).exists()
 
 
 def scope_ticket_queues_for_user(user: Any, queryset: Any = None) -> Any:

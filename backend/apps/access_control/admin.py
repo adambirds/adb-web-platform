@@ -1,7 +1,11 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 
-from apps.access_control.models import ClientAccessGrant, StaffAccessProfile
+from apps.access_control.models import (
+    ClientAccessGrant,
+    StaffAccessProfile,
+    TicketQueueAccessGrant,
+)
 
 
 @admin.register(StaffAccessProfile)
@@ -16,3 +20,15 @@ class ClientAccessGrantAdmin(ModelAdmin):
     list_display = ("profile", "client", "granted_by", "created_at")
     list_filter = ("created_at",)
     search_fields = ("profile__user__email", "client__name", "client__company")
+
+
+@admin.register(TicketQueueAccessGrant)
+class TicketQueueAccessGrantAdmin(ModelAdmin):
+    list_display = ("profile", "queue", "granted_by", "created_at")
+    list_filter = ("queue", "created_at")
+    search_fields = (
+        "profile__user__email",
+        "queue__name",
+        "queue__key",
+        "queue__brand__name",
+    )
