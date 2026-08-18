@@ -4,6 +4,11 @@ import VerifyEmailPage from "@/pages/VerifyEmailPage";
 import {useParams} from "next/navigation";
 
 export default function Page() {
-    const {token} = useParams<{token: string}>();
-    return <VerifyEmailPage token={token} />;
+    const params = useParams<{token: string}>();
+
+    if (!params) {
+        return null;
+    }
+
+    return <VerifyEmailPage token={params.token} />;
 }
