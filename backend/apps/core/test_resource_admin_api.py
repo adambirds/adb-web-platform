@@ -14,6 +14,8 @@ class AdminResourceAPITests(TestCase):
         self.staff = User.objects.create_user(
             email="resource-staff@example.com",
             password="test-password",
+            first_name="Resource",
+            last_name="Staff",
             is_staff=True,
         )
         self.profile = StaffAccessProfile.objects.create(user=self.staff)
