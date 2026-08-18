@@ -1,4 +1,5 @@
-from datetime import datetime, timezone as datetime_timezone
+from datetime import datetime
+from datetime import timezone as datetime_timezone
 from unittest.mock import Mock
 
 import requests
@@ -75,9 +76,7 @@ class MicrosoftGraphAdapterTests(TestCase):
                         "toRecipients": [
                             {"emailAddress": {"address": "SUPPORT@ADB-TEST.EXAMPLE.TEST"}}
                         ],
-                        "ccRecipients": [
-                            {"emailAddress": {"address": "OTHER@EXAMPLE.TEST"}}
-                        ],
+                        "ccRecipients": [{"emailAddress": {"address": "OTHER@EXAMPLE.TEST"}}],
                         "bccRecipients": [],
                         "receivedDateTime": "2026-08-18T19:30:00Z",
                         "internetMessageId": "<message@example.test>",
@@ -219,9 +218,7 @@ class GraphMailboxSyncTests(TestCase):
         )
 
     def test_sync_does_not_checkpoint_delta_link_when_consumer_fails(self) -> None:
-        existing_delta_link = (
-            f"{GRAPH_API_ROOT}/users/mailbox/messages/delta?$deltatoken=existing"
-        )
+        existing_delta_link = f"{GRAPH_API_ROOT}/users/mailbox/messages/delta?$deltatoken=existing"
         self.mailbox.delta_link = existing_delta_link
         self.mailbox.save(update_fields=["delta_link"])
         adapter = Mock(spec=MicrosoftGraphAdapter)

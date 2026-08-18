@@ -3,7 +3,8 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone as datetime_timezone
+from datetime import datetime
+from datetime import timezone as datetime_timezone
 from typing import Any, cast
 from urllib.parse import quote, urlparse
 
@@ -150,7 +151,9 @@ class MicrosoftGraphAdapter:
                 "Microsoft Graph returned a non-JSON mailbox response."
             ) from exc
         if not isinstance(payload, dict):
-            raise MicrosoftGraphPayloadError("Microsoft Graph returned an invalid mailbox response.")
+            raise MicrosoftGraphPayloadError(
+                "Microsoft Graph returned an invalid mailbox response."
+            )
         return cast(dict[str, Any], payload)
 
     def _canonical_message(self, payload: dict[str, Any]) -> CanonicalMessage:
@@ -158,7 +161,8 @@ class MicrosoftGraphAdapter:
         if not provider_message_id:
             raise MicrosoftGraphPayloadError("Microsoft Graph message is missing its ID.")
 
-        body = payload.get("body") if isinstance(payload.get("body"), dict) else {}
+        body_value = payload.get("body")
+        body = cast(dict[str, Any], body_value) if isinstance(body_value, dict) else {}
         body_content = str(body.get("content") or "")
         body_content_type = str(body.get("contentType") or "").lower()
         body_html = body_content if body_content_type == "html" else ""
