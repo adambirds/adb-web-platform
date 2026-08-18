@@ -13,7 +13,9 @@ The implementation should build on the useful behaviour in the existing Stacked 
 - A ticket may be client-owned or unassociated while sender resolution/classification is pending.
 - A client ticket may identify a specific primary Client Contact while retaining all participants on individual messages.
 - Microsoft Graph connections and mailboxes are database-backed configuration, not hard-coded Django settings.
-- Multiple Microsoft tenants/connections and an arbitrary number of mailboxes must be supportable.
+- Microsoft Graph application authentication is connection-level infrastructure and must not be repeated for each mailbox.
+- ADB operational ticket mailboxes are Microsoft 365 Shared Mailboxes; licensed user mailboxes are not ticketing sources.
+- Multiple Microsoft tenants/connections and an arbitrary number of configured Shared Mailboxes must remain supportable.
 - Ingestion is idempotent. Provider message IDs and internet Message-ID values must prevent duplicate imports.
 - Normalisation, classification, routing and attachment scanning are explicit pipeline stages rather than a single polling function.
 - Backend permissions and object scopes remain authoritative.
@@ -37,11 +39,11 @@ Suggested fields:
 - last_error
 - created_at / updated_at
 
-Certificate/private-key material must use the platform credential/storage architecture rather than being returned through ordinary APIs.
+Certificate/private-key material must use the platform credential/storage architecture rather than being returned through ordinary APIs. Normal ticketing settings should present the connection as platform infrastructure rather than asking an operator to enter application or certificate details when adding each mailbox.
 
 ### Mailbox
 
-Represents one mailbox consumed by the platform.
+Represents one mailbox consumed by the platform. For the ADB Microsoft 365 tenant, operational ticket mailboxes are Shared Mailboxes.
 
 Suggested fields:
 
@@ -59,6 +61,8 @@ Suggested fields:
 - created_at / updated_at
 
 Examples include `support@adbwebdesigns.co.uk`, `support@adbsoftwaresolutions.co.uk`, `support@adbtechnology.co.uk` and accounts mailboxes.
+
+The Mailbox table is the application-level allow-list for ticket ingestion. A Shared Mailbox being accessible to the Graph application does not make it a ticket source until it is explicitly configured and enabled here.
 
 ### TicketQueue
 
@@ -207,7 +211,7 @@ Prefer Graph delta queries/subscriptions where practical rather than permanently
 
 The Graph integration must support:
 
-- multiple configured mailboxes;
+- multiple configured Shared Mailboxes;
 - reading messages and headers;
 - downloading file attachments;
 - preserving internet Message-ID, In-Reply-To and References values;
@@ -216,6 +220,26 @@ The Graph integration must support:
 - provider errors and retry state;
 - idempotent ingestion;
 - processed/archive behaviour that does not rely solely on marking messages read.
+
+### ADB Microsoft 365 deployment model
+
+The normal ADB deployment uses one tenant/application-level Graph connection with certificate-based application authentication configured once. Mailboxes added to ticketing reuse that connection; adding a mailbox must not require re-entering a certificate, client ID, tenant ID or interactive Microsoft login.
+
+Exchange Online must provide the outer security boundary for application mailbox access. Use Exchange Online RBAC for Applications with one dynamic management scope whose recipient restriction matches Microsoft 365 Shared Mailboxes, conceptually:
+
+```powershell
+New-ManagementScope `
+  -Name "ADB Ticketing Shared Mailboxes" `
+  -RecipientRestrictionFilter "RecipientTypeDetails -eq 'SharedMailbox'"
+```
+
+The required Exchange application mail roles are assigned to that scope once. Because the scope is property-based, a newly-created Shared Mailbox enters the scope automatically without creating another RBAC rule. Licensed `UserMailbox` recipients do not match this scope and are therefore outside the ticketing application's intended Exchange resource boundary.
+
+Do not combine this resource-scoped Exchange permission model with an equivalent unscoped Microsoft Entra mail grant in a way that restores organisation-wide mailbox access. Exchange RBAC for Applications and Entra application grants are additive, so deployment configuration must preserve the scoped boundary.
+
+The application then applies a narrower operational selection: Celery only synchronises enabled `Mailbox` records stored in the ADB database. The Graph application being technically allowed to access all Shared Mailboxes is not permission to enumerate or ingest every Shared Mailbox automatically.
+
+For a deployment with exactly one enabled Graph connection, mailbox creation should automatically use it. If multiple Microsoft 365 tenant connections are configured in future, the admin UI may ask which connection owns the Shared Mailbox.
 
 ## Thread matching
 
