@@ -8,7 +8,14 @@ from apps.access_control.policies import scope_clients_for_user
 from apps.clients.models import Project, TimeEntry
 from authentication.ninja.schemas import ProblemDetail
 
-from .schemas import ClientSummaryOut, ProjectSummaryOut, TimeEntrySummaryOut
+from .schemas import (
+    ClientContactOut,
+    ClientDetailOut,
+    ClientProjectOut,
+    ClientSummaryOut,
+    ProjectSummaryOut,
+    TimeEntrySummaryOut,
+)
 
 clients_admin_router = Router(tags=["admin-clients"])
 
@@ -31,20 +38,27 @@ def _staff_problem(request: HttpRequest) -> StaffProblem | None:
     return None
 
 
+def _permission_problem(request: HttpRequest, permission: str) -> StaffProblem | None:
+    staff_problem = _staff_problem(request)
+    if staff_problem:
+        return staff_problem
+    if not request.user.has_perm(permission):
+        return 403, {
+            "message": "You do not have permission to access this resource.",
+            "success": False,
+            "code": "forbidden",
+        }
+    return None
+
+
 @clients_admin_router.get(
     "/clients",
     response={200: list[ClientSummaryOut], 401: ProblemDetail, 403: ProblemDetail},
 )
 def list_clients(request: HttpRequest) -> list[ClientSummaryOut] | StaffProblem:
-    staff_problem = _staff_problem(request)
-    if staff_problem:
-        return staff_problem
-    if not request.user.has_perm("clients.view_client"):
-        return 403, {
-            "message": "You do not have permission to view clients.",
-            "success": False,
-            "code": "forbidden",
-        }
+    problem = _permission_problem(request, "clients.view_client")
+    if problem:
+        return problem
 
     clients = scope_clients_for_user(request.user).annotate(
         contact_count=Count("contacts", distinct=True),
@@ -66,19 +80,84 @@ def list_clients(request: HttpRequest) -> list[ClientSummaryOut] | StaffProblem:
 
 
 @clients_admin_router.get(
+    "/clients/{client_id}",
+    response={200: ClientDetailOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
+)
+def get_client(request: HttpRequest, client_id: int) -> ClientDetailOut | StaffProblem:
+    problem = _permission_problem(request, "clients.view_client")
+    if problem:
+        return problem
+
+    client = (
+        scope_clients_for_user(request.user)
+        .prefetch_related("contacts", "projects")
+        .filter(id=client_id)
+        .first()
+    )
+    if client is None:
+        return 404, {
+            "message": "Client not found or outside your access scope.",
+            "success": False,
+            "code": "not_found",
+        }
+
+    contacts = []
+    if request.user.has_perm("clients.view_clientcontact"):
+        contacts = [
+            ClientContactOut(
+                id=contact.id,
+                name=contact.name,
+                email=contact.email,
+                phone=contact.phone,
+                role=contact.role,
+                is_active=contact.is_active,
+                is_primary=contact.is_primary,
+                is_billing=contact.is_billing,
+                is_technical=contact.is_technical,
+            )
+            for contact in client.contacts.all()
+        ]
+
+    projects = []
+    if request.user.has_perm("clients.view_project"):
+        projects = [
+            ClientProjectOut(
+                id=project.id,
+                name=project.name,
+                status=project.status,
+                start_date=project.start_date,
+                end_date=project.end_date,
+                budget=project.budget,
+            )
+            for project in client.projects.all()
+        ]
+
+    return ClientDetailOut(
+        id=client.id,
+        name=client.name,
+        company=client.company,
+        email=client.email,
+        phone=client.phone,
+        address=client.address,
+        city=client.city,
+        state=client.state,
+        country=client.country,
+        postal_code=client.postal_code,
+        status=client.status,
+        notes=client.notes,
+        contacts=contacts,
+        projects=projects,
+    )
+
+
+@clients_admin_router.get(
     "/projects",
     response={200: list[ProjectSummaryOut], 401: ProblemDetail, 403: ProblemDetail},
 )
 def list_projects(request: HttpRequest) -> list[ProjectSummaryOut] | StaffProblem:
-    staff_problem = _staff_problem(request)
-    if staff_problem:
-        return staff_problem
-    if not request.user.has_perm("clients.view_project"):
-        return 403, {
-            "message": "You do not have permission to view projects.",
-            "success": False,
-            "code": "forbidden",
-        }
+    problem = _permission_problem(request, "clients.view_project")
+    if problem:
+        return problem
 
     projects = Project.objects.select_related("client")
     if not request.user.is_superuser:
@@ -106,15 +185,9 @@ def list_projects(request: HttpRequest) -> list[ProjectSummaryOut] | StaffProble
     response={200: list[TimeEntrySummaryOut], 401: ProblemDetail, 403: ProblemDetail},
 )
 def list_time_entries(request: HttpRequest) -> list[TimeEntrySummaryOut] | StaffProblem:
-    staff_problem = _staff_problem(request)
-    if staff_problem:
-        return staff_problem
-    if not request.user.has_perm("clients.view_timeentry"):
-        return 403, {
-            "message": "You do not have permission to view time entries.",
-            "success": False,
-            "code": "forbidden",
-        }
+    problem = _permission_problem(request, "clients.view_timeentry")
+    if problem:
+        return problem
 
     entries = TimeEntry.objects.select_related("client", "project", "user")
     if not request.user.is_superuser:
