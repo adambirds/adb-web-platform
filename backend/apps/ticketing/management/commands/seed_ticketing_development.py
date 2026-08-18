@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from django.conf import settings
@@ -25,7 +25,9 @@ class Command(BaseCommand):
 
     def handle(self, *args: Any, **options: Any) -> None:
         if not settings.DEBUG and not options["force"]:
-            raise CommandError("Refusing to seed ticketing data when DEBUG is disabled. Use --force in disposable environments.")
+            raise CommandError(
+                "Refusing to seed ticketing data when DEBUG is disabled. Use --force in disposable environments."
+            )
 
         scale = max(1, options["scale"])
         if options["reset"]:
@@ -33,7 +35,9 @@ class Command(BaseCommand):
             TicketQueue.objects.filter(key__startswith="demo-").delete()
 
         brands = list(Brand.objects.filter(is_active=True).order_by("id"))
-        clients = list(Client.objects.filter(status="active").prefetch_related("contacts").order_by("id"))
+        clients = list(
+            Client.objects.filter(status="active").prefetch_related("contacts").order_by("id")
+        )
         if not brands:
             raise CommandError("Seed the core platform first so active brands exist.")
         if not clients:
@@ -52,7 +56,13 @@ class Command(BaseCommand):
             Ticket.Status.RESOLVED,
             Ticket.Status.CLOSED,
         ]
-        priorities = [Ticket.Priority.NORMAL, Ticket.Priority.NORMAL, Ticket.Priority.HIGH, Ticket.Priority.URGENT, Ticket.Priority.LOW]
+        priorities = [
+            Ticket.Priority.NORMAL,
+            Ticket.Priority.NORMAL,
+            Ticket.Priority.HIGH,
+            Ticket.Priority.URGENT,
+            Ticket.Priority.LOW,
+        ]
         classifications = [
             Ticket.Classification.CLIENT_SUPPORT,
             Ticket.Classification.CLIENT_SUPPORT,
@@ -72,37 +82,47 @@ class Command(BaseCommand):
                 queue = queues[(brand.id, "sales")]
             elif classification == Ticket.Classification.ACCOUNTS:
                 queue = queues[(brand.id, "accounts")]
-            elif classification in {Ticket.Classification.VENDOR, Ticket.Classification.AUTOMATED_SYSTEM}:
+            elif classification in {
+                Ticket.Classification.VENDOR,
+                Ticket.Classification.AUTOMATED_SYSTEM,
+            }:
                 queue = queues[(brand.id, "operations")]
             elif classification == Ticket.Classification.PROBABLE_SPAM:
                 queue = queues[(brand.id, "quarantine")]
 
-            client = clients[index % len(clients)] if classification != Ticket.Classification.PROBABLE_SPAM else None
+            client = (
+                clients[index % len(clients)]
+                if classification != Ticket.Classification.PROBABLE_SPAM
+                else None
+            )
             contact = None
             if client is not None:
                 contact = client.contacts.filter(is_active=True).order_by("id").first()
 
             last_message_at = now - timedelta(hours=index * 3)
+            status = statuses[index % len(statuses)]
             ticket = Ticket.objects.create(
                 brand=brand,
                 queue=queue,
                 client=client,
                 primary_contact=contact,
                 subject=f"{DEMO_PREFIX} {self._subject_for(index, classification)}",
-                status=statuses[index % len(statuses)],
+                status=status,
                 priority=priorities[index % len(priorities)],
                 classification=classification,
                 source=Ticket.Source.EMAIL if index % 4 else Ticket.Source.CONTACT_FORM,
                 assigned_to=staff_user if index % 3 else None,
                 first_response_at=last_message_at + timedelta(minutes=24) if index % 4 else None,
                 last_message_at=last_message_at,
-                resolved_at=last_message_at if statuses[index % len(statuses)] == Ticket.Status.RESOLVED else None,
-                closed_at=last_message_at if statuses[index % len(statuses)] == Ticket.Status.CLOSED else None,
+                resolved_at=last_message_at if status == Ticket.Status.RESOLVED else None,
+                closed_at=last_message_at if status == Ticket.Status.CLOSED else None,
             )
             self._create_thread(ticket, contact, staff_user, last_message_at, index)
             created += 1
 
-        self.stdout.write(self.style.SUCCESS(f"Created {created} demo tickets across {len(queues)} queues."))
+        self.stdout.write(
+            self.style.SUCCESS(f"Created {created} demo tickets across {len(queues)} queues.")
+        )
 
     def _create_queues(self, brands: list[Brand]) -> dict[tuple[int, str], TicketQueue]:
         result: dict[tuple[int, str], TicketQueue] = {}
@@ -134,7 +154,7 @@ class Command(BaseCommand):
         ticket: Ticket,
         contact: ClientContact | None,
         staff_user: Any | None,
-        last_message_at: Any,
+        last_message_at: datetime,
         index: int,
     ) -> None:
         sender_name = contact.name if contact else "Unknown Sender"
@@ -148,8 +168,13 @@ class Command(BaseCommand):
             to_recipients=[f"support@{ticket.brand.domain}"],
             matched_contact=contact,
             subject=ticket.subject.removeprefix(f"{DEMO_PREFIX} "),
-            body_text="Hello, this is a realistic development ticket used to exercise the support workspace.\n\nRegards,\nDemo Customer",
-            body_text_normalised="Hello, this is a realistic development ticket used to exercise the support workspace.",
+            body_text=(
+                "Hello, this is a realistic development ticket used to exercise the support "
+                "workspace.\n\nRegards,\nDemo Customer"
+            ),
+            body_text_normalised=(
+                "Hello, this is a realistic development ticket used to exercise the support workspace."
+            ),
             provider="demo",
             provider_message_id=f"demo-inbound-{ticket.reference}",
             internet_message_id=f"<demo-inbound-{ticket.reference}@example.test>",
@@ -180,9 +205,16 @@ class Command(BaseCommand):
                 sender_name="ADB Support",
                 sender_address=f"support@{ticket.brand.domain}",
                 to_recipients=[sender_address],
-                subject=f"Re: [{ticket.reference}] {ticket.subject.removeprefix(f'{DEMO_PREFIX} ')}",
-                body_text="Thanks for getting in touch. We are looking into this and will update you shortly.",
-                body_text_normalised="Thanks for getting in touch. We are looking into this and will update you shortly.",
+                subject=(
+                    f"Re: [{ticket.reference}] "
+                    f"{ticket.subject.removeprefix(f'{DEMO_PREFIX} ')}"
+                ),
+                body_text=(
+                    "Thanks for getting in touch. We are looking into this and will update you shortly."
+                ),
+                body_text_normalised=(
+                    "Thanks for getting in touch. We are looking into this and will update you shortly."
+                ),
                 provider="demo",
                 provider_message_id=f"demo-outbound-{ticket.reference}",
                 internet_message_id=f"<demo-outbound-{ticket.reference}@example.test>",
@@ -197,11 +229,14 @@ class Command(BaseCommand):
             TicketNote.objects.create(
                 ticket=ticket,
                 author=staff_user,
-                body="Demo internal note: check the client's infrastructure and recent project history before the next reply.",
+                body=(
+                    "Demo internal note: check the client's infrastructure and recent project "
+                    "history before the next reply."
+                ),
             )
 
-    def _subject_for(self, index: int, classification: str) -> str:
-        subjects = {
+    def _subject_for(self, index: int, classification: Ticket.Classification) -> str:
+        subjects: dict[Ticket.Classification, str] = {
             Ticket.Classification.CLIENT_SUPPORT: "Website issue needs investigation",
             Ticket.Classification.SALES: "New software project enquiry",
             Ticket.Classification.ACCOUNTS: "Question about an invoice",
