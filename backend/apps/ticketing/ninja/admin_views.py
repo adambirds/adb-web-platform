@@ -33,6 +33,7 @@ class TicketFilters(Schema):
     priority: str | None = None
     classification: str | None = None
     client_id: int | None = None
+    primary_contact_id: int | None = None
     assigned_to_id: int | None = None
     source: str | None = None
     search: str | None = None
@@ -147,6 +148,8 @@ def list_tickets(
         tickets = tickets.filter(classification=filters.classification)
     if filters.client_id:
         tickets = tickets.filter(client_id=filters.client_id)
+    if filters.primary_contact_id:
+        tickets = tickets.filter(primary_contact_id=filters.primary_contact_id)
     if filters.assigned_to_id:
         tickets = tickets.filter(assigned_to_id=filters.assigned_to_id)
     if filters.source:
