@@ -6,6 +6,7 @@ export * from "./DataState";
 export * from "./EmptyState";
 export * from "./Input";
 export * from "./PageHeader";
+export * from "./ResourceRegister";
 export * from "./SectionHeader";
 export * from "./Select";
 export * from "./StatCard";

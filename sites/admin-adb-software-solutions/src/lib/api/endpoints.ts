@@ -29,6 +29,12 @@ export const AdminAPI = {
     leads: {
         list: () => `${API_BASE_URL}/admin/leads`,
     },
+    credentials: {
+        list: () => `${API_BASE_URL}/admin/credentials`,
+    },
+    knowledgeBase: {
+        list: () => `${API_BASE_URL}/admin/knowledge-base`,
+    },
     infrastructure: {
         summary: () => `${API_BASE_URL}/admin/infrastructure/summary`,
         servers: () => `${API_BASE_URL}/admin/infrastructure/servers`,

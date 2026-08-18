@@ -126,7 +126,7 @@ const navigation: NavigationGroup[] = [
             },
             {
                 label: "Applications",
-                href: "/admin/infrastructure",
+                href: "/admin/infrastructure/applications",
                 icon: CloudIcon,
                 permissions: ["infrastructure.view_application"],
             },
@@ -245,9 +245,7 @@ function SidebarContent({
                                             key={`${group.label}-${item.label}`}
                                             href={item.href}
                                             onClick={onNavigate}
-                                            title={
-                                                collapsed ? item.label : undefined
-                                            }
+                                            title={collapsed ? item.label : undefined}
                                             className={`group flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition ${
                                                 active
                                                     ? "bg-slate-800 text-white shadow-inner shadow-black/20"

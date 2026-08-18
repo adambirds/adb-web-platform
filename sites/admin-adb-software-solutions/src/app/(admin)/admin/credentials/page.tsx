@@ -1,25 +1,41 @@
-export const metadata = {
-    title: "Credentials",
-};
+"use client";
+
+import { Container, PageHeader, ResourceRegister } from "@/components/ui";
+import { AdminAPI } from "@/lib/api/endpoints";
 
 export default function CredentialsPage() {
     return (
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between">
-                <h1 className="text-adb-navy text-3xl font-bold dark:text-white">
-                    Credentials
-                </h1>
-                <button className="bg-adb-cyan text-adb-navy-950 hover:bg-adb-cyan-600 rounded-lg px-4 py-2 font-medium transition">
-                    Add Credential
-                </button>
+        <Container className="py-8">
+            <PageHeader
+                title="Credentials"
+                description="Credential metadata available within your current client scope. Secret values are never returned by this register."
+            />
+            <div className="mt-6">
+                <ResourceRegister
+                    endpoint={AdminAPI.credentials.list()}
+                    loadingLabel="Loading credential inventory..."
+                    emptyTitle="No credentials in your scope"
+                    emptyDescription="Credential metadata will appear here once records exist and your access profile allows them."
+                    columns={[
+                        {
+                            key: "name",
+                            label: "Credential",
+                            render: (value) => (
+                                <span className="font-medium text-slate-100">
+                                    {String(value)}
+                                </span>
+                            ),
+                        },
+                        { key: "ownership_type", label: "Ownership" },
+                        { key: "client", label: "Client" },
+                        { key: "credential_type", label: "Type" },
+                        { key: "username", label: "Username" },
+                        { key: "url", label: "URL" },
+                        { key: "expires_at", label: "Expires" },
+                        { key: "last_rotated_at", label: "Last rotated" },
+                    ]}
+                />
             </div>
-
-            <div className="border-adb-navy-200 dark:border-adb-navy-800 dark:bg-adb-navy-900 mt-8 rounded-lg border bg-white p-8 text-center">
-                <p className="text-adb-navy-600 dark:text-adb-navy-300">
-                    No credentials saved yet. Store your secure credentials
-                    here.
-                </p>
-            </div>
-        </div>
+        </Container>
     );
 }

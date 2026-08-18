@@ -9,6 +9,7 @@ from pydantic import ValidationError
 
 from apps.clients.ninja.admin_views import clients_admin_router
 from apps.core.ninja.admin_views import core_admin_router
+from apps.core.ninja.resource_views import resource_admin_router
 from apps.crm.ninja.admin_views import crm_admin_router
 from apps.infrastructure.ninja.admin_views import infrastructure_admin_router
 from apps.infrastructure.ninja.extended_views import infrastructure_extended_router
@@ -46,6 +47,7 @@ admin_router.add_router("", crm_admin_router)
 admin_router.add_router("", tasks_admin_router)
 admin_router.add_router("", infrastructure_admin_router)
 admin_router.add_router("", infrastructure_extended_router)
+admin_router.add_router("", resource_admin_router)
 admin_router.add_router("/website", website_admin_router)
 api.add_router("/admin", admin_router)
 
