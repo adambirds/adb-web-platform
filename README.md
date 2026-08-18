@@ -2,17 +2,16 @@
 
 Shared web and business-operations platform for the ADB brands.
 
-The repository contains the three public ADB websites, a shared authentication/account application, the internal administration application, and the Django backend that powers both public content and internal operations.
+The repository contains the three public ADB websites, a shared authentication/account application, the internal administration workspace, and the Django backend that powers both public content and internal operations.
 
 ## Applications
 
 All browser-facing applications live under `sites/`:
 
-- `sites/adb-software-solutions/` — public ADB Software Solutions website.
+- `sites/adb-software-solutions/` — combined ADB Software Solutions application. Public marketing routes live alongside the authenticated internal operations workspace under `/admin`.
 - `sites/adb-web-designs/` — public ADB Web Designs website.
 - `sites/adb-technology/` — public ADB Technology website for DevOps, IT consultancy, infrastructure, and support services.
 - `sites/auth-adb-software-solutions/` — shared authentication, account-security, passkey, TOTP, and session-management frontend.
-- `sites/admin-adb-software-solutions/` — internal Next.js administration and business-operations application.
 
 The shared Django backend lives at `backend/`, while reusable frontend/tooling packages live under `packages/`.
 
@@ -66,18 +65,17 @@ After opening the repository in the container, the primary development services 
 
 ```text
 Django backend             http://localhost:8000
-Internal admin website     http://localhost:3000
-ADB Software Solutions     http://localhost:3001
+ADB Software Solutions     http://localhost:3000
+  Internal admin           http://localhost:3000/admin
 ADB Web Designs            http://localhost:3002
 ADB Technology             http://localhost:3003
-Authentication frontend    http://localhost:5173
+Authentication frontend    http://localhost:3004
 Flower                      http://localhost:5555
 ```
 
 Useful root commands:
 
 ```bash
-pnpm dev:admin
 pnpm dev:auth
 pnpm dev:software-solutions
 pnpm dev:web-designs
