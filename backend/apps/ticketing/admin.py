@@ -1,7 +1,29 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 
-from apps.ticketing.models import Ticket, TicketAttachment, TicketMessage, TicketNote, TicketQueue
+from apps.ticketing.models import (
+    Mailbox,
+    MicrosoftGraphConnection,
+    Ticket,
+    TicketAttachment,
+    TicketMessage,
+    TicketNote,
+    TicketQueue,
+)
+
+
+@admin.register(MicrosoftGraphConnection)
+class MicrosoftGraphConnectionAdmin(ModelAdmin):
+    list_display = (
+        "name",
+        "tenant_id",
+        "client_id",
+        "authentication_method",
+        "enabled",
+        "last_verified_at",
+    )
+    list_filter = ("authentication_method", "enabled")
+    search_fields = ("name", "tenant_id", "client_id")
 
 
 @admin.register(TicketQueue)
@@ -9,6 +31,21 @@ class TicketQueueAdmin(ModelAdmin):
     list_display = ("name", "key", "brand", "purpose", "enabled", "ordering")
     list_filter = ("enabled", "brand")
     search_fields = ("name", "key", "purpose")
+
+
+@admin.register(Mailbox)
+class MailboxAdmin(ModelAdmin):
+    list_display = (
+        "email_address",
+        "brand",
+        "purpose",
+        "default_queue",
+        "graph_connection",
+        "enabled",
+        "last_successful_sync_at",
+    )
+    list_filter = ("brand", "purpose", "enabled", "graph_connection")
+    search_fields = ("email_address", "display_name", "graph_user_id")
 
 
 @admin.register(Ticket)
@@ -23,7 +60,7 @@ class TicketAdmin(ModelAdmin):
         "assigned_to",
         "last_message_at",
     )
-    list_filter = ("brand", "queue", "status", "priority", "classification", "source")
+    list_filter = ("brand", "queue", "mailbox", "status", "priority", "classification", "source")
     search_fields = ("reference", "subject", "client__name", "client__company")
     readonly_fields = ("reference", "created_at", "updated_at")
 
