@@ -3,6 +3,7 @@ RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
 WORKDIR /app
 COPY . .
 RUN pnpm install --frozen-lockfile --filter ./sites/adb-software-solutions...
+RUN if [ -f sites/adb-software-solutions/.ci.env ]; then cp sites/adb-software-solutions/.ci.env sites/adb-software-solutions/.env.production; fi
 RUN pnpm --dir sites/adb-software-solutions build
 
 FROM node:22-alpine AS runner
