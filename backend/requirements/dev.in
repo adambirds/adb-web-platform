@@ -6,16 +6,16 @@
 -r mypy.in
 
 # For sorting imports
-isort==6.0.1
+isort==8.0.1
 
 # Python reformatter
-black==25.1.0
+black==26.5.1
 
 # For linting Git commit messages
 gitlint-core==0.19.1
 
 # Needed for updating the locked pip dependencies
-pip-tools==7.5.0
+pip-tools==7.6.1
 
 # Linting framework
 adamlint==1.1.0
@@ -26,8 +26,8 @@ codespell==2.4.1
 # For code coverage
 
 coverage==7.10.3
-django-coverage-plugin==3.1.1
+django-coverage-plugin==3.2.2
 
 flake8==7.3.0
 
-ruff==0.12.11
+ruff==0.16.3
