@@ -33,6 +33,10 @@ export const AdminAPI = {
         list: (query = "") => `${API_BASE_URL}/admin/tickets${query ? `?${query}` : ""}`,
         get: (id: number) => `${API_BASE_URL}/admin/tickets/${id}`,
         queues: () => `${API_BASE_URL}/admin/ticket-queues`,
+        settings: {
+            graphConnections: () => `${API_BASE_URL}/admin/settings/ticketing/graph-connections`,
+            mailboxes: () => `${API_BASE_URL}/admin/settings/ticketing/mailboxes`,
+        },
     },
     credentials: {
         list: () => `${API_BASE_URL}/admin/credentials`,
