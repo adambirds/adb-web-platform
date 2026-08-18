@@ -10,6 +10,56 @@ from apps.clients.models import Client, ClientContact
 from apps.core.models import Brand
 
 
+class MicrosoftGraphConnection(models.Model):
+    """Tenant/application-level Microsoft Graph configuration.
+
+    Secret material is referenced through the platform credential store rather
+    than duplicated on the Graph connection record.
+    """
+
+    class AuthenticationMethod(models.TextChoices):
+        CERTIFICATE = "certificate", "Certificate"
+        CLIENT_SECRET = "client_secret", "Client secret"
+        DELEGATED = "delegated", "Delegated OAuth"
+
+    name = models.CharField(max_length=160)
+    tenant_id = models.CharField(max_length=255)
+    client_id = models.CharField(max_length=255)
+    authentication_method = models.CharField(
+        max_length=32,
+        choices=AuthenticationMethod.choices,
+        default=AuthenticationMethod.CERTIFICATE,
+    )
+    credential = models.ForeignKey(
+        "credentials.StoredCredential",
+        on_delete=models.PROTECT,
+        related_name="microsoft_graph_connections",
+        null=True,
+        blank=True,
+        help_text="Internal credential containing the certificate/private key or client secret.",
+    )
+    enabled = models.BooleanField(default=True)
+    last_verified_at = models.DateTimeField(null=True, blank=True)
+    last_error = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tenant_id", "client_id"],
+                name="unique_graph_tenant_client",
+            )
+        ]
+        permissions = [
+            ("configure_graph_connections", "Can configure Microsoft Graph connections"),
+        ]
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class TicketQueue(models.Model):
     name = models.CharField(max_length=120)
     key = models.SlugField(max_length=80, unique=True)
@@ -35,6 +85,56 @@ class TicketQueue(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+class Mailbox(models.Model):
+    """One Microsoft 365 mailbox ingested into ticketing."""
+
+    class Purpose(models.TextChoices):
+        SUPPORT = "support", "Support"
+        SALES = "sales", "Sales"
+        ACCOUNTS = "accounts", "Accounts"
+        OPERATIONS = "operations", "Operations"
+        GENERAL = "general", "General"
+
+    graph_connection = models.ForeignKey(
+        MicrosoftGraphConnection,
+        on_delete=models.PROTECT,
+        related_name="mailboxes",
+    )
+    email_address = models.EmailField()
+    display_name = models.CharField(max_length=255, blank=True)
+    graph_user_id = models.CharField(max_length=255, blank=True)
+    brand = models.ForeignKey(Brand, on_delete=models.PROTECT, related_name="ticket_mailboxes")
+    purpose = models.CharField(max_length=24, choices=Purpose.choices, default=Purpose.SUPPORT)
+    default_queue = models.ForeignKey(
+        TicketQueue,
+        on_delete=models.PROTECT,
+        related_name="mailboxes",
+    )
+    enabled = models.BooleanField(default=True)
+    delta_link = models.TextField(blank=True)
+    last_synced_at = models.DateTimeField(null=True, blank=True)
+    last_successful_sync_at = models.DateTimeField(null=True, blank=True)
+    last_error = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["brand__name", "email_address"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["graph_connection", "email_address"],
+                name="unique_graph_mailbox_address",
+            )
+        ]
+        permissions = [
+            ("configure_mailboxes", "Can configure ticket mailboxes"),
+            ("sync_mailbox", "Can trigger mailbox synchronisation"),
+        ]
+
+    def __str__(self) -> str:
+        return self.display_name or self.email_address
 
 
 class Ticket(models.Model):
@@ -73,6 +173,13 @@ class Ticket(models.Model):
     reference = models.CharField(max_length=24, unique=True, editable=False, db_index=True)
     brand = models.ForeignKey(Brand, on_delete=models.PROTECT, related_name="tickets")
     queue = models.ForeignKey(TicketQueue, on_delete=models.PROTECT, related_name="tickets")
+    mailbox = models.ForeignKey(
+        Mailbox,
+        on_delete=models.PROTECT,
+        related_name="tickets",
+        null=True,
+        blank=True,
+    )
     client = models.ForeignKey(
         Client,
         on_delete=models.SET_NULL,
