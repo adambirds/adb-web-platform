@@ -18,6 +18,7 @@ import {
 import { AdminAPI } from "@/lib/api/endpoints";
 import { fetchAPI } from "@/lib/api/fetch";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface TicketListItem {
@@ -63,7 +64,9 @@ function priorityClass(priority: string) {
 function statusClass(status: string) {
     if (status === "new") return "border-cyan-900/60 bg-cyan-950/40 text-cyan-300";
     if (status === "open") return "border-blue-900/60 bg-blue-950/40 text-blue-300";
-    if (status === "waiting_customer") return "border-violet-900/60 bg-violet-950/40 text-violet-300";
+    if (status === "waiting_customer") {
+        return "border-violet-900/60 bg-violet-950/40 text-violet-300";
+    }
     if (status === "resolved" || status === "closed") {
         return "border-emerald-900/50 bg-emerald-950/30 text-emerald-400";
     }
@@ -82,6 +85,9 @@ function formatDate(value: string | null) {
 }
 
 export function TicketList() {
+    const searchParams = useSearchParams();
+    const clientId = searchParams.get("client_id");
+    const contactId = searchParams.get("primary_contact_id");
     const [data, setData] = useState<TicketPage | null>(null);
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
@@ -95,11 +101,13 @@ export function TicketList() {
             page: String(page),
             page_size: "25",
         });
+        if (clientId) params.set("client_id", clientId);
+        if (contactId) params.set("primary_contact_id", contactId);
         if (search.trim()) params.set("search", search.trim());
         if (status) params.set("status", status);
         if (priority) params.set("priority", priority);
         return params.toString();
-    }, [page, priority, search, status]);
+    }, [clientId, contactId, page, priority, search, status]);
 
     const loadTickets = useCallback(async () => {
         try {
@@ -125,7 +133,7 @@ export function TicketList() {
 
     useEffect(() => {
         setPage(1);
-    }, [priority, search, status]);
+    }, [clientId, contactId, priority, search, status]);
 
     if (isLoading && !data) {
         return <DataLoading label="Loading ticket queues..." />;
@@ -136,9 +144,23 @@ export function TicketList() {
     }
 
     const tickets = data?.items ?? [];
+    const scoped = Boolean(clientId || contactId);
 
     return (
         <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950/60">
+            {scoped ? (
+                <div className="flex items-center justify-between gap-4 border-b border-slate-800 bg-cyan-950/10 px-4 py-3">
+                    <p className="text-xs text-cyan-300">
+                        This view is scoped to a client{contactId ? " contact" : ""}.
+                    </p>
+                    <Link
+                        href="/admin/tickets"
+                        className="text-xs font-medium text-slate-400 hover:text-white"
+                    >
+                        Clear scope
+                    </Link>
+                </div>
+            ) : null}
             <div className="grid gap-3 border-b border-slate-800 p-4 lg:grid-cols-[minmax(0,1fr)_220px_180px]">
                 <Input
                     value={search}
@@ -200,29 +222,45 @@ export function TicketList() {
                                         {ticket.subject}
                                     </Link>
                                     <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                                        <span className="font-mono text-slate-400">{ticket.reference}</span>
+                                        <span className="font-mono text-slate-400">
+                                            {ticket.reference}
+                                        </span>
                                         <span>{label(ticket.classification)}</span>
                                         <span>{ticket.message_count} messages</span>
                                     </div>
                                 </TableCell>
                                 <TableCell>
                                     <div className="text-slate-300">{ticket.queue_name}</div>
-                                    <div className="mt-1 text-xs text-slate-500">{ticket.brand_name}</div>
+                                    <div className="mt-1 text-xs text-slate-500">
+                                        {ticket.brand_name}
+                                    </div>
                                 </TableCell>
                                 <TableCell>
-                                    <div className="text-slate-300">{ticket.client_name || "Unmatched sender"}</div>
+                                    <div className="text-slate-300">
+                                        {ticket.client_name || "Unmatched sender"}
+                                    </div>
                                     {ticket.primary_contact_name ? (
-                                        <div className="mt-1 text-xs text-slate-500">{ticket.primary_contact_name}</div>
+                                        <div className="mt-1 text-xs text-slate-500">
+                                            {ticket.primary_contact_name}
+                                        </div>
                                     ) : null}
                                 </TableCell>
                                 <TableCell>
-                                    <Badge className={statusClass(ticket.status)}>{label(ticket.status)}</Badge>
+                                    <Badge className={statusClass(ticket.status)}>
+                                        {label(ticket.status)}
+                                    </Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <Badge className={priorityClass(ticket.priority)}>{label(ticket.priority)}</Badge>
+                                    <Badge className={priorityClass(ticket.priority)}>
+                                        {label(ticket.priority)}
+                                    </Badge>
                                 </TableCell>
-                                <TableCell className="text-slate-400">{formatDate(ticket.last_message_at)}</TableCell>
-                                <TableCell className="text-slate-400">{ticket.assigned_to_name || "Unassigned"}</TableCell>
+                                <TableCell className="text-slate-400">
+                                    {formatDate(ticket.last_message_at)}
+                                </TableCell>
+                                <TableCell className="text-slate-400">
+                                    {ticket.assigned_to_name || "Unassigned"}
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
