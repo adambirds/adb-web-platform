@@ -3,13 +3,13 @@ from typing import Union
 
 import graphene
 import stripe
+from apps.payments.models import Customer
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.middleware.csrf import get_token
 from django.utils import timezone
 from graphql import GraphQLError
 
-from apps.payments.models import Customer
 from authentication.tasks import send_verification_email
 from authentication.types import UserType
 

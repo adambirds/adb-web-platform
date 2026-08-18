@@ -3,13 +3,12 @@ import traceback
 from email.utils import formataddr
 from uuid import UUID
 
+from apps.ebay.clients.discord import DiscordEmbed, DiscordWebhook
 from celery import shared_task
 from django.conf import settings
 from django.template.loader import render_to_string
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-
-from apps.ebay.clients.discord import DiscordEmbed, DiscordWebhook
 
 logger = logging.getLogger(__name__)
 
