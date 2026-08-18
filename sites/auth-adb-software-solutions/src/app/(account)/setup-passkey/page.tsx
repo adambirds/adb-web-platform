@@ -1,6 +1,6 @@
 "use client";
 
-import SetupPasskeyPage from "@/pages/SetupPasskeyPage";
+import SetupPasskeyPage from "@/screens/SetupPasskeyPage";
 
 export default function Page() {
     return <SetupPasskeyPage />;

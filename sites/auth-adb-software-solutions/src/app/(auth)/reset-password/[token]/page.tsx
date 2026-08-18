@@ -1,6 +1,6 @@
 "use client";
 
-import ResetPasswordPage from "@/pages/ResetPasswordPage";
+import ResetPasswordPage from "@/screens/ResetPasswordPage";
 import {useParams} from "next/navigation";
 
 export default function Page() {

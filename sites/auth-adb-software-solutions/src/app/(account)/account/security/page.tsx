@@ -1,6 +1,6 @@
 "use client";
 
-import SecuritySettingsPage from "@/pages/SecuritySettingsPage";
+import SecuritySettingsPage from "@/screens/SecuritySettingsPage";
 
 export default function Page() {
     return <SecuritySettingsPage />;

@@ -1,6 +1,6 @@
 "use client";
 
-import VerifyEmailPage from "@/pages/VerifyEmailPage";
+import VerifyEmailPage from "@/screens/VerifyEmailPage";
 import {useParams} from "next/navigation";
 
 export default function Page() {

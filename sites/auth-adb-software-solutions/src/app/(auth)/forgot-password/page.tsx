@@ -1,6 +1,6 @@
 "use client";
 
-import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import ForgotPasswordPage from "@/screens/ForgotPasswordPage";
 
 export default function Page() {
     return <ForgotPasswordPage />;
