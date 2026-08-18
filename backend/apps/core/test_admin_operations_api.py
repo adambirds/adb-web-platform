@@ -7,6 +7,7 @@ from apps.access_control.models import ClientAccessGrant, StaffAccessProfile
 from apps.clients.models import Client, Project, TimeEntry
 from apps.core.ownership import OwnershipType
 from apps.crm.models import Lead
+from apps.infrastructure.models import Server
 from apps.tasks.models import Task
 from authentication.models import User
 
@@ -99,6 +100,13 @@ class AdminOperationsAPITests(TestCase):
             company="Lead Company",
         )
 
+        Server.objects.create(
+            hostname="operations-test.example.test",
+            role="web",
+            provider="do",
+            os="ubuntu_24",
+        )
+
         self.client.force_login(self.staff)
 
     def grant(self, app_label: str, codename: str) -> None:
@@ -162,3 +170,15 @@ class AdminOperationsAPITests(TestCase):
             [lead["company"] for lead in allowed.json()],
             ["Lead Company"],
         )
+
+    def test_infrastructure_summary_respects_model_permissions(self) -> None:
+        denied_counts = self.client.get("/api/admin/infrastructure/summary")
+        self.assertEqual(denied_counts.status_code, 200)
+        self.assertEqual(denied_counts.json()["server_count"], 0)
+
+        self.grant("infrastructure", "view_server")
+        allowed_counts = self.client.get("/api/admin/infrastructure/summary")
+
+        self.assertEqual(allowed_counts.status_code, 200)
+        self.assertEqual(allowed_counts.json()["server_count"], 1)
+        self.assertEqual(allowed_counts.json()["database_count"], 0)
