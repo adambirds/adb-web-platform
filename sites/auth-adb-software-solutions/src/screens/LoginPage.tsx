@@ -37,27 +37,21 @@ export default function LoginPage() {
     }, [user]);
 
     const handleLogin = async (e: React.FormEvent) => {
-        console.log("[LoginPage] handleLogin called");
         e.preventDefault();
-        console.log("[LoginPage] preventDefault called");
         setIsLoading(true);
         setError(null);
 
         try {
-            console.log("[LoginPage] About to call login with email:", email);
             await login(email, password);
-            console.log("[LoginPage] Login completed");
-            // If 2FA is required, the UI will update to show 2FA form
-            // Otherwise, the useEffect will handle the redirect
+            // If 2FA is required, the UI will update to show 2FA form.
+            // Otherwise, the useEffect above handles the redirect.
         } catch (err: unknown) {
-            console.error("[LoginPage] Login error:", err);
             if (err instanceof Error) {
                 setError(err.message);
             } else {
                 setError("An error occurred during login");
             }
         } finally {
-            console.log("[LoginPage] Setting isLoading to false");
             setIsLoading(false);
         }
     };
@@ -68,13 +62,10 @@ export default function LoginPage() {
 
         try {
             await loginWithPasskey();
-            // Redirect will happen via useEffect
+            // Redirect will happen via useEffect.
         } catch (err: unknown) {
-            if (err instanceof Error) {
-                // Don't show error if user cancelled
-                if (err.name !== "NotAllowedError") {
-                    setError(err.message || "Passkey authentication failed");
-                }
+            if (err instanceof Error && err.name !== "NotAllowedError") {
+                setError(err.message || "Passkey authentication failed");
             }
         } finally {
             setIsPasskeyLoading(false);
@@ -87,7 +78,7 @@ export default function LoginPage() {
 
         try {
             await verify2fa(code, isRecoveryCode);
-            // Redirect will happen via useEffect
+            // Redirect will happen via useEffect.
         } catch (err: unknown) {
             if (err instanceof Error) {
                 setError(err.message || "Verification failed");
