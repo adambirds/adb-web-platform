@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
 from django.conf import settings
 from django.db import models
@@ -87,7 +88,12 @@ class Ticket(models.Model):
         blank=True,
     )
     subject = models.CharField(max_length=500)
-    status = models.CharField(max_length=32, choices=Status.choices, default=Status.NEW, db_index=True)
+    status = models.CharField(
+        max_length=32,
+        choices=Status.choices,
+        default=Status.NEW,
+        db_index=True,
+    )
     priority = models.CharField(
         max_length=20,
         choices=Priority.choices,
@@ -125,7 +131,7 @@ class Ticket(models.Model):
             ("view_ticket_attachment", "Can view safe ticket attachments"),
         ]
 
-    def save(self, *args, **kwargs) -> None:
+    def save(self, *args: Any, **kwargs: Any) -> None:
         if not self.reference:
             self.reference = f"ADB-{uuid.uuid4().hex[:10].upper()}"
         super().save(*args, **kwargs)
