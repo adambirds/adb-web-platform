@@ -7,14 +7,12 @@ export const API_URL =
 
 const DEFAULT_APP_URL =
     process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
-const ADMIN_URL =
-    process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3000";
+const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3000";
 const WEB_DESIGNS_URL =
     process.env.NEXT_PUBLIC_WEB_DESIGNS_URL ?? "http://localhost:3002";
 const TECHNOLOGY_URL =
     process.env.NEXT_PUBLIC_TECHNOLOGY_URL ?? "http://localhost:3003";
-const AUTH_URL =
-    process.env.NEXT_PUBLIC_AUTH_URL ?? "http://localhost:3004";
+const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_URL ?? "http://localhost:3004";
 
 const ALLOWED_REDIRECT_ORIGINS = [
     DEFAULT_APP_URL,
