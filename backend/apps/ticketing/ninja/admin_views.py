@@ -1,5 +1,5 @@
 import math
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from django.db.models import Count, Q, QuerySet
@@ -11,6 +11,7 @@ from apps.access_control.policies import scope_clients_for_user, scope_ticket_qu
 from apps.ticketing.models import Ticket, TicketAttachment, TicketMessage, TicketQueue
 from apps.ticketing.services.replies import TicketReplyError, prepare_ticket_reply
 from apps.ticketing.tasks import deliver_ticket_reply_task
+from authentication.models import User
 from authentication.ninja.schemas import ProblemDetail
 
 from .schemas import (
@@ -366,10 +367,11 @@ def reply_to_ticket(
             "code": "not_found",
         }
 
+    author = cast(User, request.user)
     try:
         message = prepare_ticket_reply(
             ticket,
-            request.user,
+            author,
             data.body_text,
             cc_recipients=data.cc_recipients,
             bcc_recipients=data.bcc_recipients,

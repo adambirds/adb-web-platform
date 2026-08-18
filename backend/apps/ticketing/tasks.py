@@ -10,7 +10,11 @@ from redis.exceptions import LockError
 from apps.ticketing.config import graph_sync_lock_seconds
 from apps.ticketing.models import Mailbox, MicrosoftGraphConnection, TicketMessage
 from apps.ticketing.services.contracts import CanonicalMessage
-from apps.ticketing.services.graph import MicrosoftGraphAdapter, MicrosoftGraphError, sync_graph_mailbox
+from apps.ticketing.services.graph import (
+    MicrosoftGraphAdapter,
+    MicrosoftGraphError,
+    sync_graph_mailbox,
+)
 from apps.ticketing.services.graph_auth import (
     MicrosoftGraphAuthenticationError,
     MicrosoftGraphTokenProvider,

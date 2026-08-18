@@ -6,7 +6,13 @@ from django.utils import timezone
 from apps.core.models import Brand
 from apps.core.ownership import OwnershipType
 from apps.credentials.models import StoredCredential
-from apps.ticketing.models import Mailbox, MicrosoftGraphConnection, Ticket, TicketMessage, TicketQueue
+from apps.ticketing.models import (
+    Mailbox,
+    MicrosoftGraphConnection,
+    Ticket,
+    TicketMessage,
+    TicketQueue,
+)
 from apps.ticketing.services.graph import MicrosoftGraphError
 from apps.ticketing.services.graph_outbound import GraphReplyReceipt
 from apps.ticketing.services.replies import prepare_ticket_reply

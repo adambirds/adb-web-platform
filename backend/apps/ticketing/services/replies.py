@@ -132,9 +132,7 @@ def complete_ticket_reply(
     delivered_at = sent_at or timezone.now()
     with transaction.atomic():
         delivered_message = (
-            TicketMessage.objects.select_for_update()
-            .select_related("ticket")
-            .get(pk=message.pk)
+            TicketMessage.objects.select_for_update().select_related("ticket").get(pk=message.pk)
         )
         delivered_message.provider_message_id = provider_id
         delivered_message.internet_message_id = internet_message_id.strip()
