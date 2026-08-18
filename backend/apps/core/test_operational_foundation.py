@@ -8,7 +8,14 @@ from django.test import TestCase
 from apps.clients.models import Client, Project, TimeEntry
 from apps.core.ownership import OwnershipType
 from apps.credentials.models import StoredCredential
-from apps.infrastructure.models import API, Bot, EmailSystem, MobileApp, SSLCertificate, WebsiteTechStack
+from apps.infrastructure.models import (
+    API,
+    Bot,
+    EmailSystem,
+    MobileApp,
+    SSLCertificate,
+    WebsiteTechStack,
+)
 from apps.knowledge_base.models import KnowledgeBaseDocument, KnowledgeBaseSection
 from apps.tasks.models import Task, TaskList
 
@@ -188,8 +195,20 @@ class DevelopmentSeedCommandTests(TestCase):
 
         self.assertGreater(WebsiteTechStack.objects.count(), 0)
         self.assertGreater(SSLCertificate.objects.count(), 0)
-        self.assertGreater(MobileApp.objects.filter(name__startswith="[DEMO]").count(), 0)
-        self.assertGreater(API.objects.filter(name__startswith="[DEMO]").count(), 0)
-        self.assertGreater(Bot.objects.filter(name__startswith="[DEMO]").count(), 0)
-        self.assertGreater(EmailSystem.objects.filter(notes__startswith="[DEMO]").count(), 0)
+        self.assertGreater(
+            MobileApp.objects.filter(name__startswith="[DEMO]").count(),
+            0,
+        )
+        self.assertGreater(
+            API.objects.filter(name__startswith="[DEMO]").count(),
+            0,
+        )
+        self.assertGreater(
+            Bot.objects.filter(name__startswith="[DEMO]").count(),
+            0,
+        )
+        self.assertGreater(
+            EmailSystem.objects.filter(notes__startswith="[DEMO]").count(),
+            0,
+        )
         self.assertIn("Full platform development data ready", output.getvalue())
