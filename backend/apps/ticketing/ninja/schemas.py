@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from ninja import Schema
 
@@ -60,7 +61,7 @@ class TicketListItemOut(Schema):
     priority: str
     classification: str
     source: str
-    assigned_to_id: int | None
+    assigned_to_id: UUID | None
     assigned_to_name: str | None
     message_count: int
     last_message_at: datetime | None
@@ -133,7 +134,7 @@ class TicketDetailOut(Schema):
     priority: str
     classification: str
     source: str
-    assigned_to_id: int | None
+    assigned_to_id: UUID | None
     assigned_to_name: str | None
     first_response_at: datetime | None
     last_message_at: datetime | None

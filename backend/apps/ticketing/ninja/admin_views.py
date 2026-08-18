@@ -1,5 +1,6 @@
 import math
 from typing import Any
+from uuid import UUID
 
 from django.db.models import Count, Q, QuerySet
 from django.http import HttpRequest
@@ -34,7 +35,7 @@ class TicketFilters(Schema):
     classification: str | None = None
     client_id: int | None = None
     primary_contact_id: int | None = None
-    assigned_to_id: int | None = None
+    assigned_to_id: UUID | None = None
     source: str | None = None
     search: str | None = None
 

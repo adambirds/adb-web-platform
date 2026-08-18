@@ -15,6 +15,8 @@ class TicketingAdminScopeTests(TestCase):
     def setUp(self) -> None:
         self.user = User.objects.create_user(
             email="agent@example.test",
+            first_name="Ticket",
+            last_name="Agent",
             password="test-password-123",
             is_staff=True,
         )

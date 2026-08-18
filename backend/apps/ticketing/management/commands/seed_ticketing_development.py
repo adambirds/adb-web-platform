@@ -226,9 +226,7 @@ class Command(BaseCommand):
         sender_address = contact.email if contact else f"unknown-{index}@example.test"
         inbound_at = last_message_at - timedelta(hours=2)
         inbound_recipient = (
-            ticket.mailbox.email_address
-            if ticket.mailbox
-            else f"support@{ticket.brand.domain}"
+            ticket.mailbox.email_address if ticket.mailbox else f"support@{ticket.brand.domain}"
         )
         inbound = TicketMessage.objects.create(
             ticket=ticket,
@@ -276,8 +274,7 @@ class Command(BaseCommand):
                 sender_address=inbound_recipient,
                 to_recipients=[sender_address],
                 subject=(
-                    f"Re: [{ticket.reference}] "
-                    f"{ticket.subject.removeprefix(f'{DEMO_PREFIX} ')}"
+                    f"Re: [{ticket.reference}] {ticket.subject.removeprefix(f'{DEMO_PREFIX} ')}"
                 ),
                 body_text=(
                     "Thanks for getting in touch. We are looking into this and will update you shortly."

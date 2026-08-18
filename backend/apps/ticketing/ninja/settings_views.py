@@ -110,9 +110,14 @@ def _resolve_mailbox_relations(
 ) -> tuple[MicrosoftGraphConnection | None, Brand | None, TicketQueue | None, StaffProblem | None]:
     connection = MicrosoftGraphConnection.objects.filter(id=data.graph_connection_id).first()
     if connection is None:
-        return None, None, None, _problem(
-            "Microsoft Graph connection not found.",
-            "connection_not_found",
+        return (
+            None,
+            None,
+            None,
+            _problem(
+                "Microsoft Graph connection not found.",
+                "connection_not_found",
+            ),
         )
     brand = Brand.objects.filter(id=data.brand_id, is_active=True).first()
     if brand is None:
@@ -121,9 +126,14 @@ def _resolve_mailbox_relations(
     if queue is None:
         return None, None, None, _problem("Enabled ticket queue not found.", "queue_not_found")
     if queue.brand_id is not None and queue.brand_id != brand.id:
-        return None, None, None, _problem(
-            "The default queue must belong to the selected brand.",
-            "queue_brand_mismatch",
+        return (
+            None,
+            None,
+            None,
+            _problem(
+                "The default queue must belong to the selected brand.",
+                "queue_brand_mismatch",
+            ),
         )
     return connection, brand, queue, None
 
