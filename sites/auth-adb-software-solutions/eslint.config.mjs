@@ -3,6 +3,15 @@ import parser from "@typescript-eslint/parser";
 
 export default [
     {
+        name: "ESLint Config - global ignores",
+        ignores: [
+            "**/node_modules/**",
+            "**/.next/**",
+            "**/out/**",
+            "**/coverage/**",
+        ],
+    },
+    {
         name: "ESLint Config - nextjs",
         languageOptions: {
             parser,
@@ -25,6 +34,5 @@ export default [
             "@next/next/no-html-link-for-pages": "off",
             "react-hooks/exhaustive-deps": 0,
         },
-        ignores: ["node_modules/**", ".next/**", "out", "coverage/**"],
     },
 ];
