@@ -5,7 +5,6 @@
             "label": "Start Full Stack",
             "dependsOn": [
                 "Start Backend",
-                "Start Admin",
                 "Start Auth",
                 "Start ADB Software Solutions",
                 "Start ADB Web Designs",
@@ -18,14 +17,6 @@
             "label": "Start Backend",
             "type": "shell",
             "command": "start-backend",
-            "group": "build",
-            "isBackground": true,
-            "problemMatcher": []
-        },
-        {
-            "label": "Start Admin",
-            "type": "shell",
-            "command": "pnpm dev:admin",
             "group": "build",
             "isBackground": true,
             "problemMatcher": []
