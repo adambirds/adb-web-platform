@@ -1,10 +1,10 @@
 import Alert from "@/components/Alert";
 import {authApi} from "@/utils/api";
+import {useRouter} from "next/navigation";
 import {useState} from "react";
-import {useNavigate} from "react-router-dom";
 
 export default function SignupPage() {
-    const navigate = useNavigate();
+    const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -70,8 +70,7 @@ export default function SignupPage() {
             });
 
             if (result.success) {
-                // Redirect to a page telling them to check their email
-                navigate("/login?message=verification-sent");
+                router.push("/login?message=verification-sent");
             } else {
                 setError(result.message || "Registration failed");
             }
