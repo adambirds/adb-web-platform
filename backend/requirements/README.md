@@ -1,15 +1,13 @@
-The dependency graph of the requirements is as follows:
+# Python requirements
 
+The `*.in` files are the human-maintained dependency manifests. Keep **direct dependencies only** in these files and pin the version we have intentionally validated.
+
+Do not copy transitive packages from `pip freeze` into an input file merely to pin them. Transitive dependencies are resolved by `pip-tools` and are pinned with hashes in the generated `*.txt` lock files.
+
+After changing any `*.in` file, regenerate the lock files from the repository root:
+
+```bash
+tools/update-locked-requirements
 ```
-dev +-> prod +-> common
-+
-|
-v
-mypy
-```
 
-Steps to update a lock file, e.g. to update ipython from 5.3.0 to latest version:
-
-0. Remove entry for `ipython==5.3.0` in dev.txt.
-1. Run `./tools/update-locked-requirements`, which will generate new entries, pinned to the latest version.
-2. Commit your changes.
+Commit both the input manifest changes and the generated lock-file changes together. Never hand-edit the generated `*.txt` files.
