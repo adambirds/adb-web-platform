@@ -10,7 +10,15 @@ from django.utils import timezone
 
 from apps.clients.models import Client, ClientContact
 from apps.core.models import Brand
-from apps.ticketing.models import Ticket, TicketAttachment, TicketMessage, TicketNote, TicketQueue
+from apps.ticketing.models import (
+    Mailbox,
+    MicrosoftGraphConnection,
+    Ticket,
+    TicketAttachment,
+    TicketMessage,
+    TicketNote,
+    TicketQueue,
+)
 
 DEMO_PREFIX = "[DEMO]"
 
@@ -32,6 +40,8 @@ class Command(BaseCommand):
         scale = max(1, options["scale"])
         if options["reset"]:
             Ticket.objects.filter(subject__startswith=DEMO_PREFIX).delete()
+            Mailbox.objects.filter(display_name__startswith=DEMO_PREFIX).delete()
+            MicrosoftGraphConnection.objects.filter(name__startswith=DEMO_PREFIX).delete()
             TicketQueue.objects.filter(key__startswith="demo-").delete()
 
         brands = list(Brand.objects.filter(is_active=True).order_by("id"))
@@ -44,6 +54,8 @@ class Command(BaseCommand):
             raise CommandError("Seed the core platform first so active clients exist.")
 
         queues = self._create_queues(brands)
+        graph_connection = self._create_graph_connection()
+        mailboxes = self._create_mailboxes(graph_connection, brands, queues)
         staff_user = get_user_model().objects.filter(is_staff=True).order_by("id").first()
         now = timezone.now()
         ticket_count = max(18, 18 * scale)
@@ -76,20 +88,26 @@ class Command(BaseCommand):
         created = 0
         for index in range(ticket_count):
             brand = brands[index % len(brands)]
-            queue = queues[(brand.id, "support")]
+            queue_key = "support"
+            mailbox_key = "support"
             classification = classifications[index % len(classifications)]
             if classification == Ticket.Classification.SALES:
-                queue = queues[(brand.id, "sales")]
+                queue_key = "sales"
+                mailbox_key = "sales"
             elif classification == Ticket.Classification.ACCOUNTS:
-                queue = queues[(brand.id, "accounts")]
+                queue_key = "accounts"
+                mailbox_key = "accounts"
             elif classification in {
                 Ticket.Classification.VENDOR,
                 Ticket.Classification.AUTOMATED_SYSTEM,
             }:
-                queue = queues[(brand.id, "operations")]
+                queue_key = "operations"
+                mailbox_key = "operations"
             elif classification == Ticket.Classification.PROBABLE_SPAM:
-                queue = queues[(brand.id, "quarantine")]
+                queue_key = "quarantine"
 
+            queue = queues[(brand.id, queue_key)]
+            mailbox = mailboxes[(brand.id, mailbox_key)]
             client = (
                 clients[index % len(clients)]
                 if classification != Ticket.Classification.PROBABLE_SPAM
@@ -104,6 +122,7 @@ class Command(BaseCommand):
             ticket = Ticket.objects.create(
                 brand=brand,
                 queue=queue,
+                mailbox=mailbox,
                 client=client,
                 primary_contact=contact,
                 subject=f"{DEMO_PREFIX} {self._subject_for(index, classification)}",
@@ -121,8 +140,24 @@ class Command(BaseCommand):
             created += 1
 
         self.stdout.write(
-            self.style.SUCCESS(f"Created {created} demo tickets across {len(queues)} queues.")
+            self.style.SUCCESS(
+                f"Created {created} demo tickets across {len(queues)} queues and {len(mailboxes)} mailboxes."
+            )
         )
+
+    def _create_graph_connection(self) -> MicrosoftGraphConnection:
+        connection, _ = MicrosoftGraphConnection.objects.update_or_create(
+            tenant_id="00000000-0000-0000-0000-000000000001",
+            client_id="00000000-0000-0000-0000-000000000002",
+            defaults={
+                "name": f"{DEMO_PREFIX} Microsoft 365",
+                "authentication_method": MicrosoftGraphConnection.AuthenticationMethod.CERTIFICATE,
+                "credential": None,
+                "enabled": True,
+                "last_error": "",
+            },
+        )
+        return connection
 
     def _create_queues(self, brands: list[Brand]) -> dict[tuple[int, str], TicketQueue]:
         result: dict[tuple[int, str], TicketQueue] = {}
@@ -149,6 +184,36 @@ class Command(BaseCommand):
                 result[(brand.id, key)] = queue
         return result
 
+    def _create_mailboxes(
+        self,
+        connection: MicrosoftGraphConnection,
+        brands: list[Brand],
+        queues: dict[tuple[int, str], TicketQueue],
+    ) -> dict[tuple[int, str], Mailbox]:
+        result: dict[tuple[int, str], Mailbox] = {}
+        purposes = [
+            (Mailbox.Purpose.SUPPORT, "support"),
+            (Mailbox.Purpose.SALES, "sales"),
+            (Mailbox.Purpose.ACCOUNTS, "accounts"),
+            (Mailbox.Purpose.OPERATIONS, "operations"),
+        ]
+        for brand in brands:
+            for purpose, queue_key in purposes:
+                mailbox, _ = Mailbox.objects.update_or_create(
+                    graph_connection=connection,
+                    email_address=f"demo-{purpose}@{brand.domain}",
+                    defaults={
+                        "display_name": f"{DEMO_PREFIX} {brand.name} {purpose.title()}",
+                        "brand": brand,
+                        "purpose": purpose,
+                        "default_queue": queues[(brand.id, queue_key)],
+                        "enabled": True,
+                        "last_error": "",
+                    },
+                )
+                result[(brand.id, queue_key)] = mailbox
+        return result
+
     def _create_thread(
         self,
         ticket: Ticket,
@@ -160,12 +225,17 @@ class Command(BaseCommand):
         sender_name = contact.name if contact else "Unknown Sender"
         sender_address = contact.email if contact else f"unknown-{index}@example.test"
         inbound_at = last_message_at - timedelta(hours=2)
+        inbound_recipient = (
+            ticket.mailbox.email_address
+            if ticket.mailbox
+            else f"support@{ticket.brand.domain}"
+        )
         inbound = TicketMessage.objects.create(
             ticket=ticket,
             direction=TicketMessage.Direction.INBOUND,
             sender_name=sender_name,
             sender_address=sender_address,
-            to_recipients=[f"support@{ticket.brand.domain}"],
+            to_recipients=[inbound_recipient],
             matched_contact=contact,
             subject=ticket.subject.removeprefix(f"{DEMO_PREFIX} "),
             body_text=(
@@ -203,7 +273,7 @@ class Command(BaseCommand):
                 ticket=ticket,
                 direction=TicketMessage.Direction.OUTBOUND,
                 sender_name="ADB Support",
-                sender_address=f"support@{ticket.brand.domain}",
+                sender_address=inbound_recipient,
                 to_recipients=[sender_address],
                 subject=(
                     f"Re: [{ticket.reference}] "
