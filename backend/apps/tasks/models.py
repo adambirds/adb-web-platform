@@ -157,9 +157,7 @@ class Task(models.Model):
                     {"project": "Task ownership must match the selected project."}
                 )
             if self.project.client_id != self.client_id:
-                raise ValidationError(
-                    {"client": "Task client must match the selected project."}
-                )
+                raise ValidationError({"client": "Task client must match the selected project."})
 
         if self.task_list_id and self.task_list:
             if self.task_list.ownership_type != self.ownership_type:
@@ -167,13 +165,8 @@ class Task(models.Model):
                     {"task_list": "Task ownership must match the selected task list."}
                 )
             if self.task_list.client_id != self.client_id:
-                raise ValidationError(
-                    {"client": "Task client must match the selected task list."}
-                )
-            if (
-                self.task_list.project_id
-                and self.task_list.project_id != self.project_id
-            ):
+                raise ValidationError({"client": "Task client must match the selected task list."})
+            if self.task_list.project_id and self.task_list.project_id != self.project_id:
                 raise ValidationError(
                     {"project": "Task project must match the selected project task list."}
                 )

@@ -44,9 +44,7 @@ def list_leads(request: HttpRequest) -> list[LeadSummaryOut] | StaffProblem:
             "code": "forbidden",
         }
 
-    leads = Lead.objects.select_related("brand", "source", "status").order_by(
-        "-created_at"
-    )
+    leads = Lead.objects.select_related("brand", "source", "status").order_by("-created_at")
     return [
         LeadSummaryOut(
             id=lead.id,

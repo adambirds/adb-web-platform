@@ -15,25 +15,14 @@ from apps.clients.models import Client, ClientContact, Project, ProjectNote, Tim
 from apps.core.models import AuditEvent, Brand
 from apps.credentials.models import CredentialType, StoredCredential
 from apps.crm.models import Lead, LeadSource, LeadStatus
-from apps.infrastructure.models import (
-    Application,
-    Database,
-    Domain,
-    Licence,
-    Server,
-    Website,
-)
-from apps.knowledge_base.models import (
-    DocumentVersion,
-    KnowledgeBaseDocument,
-    KnowledgeBaseSection,
-)
+from apps.infrastructure.models import Application, Database, Domain, Licence, Server, Website
+from apps.knowledge_base.models import DocumentVersion, KnowledgeBaseDocument, KnowledgeBaseSection
 from apps.tasks.models import Task, TaskList, TaskStatus
 from apps.website.models import (
+    FAQ,
     BlogCategory,
     BlogPost,
     BlogTag,
-    FAQ,
     FAQCategory,
     Portfolio,
     Testimonial,
@@ -43,19 +32,13 @@ DEMO_PREFIX = "[DEMO]"
 
 
 class Command(BaseCommand):
-    help = (
-        "Populate the development database with deterministic, obviously fake "
-        "platform data."
-    )
+    help = "Populate the development database with deterministic, obviously fake platform data."
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
             "--reset",
             action="store_true",
-            help=(
-                "Delete previously generated demo records before creating a fresh "
-                "data set."
-            ),
+            help=("Delete previously generated demo records before creating a fresh data set."),
         )
         parser.add_argument(
             "--scale",
@@ -67,8 +50,7 @@ class Command(BaseCommand):
             "--force",
             action="store_true",
             help=(
-                "Allow running when DEBUG is disabled. Intended only for disposable "
-                "environments."
+                "Allow running when DEBUG is disabled. Intended only for disposable environments."
             ),
         )
 
@@ -100,8 +82,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Development data ready (scale={scale}). Run again with --reset "
-                "to rebuild it."
+                f"Development data ready (scale={scale}). Run again with --reset to rebuild it."
             )
         )
 
@@ -239,8 +220,7 @@ class Command(BaseCommand):
                 defaults={
                     "ownership_type": "client",
                     "description": (
-                        "Generated project used to exercise the development admin "
-                        "interface."
+                        "Generated project used to exercise the development admin interface."
                     ),
                     "status": status,
                     "start_date": start,
@@ -249,12 +229,8 @@ class Command(BaseCommand):
                         if status == "completed"
                         else None
                     ),
-                    "budget": Decimal(
-                        str(rng.choice([1200, 2500, 5000, 7500, 12000]))
-                    ),
-                    "hourly_rate": Decimal(
-                        str(rng.choice([45, 55, 65, 75, 85]))
-                    ),
+                    "budget": Decimal(str(rng.choice([1200, 2500, 5000, 7500, 12000]))),
+                    "hourly_rate": Decimal(str(rng.choice([45, 55, 65, 75, 85]))),
                 },
             )
             projects.append(project)
@@ -262,8 +238,7 @@ class Command(BaseCommand):
                 ProjectNote.objects.get_or_create(
                     project=project,
                     content=(
-                        f"{DEMO_PREFIX} Project note {note_index + 1} for "
-                        "development UI testing."
+                        f"{DEMO_PREFIX} Project note {note_index + 1} for development UI testing."
                     ),
                 )
         return projects
@@ -276,16 +251,12 @@ class Command(BaseCommand):
     ) -> None:
         today = timezone.localdate()
         target = 140 * scale
-        existing = TimeEntry.objects.filter(
-            description__startswith=DEMO_PREFIX
-        ).count()
+        existing = TimeEntry.objects.filter(description__startswith=DEMO_PREFIX).count()
         for index in range(existing, target):
             TimeEntry.objects.create(
                 project=projects[index % len(projects)],
                 date=today - timedelta(days=rng.randint(0, 90)),
-                duration_hours=Decimal(
-                    str(rng.choice([0.5, 1, 1.5, 2, 2.5, 3, 4, 6]))
-                ),
+                duration_hours=Decimal(str(rng.choice([0.5, 1, 1.5, 2, 2.5, 3, 4, 6]))),
                 description=f"{DEMO_PREFIX} Development work entry {index + 1}",
                 billable=rng.random() > 0.2,
             )
@@ -333,8 +304,7 @@ class Command(BaseCommand):
                     "status": rng.choice(lead_statuses),
                     "source": rng.choice(sources),
                     "message": (
-                        "Generated enquiry about a website, software project or IT "
-                        "service."
+                        "Generated enquiry about a website, software project or IT service."
                     ),
                     "notes": "Fake development CRM data.",
                 },
@@ -377,8 +347,7 @@ class Command(BaseCommand):
         for index in range(1, (90 * scale) + 1):
             project = projects[index % len(projects)]
             title = (
-                f"{DEMO_PREFIX} Task {index:03d} — "
-                f"{project.name.removeprefix(DEMO_PREFIX).strip()}"
+                f"{DEMO_PREFIX} Task {index:03d} — {project.name.removeprefix(DEMO_PREFIX).strip()}"
             )
             Task.objects.update_or_create(
                 title=title,
@@ -387,8 +356,7 @@ class Command(BaseCommand):
                     "client": project.client,
                     "project": project,
                     "description": (
-                        f"Generated task for {project.client}. Used to populate "
-                        "operational queues."
+                        f"Generated task for {project.client}. Used to populate operational queues."
                     ),
                     "task_list": None,
                     "status": rng.choice(task_statuses),
@@ -495,13 +463,10 @@ class Command(BaseCommand):
                     "credential_type": rng.choice(types),
                     "username": f"demo-user-{index}",
                     "password": "demo-password-not-a-real-secret",
-                    "api_key": (
-                        "demo-api-key-not-a-real-secret" if index % 4 == 0 else ""
-                    ),
+                    "api_key": ("demo-api-key-not-a-real-secret" if index % 4 == 0 else ""),
                     "url": f"https://demo-{index}.example.test",
                     "notes": (
-                        "Generated placeholder credential. Never replace with a real "
-                        "secret."
+                        "Generated placeholder credential. Never replace with a real secret."
                     ),
                 },
             )
@@ -585,13 +550,9 @@ class Command(BaseCommand):
                 name=f"{DEMO_PREFIX} Software licence {index:02d}",
                 defaults={
                     "licence_type": "subscription",
-                    "vendor": rng.choice(
-                        ["Demo Vendor", "Example Software", "Sample Cloud"]
-                    ),
+                    "vendor": rng.choice(["Demo Vendor", "Example Software", "Sample Cloud"]),
                     "renewal_date": today + timedelta(days=rng.randint(5, 365)),
-                    "renewal_cost": Decimal(
-                        str(rng.choice([9, 19, 49, 99, 199]))
-                    ),
+                    "renewal_cost": Decimal(str(rng.choice([9, 19, 49, 99, 199]))),
                     "auto_renew": rng.random() > 0.15,
                     "portal_url": "https://example.test",
                     "licence_key": "DEMO-LICENCE-KEY-NOT-REAL",
@@ -608,8 +569,7 @@ class Command(BaseCommand):
                 defaults={
                     "app_type": rng.choice(["web_app", "saas", "api"]),
                     "description": (
-                        "Generated logical application for development inventory "
-                        "views."
+                        "Generated logical application for development inventory views."
                     ),
                     "status": "active",
                     "notes": "Fake development data.",
@@ -674,8 +634,7 @@ class Command(BaseCommand):
                         "administration and layouts."
                     ),
                     "content": (
-                        "# Demo article\n\nThis content exists only in development "
-                        "environments."
+                        "# Demo article\n\nThis content exists only in development environments."
                     ),
                     "author": "ADB Demo Data",
                     "published": True,
@@ -709,8 +668,7 @@ class Command(BaseCommand):
                 question=f"{DEMO_PREFIX} Frequently asked question {index:02d}?",
                 defaults={
                     "answer": (
-                        "This is generated development content used to exercise the "
-                        "CMS interface."
+                        "This is generated development content used to exercise the CMS interface."
                     ),
                     "category": faq_categories[index % len(faq_categories)],
                     "order": index,
@@ -723,18 +681,13 @@ class Command(BaseCommand):
                 client_name=f"Demo Client {index:02d}",
                 company=f"{DEMO_PREFIX} Testimonial Company {index:02d}",
                 defaults={
-                    "quote": (
-                        "Generated testimonial copy for development layout testing "
-                        "only."
-                    ),
+                    "quote": ("Generated testimonial copy for development layout testing only."),
                     "job_title": "Director",
                     "rating": 5,
                     "featured": index % 4 == 0,
                 },
             )
-            testimonial.brands.set(
-                rng.sample(brands, k=rng.randint(1, len(brands)))
-            )
+            testimonial.brands.set(rng.sample(brands, k=rng.randint(1, len(brands))))
 
         for index in range(1, (10 * scale) + 1):
             portfolio, _ = Portfolio.objects.update_or_create(
@@ -742,23 +695,15 @@ class Command(BaseCommand):
                 defaults={
                     "title": f"{DEMO_PREFIX} Case study {index:02d}",
                     "description": "Generated portfolio entry for development.",
-                    "challenge": (
-                        "A fictional client needed a reliable technology solution."
-                    ),
-                    "solution": (
-                        "A fictional multi-service implementation was delivered."
-                    ),
-                    "results": (
-                        "The generated project produced excellent fictional results."
-                    ),
+                    "challenge": ("A fictional client needed a reliable technology solution."),
+                    "solution": ("A fictional multi-service implementation was delivered."),
+                    "results": ("The generated project produced excellent fictional results."),
                     "featured": index % 3 == 0,
                     "technologies": "Django, Next.js, PostgreSQL, Docker",
                     "project_url": f"https://demo-project-{index}.example.test",
                 },
             )
-            portfolio.brands.set(
-                rng.sample(brands, k=rng.randint(1, len(brands)))
-            )
+            portfolio.brands.set(rng.sample(brands, k=rng.randint(1, len(brands))))
 
     def _seed_audit_events(
         self,
@@ -770,9 +715,7 @@ class Command(BaseCommand):
     ) -> None:
         targets = [*clients, *projects, *infrastructure]
         target = 70 * scale
-        existing = AuditEvent.objects.filter(
-            target_label__startswith=DEMO_PREFIX
-        ).count()
+        existing = AuditEvent.objects.filter(target_label__startswith=DEMO_PREFIX).count()
         actions = ["viewed", "updated", "created", "exported", "access_checked"]
         for index in range(existing, target):
             obj = rng.choice(targets)

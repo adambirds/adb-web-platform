@@ -99,9 +99,9 @@ def dashboard_summary(request: HttpRequest) -> DashboardSummaryOut | StaffProble
     )
     hours_this_week = 0.0
     if request.user.has_perm("clients.view_timeentry"):
-        hours = time_entries.filter(date__gte=week_start).aggregate(
-            total=Sum("duration_hours")
-        )["total"]
+        hours = time_entries.filter(date__gte=week_start).aggregate(total=Sum("duration_hours"))[
+            "total"
+        ]
         hours_this_week = float(hours or 0)
 
     leads = Lead.objects.select_related("status", "brand")

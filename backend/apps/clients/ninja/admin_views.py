@@ -126,8 +126,7 @@ def list_time_entries(request: HttpRequest) -> list[TimeEntrySummaryOut] | Staff
         user_name = None
         if entry.user:
             user_name = (
-                f"{entry.user.first_name} {entry.user.last_name}".strip()
-                or entry.user.email
+                f"{entry.user.first_name} {entry.user.last_name}".strip() or entry.user.email
             )
         rows.append(
             TimeEntrySummaryOut(
