@@ -53,3 +53,23 @@ def scope_clients_for_user(
         return queryset
 
     return queryset.filter(access_grants__profile=profile).distinct()
+
+
+def scope_ticket_queues_for_user(user: Any, queryset: Any = None) -> Any:
+    """Restrict a TicketQueue queryset to the queues available to a user."""
+    from apps.ticketing.models import TicketQueue
+
+    queryset = queryset if queryset is not None else TicketQueue.objects.all()
+
+    if not getattr(user, "is_authenticated", False):
+        return queryset.none()
+    if getattr(user, "is_superuser", False):
+        return queryset
+
+    profile = get_access_profile(user)
+    if profile is None:
+        return queryset.none()
+    if profile.all_ticket_queues:
+        return queryset
+
+    return queryset.filter(access_grants__profile=profile).distinct()
