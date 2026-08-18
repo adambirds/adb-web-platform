@@ -1,6 +1,6 @@
 from unittest.mock import Mock, patch
 
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
 from apps.core.models import Brand
 from apps.core.ownership import OwnershipType
@@ -157,7 +157,7 @@ class GraphMailboxTaskTests(TestCase):
         self.connection.save(update_fields=["authentication_method"])
         self.assertEqual(sync_graph_mailbox_task.run(self.mailbox.id), 0)
 
-    @override_settings(TICKETING_GRAPH_SYNC_LOCK_SECONDS=120)
+    @patch.dict("os.environ", {"TICKETING_GRAPH_SYNC_LOCK_SECONDS": "120"})
     @patch("apps.ticketing.tasks.get_redis_connection")
     def test_mailbox_lock_uses_redis_and_releases_owned_lock(self, get_redis: Mock) -> None:
         redis = get_redis.return_value

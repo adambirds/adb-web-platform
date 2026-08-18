@@ -5,6 +5,7 @@ from celery import Celery
 from django.conf import settings
 
 from adbsoftwaresolutions.bootsteps import LivenessProbe
+from apps.ticketing.config import graph_sync_interval_seconds
 
 # Setting the default Django settings module for the 'celery' program.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "adbsoftwaresolutions.settings")
@@ -18,8 +19,12 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 # Auto-discover task modules from all registered Django app configs.
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
-# Define the Celery beat schedule if any.
-app.conf.beat_schedule = {}
+app.conf.beat_schedule = {
+    "ticketing-graph-mailbox-sync": {
+        "task": "ticketing.enqueue_graph_mailbox_syncs",
+        "schedule": graph_sync_interval_seconds(),
+    },
+}
 app.conf.timezone = "UTC"
 
 # Setup logging

@@ -4,17 +4,16 @@ from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 
 from celery import shared_task
-from django.conf import settings
 from django_redis import get_redis_connection
 from redis.exceptions import LockError
 
+from apps.ticketing.config import graph_sync_lock_seconds
 from apps.ticketing.models import Mailbox, MicrosoftGraphConnection
 from apps.ticketing.services.contracts import CanonicalMessage
 from apps.ticketing.services.graph import MicrosoftGraphAdapter, sync_graph_mailbox
 from apps.ticketing.services.graph_auth import MicrosoftGraphTokenProvider
 from apps.ticketing.services.ingestion import ingest_canonical_message
 
-DEFAULT_GRAPH_SYNC_LOCK_SECONDS = 15 * 60
 GRAPH_SYNC_LOCK_PREFIX = "ticketing:graph-mailbox-sync"
 BACKGROUND_AUTH_METHODS = (
     MicrosoftGraphConnection.AuthenticationMethod.CERTIFICATE,
@@ -81,15 +80,9 @@ def _consume_canonical_message(mailbox: Mailbox, canonical: CanonicalMessage) ->
 def _graph_mailbox_sync_lock(mailbox_id: int) -> Iterator[bool]:
     """Prevent concurrent workers from advancing the same mailbox delta cursor."""
     redis = get_redis_connection("default")
-    timeout = max(
-        int(
-            getattr(settings, "TICKETING_GRAPH_SYNC_LOCK_SECONDS", DEFAULT_GRAPH_SYNC_LOCK_SECONDS)
-        ),
-        60,
-    )
     lock = redis.lock(
         f"{GRAPH_SYNC_LOCK_PREFIX}:{mailbox_id}",
-        timeout=timeout,
+        timeout=graph_sync_lock_seconds(),
         blocking_timeout=0,
     )
     acquired = bool(lock.acquire(blocking=False))
