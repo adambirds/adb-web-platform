@@ -114,9 +114,7 @@ def infrastructure_summary(request: HttpRequest) -> InfrastructureSummaryOut | S
         application_count=_count_if_permitted(
             request, "infrastructure.view_application", Application
         ),
-        mobile_app_count=_count_if_permitted(
-            request, "infrastructure.view_mobileapp", MobileApp
-        ),
+        mobile_app_count=_count_if_permitted(request, "infrastructure.view_mobileapp", MobileApp),
         api_count=_count_if_permitted(request, "infrastructure.view_api", API),
         bot_count=_count_if_permitted(request, "infrastructure.view_bot", Bot),
         email_system_count=_count_if_permitted(

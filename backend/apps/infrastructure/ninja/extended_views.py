@@ -1,5 +1,4 @@
 from datetime import date
-from decimal import Decimal
 from typing import Any
 
 from django.http import HttpRequest
@@ -131,9 +130,7 @@ def list_ssl_certificates(
             cert_type=certificate.cert_type,
             expiry_date=certificate.expiry_date,
         )
-        for certificate in SSLCertificate.objects.select_related("domain").order_by(
-            "expiry_date"
-        )
+        for certificate in SSLCertificate.objects.select_related("domain").order_by("expiry_date")
     ]
 
 

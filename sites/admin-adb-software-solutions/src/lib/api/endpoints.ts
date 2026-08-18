@@ -48,7 +48,8 @@ export const AdminAPI = {
         mobileApps: () => `${API_BASE_URL}/admin/infrastructure/mobile-apps`,
         apis: () => `${API_BASE_URL}/admin/infrastructure/apis`,
         bots: () => `${API_BASE_URL}/admin/infrastructure/bots`,
-        emailSystems: () => `${API_BASE_URL}/admin/infrastructure/email-systems`,
+        emailSystems: () =>
+            `${API_BASE_URL}/admin/infrastructure/email-systems`,
         techStack: () => `${API_BASE_URL}/admin/infrastructure/tech-stack`,
     },
     website: {

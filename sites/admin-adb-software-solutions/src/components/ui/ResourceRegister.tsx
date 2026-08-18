@@ -61,7 +61,8 @@ export function ResourceRegister({
     }, [loadRows]);
 
     if (isLoading) return <DataLoading label={loadingLabel} />;
-    if (error) return <DataError message={error} onRetry={() => void loadRows()} />;
+    if (error)
+        return <DataError message={error} onRetry={() => void loadRows()} />;
     if (rows.length === 0) {
         return <EmptyState title={emptyTitle} description={emptyDescription} />;
     }
@@ -71,7 +72,9 @@ export function ResourceRegister({
             <TableHead>
                 <tr>
                     {columns.map((column) => (
-                        <TableHeaderCell key={column.key}>{column.label}</TableHeaderCell>
+                        <TableHeaderCell key={column.key}>
+                            {column.label}
+                        </TableHeaderCell>
                     ))}
                 </tr>
             </TableHead>
@@ -81,7 +84,10 @@ export function ResourceRegister({
                         {columns.map((column) => {
                             const value = row[column.key];
                             return (
-                                <TableCell key={column.key} className="text-slate-400">
+                                <TableCell
+                                    key={column.key}
+                                    className="text-slate-400"
+                                >
                                     {column.render
                                         ? column.render(value, row)
                                         : value == null || value === ""

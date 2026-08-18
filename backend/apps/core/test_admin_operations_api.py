@@ -85,9 +85,7 @@ class AdminOperationsAPITests(TestCase):
             description="Internal time",
         )
 
-        Lead.objects.create(
-            name="Demo Lead", email="lead@example.test", company="Lead Company"
-        )
+        Lead.objects.create(name="Demo Lead", email="lead@example.test", company="Lead Company")
         Server.objects.create(
             hostname="operations-test.example.test",
             role="web",
@@ -98,9 +96,7 @@ class AdminOperationsAPITests(TestCase):
         self.client.force_login(self.staff)
 
     def grant(self, app_label: str, codename: str) -> None:
-        permission = Permission.objects.get(
-            content_type__app_label=app_label, codename=codename
-        )
+        permission = Permission.objects.get(content_type__app_label=app_label, codename=codename)
         self.staff.user_permissions.add(permission)
 
     def test_client_list_requires_capability_permission(self) -> None:

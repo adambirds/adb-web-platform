@@ -41,9 +41,7 @@ class Command(BaseCommand):
         websites = list(Website.objects.filter(name__startswith=DEMO_PREFIX))
         domains = list(Domain.objects.filter(domain_name__startswith="demo-"))
         if not websites or not domains:
-            raise CommandError(
-                "Run seed_development first so demo websites and domains exist."
-            )
+            raise CommandError("Run seed_development first so demo websites and domains exist.")
 
         rng = random.Random(20260818)
         scale = max(1, options["scale"])
@@ -58,9 +56,7 @@ class Command(BaseCommand):
             self._seed_email_systems(scale)
 
         self.stdout.write(
-            self.style.SUCCESS(
-                f"Extended infrastructure development data ready (scale={scale})."
-            )
+            self.style.SUCCESS(f"Extended infrastructure development data ready (scale={scale}).")
         )
 
     def _reset(self) -> None:

@@ -192,7 +192,7 @@ function SidebarContent({
                     onClick={onNavigate}
                     className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden"
                 >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-adb-cyan-500 font-black text-slate-950">
+                    <div className="bg-adb-cyan-500 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg font-black text-slate-950">
                         A
                     </div>
                     {!collapsed && (
@@ -238,14 +238,21 @@ function SidebarContent({
                             )}
                             <div className="space-y-1">
                                 {items.map((item) => {
-                                    const active = isActive(pathname, item.href);
+                                    const active = isActive(
+                                        pathname,
+                                        item.href,
+                                    );
                                     const Icon = item.icon;
                                     return (
                                         <Link
                                             key={`${group.label}-${item.label}`}
                                             href={item.href}
                                             onClick={onNavigate}
-                                            title={collapsed ? item.label : undefined}
+                                            title={
+                                                collapsed
+                                                    ? item.label
+                                                    : undefined
+                                            }
                                             className={`group flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition ${
                                                 active
                                                     ? "bg-slate-800 text-white shadow-inner shadow-black/20"
@@ -280,7 +287,8 @@ function SidebarContent({
                             ADB Business Platform
                         </div>
                         <div className="mt-1 text-[11px] leading-4 text-slate-600">
-                            CRM, support, projects and infrastructure in one place.
+                            CRM, support, projects and infrastructure in one
+                            place.
                         </div>
                     </div>
                 ) : (
