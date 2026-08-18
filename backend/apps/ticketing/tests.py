@@ -6,7 +6,7 @@ from django.utils import timezone
 from apps.access_control.models import ClientAccessGrant, StaffAccessProfile, TicketQueueAccessGrant
 from apps.clients.models import Client
 from apps.core.models import Brand
-from apps.ticketing.models import Ticket, TicketMessage, TicketQueue
+from apps.ticketing.models import Ticket, TicketAttachment, TicketMessage, TicketQueue
 
 User = get_user_model()
 
@@ -59,13 +59,21 @@ class TicketingAdminScopeTests(TestCase):
             subject="Wrong queue",
             last_message_at=timezone.now(),
         )
-        TicketMessage.objects.create(
+        self.message = TicketMessage.objects.create(
             ticket=self.ticket_a,
             direction=TicketMessage.Direction.INBOUND,
             sender_address="a@example.test",
             body_text="Hello",
             body_text_normalised="Hello",
             sent_or_received_at=timezone.now(),
+        )
+        self.attachment = TicketAttachment.objects.create(
+            message=self.message,
+            original_filename="diagnostic.txt",
+            declared_content_type="text/plain",
+            detected_content_type="text/plain",
+            size=128,
+            scan_status=TicketAttachment.ScanStatus.SAFE,
         )
 
         ClientAccessGrant.objects.create(profile=self.profile, client=self.client_a)
@@ -84,10 +92,60 @@ class TicketingAdminScopeTests(TestCase):
         self.assertEqual(payload["total"], 1)
         self.assertEqual(payload["items"][0]["id"], self.ticket_a.id)
 
+    def test_unmatched_ticket_is_visible_inside_queue_scope(self) -> None:
+        unmatched_ticket = Ticket.objects.create(
+            brand=self.brand,
+            queue=self.queue_a,
+            client=None,
+            subject="Unmatched sender",
+            last_message_at=timezone.now(),
+        )
+
+        response = self.client.get("/api/admin/tickets", {"page": 1, "page_size": 25})
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["total"], 2)
+        self.assertEqual(
+            {item["id"] for item in payload["items"]},
+            {self.ticket_a.id, unmatched_ticket.id},
+        )
+
+    def test_ticket_list_requires_view_capability(self) -> None:
+        self.user.user_permissions.remove(Permission.objects.get(codename="view_ticket"))
+
+        response = self.client.get("/api/admin/tickets")
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_ticket_detail_outside_client_scope_is_hidden(self) -> None:
+        response = self.client.get(f"/api/admin/tickets/{self.ticket_wrong_client.id}")
+
+        self.assertEqual(response.status_code, 404)
+
     def test_ticket_detail_outside_queue_scope_is_hidden(self) -> None:
         response = self.client.get(f"/api/admin/tickets/{self.ticket_wrong_queue.id}")
 
         self.assertEqual(response.status_code, 404)
+
+    def test_ticket_detail_hides_attachment_metadata_without_permission(self) -> None:
+        response = self.client.get(f"/api/admin/tickets/{self.ticket_a.id}")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["attachments"], [])
+
+    def test_ticket_detail_returns_attachment_metadata_with_permission(self) -> None:
+        self.user.user_permissions.add(
+            Permission.objects.get(codename="view_ticket_attachment"),
+        )
+
+        response = self.client.get(f"/api/admin/tickets/{self.ticket_a.id}")
+
+        self.assertEqual(response.status_code, 200)
+        attachments = response.json()["attachments"]
+        self.assertEqual(len(attachments), 1)
+        self.assertEqual(attachments[0]["id"], self.attachment.id)
+        self.assertEqual(attachments[0]["scan_status"], TicketAttachment.ScanStatus.SAFE)
 
     def test_queue_list_only_returns_granted_queues(self) -> None:
         response = self.client.get("/api/admin/ticket-queues")
@@ -95,3 +153,10 @@ class TicketingAdminScopeTests(TestCase):
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertEqual([row["id"] for row in payload], [self.queue_a.id])
+
+    def test_queue_list_requires_view_capability(self) -> None:
+        self.user.user_permissions.remove(Permission.objects.get(codename="view_ticketqueue"))
+
+        response = self.client.get("/api/admin/ticket-queues")
+
+        self.assertEqual(response.status_code, 403)
