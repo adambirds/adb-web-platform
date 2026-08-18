@@ -143,6 +143,8 @@ class TicketDetailOut(Schema):
     closed_at: datetime | None
     created_at: datetime
     updated_at: datetime
+    can_reply: bool
+    can_add_note: bool
     messages: list[TicketMessageOut]
     notes: list[TicketNoteOut]
     attachments: list[TicketAttachmentOut]

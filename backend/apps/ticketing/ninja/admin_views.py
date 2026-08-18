@@ -8,7 +8,7 @@ from ninja import Query, Router, Schema
 from pydantic import Field
 
 from apps.access_control.policies import scope_clients_for_user, scope_ticket_queues_for_user
-from apps.ticketing.models import Ticket, TicketAttachment, TicketMessage, TicketQueue
+from apps.ticketing.models import Ticket, TicketAttachment, TicketMessage, TicketNote, TicketQueue
 from apps.ticketing.services.replies import TicketReplyError, prepare_ticket_reply
 from apps.ticketing.tasks import deliver_ticket_reply_task
 from authentication.models import User
@@ -48,6 +48,10 @@ class TicketReplyIn(Schema):
     body_text: str
     cc_recipients: list[str] = Field(default_factory=list)
     bcc_recipients: list[str] = Field(default_factory=list)
+
+
+class TicketNoteIn(Schema):
+    body: str
 
 
 def _staff_problem(request: HttpRequest) -> StaffProblem | None:
@@ -112,6 +116,16 @@ def _message_out(message: TicketMessage) -> TicketMessageOut:
         delivery_status=message.delivery_status,
         delivery_error=message.delivery_error,
         created_by_name=_user_label(message.created_by),
+    )
+
+
+def _note_out(note: TicketNote) -> TicketNoteOut:
+    return TicketNoteOut(
+        id=note.id,
+        author_name=_user_label(note.author),
+        body=note.body,
+        created_at=note.created_at,
+        updated_at=note.updated_at,
     )
 
 
@@ -312,17 +326,10 @@ def get_ticket(request: HttpRequest, ticket_id: int) -> TicketDetailOut | StaffP
         closed_at=ticket.closed_at,
         created_at=ticket.created_at,
         updated_at=ticket.updated_at,
+        can_reply=request.user.has_perm("ticketing.reply_ticket"),
+        can_add_note=request.user.has_perm("ticketing.add_ticket_note"),
         messages=[_message_out(message) for message in ticket.messages.all()],
-        notes=[
-            TicketNoteOut(
-                id=note.id,
-                author_name=_user_label(note.author),
-                body=note.body,
-                created_at=note.created_at,
-                updated_at=note.updated_at,
-            )
-            for note in ticket.notes.all()
-        ],
+        notes=[_note_out(note) for note in ticket.notes.all()],
         attachments=attachment_rows,
     )
 
@@ -385,3 +392,54 @@ def reply_to_ticket(
 
     deliver_ticket_reply_task.delay(message.id)
     return 202, _message_out(message)
+
+
+@ticketing_admin_router.post(
+    "/tickets/{ticket_id}/notes",
+    response={
+        201: TicketNoteOut,
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+        404: ProblemDetail,
+    },
+)
+def add_ticket_note(
+    request: HttpRequest,
+    ticket_id: int,
+    data: TicketNoteIn,
+) -> tuple[int, TicketNoteOut] | StaffProblem:
+    staff_problem = _staff_problem(request)
+    if staff_problem:
+        return staff_problem
+    if not request.user.has_perm("ticketing.view_ticket") or not request.user.has_perm(
+        "ticketing.add_ticket_note"
+    ):
+        return 403, {
+            "message": "You do not have permission to add internal ticket notes.",
+            "success": False,
+            "code": "forbidden",
+        }
+
+    ticket = _visible_tickets(request).filter(id=ticket_id).first()
+    if ticket is None:
+        return 404, {
+            "message": "Ticket not found.",
+            "success": False,
+            "code": "not_found",
+        }
+
+    body = data.body.strip()
+    if not body:
+        return 400, {
+            "message": "An internal note body is required.",
+            "success": False,
+            "code": "note_body_required",
+        }
+
+    note = TicketNote.objects.create(
+        ticket=ticket,
+        author=cast(User, request.user),
+        body=body,
+    )
+    return 201, _note_out(note)
