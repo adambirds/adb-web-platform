@@ -6,6 +6,8 @@ from ninja import Router, Schema
 from apps.core.models import Brand
 from apps.credentials.models import StoredCredential
 from apps.ticketing.models import Mailbox, MicrosoftGraphConnection, TicketQueue
+from apps.ticketing.services.graph import MicrosoftGraphError
+from apps.ticketing.services.mailbox_access import verify_graph_mailbox_access
 from authentication.ninja.schemas import ProblemDetail
 
 from .schemas import GraphConnectionOut, MailboxOut
@@ -28,7 +30,6 @@ class MailboxIn(Schema):
     graph_connection_id: int | None = None
     email_address: str
     display_name: str = ""
-    graph_user_id: str = ""
     brand_id: int
     purpose: str = Mailbox.Purpose.SUPPORT
     default_queue_id: int
@@ -283,11 +284,19 @@ def create_mailbox(request: HttpRequest, data: MailboxIn) -> MailboxOut | StaffP
             "duplicate_mailbox",
         )
 
+    try:
+        verify_graph_mailbox_access(connection, email_address)
+    except MicrosoftGraphError:
+        return _problem(
+            "Microsoft 365 could not access this shared mailbox. Confirm the mailbox exists and is "
+            "included in the Exchange application scope.",
+            "mailbox_unavailable",
+        )
+
     mailbox = Mailbox.objects.create(
         graph_connection=connection,
         email_address=email_address,
         display_name=data.display_name.strip(),
-        graph_user_id=data.graph_user_id.strip(),
         brand=brand,
         purpose=data.purpose,
         default_queue=queue,
