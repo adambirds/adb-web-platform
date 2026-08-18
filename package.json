@@ -4,7 +4,6 @@
     "private": true,
     "description": "Shared platform for the ADB businesses.",
     "scripts": {
-        "dev:admin": "pnpm --dir sites/admin-adb-software-solutions dev",
         "dev:auth": "pnpm --dir sites/auth-adb-software-solutions dev",
         "dev:software-solutions": "pnpm --dir sites/adb-software-solutions dev",
         "dev:web-designs": "pnpm --dir sites/adb-web-designs dev",
