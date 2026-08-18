@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 
 from celery import shared_task
 from django.conf import settings
@@ -82,7 +82,9 @@ def _graph_mailbox_sync_lock(mailbox_id: int) -> Iterator[bool]:
     """Prevent concurrent workers from advancing the same mailbox delta cursor."""
     redis = get_redis_connection("default")
     timeout = max(
-        int(getattr(settings, "TICKETING_GRAPH_SYNC_LOCK_SECONDS", DEFAULT_GRAPH_SYNC_LOCK_SECONDS)),
+        int(
+            getattr(settings, "TICKETING_GRAPH_SYNC_LOCK_SECONDS", DEFAULT_GRAPH_SYNC_LOCK_SECONDS)
+        ),
         60,
     )
     lock = redis.lock(
@@ -95,8 +97,6 @@ def _graph_mailbox_sync_lock(mailbox_id: int) -> Iterator[bool]:
         yield acquired
     finally:
         if acquired:
-            try:
+            # An expired lock must never cause an otherwise successful sync to fail.
+            with suppress(LockError):
                 lock.release()
-            except LockError:
-                # An expired lock must never cause an otherwise successful sync to fail.
-                pass
