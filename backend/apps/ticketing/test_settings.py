@@ -187,6 +187,55 @@ class TicketingSettingsTests(TestCase):
         self.assertEqual(mailbox.brand, self.brand)
         self.assertEqual(mailbox.default_queue, self.queue)
 
+    def test_mailbox_uses_only_enabled_connection_when_not_selected(self) -> None:
+        self._grant("configure_mailboxes")
+        payload = self._mailbox_payload()
+        payload.pop("graph_connection_id")
+
+        response = self.client.post(
+            "/api/admin/settings/ticketing/mailboxes",
+            data=payload,
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        mailbox = Mailbox.objects.get(email_address="support@adb-test.example.test")
+        self.assertEqual(mailbox.graph_connection, self.connection)
+
+    def test_mailbox_requires_connection_selection_when_multiple_are_enabled(self) -> None:
+        self._grant("configure_mailboxes")
+        MicrosoftGraphConnection.objects.create(
+            name="Second Graph application",
+            tenant_id="second-tenant",
+            client_id="second-client",
+            credential=self.internal_credential,
+        )
+        payload = self._mailbox_payload()
+        payload.pop("graph_connection_id")
+
+        response = self.client.post(
+            "/api/admin/settings/ticketing/mailboxes",
+            data=payload,
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["code"], "connection_required")
+
+    def test_mailbox_rejects_disabled_graph_connection(self) -> None:
+        self._grant("configure_mailboxes")
+        self.connection.enabled = False
+        self.connection.save(update_fields=["enabled"])
+
+        response = self.client.post(
+            "/api/admin/settings/ticketing/mailboxes",
+            data=self._mailbox_payload(),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["code"], "connection_disabled")
+
     def test_mailbox_rejects_queue_from_another_brand(self) -> None:
         self._grant("configure_mailboxes")
 

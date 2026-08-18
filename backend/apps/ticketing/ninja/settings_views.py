@@ -25,7 +25,7 @@ class GraphConnectionIn(Schema):
 
 
 class MailboxIn(Schema):
-    graph_connection_id: int
+    graph_connection_id: int | None = None
     email_address: str
     display_name: str = ""
     graph_user_id: str = ""
@@ -105,20 +105,44 @@ def _resolve_credential(
     return credential, None
 
 
+def _resolve_graph_connection(
+    graph_connection_id: int | None,
+) -> tuple[MicrosoftGraphConnection | None, StaffProblem | None]:
+    if graph_connection_id is not None:
+        connection = MicrosoftGraphConnection.objects.filter(id=graph_connection_id).first()
+        if connection is None:
+            return None, _problem(
+                "Microsoft Graph connection not found.",
+                "connection_not_found",
+            )
+        if not connection.enabled:
+            return None, _problem(
+                "The selected Microsoft Graph connection is disabled.",
+                "connection_disabled",
+            )
+        return connection, None
+
+    enabled_connections = list(MicrosoftGraphConnection.objects.filter(enabled=True)[:2])
+    if not enabled_connections:
+        return None, _problem(
+            "No enabled Microsoft Graph connection is configured.",
+            "connection_not_found",
+        )
+    if len(enabled_connections) > 1:
+        return None, _problem(
+            "Select the Microsoft Graph connection for this mailbox.",
+            "connection_required",
+        )
+    return enabled_connections[0], None
+
+
 def _resolve_mailbox_relations(
     data: MailboxIn,
 ) -> tuple[MicrosoftGraphConnection | None, Brand | None, TicketQueue | None, StaffProblem | None]:
-    connection = MicrosoftGraphConnection.objects.filter(id=data.graph_connection_id).first()
-    if connection is None:
-        return (
-            None,
-            None,
-            None,
-            _problem(
-                "Microsoft Graph connection not found.",
-                "connection_not_found",
-            ),
-        )
+    connection, connection_problem = _resolve_graph_connection(data.graph_connection_id)
+    if connection_problem:
+        return None, None, None, connection_problem
+
     brand = Brand.objects.filter(id=data.brand_id, is_active=True).first()
     if brand is None:
         return None, None, None, _problem("Active brand not found.", "brand_not_found")
@@ -249,7 +273,7 @@ def create_mailbox(request: HttpRequest, data: MailboxIn) -> MailboxOut | StaffP
 
     email_address = data.email_address.strip().lower()
     if not email_address:
-        return _problem("Mailbox email address is required.")
+        return _problem("Shared mailbox email address is required.")
     if Mailbox.objects.filter(
         graph_connection=connection,
         email_address__iexact=email_address,
