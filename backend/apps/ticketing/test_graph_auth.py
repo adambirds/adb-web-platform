@@ -66,7 +66,8 @@ class MicrosoftGraphTokenProviderTests(TestCase):
         self.assertEqual(first, "graph-access-token")
         self.assertEqual(second, "graph-access-token")
         self.session.post.assert_called_once()
-        url, kwargs = self.session.post.call_args
+        url = self.session.post.call_args.args[0]
+        kwargs = self.session.post.call_args.kwargs
         self.assertEqual(
             url,
             "https://login.microsoftonline.com/tenant-id/oauth2/v2.0/token",
@@ -103,7 +104,8 @@ class MicrosoftGraphTokenProviderTests(TestCase):
             token = provider.get_access_token()
 
         self.assertEqual(token, "graph-access-token")
-        url, kwargs = self.session.post.call_args
+        url = self.session.post.call_args.args[0]
+        kwargs = self.session.post.call_args.kwargs
         data = kwargs["data"]
         self.assertEqual(data["client_assertion_type"], CLIENT_ASSERTION_TYPE)
         self.assertNotIn("client_secret", data)
