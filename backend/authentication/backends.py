@@ -14,7 +14,7 @@ class EmailBackend(ModelBackend):
         username: str | None = None,
         password: str | None = None,
         **kwargs: Any,
-    ) -> None | User:
+    ) -> User | None:
         UserModel = get_user_model()
         try:
             user = UserModel.objects.get(email=username)
