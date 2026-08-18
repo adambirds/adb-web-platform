@@ -33,8 +33,12 @@ class CredentialSecretTests(TestCase):
 
     def test_secret_payload_round_trips_without_plaintext_in_database(self) -> None:
         secrets = {
-            "private_key": "-----BEGIN PRIVATE KEY-----\nvery-secret-key\n-----END PRIVATE KEY-----",
-            "certificate": "-----BEGIN CERTIFICATE-----\npublic-certificate\n-----END CERTIFICATE-----",
+            "private_key": (
+                "-----BEGIN PRIVATE KEY-----\nvery-secret-key\n-----END PRIVATE KEY-----"
+            ),
+            "certificate": (
+                "-----BEGIN CERTIFICATE-----\npublic-certificate\n-----END CERTIFICATE-----"
+            ),
             "passphrase": "correct horse battery staple",
         }
 
@@ -44,7 +48,10 @@ class CredentialSecretTests(TestCase):
 
             self.assertTrue(self.credential.encrypted_secret_payload)
             self.assertNotIn("very-secret-key", self.credential.encrypted_secret_payload)
-            self.assertNotIn("correct horse battery staple", self.credential.encrypted_secret_payload)
+            self.assertNotIn(
+                "correct horse battery staple",
+                self.credential.encrypted_secret_payload,
+            )
             self.assertEqual(load_credential_secrets_for_service(self.credential), secrets)
             self.assertIsNotNone(self.credential.last_rotated_at)
 
@@ -90,6 +97,7 @@ class CredentialSecretTests(TestCase):
             user.user_permissions.add(
                 Permission.objects.get(codename="reveal_storedcredential"),
             )
+            user = User.objects.get(pk=user.pk)
             revealed = reveal_credential_secrets(
                 self.credential,
                 actor=user,

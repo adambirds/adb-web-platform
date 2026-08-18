@@ -37,7 +37,9 @@ def store_credential_secrets(
     """Encrypt and persist secret material without touching legacy plaintext fields."""
     payload = _normalise_secrets(secrets)
     if not payload:
-        raise CredentialEncryptionError("At least one non-empty credential secret is required.")
+        raise CredentialEncryptionError(
+            "At least one non-empty credential secret is required."
+        )
 
     encoded = json.dumps(
         {"version": SECRET_PAYLOAD_VERSION, "secrets": payload},
@@ -111,7 +113,9 @@ def _decrypt_payload(credential: StoredCredential) -> dict[str, str]:
     try:
         plaintext = _fernet().decrypt(credential.encrypted_secret_payload.encode("ascii"))
     except (InvalidToken, UnicodeEncodeError) as exc:
-        raise CredentialDecryptionError("Credential secret payload could not be decrypted.") from exc
+        raise CredentialDecryptionError(
+            "Credential secret payload could not be decrypted."
+        ) from exc
 
     try:
         decoded = json.loads(plaintext.decode("utf-8"))
