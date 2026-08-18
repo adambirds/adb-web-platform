@@ -72,7 +72,9 @@ class MicrosoftGraphOutboundAdapterTests(TestCase):
 
         create_call, patch_call, send_call = self.session.request.call_args_list
         mailbox_root = f"{GRAPH_API_ROOT}/users/support%40adb-test.example.test/messages"
-        self.assertEqual(create_call.args[:2], ("post", f"{mailbox_root}/source%2Fmessage%3Did/createReply"))
+        self.assertEqual(
+            create_call.args[:2], ("post", f"{mailbox_root}/source%2Fmessage%3Did/createReply")
+        )
         self.assertEqual(
             create_call.kwargs["json"],
             {

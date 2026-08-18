@@ -8,7 +8,11 @@ from urllib.parse import quote
 import requests
 
 from apps.ticketing.models import Mailbox
-from apps.ticketing.services.graph import GRAPH_API_ROOT, MicrosoftGraphError, MicrosoftGraphPayloadError
+from apps.ticketing.services.graph import (
+    GRAPH_API_ROOT,
+    MicrosoftGraphError,
+    MicrosoftGraphPayloadError,
+)
 
 AccessTokenProvider = Callable[[], str]
 
@@ -178,7 +182,9 @@ class MicrosoftGraphOutboundAdapter:
         reference = ticket_reference.strip()
         subject = ticket_subject.strip()
         if not reference or not subject:
-            raise MicrosoftGraphError("Ticket reference and subject are required for a Graph reply.")
+            raise MicrosoftGraphError(
+                "Ticket reference and subject are required for a Graph reply."
+            )
         lowered = subject.lower()
         while lowered.startswith("re:"):
             subject = subject[3:].strip()
@@ -188,16 +194,9 @@ class MicrosoftGraphOutboundAdapter:
     @staticmethod
     def _normalise_recipients(recipients: Sequence[str]) -> tuple[str, ...]:
         return tuple(
-            dict.fromkeys(
-                address.strip().lower()
-                for address in recipients
-                if address.strip()
-            )
+            dict.fromkeys(address.strip().lower() for address in recipients if address.strip())
         )
 
     @staticmethod
     def _recipient_payload(recipients: Sequence[str]) -> list[dict[str, dict[str, str]]]:
-        return [
-            {"emailAddress": {"address": address}}
-            for address in recipients
-        ]
+        return [{"emailAddress": {"address": address}} for address in recipients]
