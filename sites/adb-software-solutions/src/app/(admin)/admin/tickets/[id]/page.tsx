@@ -1,4 +1,5 @@
 import { Container } from "@/components/ui";
+import { TicketControls } from "./TicketControls";
 import { TicketWorkspace } from "./TicketWorkspace";
 
 export default async function TicketPage({
@@ -7,10 +8,14 @@ export default async function TicketPage({
     params: Promise<{ id: string }>;
 }) {
     const { id } = await params;
+    const ticketId = Number(id);
 
     return (
         <Container className="py-8">
-            <TicketWorkspace ticketId={Number(id)} />
+            <div className="space-y-6">
+                <TicketControls ticketId={ticketId} />
+                <TicketWorkspace ticketId={ticketId} />
+            </div>
         </Container>
     );
 }

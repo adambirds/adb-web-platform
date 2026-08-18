@@ -36,6 +36,18 @@ export const AdminAPI = {
         reply: (id: number) => `${API_BASE_URL}/admin/tickets/${id}/reply`,
         notes: (id: number) => `${API_BASE_URL}/admin/tickets/${id}/notes`,
         queues: () => `${API_BASE_URL}/admin/ticket-queues`,
+        operations: {
+            options: (id: number) =>
+                `${API_BASE_URL}/admin/tickets/${id}/operations`,
+            assignment: (id: number) =>
+                `${API_BASE_URL}/admin/tickets/${id}/assignment`,
+            status: (id: number) =>
+                `${API_BASE_URL}/admin/tickets/${id}/status`,
+            priority: (id: number) =>
+                `${API_BASE_URL}/admin/tickets/${id}/priority`,
+            queue: (id: number) =>
+                `${API_BASE_URL}/admin/tickets/${id}/queue`,
+        },
         settings: {
             graphConnections: () =>
                 `${API_BASE_URL}/admin/settings/ticketing/graph-connections`,
