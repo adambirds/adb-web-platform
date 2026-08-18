@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.contrib.auth.models import Permission
 from django.test import TestCase
 
@@ -6,6 +8,7 @@ from apps.core.models import Brand
 from apps.core.ownership import OwnershipType
 from apps.credentials.models import StoredCredential
 from apps.ticketing.models import Mailbox, MicrosoftGraphConnection, TicketQueue
+from apps.ticketing.services.graph import MicrosoftGraphError
 from authentication.models import User
 
 
@@ -66,6 +69,11 @@ class TicketingSettingsTests(TestCase):
             client_id="existing-client",
             credential=self.internal_credential,
         )
+        verification_patcher = patch(
+            "apps.ticketing.ninja.settings_views.verify_graph_mailbox_access"
+        )
+        self.verify_graph_mailbox_access = verification_patcher.start()
+        self.addCleanup(verification_patcher.stop)
 
     def _grant(self, *codenames: str) -> None:
         permissions = Permission.objects.filter(
@@ -171,6 +179,7 @@ class TicketingSettingsTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
+        self.verify_graph_mailbox_access.assert_not_called()
 
     def test_mailbox_create_normalises_email_and_links_routing(self) -> None:
         self._grant("configure_mailboxes")
@@ -186,6 +195,25 @@ class TicketingSettingsTests(TestCase):
         self.assertEqual(mailbox.email_address, "support@adb-test.example.test")
         self.assertEqual(mailbox.brand, self.brand)
         self.assertEqual(mailbox.default_queue, self.queue)
+        self.assertEqual(mailbox.graph_user_id, "")
+        self.verify_graph_mailbox_access.assert_called_once_with(
+            self.connection,
+            "support@adb-test.example.test",
+        )
+
+    def test_mailbox_rejects_address_without_graph_access(self) -> None:
+        self._grant("configure_mailboxes")
+        self.verify_graph_mailbox_access.side_effect = MicrosoftGraphError("access denied")
+
+        response = self.client.post(
+            "/api/admin/settings/ticketing/mailboxes",
+            data=self._mailbox_payload(),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["code"], "mailbox_unavailable")
+        self.assertFalse(Mailbox.objects.exists())
 
     def test_mailbox_uses_only_enabled_connection_when_not_selected(self) -> None:
         self._grant("configure_mailboxes")
@@ -221,6 +249,7 @@ class TicketingSettingsTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["code"], "connection_required")
+        self.verify_graph_mailbox_access.assert_not_called()
 
     def test_mailbox_rejects_disabled_graph_connection(self) -> None:
         self._grant("configure_mailboxes")
@@ -235,6 +264,7 @@ class TicketingSettingsTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["code"], "connection_disabled")
+        self.verify_graph_mailbox_access.assert_not_called()
 
     def test_mailbox_rejects_queue_from_another_brand(self) -> None:
         self._grant("configure_mailboxes")
@@ -247,6 +277,7 @@ class TicketingSettingsTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["code"], "queue_brand_mismatch")
+        self.verify_graph_mailbox_access.assert_not_called()
 
     def test_mailbox_rejects_disabled_queue(self) -> None:
         self._grant("configure_mailboxes")
@@ -259,6 +290,7 @@ class TicketingSettingsTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["code"], "queue_not_found")
+        self.verify_graph_mailbox_access.assert_not_called()
 
     def test_mailbox_rejects_case_insensitive_duplicate(self) -> None:
         self._grant("configure_mailboxes")
@@ -278,3 +310,4 @@ class TicketingSettingsTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["code"], "duplicate_mailbox")
+        self.verify_graph_mailbox_access.assert_not_called()
