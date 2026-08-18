@@ -59,6 +59,8 @@ interface TicketDetail {
     first_response_at: string | null;
     last_message_at: string | null;
     created_at: string;
+    can_reply: boolean;
+    can_add_note: boolean;
     messages: TicketMessage[];
     notes: TicketNote[];
     attachments: TicketAttachment[];
@@ -110,6 +112,9 @@ export function TicketWorkspace({ ticketId }: { ticketId: number }) {
     const [isSubmittingReply, setIsSubmittingReply] = useState(false);
     const [replyError, setReplyError] = useState<string | null>(null);
     const [replyStatus, setReplyStatus] = useState<string | null>(null);
+    const [noteBody, setNoteBody] = useState("");
+    const [isSubmittingNote, setIsSubmittingNote] = useState(false);
+    const [noteError, setNoteError] = useState<string | null>(null);
 
     const loadTicket = useCallback(async () => {
         try {
@@ -166,6 +171,36 @@ export function TicketWorkspace({ ticketId }: { ticketId: number }) {
             );
         } finally {
             setIsSubmittingReply(false);
+        }
+    }
+
+    async function handleNote(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        const body = noteBody.trim();
+        if (!body || isSubmittingNote) return;
+
+        try {
+            setIsSubmittingNote(true);
+            setNoteError(null);
+            const note = (await fetchAPI(AdminAPI.tickets.notes(ticketId), {
+                method: "POST",
+                body: JSON.stringify({ body }),
+            })) as TicketNote;
+            setTicket((currentTicket) =>
+                currentTicket
+                    ? {
+                          ...currentTicket,
+                          notes: [...currentTicket.notes, note],
+                      }
+                    : currentTicket,
+            );
+            setNoteBody("");
+        } catch (submitError) {
+            setNoteError(
+                submitError instanceof Error ? submitError.message : "Unable to add internal note.",
+            );
+        } finally {
+            setIsSubmittingNote(false);
         }
     }
 
@@ -242,73 +277,75 @@ export function TicketWorkspace({ ticketId }: { ticketId: number }) {
                         </Card>
                     ))}
 
-                    <Card className="p-5">
-                        <form onSubmit={(event) => void handleReply(event)}>
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                <div>
-                                    <h2 className="text-sm font-semibold text-white">Reply</h2>
-                                    <p className="mt-1 text-xs leading-5 text-slate-500">
-                                        Replies are queued through the Microsoft 365 mailbox attached to this ticket.
-                                    </p>
+                    {ticket.can_reply ? (
+                        <Card className="p-5">
+                            <form onSubmit={(event) => void handleReply(event)}>
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                    <div>
+                                        <h2 className="text-sm font-semibold text-white">Reply</h2>
+                                        <p className="mt-1 text-xs leading-5 text-slate-500">
+                                            Replies are queued through the Microsoft 365 mailbox attached to this ticket.
+                                        </p>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setShowRecipients((value) => !value)}
+                                    >
+                                        {showRecipients ? "Hide CC/BCC" : "Add CC/BCC"}
+                                    </Button>
                                 </div>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setShowRecipients((value) => !value)}
-                                >
-                                    {showRecipients ? "Hide CC/BCC" : "Add CC/BCC"}
-                                </Button>
-                            </div>
 
-                            {showRecipients ? (
-                                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                                    <label className="text-xs text-slate-400">
-                                        CC
-                                        <Input
-                                            value={ccRecipients}
-                                            onChange={(event) => setCcRecipients(event.target.value)}
-                                            placeholder="person@example.com, another@example.com"
-                                            className="mt-1"
-                                        />
-                                    </label>
-                                    <label className="text-xs text-slate-400">
-                                        BCC
-                                        <Input
-                                            value={bccRecipients}
-                                            onChange={(event) => setBccRecipients(event.target.value)}
-                                            placeholder="person@example.com"
-                                            className="mt-1"
-                                        />
-                                    </label>
+                                {showRecipients ? (
+                                    <div className="mt-4 grid gap-3 md:grid-cols-2">
+                                        <label className="text-xs text-slate-400">
+                                            CC
+                                            <Input
+                                                value={ccRecipients}
+                                                onChange={(event) => setCcRecipients(event.target.value)}
+                                                placeholder="person@example.com, another@example.com"
+                                                className="mt-1"
+                                            />
+                                        </label>
+                                        <label className="text-xs text-slate-400">
+                                            BCC
+                                            <Input
+                                                value={bccRecipients}
+                                                onChange={(event) => setBccRecipients(event.target.value)}
+                                                placeholder="person@example.com"
+                                                className="mt-1"
+                                            />
+                                        </label>
+                                    </div>
+                                ) : null}
+
+                                <Textarea
+                                    value={replyBody}
+                                    onChange={(event) => setReplyBody(event.target.value)}
+                                    placeholder="Write your reply..."
+                                    rows={8}
+                                    className="mt-4 min-h-40 resize-y"
+                                />
+
+                                {replyError ? (
+                                    <p className="mt-3 text-sm text-red-300">{replyError}</p>
+                                ) : null}
+                                {replyStatus ? (
+                                    <p className="mt-3 text-sm text-emerald-300">{replyStatus}</p>
+                                ) : null}
+
+                                <div className="mt-4 flex justify-end">
+                                    <Button
+                                        type="submit"
+                                        disabled={!replyBody.trim() || isSubmittingReply}
+                                    >
+                                        {isSubmittingReply ? "Queuing..." : "Queue reply"}
+                                    </Button>
                                 </div>
-                            ) : null}
-
-                            <Textarea
-                                value={replyBody}
-                                onChange={(event) => setReplyBody(event.target.value)}
-                                placeholder="Write your reply..."
-                                rows={8}
-                                className="mt-4 min-h-40 resize-y"
-                            />
-
-                            {replyError ? (
-                                <p className="mt-3 text-sm text-red-300">{replyError}</p>
-                            ) : null}
-                            {replyStatus ? (
-                                <p className="mt-3 text-sm text-emerald-300">{replyStatus}</p>
-                            ) : null}
-
-                            <div className="mt-4 flex justify-end">
-                                <Button
-                                    type="submit"
-                                    disabled={!replyBody.trim() || isSubmittingReply}
-                                >
-                                    {isSubmittingReply ? "Queuing..." : "Queue reply"}
-                                </Button>
-                            </div>
-                        </form>
-                    </Card>
+                            </form>
+                        </Card>
+                    ) : null}
                 </div>
 
                 <aside className="space-y-4">
@@ -367,6 +404,34 @@ export function TicketWorkspace({ ticketId }: { ticketId: number }) {
                                 ))
                             )}
                         </div>
+
+                        {ticket.can_add_note ? (
+                            <form
+                                className="mt-4 border-t border-slate-800 pt-4"
+                                onSubmit={(event) => void handleNote(event)}
+                            >
+                                <Textarea
+                                    value={noteBody}
+                                    onChange={(event) => setNoteBody(event.target.value)}
+                                    placeholder="Add an internal note..."
+                                    rows={4}
+                                    className="resize-y"
+                                />
+                                {noteError ? (
+                                    <p className="mt-2 text-xs text-red-300">{noteError}</p>
+                                ) : null}
+                                <div className="mt-3 flex justify-end">
+                                    <Button
+                                        type="submit"
+                                        variant="secondary"
+                                        size="sm"
+                                        disabled={!noteBody.trim() || isSubmittingNote}
+                                    >
+                                        {isSubmittingNote ? "Adding..." : "Add note"}
+                                    </Button>
+                                </div>
+                            </form>
+                        ) : null}
                     </Card>
 
                     <Card className="p-5">
