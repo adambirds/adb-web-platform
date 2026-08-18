@@ -18,15 +18,15 @@
         "noFallthroughCasesInSwitch": true,
         "plugins": [{"name": "next"}],
         "paths": {
-            "@/*": ["./src/*"]
-        }
+            "@/*": ["./src/*"],
+        },
     },
     "include": [
         "next-env.d.ts",
         ".next/types/**/*.ts",
         ".next/dev/types/**/*.ts",
         "**/*.ts",
-        "**/*.tsx"
+        "**/*.tsx",
     ],
-    "exclude": ["node_modules"]
+    "exclude": ["node_modules"],
 }
