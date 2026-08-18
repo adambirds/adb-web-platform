@@ -14,10 +14,12 @@ class CredentialType(models.Model):
 
 
 class StoredCredential(models.Model):
-    """Client-owned or internal credential metadata and legacy secret storage.
+    """Client-owned or internal credential metadata and encrypted secret storage.
 
-    Secret fields remain plaintext legacy storage and MUST NOT be used for
-    production credentials until encrypted-at-rest storage is implemented.
+    Production secrets belong in ``encrypted_secret_payload`` and must be written
+    through the credential-secret service. The individual secret columns remain
+    plaintext legacy fields for compatibility only and must not receive new
+    production credentials.
     """
 
     ownership_type = models.CharField(
@@ -45,6 +47,8 @@ class StoredCredential(models.Model):
     api_key = models.CharField(max_length=500, blank=True)
     secret_key = models.CharField(max_length=500, blank=True)
     private_key = models.TextField(blank=True)
+    encrypted_secret_payload = models.TextField(blank=True, editable=False)
+    secret_payload_version = models.PositiveSmallIntegerField(default=1, editable=False)
 
     url = models.URLField(blank=True)
     expires_at = models.DateTimeField(blank=True, null=True)
