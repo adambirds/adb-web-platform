@@ -14,6 +14,36 @@ class TicketQueueOut(Schema):
     enabled: bool
 
 
+class GraphConnectionOut(Schema):
+    id: int
+    name: str
+    tenant_id: str
+    client_id: str
+    authentication_method: str
+    credential_id: int | None
+    credential_name: str | None
+    enabled: bool
+    last_verified_at: datetime | None
+    last_error: str
+
+
+class MailboxOut(Schema):
+    id: int
+    email_address: str
+    display_name: str
+    graph_connection_id: int
+    graph_connection_name: str
+    brand_id: int
+    brand_name: str
+    purpose: str
+    default_queue_id: int
+    default_queue_name: str
+    enabled: bool
+    last_synced_at: datetime | None
+    last_successful_sync_at: datetime | None
+    last_error: str
+
+
 class TicketListItemOut(Schema):
     id: int
     reference: str
