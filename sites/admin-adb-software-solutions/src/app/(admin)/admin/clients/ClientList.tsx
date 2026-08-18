@@ -12,8 +12,9 @@ import {
     TableHeaderCell,
     TableRow,
 } from "@/components/ui";
-import { fetchAPI } from "@/lib/api/fetch";
 import { AdminAPI } from "@/lib/api/endpoints";
+import { fetchAPI } from "@/lib/api/fetch";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 interface ClientSummary {
@@ -62,14 +63,8 @@ export function ClientList() {
         void loadClients();
     }, [loadClients]);
 
-    if (isLoading) {
-        return <DataLoading label="Loading client accounts..." />;
-    }
-
-    if (error) {
-        return <DataError message={error} onRetry={() => void loadClients()} />;
-    }
-
+    if (isLoading) return <DataLoading label="Loading client accounts..." />;
+    if (error) return <DataError message={error} onRetry={() => void loadClients()} />;
     if (clients.length === 0) {
         return (
             <EmptyState
@@ -94,19 +89,18 @@ export function ClientList() {
                 {clients.map((client) => (
                     <TableRow key={client.id}>
                         <TableCell>
-                            <div className="font-medium text-slate-100">
+                            <Link
+                                href={`/admin/clients/${client.id}`}
+                                className="font-medium text-slate-100 transition hover:text-cyan-300"
+                            >
                                 {client.company || client.name}
-                            </div>
+                            </Link>
                             {client.company && client.name ? (
-                                <div className="mt-1 text-xs text-slate-500">
-                                    {client.name}
-                                </div>
+                                <div className="mt-1 text-xs text-slate-500">{client.name}</div>
                             ) : null}
                         </TableCell>
                         <TableCell>
-                            <Badge className={statusClasses(client.status)}>
-                                {client.status}
-                            </Badge>
+                            <Badge className={statusClasses(client.status)}>{client.status}</Badge>
                         </TableCell>
                         <TableCell className="tabular-nums text-slate-400">
                             {client.contact_count}
@@ -114,9 +108,7 @@ export function ClientList() {
                         <TableCell className="tabular-nums text-slate-400">
                             {client.project_count}
                         </TableCell>
-                        <TableCell className="text-slate-400">
-                            {client.email}
-                        </TableCell>
+                        <TableCell className="text-slate-400">{client.email}</TableCell>
                     </TableRow>
                 ))}
             </TableBody>
