@@ -28,6 +28,7 @@ channels==4.3.2
 # Celery / cache
 redis==8.1.0
 django-redis==7.0.0
+celery==5.6.3
 
 # Direct integrations / security
 requests==2.32.4
