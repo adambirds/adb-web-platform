@@ -1,3 +1,4 @@
+import { Container } from "@/components/ui";
 import { ClientWorkspace } from "./ClientWorkspace";
 
 export default async function ClientPage({
@@ -6,5 +7,10 @@ export default async function ClientPage({
     params: Promise<{ id: string }>;
 }) {
     const { id } = await params;
-    return <ClientWorkspace clientId={Number(id)} />;
+
+    return (
+        <Container className="py-8">
+            <ClientWorkspace clientId={Number(id)} />
+        </Container>
+    );
 }
