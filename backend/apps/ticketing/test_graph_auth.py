@@ -212,9 +212,7 @@ class MicrosoftGraphTokenProviderTests(TestCase):
     @staticmethod
     def _certificate_material() -> tuple[rsa.RSAPrivateKey, str, str, x509.Certificate]:
         private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-        subject = issuer = x509.Name(
-            [x509.NameAttribute(NameOID.COMMON_NAME, "ADB Graph Test")]
-        )
+        subject = issuer = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "ADB Graph Test")])
         now = timezone.now()
         certificate = (
             x509.CertificateBuilder()

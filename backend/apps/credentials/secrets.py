@@ -20,7 +20,7 @@ class CredentialEncryptionError(RuntimeError):
     """Base exception for encrypted credential-secret operations."""
 
 
-class CredentialEncryptionNotConfigured(CredentialEncryptionError):
+class CredentialEncryptionNotConfiguredError(CredentialEncryptionError):
     """No valid credential encryption key is configured."""
 
 
@@ -37,9 +37,7 @@ def store_credential_secrets(
     """Encrypt and persist secret material without touching legacy plaintext fields."""
     payload = _normalise_secrets(secrets)
     if not payload:
-        raise CredentialEncryptionError(
-            "At least one non-empty credential secret is required."
-        )
+        raise CredentialEncryptionError("At least one non-empty credential secret is required.")
 
     encoded = json.dumps(
         {"version": SECRET_PAYLOAD_VERSION, "secrets": payload},
@@ -128,10 +126,11 @@ def _decrypt_payload(credential: StoredCredential) -> dict[str, str]:
     if not isinstance(secrets, dict):
         raise CredentialDecryptionError("Credential secret payload has no secrets object.")
 
-    result: dict[str, str] = {}
-    for key, value in secrets.items():
-        if isinstance(key, str) and isinstance(value, str) and value:
-            result[key] = value
+    result = {
+        key: value
+        for key, value in secrets.items()
+        if isinstance(key, str) and isinstance(value, str) and value
+    }
     if not result:
         raise CredentialDecryptionError("Credential secret payload is empty.")
     return result
@@ -158,14 +157,14 @@ def _configured_keys() -> list[str]:
 def _fernet() -> MultiFernet:
     configured_keys = _configured_keys()
     if not configured_keys:
-        raise CredentialEncryptionNotConfigured(
+        raise CredentialEncryptionNotConfiguredError(
             "CREDENTIAL_ENCRYPTION_KEYS must contain at least one Fernet key."
         )
 
     try:
         fernets = [Fernet(key.encode("ascii")) for key in configured_keys]
     except (ValueError, UnicodeEncodeError) as exc:
-        raise CredentialEncryptionNotConfigured(
+        raise CredentialEncryptionNotConfiguredError(
             "CREDENTIAL_ENCRYPTION_KEYS contains an invalid Fernet key."
         ) from exc
     return MultiFernet(fernets)

@@ -14,10 +14,7 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from django.utils import timezone
 
 from apps.core.ownership import OwnershipType
-from apps.credentials.secrets import (
-    CredentialEncryptionError,
-    load_credential_secrets_for_service,
-)
+from apps.credentials.secrets import CredentialEncryptionError, load_credential_secrets_for_service
 from apps.ticketing.models import MicrosoftGraphConnection
 
 GRAPH_SCOPE = "https://graph.microsoft.com/.default"
@@ -211,9 +208,9 @@ def _build_certificate_assertion(
         "nbf": now - 5,
         "sub": client_id,
     }
-    signing_input = (
-        f"{_base64url(_json_bytes(header))}.{_base64url(_json_bytes(claims))}"
-    ).encode("ascii")
+    signing_input = (f"{_base64url(_json_bytes(header))}.{_base64url(_json_bytes(claims))}").encode(
+        "ascii"
+    )
     signature = private_key.sign(
         signing_input,
         padding.PSS(

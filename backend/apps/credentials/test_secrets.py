@@ -8,7 +8,7 @@ from apps.core.ownership import OwnershipType
 from apps.credentials.models import StoredCredential
 from apps.credentials.secrets import (
     CredentialDecryptionError,
-    CredentialEncryptionNotConfigured,
+    CredentialEncryptionNotConfiguredError,
     load_credential_secrets_for_service,
     reveal_credential_secrets,
     rotate_credential_encryption,
@@ -28,7 +28,7 @@ class CredentialSecretTests(TestCase):
 
     @override_settings(CREDENTIAL_ENCRYPTION_KEYS=[])
     def test_secret_storage_requires_configured_key(self) -> None:
-        with self.assertRaises(CredentialEncryptionNotConfigured):
+        with self.assertRaises(CredentialEncryptionNotConfiguredError):
             store_credential_secrets(self.credential, {"client_secret": "super-secret"})
 
     def test_secret_payload_round_trips_without_plaintext_in_database(self) -> None:
@@ -59,9 +59,11 @@ class CredentialSecretTests(TestCase):
         with override_settings(CREDENTIAL_ENCRYPTION_KEYS=[self.old_key]):
             store_credential_secrets(self.credential, {"client_secret": "secret-value"})
 
-        with override_settings(CREDENTIAL_ENCRYPTION_KEYS=[self.primary_key]):
-            with self.assertRaises(CredentialDecryptionError):
-                load_credential_secrets_for_service(self.credential)
+        with (
+            override_settings(CREDENTIAL_ENCRYPTION_KEYS=[self.primary_key]),
+            self.assertRaises(CredentialDecryptionError),
+        ):
+            load_credential_secrets_for_service(self.credential)
 
     def test_rotation_accepts_old_key_then_reencrypts_with_primary_key(self) -> None:
         secrets = {"client_secret": "rotate-me"}
