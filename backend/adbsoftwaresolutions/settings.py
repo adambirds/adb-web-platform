@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "apps.credentials",
     "apps.knowledge_base",
     "apps.tasks",
+    "apps.ticketing",
     "corsheaders",
     "unfold",
     "unfold.contrib.filters",
