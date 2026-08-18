@@ -29,6 +29,9 @@ export const AdminAPI = {
     leads: {
         list: () => `${API_BASE_URL}/admin/leads`,
     },
+    infrastructure: {
+        summary: () => `${API_BASE_URL}/admin/infrastructure/summary`,
+    },
     website: {
         portfolio: {
             list: () => `${API_BASE_URL}/admin/website/portfolio`,
