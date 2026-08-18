@@ -191,39 +191,53 @@ export default function Setup2FAPage() {
                 <div className="text-center">
                     <CheckCircleIcon className="mx-auto h-16 w-16 text-green-500" />
                     <h1 className="mt-4 text-2xl font-bold text-slate-900 dark:text-white">
-                        Save Your Recovery Codes
+                        2FA Enabled!
                     </h1>
-                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                        Store these codes somewhere safe. Each code can only be used once.
+                    <p className="mt-2 text-slate-600 dark:text-slate-400">
+                        Save these recovery codes in a safe place. You can use
+                        them if you lose access to your authenticator app.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 rounded-md bg-slate-100 p-4 font-mono text-sm dark:bg-slate-700">
-                    {recoveryCodes.map((recoveryCode) => (
-                        <div key={recoveryCode} className="text-center text-slate-900 dark:text-white">
-                            {recoveryCode}
-                        </div>
-                    ))}
+                <div className="rounded-md bg-slate-100 p-4 dark:bg-slate-700">
+                    <div className="grid grid-cols-2 gap-2 font-mono text-sm">
+                        {recoveryCodes.map((code, index) => (
+                            <div
+                                key={index}
+                                className="text-center text-slate-900 dark:text-white"
+                            >
+                                {code}
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
-                <button onClick={handleContinue} className="btn btn-primary w-full">
-                    I have saved my recovery codes
+                <Alert type="warning">
+                    Each code can only be used once. Store them securely!
+                </Alert>
+
+                <button
+                    onClick={handleContinue}
+                    className="btn btn-primary w-full"
+                >
+                    I've saved my codes
                 </button>
             </div>
         );
     }
 
+    // Complete step
     return (
         <div className="space-y-6 text-center">
             <CheckCircleIcon className="mx-auto h-16 w-16 text-green-500" />
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                Two-Factor Authentication Enabled
+                You're all set!
             </h1>
             <p className="text-slate-600 dark:text-slate-400">
                 Your account is now protected with two-factor authentication.
             </p>
-            <a href={getRedirectUrl()} className="btn btn-primary inline-flex">
-                Continue
+            <a href={getRedirectUrl()} className="btn btn-primary inline-block">
+                Continue to app
             </a>
         </div>
     );
