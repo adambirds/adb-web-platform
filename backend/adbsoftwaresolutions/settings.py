@@ -28,7 +28,7 @@ if DEBUG:
 
 SITE_DOMAIN = os.environ.get("SITE_DOMAIN", "localhost")
 ADMIN_FRONTEND_URL = os.environ.get("ADMIN_FRONTEND_URL", "http://localhost:3000")
-AUTH_FRONTEND_URL = os.environ.get("AUTH_FRONTEND_URL", "http://localhost:5175")
+AUTH_FRONTEND_URL = os.environ.get("AUTH_FRONTEND_URL", "http://localhost:3004")
 SOFTWARE_SOLUTIONS_FRONTEND_URL = os.environ.get(
     "SOFTWARE_SOLUTIONS_FRONTEND_URL",
     "http://localhost:3001",
@@ -222,7 +222,7 @@ if DEBUG:
         "http://localhost:3001",
         "http://localhost:3002",
         "http://localhost:3003",
-        "http://localhost:5175",
+        "http://localhost:3004",
     ]
 
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
