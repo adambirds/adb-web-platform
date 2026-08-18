@@ -6,7 +6,13 @@ from django.utils import timezone
 
 from apps.clients.models import Client, ClientContact
 from apps.core.models import Brand
-from apps.ticketing.models import Mailbox, MicrosoftGraphConnection, Ticket, TicketMessage, TicketQueue
+from apps.ticketing.models import (
+    Mailbox,
+    MicrosoftGraphConnection,
+    Ticket,
+    TicketMessage,
+    TicketQueue,
+)
 from apps.ticketing.services.contracts import CanonicalMessage
 from apps.ticketing.services.ingestion import ingest_canonical_message
 from apps.ticketing.services.normalisation import normalize_message_body
@@ -137,8 +143,7 @@ class CanonicalMessageIngestionTests(TestCase):
                 provider_message_id="known-contact-message",
                 body_text="",
                 body_html=(
-                    "<p>The website is down.</p>"
-                    "<p>Kind regards,<br>Jane Client<br>Example Ltd</p>"
+                    "<p>The website is down.</p><p>Kind regards,<br>Jane Client<br>Example Ltd</p>"
                 ),
             ),
         )

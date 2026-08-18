@@ -156,7 +156,9 @@ def _find_thread(mailbox: Mailbox, canonical: CanonicalMessage) -> Ticket | None
         if matched_message is not None:
             return matched_message.ticket
 
-    references = [reference.upper() for reference in _TICKET_REFERENCE_RE.findall(canonical.subject)]
+    references = [
+        reference.upper() for reference in _TICKET_REFERENCE_RE.findall(canonical.subject)
+    ]
     if references:
         return (
             Ticket.objects.filter(mailbox=mailbox, reference__in=references)
@@ -202,7 +204,10 @@ def _update_existing_ticket(
     if ticket.primary_contact_id is None and contact is not None:
         ticket.primary_contact = contact
         update_fields.add("primary_contact")
-    if ticket.classification == Ticket.Classification.UNKNOWN and classification != Ticket.Classification.UNKNOWN:
+    if (
+        ticket.classification == Ticket.Classification.UNKNOWN
+        and classification != Ticket.Classification.UNKNOWN
+    ):
         ticket.classification = classification
         update_fields.add("classification")
 
