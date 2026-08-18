@@ -14,6 +14,44 @@ class ClientSummaryOut(Schema):
     project_count: int
 
 
+class ClientContactOut(Schema):
+    id: int
+    name: str
+    email: str
+    phone: str
+    role: str
+    is_active: bool
+    is_primary: bool
+    is_billing: bool
+    is_technical: bool
+
+
+class ClientProjectOut(Schema):
+    id: int
+    name: str
+    status: str
+    start_date: date
+    end_date: date | None
+    budget: Decimal | None
+
+
+class ClientDetailOut(Schema):
+    id: int
+    name: str
+    company: str
+    email: str
+    phone: str
+    address: str
+    city: str
+    state: str
+    country: str
+    postal_code: str
+    status: str
+    notes: str
+    contacts: list[ClientContactOut]
+    projects: list[ClientProjectOut]
+
+
 class ProjectSummaryOut(Schema):
     id: int
     name: str
