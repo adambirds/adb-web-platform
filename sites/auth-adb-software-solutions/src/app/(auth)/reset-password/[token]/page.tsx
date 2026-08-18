@@ -4,6 +4,11 @@ import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import {useParams} from "next/navigation";
 
 export default function Page() {
-    const {token} = useParams<{token: string}>();
-    return <ResetPasswordPage token={token} />;
+    const params = useParams<{token: string}>();
+
+    if (!params) {
+        return null;
+    }
+
+    return <ResetPasswordPage token={params.token} />;
 }
