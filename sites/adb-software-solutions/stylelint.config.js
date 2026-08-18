@@ -16,6 +16,11 @@ module.exports = {
                     "plugin",
                     "custom-variant",
                     "utility",
+                    "apply",
+                    "variants",
+                    "responsive",
+                    "screen",
+                    "layer",
                 ],
             },
         ],
@@ -52,5 +57,5 @@ module.exports = {
         "function-url-no-scheme-relative": true,
         "function-url-scheme-allowed-list": ["data"],
     },
-    ignoreFiles: ["dist/**", "node_modules/**"],
+    ignoreFiles: ["dist/**", "node_modules/**", ".next/**", "coverage/**"],
 };
