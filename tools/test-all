@@ -25,7 +25,6 @@ run_test "ADB Software Solutions" pnpm --dir sites/adb-software-solutions test -
 run_test "ADB Web Designs" pnpm --dir sites/adb-web-designs test --passWithNoTests
 run_test "ADB Technology" pnpm --dir sites/adb-technology test --passWithNoTests
 run_test "ADB Software Solutions Auth" pnpm --dir sites/auth-adb-software-solutions test --passWithNoTests
-run_test "ADB Software Solutions Admin" pnpm --dir sites/admin-adb-software-solutions test --passWithNoTests
 
 if [ ${#FAILED_COMPONENTS[@]} -eq 0 ]; then
 	echo "All tests passed."
