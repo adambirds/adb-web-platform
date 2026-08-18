@@ -1,5 +1,10 @@
-# Core Dependencies
+# Direct runtime dependencies only.
+#
+# Transitive dependencies are resolved and pinned with hashes in the generated
+# requirements/*.txt lock files by tools/update-locked-requirements. Do not add
+# packages here merely because they appear in pip freeze.
 
+# Django / application runtime
 Django==6.0.7
 psycopg2==2.9.10
 Pillow==12.3.0
@@ -17,28 +22,13 @@ svg.py==1.10.0
 cairosvg==2.8.2
 django-ninja==1.6.2
 pydantic[email]==2.13.4
-email-validator==2.3.0
 inquirer==3.4.1
-starlette==1.6.0
 channels==4.3.2
 
-# Celery / Cache Dependencies
-
+# Celery / cache
 redis==8.1.0
 django-redis==7.0.0
 
-# Other dependencies
-tzdata==2026.3
-typing-extensions==4.14.1
+# Direct integrations / security
 requests==2.32.4
 cryptography==49.0.0
-async-timeout==5.0.1
-sqlparse==0.6.0
-tornado==6.5.8
-pycryptodome==3.23.0
-ecdsa==0.19.2
-tomli==2.2.1
-idna==3.10
-certifi==2025.8.3
-urllib3==2.6.3
-exceptiongroup==1.3.0
