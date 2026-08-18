@@ -39,7 +39,12 @@ class Command(BaseCommand):
             common_args.append("--force")
         common_args.extend(["--scale", str(scale)])
 
-        call_command("seed_development", *common_args, stdout=self.stdout, stderr=self.stderr)
+        call_command(
+            "seed_development",
+            *common_args,
+            stdout=self.stdout,
+            stderr=self.stderr,
+        )
         call_command(
             "seed_infrastructure_development",
             *common_args,
@@ -48,7 +53,5 @@ class Command(BaseCommand):
         )
 
         self.stdout.write(
-            self.style.SUCCESS(
-                f"Full platform development data ready (scale={scale})."
-            )
+            self.style.SUCCESS(f"Full platform development data ready (scale={scale}).")
         )
