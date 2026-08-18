@@ -76,6 +76,7 @@ ignore = [
     "PLR0912", # Too many branches
     "PLR0913", # Too many arguments to function call
     "PLR0915", # Too many statements
+    "PLR0917", # Too many positional arguments; covered by the existing project argument-complexity policy
     "PLR2004", # Magic value used in comparison
     "PLR5501", # Consider using `elif` instead of `else` then `if` to remove one indentation level
     "PLW0603", # Using the global statement is discouraged
@@ -133,6 +134,12 @@ django_settings_module = "adbsoftwaresolutions.settings"
 "backend/apps/core/ninja/admin_views.py" = ["ANN201"]
 "backend/apps/website/ninja/admin_views.py" = ["ANN201"]
 "backend/apps/website/ninja/views.py" = ["ANN001", "ANN201"]
+# Ruff 0.16 added unused-unpacking diagnostics. These legacy auth paths intentionally unpack helper
+# return values while only using the value relevant to the operation under test/request.
+"backend/authentication/auth_service/views.py" = ["RUF059"]
+"backend/authentication/twofactor/tests/test_utils.py" = ["RUF059"]
+# This parser is imported from the repository tooling and retains intentionally simple character scans.
+"tools/lib/template_parser.py" = ["FURB171"]
 # These are executable repository utility scripts, not importable Python modules. Their hyphenated
 # filenames are intentional CLI names; generated Dockerfile strings also trigger false-positive S608.
 "tools/setup-celery.py" = ["ANN201", "N999", "S608"]
