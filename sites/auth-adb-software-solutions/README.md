@@ -1,80 +1,82 @@
-# Auth Service Frontend
+# ADB Software Solutions Authentication
 
-This is the centralized authentication service frontend. It provides a single authentication endpoint for all applications.
+This application provides the shared authentication and account-security frontend for the ADB Web Platform. It is built with Next.js 16 using the App Router and talks to the Django backend for all authentication state and security operations.
 
-## Features
+## Responsibilities
 
-- **Passkey-first authentication**: Login with discoverable credentials (no email required)
-- **Password authentication**: Traditional email/password login as fallback
-- **Two-factor authentication**: TOTP-based 2FA with recovery codes
-- **Session management**: Secure session cookies
-- **Security settings**: Passkey and 2FA management
+- passkey-first authentication with discoverable WebAuthn credentials;
+- email/password authentication as a fallback;
+- TOTP two-factor authentication and recovery codes;
+- registration and email verification;
+- password reset and password changes;
+- session/device management;
+- passkey enrolment, rename and deletion;
+- redirect-based sign-in for the ADB marketing and administration applications.
 
-## Architecture
+Django remains the authority for sessions, CSRF, authentication, TOTP and WebAuthn. Do not introduce Auth.js/NextAuth, browser-stored JWTs or another authentication authority into this application.
 
-This service implements a **redirect-based authentication flow**:
+## Local development
 
-1. User visits app (localhost:3000)
-2. If not authenticated, redirect to auth service (localhost:5175/login?next=...)
-3. User authenticates with passkey or password
-4. On success, redirect back to the `next` URL
-5. Session cookie is set
+The development port map is:
 
-## Development
+- Admin: `http://localhost:3000`
+- ADB Software Solutions: `http://localhost:3001`
+- ADB Web Designs: `http://localhost:3002`
+- ADB Technology: `http://localhost:3003`
+- Authentication: `http://localhost:3004`
+- Django: `http://localhost:8000`
+
+From the repository root:
 
 ```bash
-# Install dependencies
 pnpm install
-
-# Start development server
-pnpm run dev
-
-# Build for production
-pnpm run build
+pnpm --dir sites/auth-adb-software-solutions dev
 ```
 
-## API Endpoints
+Build and test with:
 
-All endpoints are at `/api/v1/auth-service/`:
+```bash
+pnpm --dir sites/auth-adb-software-solutions test --passWithNoTests
+pnpm --dir sites/auth-adb-software-solutions build
+```
 
-### Authentication
+## Routes
 
-- `POST /login` - Login with email/password
-- `POST /logout` - Logout
-- `GET /me` - Get current user
-- `POST /register` - Register new account
-- `POST /verify-email` - Verify email with token
+Public authentication routes:
 
-### Password Management
+- `/login`
+- `/signup`
+- `/forgot-password`
+- `/reset-password/[token]`
+- `/verify-email/[token]`
+- `/logout`
 
-- `POST /change-password` - Change password (authenticated)
-- `POST /forgot-password` - Request password reset
-- `POST /reset-password` - Reset password with token
+Authenticated account-security routes:
 
-### 2FA
+- `/setup-passkey`
+- `/setup-2fa`
+- `/account`
+- `/account/security`
 
-- `GET /2fa/status` - Get 2FA status
-- `POST /2fa/setup` - Begin 2FA setup
-- `POST /2fa/confirm` - Confirm 2FA setup
-- `POST /2fa/disable` - Disable 2FA
-- `POST /2fa/verify` - Verify 2FA code during login
-- `POST /2fa/recovery-codes` - Regenerate recovery codes
+`/account` redirects to `/account/security`.
 
-### Passkeys (WebAuthn)
+## Backend API
 
-- `POST /webauthn/discover-auth` - Begin discoverable credential auth
-- `POST /webauthn/complete-discover-auth` - Complete discoverable auth
-- `POST /webauthn/begin-register` - Begin passkey registration
-- `POST /webauthn/complete-register` - Complete passkey registration
-- `GET /webauthn/passkeys` - List passkeys
-- `POST /webauthn/delete` - Delete passkey
-- `POST /webauthn/rename` - Rename passkey
+The frontend calls the Django authentication APIs beneath the configured backend URL, including `/api/auth-service/*` and the CSRF bootstrap endpoint `/api/auth/csrf`.
 
-## Environment Variables
+All authenticated browser requests use Django session cookies with `credentials: "include"`, and mutating requests continue to use Django CSRF protection.
 
-| Variable         | Description     | Default                                     |
-| ---------------- | --------------- | ------------------------------------------- |
-| `VITE_API_URL`   | Backend API URL | `http://localhost:8000/api/v1/auth-service` |
-| `VITE_APP_URL`   | Main app URL    | `http://localhost:5173`                     |
-| `VITE_ADMIN_URL` | Admin app URL   | `http://localhost:5174`                     |
-| `VITE_DOCS_URL`  | Docs site URL   | `http://localhost:3001`                     |
+## Environment variables
+
+- `NEXT_PUBLIC_API_URL` - Django origin, default `http://localhost:8000`.
+- `NEXT_PUBLIC_APP_URL` - ADB Software Solutions site, default `http://localhost:3001`.
+- `NEXT_PUBLIC_ADMIN_URL` - administration application, default `http://localhost:3000`.
+- `NEXT_PUBLIC_WEB_DESIGNS_URL` - ADB Web Designs site, default `http://localhost:3002`.
+- `NEXT_PUBLIC_TECHNOLOGY_URL` - ADB Technology site, default `http://localhost:3003`.
+- `NEXT_PUBLIC_AUTH_URL` - this authentication application, default `http://localhost:3004`.
+
+Only the known ADB application origins and safe relative paths are accepted as redirect targets.
+
+## Migration and security guidance
+
+See `../../docs/AUTH_FRONTEND_NEXTJS_MIGRATION.md` for the migration contract and regression checklist. Authentication changes are security-sensitive: preserve backend contracts and add or update tests whenever behaviour changes.
