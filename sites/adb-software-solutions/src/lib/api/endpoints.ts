@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 export const AdminAPI = {
     dashboard: {
@@ -29,12 +30,15 @@ export const AdminAPI = {
         list: () => `${API_BASE_URL}/admin/leads`,
     },
     tickets: {
-        list: (query = "") => `${API_BASE_URL}/admin/tickets${query ? `?${query}` : ""}`,
+        list: (query = "") =>
+            `${API_BASE_URL}/admin/tickets${query ? `?${query}` : ""}`,
         get: (id: number) => `${API_BASE_URL}/admin/tickets/${id}`,
         queues: () => `${API_BASE_URL}/admin/ticket-queues`,
         settings: {
-            graphConnections: () => `${API_BASE_URL}/admin/settings/ticketing/graph-connections`,
-            mailboxes: () => `${API_BASE_URL}/admin/settings/ticketing/mailboxes`,
+            graphConnections: () =>
+                `${API_BASE_URL}/admin/settings/ticketing/graph-connections`,
+            mailboxes: () =>
+                `${API_BASE_URL}/admin/settings/ticketing/mailboxes`,
         },
     },
     credentials: {
@@ -50,48 +54,63 @@ export const AdminAPI = {
         websites: () => `${API_BASE_URL}/admin/infrastructure/websites`,
         domains: () => `${API_BASE_URL}/admin/infrastructure/domains`,
         licences: () => `${API_BASE_URL}/admin/infrastructure/licences`,
-        sslCertificates: () => `${API_BASE_URL}/admin/infrastructure/ssl-certificates`,
+        sslCertificates: () =>
+            `${API_BASE_URL}/admin/infrastructure/ssl-certificates`,
         applications: () => `${API_BASE_URL}/admin/infrastructure/applications`,
         mobileApps: () => `${API_BASE_URL}/admin/infrastructure/mobile-apps`,
         apis: () => `${API_BASE_URL}/admin/infrastructure/apis`,
         bots: () => `${API_BASE_URL}/admin/infrastructure/bots`,
-        emailSystems: () => `${API_BASE_URL}/admin/infrastructure/email-systems`,
+        emailSystems: () =>
+            `${API_BASE_URL}/admin/infrastructure/email-systems`,
         techStack: () => `${API_BASE_URL}/admin/infrastructure/tech-stack`,
     },
     website: {
         portfolio: {
             list: () => `${API_BASE_URL}/admin/website/portfolio`,
-            get: (id: number) => `${API_BASE_URL}/admin/website/portfolio/${id}`,
+            get: (id: number) =>
+                `${API_BASE_URL}/admin/website/portfolio/${id}`,
             create: () => `${API_BASE_URL}/admin/website/portfolio`,
-            update: (id: number) => `${API_BASE_URL}/admin/website/portfolio/${id}`,
-            delete: (id: number) => `${API_BASE_URL}/admin/website/portfolio/${id}`,
+            update: (id: number) =>
+                `${API_BASE_URL}/admin/website/portfolio/${id}`,
+            delete: (id: number) =>
+                `${API_BASE_URL}/admin/website/portfolio/${id}`,
         },
         testimonials: {
             list: () => `${API_BASE_URL}/admin/website/testimonials`,
-            get: (id: number) => `${API_BASE_URL}/admin/website/testimonials/${id}`,
+            get: (id: number) =>
+                `${API_BASE_URL}/admin/website/testimonials/${id}`,
             create: () => `${API_BASE_URL}/admin/website/testimonials`,
-            update: (id: number) => `${API_BASE_URL}/admin/website/testimonials/${id}`,
-            delete: (id: number) => `${API_BASE_URL}/admin/website/testimonials/${id}`,
+            update: (id: number) =>
+                `${API_BASE_URL}/admin/website/testimonials/${id}`,
+            delete: (id: number) =>
+                `${API_BASE_URL}/admin/website/testimonials/${id}`,
         },
         blog: {
             posts: {
                 list: () => `${API_BASE_URL}/admin/website/blog/posts`,
-                get: (id: number) => `${API_BASE_URL}/admin/website/blog/posts/${id}`,
+                get: (id: number) =>
+                    `${API_BASE_URL}/admin/website/blog/posts/${id}`,
                 create: () => `${API_BASE_URL}/admin/website/blog/posts`,
-                update: (id: number) => `${API_BASE_URL}/admin/website/blog/posts/${id}`,
-                delete: (id: number) => `${API_BASE_URL}/admin/website/blog/posts/${id}`,
+                update: (id: number) =>
+                    `${API_BASE_URL}/admin/website/blog/posts/${id}`,
+                delete: (id: number) =>
+                    `${API_BASE_URL}/admin/website/blog/posts/${id}`,
             },
             categories: {
                 list: () => `${API_BASE_URL}/admin/website/blog/categories`,
                 create: () => `${API_BASE_URL}/admin/website/blog/categories`,
-                update: (id: number) => `${API_BASE_URL}/admin/website/blog/categories/${id}`,
-                delete: (id: number) => `${API_BASE_URL}/admin/website/blog/categories/${id}`,
+                update: (id: number) =>
+                    `${API_BASE_URL}/admin/website/blog/categories/${id}`,
+                delete: (id: number) =>
+                    `${API_BASE_URL}/admin/website/blog/categories/${id}`,
             },
             tags: {
                 list: () => `${API_BASE_URL}/admin/website/blog/tags`,
                 create: () => `${API_BASE_URL}/admin/website/blog/tags`,
-                update: (id: number) => `${API_BASE_URL}/admin/website/blog/tags/${id}`,
-                delete: (id: number) => `${API_BASE_URL}/admin/website/blog/tags/${id}`,
+                update: (id: number) =>
+                    `${API_BASE_URL}/admin/website/blog/tags/${id}`,
+                delete: (id: number) =>
+                    `${API_BASE_URL}/admin/website/blog/tags/${id}`,
             },
         },
         faqs: {
@@ -102,8 +121,10 @@ export const AdminAPI = {
             categories: {
                 list: () => `${API_BASE_URL}/admin/website/faqs/categories`,
                 create: () => `${API_BASE_URL}/admin/website/faqs/categories`,
-                update: (id: number) => `${API_BASE_URL}/admin/website/faqs/categories/${id}`,
-                delete: (id: number) => `${API_BASE_URL}/admin/website/faqs/categories/${id}`,
+                update: (id: number) =>
+                    `${API_BASE_URL}/admin/website/faqs/categories/${id}`,
+                delete: (id: number) =>
+                    `${API_BASE_URL}/admin/website/faqs/categories/${id}`,
             },
         },
     },
