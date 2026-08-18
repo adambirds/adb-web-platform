@@ -16,7 +16,7 @@ class StaffAccessProfile(models.Model):
     )
     all_ticket_queues = models.BooleanField(
         default=False,
-        help_text="Reserved for ticketing; selected queue grants will be added with the ticket domain.",
+        help_text="Allow access to every ticket queue when the user also has the required capability permission.",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -63,3 +63,38 @@ class ClientAccessGrant(models.Model):
 
     def __str__(self) -> str:
         return f"{self.profile.user.email} -> {self.client}"
+
+
+class TicketQueueAccessGrant(models.Model):
+    """Grant a staff user object-scope access to one ticket queue."""
+
+    profile = models.ForeignKey(
+        StaffAccessProfile,
+        on_delete=models.CASCADE,
+        related_name="ticket_queue_grants",
+    )
+    queue = models.ForeignKey(
+        "ticketing.TicketQueue",
+        on_delete=models.CASCADE,
+        related_name="access_grants",
+    )
+    granted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ticket_queue_access_grants_created",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["profile", "queue"],
+                name="unique_staff_ticket_queue_access_grant",
+            )
+        ]
+        ordering = ["queue__ordering", "queue__name"]
+
+    def __str__(self) -> str:
+        return f"{self.profile.user.email} -> {self.queue}"
