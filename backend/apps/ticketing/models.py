@@ -272,6 +272,7 @@ class TicketMessage(models.Model):
     body_text_normalised = models.TextField(blank=True)
     provider = models.CharField(max_length=40, blank=True)
     provider_message_id = models.CharField(max_length=512, blank=True, null=True, unique=True)
+    provider_reply_to_message_id = models.CharField(max_length=512, blank=True, db_index=True)
     internet_message_id = models.CharField(max_length=512, blank=True, db_index=True)
     in_reply_to = models.CharField(max_length=512, blank=True, db_index=True)
     references = models.JSONField(default=list, blank=True)
