@@ -89,33 +89,43 @@ def _mailbox_out(mailbox: Mailbox) -> MailboxOut:
     )
 
 
-def _resolve_credential(credential_id: int | None) -> StoredCredential | None | StaffProblem:
+def _resolve_credential(
+    credential_id: int | None,
+) -> tuple[StoredCredential | None, StaffProblem | None]:
     if credential_id is None:
-        return None
+        return None, None
     credential = StoredCredential.objects.filter(id=credential_id).first()
     if credential is None:
-        return _problem("Credential not found.", "credential_not_found")
+        return None, _problem("Credential not found.", "credential_not_found")
     if credential.ownership_type != "internal":
-        return _problem(
+        return None, _problem(
             "Microsoft Graph authentication credentials must be internal credentials.",
             "invalid_credential_scope",
         )
-    return credential
+    return credential, None
 
 
-def _resolve_mailbox_relations(data: MailboxIn) -> tuple[Any, ...] | StaffProblem:
+def _resolve_mailbox_relations(
+    data: MailboxIn,
+) -> tuple[MicrosoftGraphConnection | None, Brand | None, TicketQueue | None, StaffProblem | None]:
     connection = MicrosoftGraphConnection.objects.filter(id=data.graph_connection_id).first()
     if connection is None:
-        return _problem("Microsoft Graph connection not found.", "connection_not_found")
+        return None, None, None, _problem(
+            "Microsoft Graph connection not found.",
+            "connection_not_found",
+        )
     brand = Brand.objects.filter(id=data.brand_id, is_active=True).first()
     if brand is None:
-        return _problem("Active brand not found.", "brand_not_found")
+        return None, None, None, _problem("Active brand not found.", "brand_not_found")
     queue = TicketQueue.objects.filter(id=data.default_queue_id, enabled=True).first()
     if queue is None:
-        return _problem("Enabled ticket queue not found.", "queue_not_found")
+        return None, None, None, _problem("Enabled ticket queue not found.", "queue_not_found")
     if queue.brand_id is not None and queue.brand_id != brand.id:
-        return _problem("The default queue must belong to the selected brand.", "queue_brand_mismatch")
-    return connection, brand, queue
+        return None, None, None, _problem(
+            "The default queue must belong to the selected brand.",
+            "queue_brand_mismatch",
+        )
+    return connection, brand, queue, None
 
 
 @ticketing_settings_router.get(
@@ -156,14 +166,25 @@ def create_graph_connection(
     if data.authentication_method not in MicrosoftGraphConnection.AuthenticationMethod.values:
         return _problem("Unsupported Microsoft Graph authentication method.")
 
-    credential = _resolve_credential(data.credential_id)
-    if isinstance(credential, tuple):
-        return credential
+    credential, credential_problem = _resolve_credential(data.credential_id)
+    if credential_problem:
+        return credential_problem
+
+    name = data.name.strip()
+    tenant_id = data.tenant_id.strip()
+    client_id = data.client_id.strip()
+    if not name or not tenant_id or not client_id:
+        return _problem("Name, tenant ID and client ID are required.")
+    if MicrosoftGraphConnection.objects.filter(tenant_id=tenant_id, client_id=client_id).exists():
+        return _problem(
+            "A Microsoft Graph connection already exists for this tenant and client ID.",
+            "duplicate_connection",
+        )
 
     connection = MicrosoftGraphConnection.objects.create(
-        name=data.name.strip(),
-        tenant_id=data.tenant_id.strip(),
-        client_id=data.client_id.strip(),
+        name=name,
+        tenant_id=tenant_id,
+        client_id=client_id,
         authentication_method=data.authentication_method,
         credential=credential,
         enabled=data.enabled,
@@ -210,14 +231,27 @@ def create_mailbox(request: HttpRequest, data: MailboxIn) -> MailboxOut | StaffP
     if data.purpose not in Mailbox.Purpose.values:
         return _problem("Unsupported mailbox purpose.")
 
-    relations = _resolve_mailbox_relations(data)
-    if len(relations) == 2 and isinstance(relations[0], int):
-        return relations  # type: ignore[return-value]
-    connection, brand, queue = relations
+    connection, brand, queue, relation_problem = _resolve_mailbox_relations(data)
+    if relation_problem:
+        return relation_problem
+    if connection is None or brand is None or queue is None:
+        return _problem("Unable to resolve mailbox configuration.")
+
+    email_address = data.email_address.strip().lower()
+    if not email_address:
+        return _problem("Mailbox email address is required.")
+    if Mailbox.objects.filter(
+        graph_connection=connection,
+        email_address__iexact=email_address,
+    ).exists():
+        return _problem(
+            "This mailbox is already configured on the selected Graph connection.",
+            "duplicate_mailbox",
+        )
 
     mailbox = Mailbox.objects.create(
         graph_connection=connection,
-        email_address=data.email_address.strip().lower(),
+        email_address=email_address,
         display_name=data.display_name.strip(),
         graph_user_id=data.graph_user_id.strip(),
         brand=brand,
