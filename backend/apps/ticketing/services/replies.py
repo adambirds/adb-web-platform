@@ -64,7 +64,11 @@ def prepare_ticket_reply(
         dict.fromkeys(
             [
                 *(str(value).strip() for value in source_message.references if str(value).strip()),
-                *([source_message.internet_message_id] if source_message.internet_message_id else []),
+                *(
+                    [source_message.internet_message_id]
+                    if source_message.internet_message_id
+                    else []
+                ),
             ]
         )
     )

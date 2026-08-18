@@ -4,7 +4,13 @@ from django.test import TestCase
 from django.utils import timezone
 
 from apps.core.models import Brand
-from apps.ticketing.models import Mailbox, MicrosoftGraphConnection, Ticket, TicketMessage, TicketQueue
+from apps.ticketing.models import (
+    Mailbox,
+    MicrosoftGraphConnection,
+    Ticket,
+    TicketMessage,
+    TicketQueue,
+)
 from apps.ticketing.services.replies import TicketReplyError, prepare_ticket_reply
 from authentication.models import User
 
