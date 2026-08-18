@@ -5,7 +5,7 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
     return (
         <div
             className={cn(
-                "border-adb-navy-200 dark:border-adb-navy-800 dark:bg-adb-navy-900 rounded-2xl border bg-white",
+                "rounded-xl border border-slate-800 bg-slate-900/70 shadow-sm shadow-black/10",
                 className,
             )}
             {...props}
@@ -17,21 +17,26 @@ export function CardHeader({
     className,
     ...props
 }: HTMLAttributes<HTMLDivElement>) {
-    return <div className={cn("p-6", className)} {...props} />;
+    return <div className={cn("p-5", className)} {...props} />;
 }
 
 export function CardContent({
     className,
     ...props
 }: HTMLAttributes<HTMLDivElement>) {
-    return <div className={cn("px-6 pb-6", className)} {...props} />;
+    return <div className={cn("px-5 pb-5", className)} {...props} />;
 }
 
 export function CardFooter({
     className,
     ...props
 }: HTMLAttributes<HTMLDivElement>) {
-    return <div className={cn("px-6 pb-6", className)} {...props} />;
+    return (
+        <div
+            className={cn("border-t border-slate-800 px-5 py-4", className)}
+            {...props}
+        />
+    );
 }
 
 export function CardTitle({
@@ -40,10 +45,7 @@ export function CardTitle({
 }: HTMLAttributes<HTMLHeadingElement>) {
     return (
         <h3
-            className={cn(
-                "text-adb-navy dark:text-adb-navy-100 text-lg font-semibold",
-                className,
-            )}
+            className={cn("text-sm font-semibold text-slate-100", className)}
             {...props}
         />
     );
@@ -55,10 +57,7 @@ export function CardDescription({
 }: HTMLAttributes<HTMLParagraphElement>) {
     return (
         <p
-            className={cn(
-                "text-adb-navy-600 dark:text-adb-navy-300 mt-2 text-sm",
-                className,
-            )}
+            className={cn("mt-1 text-sm text-slate-500", className)}
             {...props}
         />
     );

@@ -1,19 +1,23 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { ReactNode } from "react";
-import { Footer } from "./Footer";
-import { Header } from "./Header";
+import { ReactNode, useState } from "react";
+import { Sidebar } from "./Sidebar";
+import { TopBar } from "./TopBar";
 
 export function AdminLayout({ children }: { children: ReactNode }) {
     const { isAuthenticated, isLoading, login } = useAuth();
+    const [collapsed, setCollapsed] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
 
     if (isLoading) {
         return (
-            <div className="flex h-screen items-center justify-center">
+            <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-200">
                 <div className="text-center">
-                    <div className="border-adb-navy border-t-adb-cyan inline-block h-8 w-8 animate-spin rounded-full border-4"></div>
-                    <p className="text-adb-navy mt-4">Loading...</p>
+                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-slate-800 border-t-adb-cyan-400" />
+                    <p className="mt-4 text-sm text-slate-500">
+                        Loading operations console...
+                    </p>
                 </div>
             </div>
         );
@@ -21,20 +25,24 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 
     if (!isAuthenticated) {
         return (
-            <div className="dark:bg-adb-navy-950 flex h-screen items-center justify-center bg-white">
-                <div className="text-center">
-                    <h1 className="text-adb-navy text-2xl font-bold dark:text-white">
+            <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6">
+                <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center shadow-2xl shadow-black/30">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-adb-cyan-500 text-lg font-black text-slate-950">
+                        A
+                    </div>
+                    <h1 className="mt-5 text-xl font-semibold text-white">
                         Sign in required
                     </h1>
-                    <p className="text-adb-navy-600 dark:text-adb-navy-300 mt-2">
-                        Sign in with an authorised staff account to continue.
+                    <p className="mt-2 text-sm leading-6 text-slate-400">
+                        Sign in with an authorised ADB staff account to access the
+                        business platform.
                     </p>
                     <button
                         type="button"
                         onClick={login}
-                        className="bg-adb-cyan text-adb-navy-950 hover:bg-adb-cyan-600 mt-4 inline-block rounded-lg px-6 py-2 font-medium transition"
+                        className="mt-6 inline-flex h-10 items-center justify-center rounded-lg bg-adb-cyan-500 px-5 text-sm font-semibold text-slate-950 transition hover:bg-adb-cyan-400"
                     >
-                        Go to Login
+                        Continue to sign in
                     </button>
                 </div>
             </div>
@@ -42,10 +50,22 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     }
 
     return (
-        <div className="dark:bg-adb-navy-950 flex min-h-screen flex-col bg-white">
-            <Header />
-            <main className="flex-grow">{children}</main>
-            <Footer />
+        <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-200">
+            <Sidebar
+                collapsed={collapsed}
+                mobileOpen={mobileOpen}
+                onCloseMobile={() => setMobileOpen(false)}
+            />
+            <div className="flex min-w-0 flex-1 flex-col">
+                <TopBar
+                    collapsed={collapsed}
+                    onToggleSidebar={() => setCollapsed((value) => !value)}
+                    onOpenMobileNavigation={() => setMobileOpen(true)}
+                />
+                <main className="min-h-0 flex-1 overflow-y-auto bg-slate-950">
+                    {children}
+                </main>
+            </div>
         </div>
     );
 }

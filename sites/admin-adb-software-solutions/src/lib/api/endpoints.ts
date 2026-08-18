@@ -2,26 +2,32 @@ const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 export const AdminAPI = {
+    dashboard: {
+        summary: () => `${API_BASE_URL}/admin/dashboard`,
+    },
     brands: {
         list: () => `${API_BASE_URL}/admin/brands`,
     },
     clients: {
-        list: () => `${API_BASE_URL}/admin/clients/`,
-        get: (id: number) => `${API_BASE_URL}/admin/clients/${id}/`,
-        create: () => `${API_BASE_URL}/admin/clients/`,
-        update: (id: number) => `${API_BASE_URL}/admin/clients/${id}/`,
-        delete: (id: number) => `${API_BASE_URL}/admin/clients/${id}/`,
+        list: () => `${API_BASE_URL}/admin/clients`,
+        get: (id: number) => `${API_BASE_URL}/admin/clients/${id}`,
+        create: () => `${API_BASE_URL}/admin/clients`,
+        update: (id: number) => `${API_BASE_URL}/admin/clients/${id}`,
+        delete: (id: number) => `${API_BASE_URL}/admin/clients/${id}`,
     },
     projects: {
-        list: () => `${API_BASE_URL}/admin/projects/`,
-        get: (id: number) => `${API_BASE_URL}/admin/projects/${id}/`,
+        list: () => `${API_BASE_URL}/admin/projects`,
+        get: (id: number) => `${API_BASE_URL}/admin/projects/${id}`,
+    },
+    tasks: {
+        list: () => `${API_BASE_URL}/admin/tasks`,
     },
     timeEntries: {
-        list: () => `${API_BASE_URL}/admin/time-entries/`,
-        create: () => `${API_BASE_URL}/admin/time-entries/`,
+        list: () => `${API_BASE_URL}/admin/time-entries`,
+        create: () => `${API_BASE_URL}/admin/time-entries`,
     },
     leads: {
-        list: () => `${API_BASE_URL}/admin/leads/`,
+        list: () => `${API_BASE_URL}/admin/leads`,
     },
     website: {
         portfolio: {

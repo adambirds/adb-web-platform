@@ -1,0 +1,94 @@
+[
+    {
+        "model": "crm.leadsource",
+        "pk": 9001,
+        "fields": {"name": "Contact form"}
+    },
+    {
+        "model": "crm.leadsource",
+        "pk": 9002,
+        "fields": {"name": "Referral"}
+    },
+    {
+        "model": "crm.leadsource",
+        "pk": 9003,
+        "fields": {"name": "LinkedIn"}
+    },
+    {
+        "model": "crm.leadstatus",
+        "pk": 9001,
+        "fields": {"name": "New", "order": 10}
+    },
+    {
+        "model": "crm.leadstatus",
+        "pk": 9002,
+        "fields": {"name": "Contacted", "order": 20}
+    },
+    {
+        "model": "crm.leadstatus",
+        "pk": 9003,
+        "fields": {"name": "Qualified", "order": 30}
+    },
+    {
+        "model": "tasks.taskstatus",
+        "pk": 9001,
+        "fields": {"name": "Backlog", "color": "#64748b", "order": 10}
+    },
+    {
+        "model": "tasks.taskstatus",
+        "pk": 9002,
+        "fields": {"name": "To do", "color": "#38bdf8", "order": 20}
+    },
+    {
+        "model": "tasks.taskstatus",
+        "pk": 9003,
+        "fields": {"name": "In progress", "color": "#f59e0b", "order": 30}
+    },
+    {
+        "model": "tasks.taskstatus",
+        "pk": 9004,
+        "fields": {"name": "Done", "color": "#22c55e", "order": 50}
+    },
+    {
+        "model": "credentials.credentialtype",
+        "pk": 9001,
+        "fields": {"name": "Website login", "icon": "globe"}
+    },
+    {
+        "model": "credentials.credentialtype",
+        "pk": 9002,
+        "fields": {"name": "SSH", "icon": "terminal"}
+    },
+    {
+        "model": "credentials.credentialtype",
+        "pk": 9003,
+        "fields": {"name": "API key", "icon": "key"}
+    },
+    {
+        "model": "knowledge_base.knowledgebasesection",
+        "pk": 9001,
+        "fields": {
+            "name": "Setup",
+            "description": "Initial setup and onboarding procedures",
+            "order": 10
+        }
+    },
+    {
+        "model": "knowledge_base.knowledgebasesection",
+        "pk": 9002,
+        "fields": {
+            "name": "Deployments",
+            "description": "Deployment and rollback procedures",
+            "order": 20
+        }
+    },
+    {
+        "model": "knowledge_base.knowledgebasesection",
+        "pk": 9003,
+        "fields": {
+            "name": "Maintenance",
+            "description": "Routine maintenance documentation",
+            "order": 30
+        }
+    }
+]

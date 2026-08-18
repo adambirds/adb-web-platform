@@ -2,6 +2,7 @@ export * from "./Badge";
 export * from "./Button";
 export * from "./Card";
 export * from "./Container";
+export * from "./DataState";
 export * from "./EmptyState";
 export * from "./Input";
 export * from "./PageHeader";

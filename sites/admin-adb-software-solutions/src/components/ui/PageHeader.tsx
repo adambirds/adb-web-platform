@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 interface PageHeaderProps {
     title: string;
     description?: string;
+    eyebrow?: string;
     actions?: ReactNode;
     className?: string;
 }
@@ -11,28 +12,34 @@ interface PageHeaderProps {
 export function PageHeader({
     title,
     description,
+    eyebrow,
     actions,
     className,
 }: PageHeaderProps) {
     return (
         <div
             className={cn(
-                "flex flex-col gap-4 md:flex-row md:items-center md:justify-between",
+                "flex flex-col gap-4 border-b border-slate-800 pb-5 md:flex-row md:items-end md:justify-between",
                 className,
             )}
         >
-            <div>
-                <h1 className="text-adb-navy dark:text-adb-navy-100 text-3xl font-semibold">
+            <div className="min-w-0">
+                {eyebrow ? (
+                    <p className="mb-1 text-[10px] font-bold tracking-[0.18em] text-adb-cyan-500 uppercase">
+                        {eyebrow}
+                    </p>
+                ) : null}
+                <h1 className="truncate text-2xl font-semibold tracking-tight text-white">
                     {title}
                 </h1>
                 {description ? (
-                    <p className="text-adb-navy-600 dark:text-adb-navy-300 mt-2 text-sm">
+                    <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
                         {description}
                     </p>
                 ) : null}
             </div>
             {actions ? (
-                <div className="flex flex-wrap gap-3">{actions}</div>
+                <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>
             ) : null}
         </div>
     );

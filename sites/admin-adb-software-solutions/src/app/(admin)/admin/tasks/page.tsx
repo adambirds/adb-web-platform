@@ -1,19 +1,19 @@
 import { Container, PageHeader } from "@/components/ui";
-import { LeadList } from "./LeadList";
+import { TaskList } from "./TaskList";
 
 export const metadata = {
-    title: "Leads",
+    title: "Tasks",
 };
 
-export default function LeadsPage() {
+export default function TasksPage() {
     return (
         <Container className="py-8">
             <PageHeader
-                title="Leads"
-                description="Sales enquiries across the ADB brands in one shared pipeline."
+                title="Tasks"
+                description="Standalone internal work and client or project tasks across the platform."
             />
             <div className="mt-6">
-                <LeadList />
+                <TaskList />
             </div>
         </Container>
     );

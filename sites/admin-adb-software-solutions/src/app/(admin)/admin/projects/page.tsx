@@ -1,24 +1,20 @@
+import { Container, PageHeader } from "@/components/ui";
+import { ProjectList } from "./ProjectList";
+
 export const metadata = {
     title: "Projects",
 };
 
 export default function ProjectsPage() {
     return (
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between">
-                <h1 className="text-adb-navy text-3xl font-bold dark:text-white">
-                    Projects
-                </h1>
-                <button className="bg-adb-cyan text-adb-navy-950 hover:bg-adb-cyan-600 rounded-lg px-4 py-2 font-medium transition">
-                    Add Project
-                </button>
+        <Container className="py-8">
+            <PageHeader
+                title="Projects"
+                description="Client-owned and internal work visible to your staff account."
+            />
+            <div className="mt-6">
+                <ProjectList />
             </div>
-
-            <div className="border-adb-navy-200 dark:border-adb-navy-800 dark:bg-adb-navy-900 mt-8 rounded-lg border bg-white p-8 text-center">
-                <p className="text-adb-navy-600 dark:text-adb-navy-300">
-                    No projects yet. Create your first project to get started.
-                </p>
-            </div>
-        </div>
+        </Container>
     );
 }

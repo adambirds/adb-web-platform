@@ -17,15 +17,13 @@ export function EmptyState({
     return (
         <div
             className={cn(
-                "border-adb-navy-200 dark:border-adb-navy-800 dark:bg-adb-navy-900 flex flex-col items-start gap-2 rounded-2xl border bg-white p-6",
+                "flex flex-col items-start gap-2 rounded-xl border border-dashed border-slate-700 bg-slate-900/40 p-6",
                 className,
             )}
         >
-            <h3 className="text-adb-navy dark:text-adb-navy-100 text-lg font-semibold">
-                {title}
-            </h3>
+            <h3 className="text-base font-semibold text-slate-100">{title}</h3>
             {description ? (
-                <p className="text-adb-navy-600 dark:text-adb-navy-300 text-sm">
+                <p className="max-w-2xl text-sm leading-6 text-slate-500">
                     {description}
                 </p>
             ) : null}

@@ -1,5 +1,7 @@
 from django.db import models
 
+from apps.core.ownership import OwnershipType, ownership_constraint, validate_ownership
+
 
 class CredentialType(models.Model):
     """Type of credential such as SSH, database login or API key."""
@@ -12,15 +14,30 @@ class CredentialType(models.Model):
 
 
 class StoredCredential(models.Model):
-    """Credential record.
+    """Client-owned or internal credential metadata and legacy secret storage.
 
-    Secret fields are currently plaintext legacy storage and MUST NOT be used for
+    Secret fields remain plaintext legacy storage and MUST NOT be used for
     production credentials until encrypted-at-rest storage is implemented.
     """
 
+    ownership_type = models.CharField(
+        max_length=20,
+        choices=OwnershipType.choices,
+        default=OwnershipType.INTERNAL,
+    )
+    client = models.ForeignKey(
+        "clients.Client",
+        on_delete=models.CASCADE,
+        related_name="credentials",
+        null=True,
+        blank=True,
+    )
     name = models.CharField(max_length=200)
     credential_type = models.ForeignKey(
-        CredentialType, on_delete=models.SET_NULL, null=True, blank=True
+        CredentialType,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
 
     username = models.CharField(max_length=200, blank=True)
@@ -30,6 +47,8 @@ class StoredCredential(models.Model):
     private_key = models.TextField(blank=True)
 
     url = models.URLField(blank=True)
+    expires_at = models.DateTimeField(blank=True, null=True)
+    last_rotated_at = models.DateTimeField(blank=True, null=True)
     notes = models.TextField(blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -37,10 +56,15 @@ class StoredCredential(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        constraints = [ownership_constraint("storedcredential_valid_ownership")]
         permissions = [
             ("reveal_storedcredential", "Can reveal stored credential secrets"),
             ("copy_storedcredential_secret", "Can copy stored credential secrets"),
         ]
+
+    def clean(self) -> None:
+        super().clean()
+        validate_ownership(self)
 
     def __str__(self) -> str:
         return self.name

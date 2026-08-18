@@ -6,10 +6,10 @@ export function Table({
     ...props
 }: HTMLAttributes<HTMLTableElement>) {
     return (
-        <div className="border-adb-navy-200 dark:border-adb-navy-800 overflow-hidden rounded-2xl border">
+        <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/60">
             <table
                 className={cn(
-                    "text-adb-navy dark:text-adb-navy-100 w-full border-collapse text-left text-sm",
+                    "w-full min-w-[720px] border-collapse text-left text-sm text-slate-300",
                     className,
                 )}
                 {...props}
@@ -25,12 +25,19 @@ export function TableHead({
     return (
         <thead
             className={cn(
-                "bg-adb-navy-50 dark:bg-adb-navy-900 text-xs uppercase",
+                "border-b border-slate-800 bg-slate-950/70 text-[11px] tracking-wide text-slate-500 uppercase",
                 className,
             )}
             {...props}
         />
     );
+}
+
+export function TableBody({
+    className,
+    ...props
+}: HTMLAttributes<HTMLTableSectionElement>) {
+    return <tbody className={cn("divide-y divide-slate-800", className)} {...props} />;
 }
 
 export function TableRow({
@@ -40,7 +47,7 @@ export function TableRow({
     return (
         <tr
             className={cn(
-                "border-adb-navy-200 dark:border-adb-navy-800 border-b last:border-b-0",
+                "transition-colors hover:bg-slate-800/40",
                 className,
             )}
             {...props}
@@ -52,7 +59,7 @@ export function TableCell({
     className,
     ...props
 }: HTMLAttributes<HTMLTableCellElement>) {
-    return <td className={cn("px-4 py-3", className)} {...props} />;
+    return <td className={cn("px-4 py-3.5 align-middle", className)} {...props} />;
 }
 
 export function TableHeaderCell({
@@ -60,6 +67,9 @@ export function TableHeaderCell({
     ...props
 }: HTMLAttributes<HTMLTableCellElement>) {
     return (
-        <th className={cn("px-4 py-3 font-semibold", className)} {...props} />
+        <th
+            className={cn("px-4 py-3 font-semibold", className)}
+            {...props}
+        />
     );
 }

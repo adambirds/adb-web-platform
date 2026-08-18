@@ -3,22 +3,25 @@ import Link from "next/link";
 import { AnchorHTMLAttributes, ButtonHTMLAttributes } from "react";
 
 const baseStyles =
-    "inline-flex items-center justify-center rounded-lg font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-adb-cyan focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ring-offset-white dark:ring-offset-adb-navy-950";
+    "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-adb-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:pointer-events-none disabled:opacity-50";
 
 const variantStyles = {
-    primary: "bg-adb-cyan text-adb-navy-950 hover:bg-adb-cyan-600",
+    primary:
+        "bg-adb-cyan-500 text-slate-950 hover:bg-adb-cyan-400 active:bg-adb-cyan-300",
     secondary:
-        "bg-adb-navy-900 text-white hover:bg-adb-navy-800 dark:bg-adb-navy-800",
+        "border border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-600 hover:bg-slate-700",
     outline:
-        "border border-adb-navy-200 text-adb-navy hover:border-adb-cyan hover:text-adb-cyan dark:border-adb-navy-800 dark:text-adb-navy-100",
-    ghost: "text-adb-navy hover:bg-adb-navy-100 dark:text-adb-navy-100 dark:hover:bg-adb-navy-900",
-    destructive: "bg-red-600 text-white hover:bg-red-500",
+        "border border-slate-700 bg-transparent text-slate-200 hover:border-slate-600 hover:bg-slate-900 hover:text-white",
+    ghost: "text-slate-400 hover:bg-slate-900 hover:text-slate-100",
+    destructive:
+        "border border-red-900/70 bg-red-950/60 text-red-200 hover:bg-red-900/70 hover:text-white",
 };
 
 const sizeStyles = {
-    sm: "px-3 py-1.5 text-sm",
-    md: "px-4 py-2 text-sm",
-    lg: "px-5 py-3 text-base",
+    sm: "h-8 px-3 text-xs",
+    md: "h-10 px-4 text-sm",
+    lg: "h-11 px-5 text-sm",
+    icon: "h-9 w-9 p-0",
 };
 
 type ButtonVariant = keyof typeof variantStyles;
