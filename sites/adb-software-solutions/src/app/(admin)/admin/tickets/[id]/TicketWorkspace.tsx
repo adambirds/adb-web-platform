@@ -1,10 +1,10 @@
 "use client";
 
-import { Badge, Card, DataError, DataLoading } from "@/components/ui";
+import { Badge, Button, Card, DataError, DataLoading, Input, Textarea } from "@/components/ui";
 import { AdminAPI } from "@/lib/api/endpoints";
 import { fetchAPI } from "@/lib/api/fetch";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useState } from "react";
 
 interface TicketMessage {
     id: number;
@@ -13,6 +13,7 @@ interface TicketMessage {
     sender_address: string;
     to_recipients: string[];
     cc_recipients: string[];
+    bcc_recipients: string[];
     matched_contact_id: number | null;
     matched_contact_name: string | null;
     subject: string;
@@ -87,10 +88,28 @@ function formatBytes(value: number) {
     return `${(value / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function parseRecipients(value: string) {
+    return [
+        ...new Set(
+            value
+                .split(/[;,]/)
+                .map((address) => address.trim().toLowerCase())
+                .filter(Boolean),
+        ),
+    ];
+}
+
 export function TicketWorkspace({ ticketId }: { ticketId: number }) {
     const [ticket, setTicket] = useState<TicketDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [replyBody, setReplyBody] = useState("");
+    const [ccRecipients, setCcRecipients] = useState("");
+    const [bccRecipients, setBccRecipients] = useState("");
+    const [showRecipients, setShowRecipients] = useState(false);
+    const [isSubmittingReply, setIsSubmittingReply] = useState(false);
+    const [replyError, setReplyError] = useState<string | null>(null);
+    const [replyStatus, setReplyStatus] = useState<string | null>(null);
 
     const loadTicket = useCallback(async () => {
         try {
@@ -107,6 +126,48 @@ export function TicketWorkspace({ ticketId }: { ticketId: number }) {
     useEffect(() => {
         void loadTicket();
     }, [loadTicket]);
+
+    async function handleReply(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        const bodyText = replyBody.trim();
+        if (!bodyText || isSubmittingReply) return;
+
+        try {
+            setIsSubmittingReply(true);
+            setReplyError(null);
+            setReplyStatus(null);
+
+            const queuedMessage = (await fetchAPI(AdminAPI.tickets.reply(ticketId), {
+                method: "POST",
+                body: JSON.stringify({
+                    body_text: bodyText,
+                    cc_recipients: parseRecipients(ccRecipients),
+                    bcc_recipients: parseRecipients(bccRecipients),
+                }),
+            })) as TicketMessage;
+
+            setTicket((currentTicket) =>
+                currentTicket
+                    ? {
+                          ...currentTicket,
+                          messages: [...currentTicket.messages, queuedMessage],
+                          last_message_at: queuedMessage.sent_or_received_at,
+                      }
+                    : currentTicket,
+            );
+            setReplyBody("");
+            setCcRecipients("");
+            setBccRecipients("");
+            setShowRecipients(false);
+            setReplyStatus("Reply queued for delivery through Microsoft 365.");
+        } catch (submitError) {
+            setReplyError(
+                submitError instanceof Error ? submitError.message : "Unable to queue reply.",
+            );
+        } finally {
+            setIsSubmittingReply(false);
+        }
+    }
 
     if (isLoading) return <DataLoading label="Loading ticket conversation..." />;
     if (error || !ticket) {
@@ -175,11 +236,79 @@ export function TicketWorkspace({ ticketId }: { ticketId: number }) {
                             </div>
                             <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-600">
                                 <span>{message.direction === "inbound" ? "Inbound" : "Outbound"}</span>
-                                {message.delivery_status ? <span>· {message.delivery_status}</span> : null}
+                                {message.delivery_status ? <span>· {label(message.delivery_status)}</span> : null}
                                 {message.created_by_name ? <span>· {message.created_by_name}</span> : null}
                             </div>
                         </Card>
                     ))}
+
+                    <Card className="p-5">
+                        <form onSubmit={(event) => void handleReply(event)}>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div>
+                                    <h2 className="text-sm font-semibold text-white">Reply</h2>
+                                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                                        Replies are queued through the Microsoft 365 mailbox attached to this ticket.
+                                    </p>
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setShowRecipients((value) => !value)}
+                                >
+                                    {showRecipients ? "Hide CC/BCC" : "Add CC/BCC"}
+                                </Button>
+                            </div>
+
+                            {showRecipients ? (
+                                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                                    <label className="text-xs text-slate-400">
+                                        CC
+                                        <Input
+                                            value={ccRecipients}
+                                            onChange={(event) => setCcRecipients(event.target.value)}
+                                            placeholder="person@example.com, another@example.com"
+                                            className="mt-1"
+                                        />
+                                    </label>
+                                    <label className="text-xs text-slate-400">
+                                        BCC
+                                        <Input
+                                            value={bccRecipients}
+                                            onChange={(event) => setBccRecipients(event.target.value)}
+                                            placeholder="person@example.com"
+                                            className="mt-1"
+                                        />
+                                    </label>
+                                </div>
+                            ) : null}
+
+                            <Textarea
+                                value={replyBody}
+                                onChange={(event) => setReplyBody(event.target.value)}
+                                placeholder="Write your reply..."
+                                rows={8}
+                                className="mt-4 min-h-40 resize-y"
+                            />
+
+                            {replyError ? (
+                                <p className="mt-3 text-sm text-red-300">{replyError}</p>
+                            ) : null}
+                            {replyStatus ? (
+                                <p className="mt-3 text-sm text-emerald-300">{replyStatus}</p>
+                            ) : null}
+
+                            <div className="mt-4 flex justify-end">
+                                <Button
+                                    type="submit"
+                                    disabled={!replyBody.trim() || isSubmittingReply}
+                                >
+                                    {isSubmittingReply ? "Queuing..." : "Queue reply"}
+                                </Button>
+                            </div>
+                        </form>
+                    </Card>
                 </div>
 
                 <aside className="space-y-4">
