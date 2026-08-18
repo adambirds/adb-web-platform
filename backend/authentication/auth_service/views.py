@@ -1187,7 +1187,7 @@ def begin_passkey_registration(
             user_email=user.email,
             user_name=f"{user.first_name} {user.last_name}",
             challenge=challenge,
-            exclude_credentials=exclude_credentials if exclude_credentials else None,
+            exclude_credentials=exclude_credentials or None,
         )
 
         # Ensure resident key is required for discoverable credentials
