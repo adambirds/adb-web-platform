@@ -60,7 +60,10 @@ class MicrosoftGraphOutboundAdapter:
             raise MicrosoftGraphError("A reply body is required.")
         content_type = "HTML" if body_html.strip() else "Text"
 
-        mailbox_identifier = quote(mailbox.graph_user_id or mailbox.email_address, safe="")
+        mailbox_identifier_value = mailbox.graph_user_id.strip()
+        if not mailbox_identifier_value:
+            mailbox_identifier_value = mailbox.email_address.strip().lower()
+        mailbox_identifier = quote(mailbox_identifier_value, safe="")
         encoded_message_id = quote(source_message_id, safe="")
         message_root = f"{GRAPH_API_ROOT}/users/{mailbox_identifier}/messages"
         draft = self._request_json(
