@@ -94,6 +94,7 @@ class TicketMessageOut(Schema):
     internet_message_id: str
     sent_or_received_at: datetime
     delivery_status: str
+    delivery_error: str
     created_by_name: str | None
 
 

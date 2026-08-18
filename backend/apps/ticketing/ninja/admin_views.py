@@ -5,9 +5,12 @@ from uuid import UUID
 from django.db.models import Count, Q, QuerySet
 from django.http import HttpRequest
 from ninja import Query, Router, Schema
+from pydantic import Field
 
 from apps.access_control.policies import scope_clients_for_user, scope_ticket_queues_for_user
-from apps.ticketing.models import Ticket, TicketAttachment, TicketQueue
+from apps.ticketing.models import Ticket, TicketAttachment, TicketMessage, TicketQueue
+from apps.ticketing.services.replies import TicketReplyError, prepare_ticket_reply
+from apps.ticketing.tasks import deliver_ticket_reply_task
 from authentication.ninja.schemas import ProblemDetail
 
 from .schemas import (
@@ -38,6 +41,12 @@ class TicketFilters(Schema):
     assigned_to_id: UUID | None = None
     source: str | None = None
     search: str | None = None
+
+
+class TicketReplyIn(Schema):
+    body_text: str
+    cc_recipients: list[str] = Field(default_factory=list)
+    bcc_recipients: list[str] = Field(default_factory=list)
 
 
 def _staff_problem(request: HttpRequest) -> StaffProblem | None:
@@ -79,6 +88,30 @@ def _user_label(user: Any | None) -> str | None:
         return None
     full_name = user.get_full_name().strip()
     return full_name or user.email
+
+
+def _message_out(message: TicketMessage) -> TicketMessageOut:
+    return TicketMessageOut(
+        id=message.id,
+        direction=message.direction,
+        sender_name=message.sender_name,
+        sender_address=message.sender_address,
+        to_recipients=message.to_recipients,
+        cc_recipients=message.cc_recipients,
+        bcc_recipients=message.bcc_recipients,
+        matched_contact_id=message.matched_contact_id,
+        matched_contact_name=message.matched_contact.name if message.matched_contact else None,
+        subject=message.subject,
+        body_html=message.body_html,
+        body_text=message.body_text,
+        body_text_normalised=message.body_text_normalised,
+        provider=message.provider,
+        internet_message_id=message.internet_message_id,
+        sent_or_received_at=message.sent_or_received_at,
+        delivery_status=message.delivery_status,
+        delivery_error=message.delivery_error,
+        created_by_name=_user_label(message.created_by),
+    )
 
 
 @ticketing_admin_router.get(
@@ -278,31 +311,7 @@ def get_ticket(request: HttpRequest, ticket_id: int) -> TicketDetailOut | StaffP
         closed_at=ticket.closed_at,
         created_at=ticket.created_at,
         updated_at=ticket.updated_at,
-        messages=[
-            TicketMessageOut(
-                id=message.id,
-                direction=message.direction,
-                sender_name=message.sender_name,
-                sender_address=message.sender_address,
-                to_recipients=message.to_recipients,
-                cc_recipients=message.cc_recipients,
-                bcc_recipients=message.bcc_recipients,
-                matched_contact_id=message.matched_contact_id,
-                matched_contact_name=(
-                    message.matched_contact.name if message.matched_contact else None
-                ),
-                subject=message.subject,
-                body_html=message.body_html,
-                body_text=message.body_text,
-                body_text_normalised=message.body_text_normalised,
-                provider=message.provider,
-                internet_message_id=message.internet_message_id,
-                sent_or_received_at=message.sent_or_received_at,
-                delivery_status=message.delivery_status,
-                created_by_name=_user_label(message.created_by),
-            )
-            for message in ticket.messages.all()
-        ],
+        messages=[_message_out(message) for message in ticket.messages.all()],
         notes=[
             TicketNoteOut(
                 id=note.id,
@@ -315,3 +324,62 @@ def get_ticket(request: HttpRequest, ticket_id: int) -> TicketDetailOut | StaffP
         ],
         attachments=attachment_rows,
     )
+
+
+@ticketing_admin_router.post(
+    "/tickets/{ticket_id}/reply",
+    response={
+        202: TicketMessageOut,
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+        404: ProblemDetail,
+    },
+)
+def reply_to_ticket(
+    request: HttpRequest,
+    ticket_id: int,
+    data: TicketReplyIn,
+) -> tuple[int, TicketMessageOut] | StaffProblem:
+    staff_problem = _staff_problem(request)
+    if staff_problem:
+        return staff_problem
+    if not request.user.has_perm("ticketing.view_ticket") or not request.user.has_perm(
+        "ticketing.reply_ticket"
+    ):
+        return 403, {
+            "message": "You do not have permission to reply to tickets.",
+            "success": False,
+            "code": "forbidden",
+        }
+
+    ticket = (
+        _visible_tickets(request)
+        .select_related("mailbox__graph_connection")
+        .filter(id=ticket_id)
+        .first()
+    )
+    if ticket is None:
+        return 404, {
+            "message": "Ticket not found.",
+            "success": False,
+            "code": "not_found",
+        }
+
+    try:
+        message = prepare_ticket_reply(
+            ticket,
+            request.user,
+            data.body_text,
+            cc_recipients=data.cc_recipients,
+            bcc_recipients=data.bcc_recipients,
+        )
+    except TicketReplyError as exc:
+        return 400, {
+            "message": str(exc),
+            "success": False,
+            "code": "reply_unavailable",
+        }
+
+    deliver_ticket_reply_task.delay(message.id)
+    return 202, _message_out(message)

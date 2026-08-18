@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from datetime import datetime
 
 from django.db import transaction
 from django.utils import timezone
@@ -9,6 +10,10 @@ from apps.ticketing.models import Ticket, TicketMessage
 from authentication.models import User
 
 GRAPH_PROVIDER = "microsoft_graph"
+DELIVERY_STATUS_QUEUED = "queued"
+DELIVERY_STATUS_SENDING = "sending"
+DELIVERY_STATUS_SENT = "sent"
+DELIVERY_STATUS_FAILED = "failed"
 
 
 class TicketReplyError(RuntimeError):
@@ -92,10 +97,79 @@ def prepare_ticket_reply(
             in_reply_to=source_message.internet_message_id,
             references=list(references),
             sent_or_received_at=timezone.now(),
-            delivery_status="queued",
+            delivery_status=DELIVERY_STATUS_QUEUED,
             created_by=author,
         )
     return message
+
+
+def mark_ticket_reply_sending(message: TicketMessage) -> None:
+    """Mark an outbound reply as actively being delivered."""
+    message.delivery_status = DELIVERY_STATUS_SENDING
+    message.delivery_error = ""
+    message.save(update_fields=["delivery_status", "delivery_error"])
+
+
+def fail_ticket_reply(message: TicketMessage, error: str) -> None:
+    """Persist a delivery failure without changing the surrounding ticket state."""
+    message.delivery_status = DELIVERY_STATUS_FAILED
+    message.delivery_error = error.strip()[:2000]
+    message.save(update_fields=["delivery_status", "delivery_error"])
+
+
+def complete_ticket_reply(
+    message: TicketMessage,
+    *,
+    provider_message_id: str,
+    internet_message_id: str = "",
+    sent_at: datetime | None = None,
+) -> TicketMessage:
+    """Persist successful delivery and advance the ticket workflow atomically."""
+    provider_id = provider_message_id.strip()
+    if not provider_id:
+        raise TicketReplyError("A provider message ID is required to complete ticket delivery.")
+
+    delivered_at = sent_at or timezone.now()
+    with transaction.atomic():
+        delivered_message = (
+            TicketMessage.objects.select_for_update()
+            .select_related("ticket")
+            .get(pk=message.pk)
+        )
+        delivered_message.provider_message_id = provider_id
+        delivered_message.internet_message_id = internet_message_id.strip()
+        delivered_message.delivery_status = DELIVERY_STATUS_SENT
+        delivered_message.delivery_error = ""
+        delivered_message.sent_or_received_at = delivered_at
+        delivered_message.save(
+            update_fields=[
+                "provider_message_id",
+                "internet_message_id",
+                "delivery_status",
+                "delivery_error",
+                "sent_or_received_at",
+            ]
+        )
+
+        ticket = delivered_message.ticket
+        if ticket.first_response_at is None:
+            ticket.first_response_at = delivered_at
+        ticket.last_message_at = delivered_at
+        ticket.status = Ticket.Status.WAITING_CUSTOMER
+        ticket.resolved_at = None
+        ticket.closed_at = None
+        ticket.save(
+            update_fields=[
+                "first_response_at",
+                "last_message_at",
+                "status",
+                "resolved_at",
+                "closed_at",
+                "updated_at",
+            ]
+        )
+
+    return delivered_message
 
 
 def _reply_subject(ticket: Ticket) -> str:
