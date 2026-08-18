@@ -1,34 +1,35 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# ADB Software Solutions
 
-## Getting Started
+This Next.js application serves both the public ADB Software Solutions website and the authenticated internal ADB Business Platform.
 
-First, run the development server:
+## Route ownership
+
+- `/` and other public routes: ADB Software Solutions marketing website.
+- `/admin`: authenticated internal operations workspace.
+- Authentication remains delegated to the separate `sites/auth-adb-software-solutions` application and the Django backend.
+
+The public marketing site is intentionally minimal while it is rebuilt. Until those routes are implemented, `/` redirects to `/admin`.
+
+## Development
+
+From the repository root:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+pnpm dev:software-solutions
 ```
 
-Open http://localhost:3000 with your browser to see the result.
+The application runs on:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+The Django API is expected on `http://localhost:8000` during local development, and the auth application runs separately on port `3004`.
 
-## Learn More
+## Admin UI conventions
 
-To learn more about Next.js, take a look at the following resources:
+The internal workspace is dark-only, full-width by default and built from the shared primitives in `src/components/ui`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Data-heavy screens should support pagination, filtering and drill-down navigation rather than rendering unbounded tables. Reuse existing UI primitives before adding page-specific components.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+See the repository root documentation and `AGENTS.md` for the broader platform architecture and contribution rules.
