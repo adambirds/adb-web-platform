@@ -480,9 +480,7 @@ def update_ticket_status(
 
         if current_is_terminal:
             if not can_close or (
-                target not in TERMINAL_STATUSES
-                and target != Ticket.Status.OPEN
-                and not can_change
+                target not in TERMINAL_STATUSES and target != Ticket.Status.OPEN and not can_change
             ):
                 return 403, {
                     "message": "You do not have permission to reopen this ticket.",
