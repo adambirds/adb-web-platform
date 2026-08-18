@@ -1,11 +1,11 @@
 import math
 from typing import Any
 
-from django.db.models import Count, Q
+from django.db.models import Count, Q, QuerySet
 from django.http import HttpRequest
 from ninja import Query, Router, Schema
 
-from apps.access_control.policies import can_access_client, scope_clients_for_user
+from apps.access_control.policies import scope_clients_for_user, scope_ticket_queues_for_user
 from apps.ticketing.models import Ticket, TicketAttachment, TicketQueue
 from authentication.ninja.schemas import ProblemDetail
 
@@ -54,7 +54,7 @@ def _staff_problem(request: HttpRequest) -> StaffProblem | None:
     return None
 
 
-def _visible_tickets(request: HttpRequest):
+def _visible_tickets(request: HttpRequest) -> QuerySet[Ticket]:
     tickets = Ticket.objects.select_related(
         "brand",
         "queue",
@@ -66,7 +66,10 @@ def _visible_tickets(request: HttpRequest):
         return tickets
 
     clients = scope_clients_for_user(request.user)
-    return tickets.filter(Q(client__isnull=True) | Q(client__in=clients)).distinct()
+    queues = scope_ticket_queues_for_user(request.user)
+    return tickets.filter(
+        Q(queue__in=queues) & (Q(client__isnull=True) | Q(client__in=clients))
+    ).distinct()
 
 
 def _user_label(user: Any | None) -> str | None:
@@ -91,6 +94,10 @@ def list_ticket_queues(request: HttpRequest) -> list[TicketQueueOut] | StaffProb
             "code": "forbidden",
         }
 
+    queues = scope_ticket_queues_for_user(
+        request.user,
+        TicketQueue.objects.select_related("brand"),
+    )
     return [
         TicketQueueOut(
             id=queue.id,
@@ -102,7 +109,7 @@ def list_ticket_queues(request: HttpRequest) -> list[TicketQueueOut] | StaffProb
             default_priority=queue.default_priority,
             enabled=queue.enabled,
         )
-        for queue in TicketQueue.objects.select_related("brand").order_by("ordering", "name")
+        for queue in queues.order_by("ordering", "name")
     ]
 
 
@@ -174,7 +181,9 @@ def list_tickets(
                 client_id=ticket.client_id,
                 client_name=str(ticket.client) if ticket.client else None,
                 primary_contact_id=ticket.primary_contact_id,
-                primary_contact_name=ticket.primary_contact.name if ticket.primary_contact else None,
+                primary_contact_name=(
+                    ticket.primary_contact.name if ticket.primary_contact else None
+                ),
                 status=ticket.status,
                 priority=ticket.priority,
                 classification=ticket.classification,
@@ -275,7 +284,9 @@ def get_ticket(request: HttpRequest, ticket_id: int) -> TicketDetailOut | StaffP
                 cc_recipients=message.cc_recipients,
                 bcc_recipients=message.bcc_recipients,
                 matched_contact_id=message.matched_contact_id,
-                matched_contact_name=message.matched_contact.name if message.matched_contact else None,
+                matched_contact_name=(
+                    message.matched_contact.name if message.matched_contact else None
+                ),
                 subject=message.subject,
                 body_html=message.body_html,
                 body_text=message.body_text,
