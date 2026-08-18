@@ -1,9 +1,8 @@
 #!/bin/bash
 
-# Test auth frontend (Next.js)
+# Test the Next.js authentication frontend.
+set -e
+
 echo "🧪 Testing auth frontend..."
-cd auth-frontend || exit 1
-if ! pnpm test; then
-	echo "❌ Auth frontend tests failed"
-	exit 1
-fi
+cd sites/auth-adb-software-solutions
+pnpm run test:coverage
