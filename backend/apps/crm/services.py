@@ -58,11 +58,7 @@ def _matching_unlinked_ticket_ids(lead: Lead) -> list[int]:
 
 @transaction.atomic
 def convert_lead(lead: Lead, converted_by: User) -> LeadConversionResult:
-    locked_lead = (
-        Lead.objects.select_for_update()
-        .select_related("brand", "status", "source", "assigned_to")
-        .get(pk=lead.pk)
-    )
+    locked_lead = Lead.objects.select_for_update().get(pk=lead.pk)
     if locked_lead.converted_at is not None or locked_lead.converted_client_id is not None:
         raise LeadOperationError("This lead has already been converted.")
 
