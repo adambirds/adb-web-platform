@@ -11,6 +11,7 @@ from django.core.files.storage import Storage, default_storage
 from django.db import IntegrityError
 from django.utils import timezone
 
+from apps.ticketing.config import malware_scanning_enabled
 from apps.ticketing.models import TicketAttachment, TicketMessage
 
 DEFAULT_MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024
@@ -36,6 +37,20 @@ class AttachmentPayload:
 class QuarantinedAttachmentResult:
     attachment: TicketAttachment
     created: bool
+
+
+def attachment_is_downloadable(attachment: TicketAttachment) -> bool:
+    """Return whether the current malware policy permits staff to download the attachment."""
+    if not attachment.storage_key:
+        return False
+    if attachment.scan_status == TicketAttachment.ScanStatus.SAFE:
+        return attachment.safe_at is not None
+    if malware_scanning_enabled():
+        return False
+    return attachment.scan_status in {
+        TicketAttachment.ScanStatus.PENDING,
+        TicketAttachment.ScanStatus.FAILED,
+    }
 
 
 def quarantine_attachment(

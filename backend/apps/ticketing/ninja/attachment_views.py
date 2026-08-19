@@ -7,8 +7,8 @@ from django.http import FileResponse, HttpRequest, JsonResponse
 from ninja import Router
 
 from apps.access_control.policies import can_access_client, can_access_ticket_queue
-from apps.ticketing.config import malware_scanning_enabled
 from apps.ticketing.models import Ticket, TicketAttachment
+from apps.ticketing.services.attachments import attachment_is_downloadable
 
 attachment_router = Router(tags=["admin-ticket-attachments"])
 
@@ -32,19 +32,6 @@ def _can_view_ticket(user: Any, ticket: Ticket) -> bool:
     if ticket.client is not None and not can_access_client(user, ticket.client):
         return False
     return True
-
-
-def _attachment_is_downloadable(attachment: TicketAttachment) -> bool:
-    if not attachment.storage_key:
-        return False
-    if attachment.scan_status == TicketAttachment.ScanStatus.SAFE:
-        return attachment.safe_at is not None
-    if malware_scanning_enabled():
-        return False
-    return attachment.scan_status in {
-        TicketAttachment.ScanStatus.PENDING,
-        TicketAttachment.ScanStatus.FAILED,
-    }
 
 
 @attachment_router.get("/ticket-attachments/{attachment_id}/download")
@@ -81,7 +68,7 @@ def download_ticket_attachment(
     if attachment is None or not _can_view_ticket(request.user, attachment.message.ticket):
         return _problem(404, "Attachment not found.", "not_found")
 
-    if not _attachment_is_downloadable(attachment):
+    if not attachment_is_downloadable(attachment):
         return _problem(
             409,
             "Attachment is not available under the current malware-scanning policy.",

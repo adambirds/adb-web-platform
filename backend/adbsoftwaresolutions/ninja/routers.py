@@ -18,6 +18,7 @@ from apps.ticketing.ninja.admin_views import ticketing_admin_router
 from apps.ticketing.ninja.attachment_views import attachment_router
 from apps.ticketing.ninja.operations_views import operations_router
 from apps.ticketing.ninja.settings_views import ticketing_settings_router
+from apps.ticketing.ninja.vendor_settings_views import vendor_settings_router
 from apps.website.ninja.admin_views import website_admin_router
 from apps.website.ninja.views import website_misc_router, website_public_router
 from authentication.auth_service.views import auth_service_router
@@ -53,6 +54,7 @@ admin_router.add_router("", ticketing_admin_router)
 admin_router.add_router("", attachment_router)
 admin_router.add_router("", operations_router)
 admin_router.add_router("", ticketing_settings_router)
+admin_router.add_router("", vendor_settings_router)
 admin_router.add_router("", infrastructure_admin_router)
 admin_router.add_router("", infrastructure_extended_router)
 admin_router.add_router("", resource_admin_router)
