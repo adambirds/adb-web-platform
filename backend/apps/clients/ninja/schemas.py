@@ -5,6 +5,8 @@ import typing
 from ninja import Schema
 
 ClientStatus = typing.Literal["active", "inactive", "archived"]
+ProjectOwnershipType = typing.Literal["client", "internal"]
+ProjectStatus = typing.Literal["planning", "active", "paused", "completed", "archived"]
 
 
 class ClientSummaryOut(Schema):
@@ -90,6 +92,40 @@ class ProjectSummaryOut(Schema):
     start_date: datetime.date
     end_date: datetime.date | None
     budget: decimal.Decimal | None
+
+
+class ProjectIn(Schema):
+    name: str
+    description: str = ""
+    status: ProjectStatus = "active"
+    ownership_type: ProjectOwnershipType = "client"
+    client_id: int | None = None
+    start_date: datetime.date
+    end_date: datetime.date | None = None
+    budget: decimal.Decimal | None = None
+    hourly_rate: decimal.Decimal | None = None
+
+
+class ProjectDetailOut(Schema):
+    id: int
+    name: str
+    description: str
+    status: str
+    ownership_type: str
+    client_id: int | None
+    client_name: str | None
+    start_date: datetime.date
+    end_date: datetime.date | None
+    budget: decimal.Decimal | None
+    hourly_rate: decimal.Decimal | None
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    task_count: int
+    open_task_count: int
+    time_entry_count: int
+    tracked_hours: decimal.Decimal
+    billable_hours: decimal.Decimal
+    can_change: bool
 
 
 class TimeEntrySummaryOut(Schema):

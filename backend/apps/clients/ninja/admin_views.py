@@ -1,14 +1,16 @@
+from decimal import Decimal
 from typing import Any, cast
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, Q, QuerySet, Sum
 from django.http import HttpRequest
 from ninja import Router
 
 from apps.access_control.models import ClientAccessGrant, StaffAccessProfile
 from apps.access_control.policies import scope_clients_for_user
 from apps.clients.models import Client, ClientContact, Project, TimeEntry
+from apps.core.ownership import OwnershipType
 from authentication.models import User
 from authentication.ninja.schemas import ProblemDetail
 
@@ -19,6 +21,8 @@ from .schemas import (
     ClientIn,
     ClientProjectOut,
     ClientSummaryOut,
+    ProjectDetailOut,
+    ProjectIn,
     ProjectSummaryOut,
     TimeEntrySummaryOut,
 )
@@ -67,6 +71,14 @@ def _validation_problem(
     }
 
 
+def _project_problem(message: str, code: str = "validation_error") -> StaffProblem:
+    return 400, {
+        "message": message,
+        "success": False,
+        "code": code,
+    }
+
+
 def _not_found_problem(resource: str) -> StaffProblem:
     return 404, {
         "message": f"{resource} not found or outside your access scope.",
@@ -77,6 +89,16 @@ def _not_found_problem(resource: str) -> StaffProblem:
 
 def _get_scoped_client(request: HttpRequest, client_id: int) -> Client | None:
     return scope_clients_for_user(request.user).filter(id=client_id).first()
+
+
+def _scoped_projects(request: HttpRequest) -> QuerySet[Project]:
+    projects = Project.objects.select_related("client")
+    if request.user.is_superuser:
+        return projects
+    clients = scope_clients_for_user(request.user)
+    return projects.filter(
+        Q(ownership_type=OwnershipType.INTERNAL) | Q(client__in=clients)
+    )
 
 
 def _build_contact_out(contact: ClientContact) -> ClientContactOut:
@@ -130,6 +152,49 @@ def _build_client_detail(request: HttpRequest, client: Client) -> ClientDetailOu
     )
 
 
+def _build_project_detail(request: HttpRequest, project: Project) -> ProjectDetailOut:
+    task_count = 0
+    open_task_count = 0
+    if request.user.has_perm("tasks.view_task"):
+        tasks = project.tasks.all()
+        task_count = tasks.count()
+        open_task_count = tasks.filter(completed_at__isnull=True).count()
+
+    time_entry_count = 0
+    tracked_hours = Decimal("0")
+    billable_hours = Decimal("0")
+    if request.user.has_perm("clients.view_timeentry"):
+        entries = project.time_entries.all()
+        time_entry_count = entries.count()
+        tracked_hours = entries.aggregate(total=Sum("duration_hours"))["total"] or Decimal("0")
+        billable_hours = (
+            entries.filter(billable=True).aggregate(total=Sum("duration_hours"))["total"]
+            or Decimal("0")
+        )
+
+    return ProjectDetailOut(
+        id=project.id,
+        name=project.name,
+        description=project.description,
+        status=project.status,
+        ownership_type=project.ownership_type,
+        client_id=project.client_id,
+        client_name=str(project.client) if project.client else None,
+        start_date=project.start_date,
+        end_date=project.end_date,
+        budget=project.budget,
+        hourly_rate=project.hourly_rate,
+        created_at=project.created_at,
+        updated_at=project.updated_at,
+        task_count=task_count,
+        open_task_count=open_task_count,
+        time_entry_count=time_entry_count,
+        tracked_hours=tracked_hours,
+        billable_hours=billable_hours,
+        can_change=request.user.has_perm("clients.change_project"),
+    )
+
+
 def _apply_client_payload(client: Client, payload: ClientIn) -> None:
     client.name = payload.name.strip()
     client.company = payload.company.strip()
@@ -158,6 +223,58 @@ def _apply_contact_payload(contact: ClientContact, payload: ClientContactIn) -> 
         contact.is_primary = False
         contact.is_billing = False
         contact.is_technical = False
+
+
+def _apply_project_payload(
+    request: HttpRequest,
+    project: Project,
+    payload: ProjectIn,
+) -> StaffProblem | None:
+    if payload.end_date is not None and payload.end_date < payload.start_date:
+        return _project_problem("Project end date cannot be before its start date.")
+    if payload.budget is not None and payload.budget < 0:
+        return _project_problem("Project budget cannot be negative.")
+    if payload.hourly_rate is not None and payload.hourly_rate < 0:
+        return _project_problem("Project hourly rate cannot be negative.")
+
+    client = None
+    if payload.ownership_type == OwnershipType.CLIENT:
+        if payload.client_id is None:
+            return _project_problem("Client-owned projects require a client.")
+        client = _get_scoped_client(request, payload.client_id)
+        if client is None:
+            return _not_found_problem("Client")
+    elif payload.client_id is not None:
+        return _project_problem("Internal projects cannot be linked to a client.")
+
+    target_client_id = client.id if client else None
+    ownership_changed = (
+        project.pk is not None
+        and (
+            project.ownership_type != payload.ownership_type
+            or project.client_id != target_client_id
+        )
+    )
+    if ownership_changed and (
+        project.tasks.exists()
+        or project.task_lists.exists()
+        or project.time_entries.exists()
+    ):
+        return _project_problem(
+            "Project ownership cannot change while tasks, task lists or time entries are linked.",
+            "ownership_in_use",
+        )
+
+    project.name = payload.name.strip()
+    project.description = payload.description.strip()
+    project.status = payload.status
+    project.ownership_type = payload.ownership_type
+    project.client = client
+    project.start_date = payload.start_date
+    project.end_date = payload.end_date
+    project.budget = payload.budget
+    project.hourly_rate = payload.hourly_rate
+    return None
 
 
 def _save_contact(contact: ClientContact) -> None:
@@ -403,11 +520,7 @@ def list_projects(request: HttpRequest) -> list[ProjectSummaryOut] | StaffProble
     if problem:
         return problem
 
-    projects = Project.objects.select_related("client")
-    if not request.user.is_superuser:
-        clients = scope_clients_for_user(request.user)
-        projects = projects.filter(Q(ownership_type="internal") | Q(client__in=clients))
-
+    projects = _scoped_projects(request)
     return [
         ProjectSummaryOut(
             id=project.id,
@@ -422,6 +535,85 @@ def list_projects(request: HttpRequest) -> list[ProjectSummaryOut] | StaffProble
         )
         for project in projects.order_by("-start_date", "name")
     ]
+
+
+@clients_admin_router.post(
+    "/projects",
+    response={
+        201: ProjectDetailOut,
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+        404: ProblemDetail,
+    },
+)
+def create_project(
+    request: HttpRequest,
+    payload: ProjectIn,
+) -> tuple[int, ProjectDetailOut] | StaffProblem:
+    problem = _permission_problem(request, "clients.add_project")
+    if problem:
+        return problem
+
+    project = Project()
+    payload_problem = _apply_project_payload(request, project, payload)
+    if payload_problem:
+        return payload_problem
+    try:
+        project.full_clean()
+    except ValidationError as error:
+        return _validation_problem(error, "Invalid project details.")
+    project.save()
+    return 201, _build_project_detail(request, project)
+
+
+@clients_admin_router.get(
+    "/projects/{project_id}",
+    response={200: ProjectDetailOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
+)
+def get_project(request: HttpRequest, project_id: int) -> ProjectDetailOut | StaffProblem:
+    problem = _permission_problem(request, "clients.view_project")
+    if problem:
+        return problem
+
+    project = _scoped_projects(request).filter(id=project_id).first()
+    if project is None:
+        return _not_found_problem("Project")
+    return _build_project_detail(request, project)
+
+
+@clients_admin_router.put(
+    "/projects/{project_id}",
+    response={
+        200: ProjectDetailOut,
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+        404: ProblemDetail,
+    },
+)
+def update_project(
+    request: HttpRequest,
+    project_id: int,
+    payload: ProjectIn,
+) -> ProjectDetailOut | StaffProblem:
+    problem = _permission_problem(request, "clients.change_project")
+    if problem:
+        return problem
+
+    project = _scoped_projects(request).filter(id=project_id).first()
+    if project is None:
+        return _not_found_problem("Project")
+
+    payload_problem = _apply_project_payload(request, project, payload)
+    if payload_problem:
+        return payload_problem
+    try:
+        project.full_clean()
+    except ValidationError as error:
+        return _validation_problem(error, "Invalid project details.")
+    project.save()
+    return _build_project_detail(request, project)
 
 
 @clients_admin_router.get(
