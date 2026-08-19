@@ -217,9 +217,7 @@ def lead_options(request: HttpRequest) -> LeadOptionsOut | StaffProblem:
         404: ProblemDetail,
     },
 )
-def create_lead(
-    request: HttpRequest, payload: LeadIn
-) -> tuple[int, LeadDetailOut] | StaffProblem:
+def create_lead(request: HttpRequest, payload: LeadIn) -> tuple[int, LeadDetailOut] | StaffProblem:
     problem = _permission_problem(request, "crm.add_lead")
     if problem:
         return problem
@@ -245,11 +243,7 @@ def get_lead(request: HttpRequest, lead_id: int) -> LeadDetailOut | StaffProblem
     if problem:
         return problem
 
-    lead = (
-        Lead.objects.select_related("brand", "status", "source")
-        .filter(id=lead_id)
-        .first()
-    )
+    lead = Lead.objects.select_related("brand", "status", "source").filter(id=lead_id).first()
     if lead is None:
         return _not_found_problem("Lead")
     return _build_lead_detail(request, lead)
@@ -274,11 +268,7 @@ def update_lead(
     if problem:
         return problem
 
-    lead = (
-        Lead.objects.select_related("brand", "status", "source")
-        .filter(id=lead_id)
-        .first()
-    )
+    lead = Lead.objects.select_related("brand", "status", "source").filter(id=lead_id).first()
     if lead is None:
         return _not_found_problem("Lead")
 
