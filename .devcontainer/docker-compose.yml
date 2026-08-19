@@ -10,7 +10,6 @@ services:
             - db
             - redis-cache
             - redis-session
-            - clamav
         networks:
             - adbsoftwaresolutions-dev
 
@@ -41,7 +40,9 @@ services:
             - adbsoftwaresolutions-dev
 
     clamav:
-        image: clamav/clamav:1.5
+        image: clamav/clamav-debian:1.5
+        profiles:
+            - malware-scanning
         restart: unless-stopped
         volumes:
             - clamav-data:/var/lib/clamav

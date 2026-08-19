@@ -144,6 +144,21 @@ The devcontainer uses environment variables defined in:
 
 **Security Note:** Never commit the `.env` file - it contains sensitive credentials.
 
+## 🛡️ Optional local ClamAV
+
+Malware scanning is disabled by default, so the normal devcontainer does not start ClamAV. The optional scanner uses the multi-architecture Debian ClamAV image so it can run on both x86-64 and ARM64 development hosts.
+
+To run ClamAV as part of the devcontainer, set these values in `.devcontainer/.env` before rebuilding or reopening the container:
+
+```env
+COMPOSE_PROFILES=malware-scanning
+TICKETING_MALWARE_SCANNING_ENABLED=1
+TICKETING_CLAMAV_HOST=clamav
+TICKETING_CLAMAV_PORT=3310
+```
+
+Leave `COMPOSE_PROFILES` empty and `TICKETING_MALWARE_SCANNING_ENABLED=0` for the normal scanner-free development environment. A remote or central ClamAV service can instead be used by enabling malware scanning and setting `TICKETING_CLAMAV_HOST` to that private service hostname.
+
 ## 🔧 Customization
 
 ### Adding Extensions
