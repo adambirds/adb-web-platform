@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -43,15 +44,49 @@ class Lead(models.Model):
 
     status = models.ForeignKey(LeadStatus, on_delete=models.SET_NULL, null=True, blank=True)
     source = models.ForeignKey(LeadSource, on_delete=models.SET_NULL, null=True, blank=True)
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="assigned_leads",
+        null=True,
+        blank=True,
+    )
 
     message = models.TextField(blank=True)
     notes = models.TextField(blank=True, help_text="Internal notes")
+
+    converted_client = models.ForeignKey(
+        "clients.Client",
+        on_delete=models.SET_NULL,
+        related_name="originating_leads",
+        null=True,
+        blank=True,
+    )
+    converted_contact = models.ForeignKey(
+        "clients.ClientContact",
+        on_delete=models.SET_NULL,
+        related_name="originating_leads",
+        null=True,
+        blank=True,
+    )
+    converted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="converted_leads",
+        null=True,
+        blank=True,
+    )
+    converted_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-created_at"]
+        permissions = [
+            ("assign_lead", "Can assign leads"),
+            ("convert_lead", "Can convert leads to clients"),
+        ]
 
     def __str__(self) -> str:
         return self.name
