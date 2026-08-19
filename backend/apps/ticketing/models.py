@@ -325,7 +325,10 @@ class TicketAttachment(models.Model):
         BLOCKED = "blocked", "Blocked by policy"
 
     message = models.ForeignKey(TicketMessage, on_delete=models.CASCADE, related_name="attachments")
+    provider_attachment_id = models.CharField(max_length=512, blank=True, db_index=True)
     original_filename = models.CharField(max_length=255)
+    content_id = models.CharField(max_length=512, blank=True)
+    is_inline = models.BooleanField(default=False)
     storage_key = models.CharField(max_length=500, blank=True)
     declared_content_type = models.CharField(max_length=255, blank=True)
     detected_content_type = models.CharField(max_length=255, blank=True)
@@ -343,6 +346,15 @@ class TicketAttachment(models.Model):
     scanned_at = models.DateTimeField(null=True, blank=True)
     safe_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["message", "provider_attachment_id"],
+                condition=~models.Q(provider_attachment_id=""),
+                name="uniq_msg_provider_attachment",
+            )
+        ]
 
     def __str__(self) -> str:
         return self.original_filename
