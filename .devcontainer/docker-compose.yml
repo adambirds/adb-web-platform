@@ -10,6 +10,7 @@ services:
             - db
             - redis-cache
             - redis-session
+            - clamav
         networks:
             - adbsoftwaresolutions-dev
 
@@ -39,8 +40,17 @@ services:
         networks:
             - adbsoftwaresolutions-dev
 
+    clamav:
+        image: clamav/clamav:1.5
+        restart: unless-stopped
+        volumes:
+            - clamav-data:/var/lib/clamav
+        networks:
+            - adbsoftwaresolutions-dev
+
 volumes:
     postgres-data:
+    clamav-data:
 
 networks:
     adbsoftwaresolutions-dev:
