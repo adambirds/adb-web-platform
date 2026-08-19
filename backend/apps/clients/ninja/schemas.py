@@ -1,7 +1,12 @@
 from datetime import date
 from decimal import Decimal
+from typing import Literal
 
 from ninja import Schema
+from pydantic import EmailStr, Field
+
+
+ClientStatus = Literal["active", "inactive", "archived"]
 
 
 class ClientSummaryOut(Schema):
@@ -50,6 +55,20 @@ class ClientDetailOut(Schema):
     notes: str
     contacts: list[ClientContactOut]
     projects: list[ClientProjectOut]
+
+
+class ClientIn(Schema):
+    name: str = Field(min_length=1, max_length=200)
+    company: str = Field(default="", max_length=200)
+    email: EmailStr
+    phone: str = Field(default="", max_length=20)
+    address: str = ""
+    city: str = Field(default="", max_length=100)
+    state: str = Field(default="", max_length=100)
+    country: str = Field(default="", max_length=100)
+    postal_code: str = Field(default="", max_length=20)
+    status: ClientStatus = "active"
+    notes: str = ""
 
 
 class ProjectSummaryOut(Schema):

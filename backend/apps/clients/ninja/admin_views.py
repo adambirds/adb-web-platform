@@ -4,13 +4,15 @@ from django.db.models import Count, Q
 from django.http import HttpRequest
 from ninja import Router
 
+from apps.access_control.models import ClientAccessGrant, StaffAccessProfile
 from apps.access_control.policies import scope_clients_for_user
-from apps.clients.models import Project, TimeEntry
+from apps.clients.models import Client, Project, TimeEntry
 from authentication.ninja.schemas import ProblemDetail
 
 from .schemas import (
     ClientContactOut,
     ClientDetailOut,
+    ClientIn,
     ClientProjectOut,
     ClientSummaryOut,
     ProjectSummaryOut,
@@ -51,56 +53,7 @@ def _permission_problem(request: HttpRequest, permission: str) -> StaffProblem |
     return None
 
 
-@clients_admin_router.get(
-    "/clients",
-    response={200: list[ClientSummaryOut], 401: ProblemDetail, 403: ProblemDetail},
-)
-def list_clients(request: HttpRequest) -> list[ClientSummaryOut] | StaffProblem:
-    problem = _permission_problem(request, "clients.view_client")
-    if problem:
-        return problem
-
-    clients = scope_clients_for_user(request.user).annotate(
-        contact_count=Count("contacts", distinct=True),
-        project_count=Count("projects", distinct=True),
-    )
-
-    return [
-        ClientSummaryOut(
-            id=client.id,
-            name=client.name,
-            company=client.company,
-            email=client.email,
-            status=client.status,
-            contact_count=client.contact_count,
-            project_count=client.project_count,
-        )
-        for client in clients.order_by("company", "name")
-    ]
-
-
-@clients_admin_router.get(
-    "/clients/{client_id}",
-    response={200: ClientDetailOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
-)
-def get_client(request: HttpRequest, client_id: int) -> ClientDetailOut | StaffProblem:
-    problem = _permission_problem(request, "clients.view_client")
-    if problem:
-        return problem
-
-    client = (
-        scope_clients_for_user(request.user)
-        .prefetch_related("contacts", "projects")
-        .filter(id=client_id)
-        .first()
-    )
-    if client is None:
-        return 404, {
-            "message": "Client not found or outside your access scope.",
-            "success": False,
-            "code": "not_found",
-        }
-
+def _build_client_detail(request: HttpRequest, client: Client) -> ClientDetailOut:
     contacts = []
     if request.user.has_perm("clients.view_clientcontact"):
         contacts = [
@@ -148,6 +101,138 @@ def get_client(request: HttpRequest, client_id: int) -> ClientDetailOut | StaffP
         contacts=contacts,
         projects=projects,
     )
+
+
+def _apply_client_payload(client: Client, payload: ClientIn) -> None:
+    client.name = payload.name.strip()
+    client.company = payload.company.strip()
+    client.email = str(payload.email).strip().lower()
+    client.phone = payload.phone.strip()
+    client.address = payload.address.strip()
+    client.city = payload.city.strip()
+    client.state = payload.state.strip()
+    client.country = payload.country.strip()
+    client.postal_code = payload.postal_code.strip()
+    client.status = payload.status
+    client.notes = payload.notes.strip()
+
+
+def _grant_created_client_to_user(request: HttpRequest, client: Client) -> None:
+    if request.user.is_superuser:
+        return
+
+    profile, _ = StaffAccessProfile.objects.get_or_create(user=request.user)
+    if profile.all_clients:
+        return
+
+    ClientAccessGrant.objects.get_or_create(
+        profile=profile,
+        client=client,
+        defaults={"granted_by": request.user},
+    )
+
+
+@clients_admin_router.get(
+    "/clients",
+    response={200: list[ClientSummaryOut], 401: ProblemDetail, 403: ProblemDetail},
+)
+def list_clients(request: HttpRequest) -> list[ClientSummaryOut] | StaffProblem:
+    problem = _permission_problem(request, "clients.view_client")
+    if problem:
+        return problem
+
+    clients = scope_clients_for_user(request.user).annotate(
+        contact_count=Count("contacts", distinct=True),
+        project_count=Count("projects", distinct=True),
+    )
+
+    return [
+        ClientSummaryOut(
+            id=client.id,
+            name=client.name,
+            company=client.company,
+            email=client.email,
+            status=client.status,
+            contact_count=client.contact_count,
+            project_count=client.project_count,
+        )
+        for client in clients.order_by("company", "name")
+    ]
+
+
+@clients_admin_router.post(
+    "/clients",
+    response={201: ClientDetailOut, 401: ProblemDetail, 403: ProblemDetail},
+)
+def create_client(request: HttpRequest, payload: ClientIn) -> tuple[int, ClientDetailOut] | StaffProblem:
+    problem = _permission_problem(request, "clients.add_client")
+    if problem:
+        return problem
+
+    client = Client()
+    _apply_client_payload(client, payload)
+    client.full_clean()
+    client.save()
+    _grant_created_client_to_user(request, client)
+
+    return 201, _build_client_detail(request, client)
+
+
+@clients_admin_router.get(
+    "/clients/{client_id}",
+    response={200: ClientDetailOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
+)
+def get_client(request: HttpRequest, client_id: int) -> ClientDetailOut | StaffProblem:
+    problem = _permission_problem(request, "clients.view_client")
+    if problem:
+        return problem
+
+    client = (
+        scope_clients_for_user(request.user)
+        .prefetch_related("contacts", "projects")
+        .filter(id=client_id)
+        .first()
+    )
+    if client is None:
+        return 404, {
+            "message": "Client not found or outside your access scope.",
+            "success": False,
+            "code": "not_found",
+        }
+
+    return _build_client_detail(request, client)
+
+
+@clients_admin_router.put(
+    "/clients/{client_id}",
+    response={200: ClientDetailOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
+)
+def update_client(
+    request: HttpRequest,
+    client_id: int,
+    payload: ClientIn,
+) -> ClientDetailOut | StaffProblem:
+    problem = _permission_problem(request, "clients.change_client")
+    if problem:
+        return problem
+
+    client = (
+        scope_clients_for_user(request.user)
+        .prefetch_related("contacts", "projects")
+        .filter(id=client_id)
+        .first()
+    )
+    if client is None:
+        return 404, {
+            "message": "Client not found or outside your access scope.",
+            "success": False,
+            "code": "not_found",
+        }
+
+    _apply_client_payload(client, payload)
+    client.full_clean()
+    client.save()
+    return _build_client_detail(request, client)
 
 
 @clients_admin_router.get(
