@@ -15,6 +15,7 @@ from apps.ticketing.services.classification import (
 )
 from apps.ticketing.services.contracts import CanonicalMessage
 from apps.ticketing.services.normalisation import normalize_message_body
+from apps.ticketing.services.routing import route_queue_for_classification
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +114,11 @@ def _persist_source_message(
     client, contact = _resolve_sender(canonical.sender_address)
     decision = classify_message_for_purpose(source.purpose, canonical, client)
     _log_classification(provider_message_id, decision)
+    routed_queue = route_queue_for_classification(
+        source.brand,
+        source.queue,
+        decision.classification,
+    )
 
     ticket = None
     if source.allow_thread_matching and source.mailbox is not None:
@@ -121,13 +127,13 @@ def _persist_source_message(
     if ticket is None:
         ticket = Ticket.objects.create(
             brand=source.brand,
-            queue=source.queue,
+            queue=routed_queue,
             mailbox=source.mailbox,
             client=client,
             primary_contact=contact,
             subject=canonical.subject.strip() or "(No subject)",
             status=Ticket.Status.NEW,
-            priority=decision.suggested_priority or source.queue.default_priority,
+            priority=decision.suggested_priority or routed_queue.default_priority,
             classification=decision.classification,
             source=source.source,
             last_message_at=canonical.sent_or_received_at,
