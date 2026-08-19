@@ -1,11 +1,11 @@
-from datetime import date
-from decimal import Decimal
-from typing import Literal
+import datetime
+import decimal
+import typing
 
 from ninja import Schema
 
 
-ClientStatus = Literal["active", "inactive", "archived"]
+ClientStatus = typing.Literal["active", "inactive", "archived"]
 
 
 class ClientSummaryOut(Schema):
@@ -34,9 +34,9 @@ class ClientProjectOut(Schema):
     id: int
     name: str
     status: str
-    start_date: date
-    end_date: date | None
-    budget: Decimal | None
+    start_date: datetime.date
+    end_date: datetime.date | None
+    budget: decimal.Decimal | None
 
 
 class ClientDetailOut(Schema):
@@ -77,15 +77,15 @@ class ProjectSummaryOut(Schema):
     ownership_type: str
     client_id: int | None
     client_name: str | None
-    start_date: date
-    end_date: date | None
-    budget: Decimal | None
+    start_date: datetime.date
+    end_date: datetime.date | None
+    budget: decimal.Decimal | None
 
 
 class TimeEntrySummaryOut(Schema):
     id: int
-    date: date
-    duration_hours: Decimal
+    date: datetime.date
+    duration_hours: decimal.Decimal
     description: str
     billable: bool
     ownership_type: str
