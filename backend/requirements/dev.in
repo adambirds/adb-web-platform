@@ -6,7 +6,7 @@
 -r mypy.in
 
 # Repository tooling imports this directly.
-typing-extensions==4.14.1
+typing-extensions==4.16.0
 
 # For sorting imports
 isort==8.0.1
@@ -24,10 +24,10 @@ pip-tools==7.6.1
 adamlint==1.1.0
 
 # For spell check linter
-codespell==2.4.1
+codespell==2.4.3
 
 # For code coverage
-coverage==7.10.3
+coverage==7.15.4
 django-coverage-plugin==3.2.2
 
 flake8==7.3.0
