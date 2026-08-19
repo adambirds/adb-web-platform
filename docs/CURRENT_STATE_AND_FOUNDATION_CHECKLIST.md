@@ -97,14 +97,13 @@ These are not prerequisites for starting other operational modules, but remain u
 - [x] Client detail workspace foundation.
 - [x] Client contacts/projects/tickets can be surfaced in context.
 - [x] Contact email matching participates in inbound Ticket resolution.
+- [x] create and edit Clients from the custom operations UI.
+- [x] archive/reactivate Clients through the account lifecycle status.
+- [x] create/edit/deactivate contacts.
+- [x] manage primary, billing and technical contact semantics.
 
 ### Missing for day-to-day use
 
-- [ ] create Client from the custom operations UI.
-- [ ] edit Client.
-- [ ] archive/reactivate Client.
-- [ ] create/edit/archive contacts.
-- [ ] manage primary/billing/technical contact semantics.
 - [ ] improve Client detail into the main operational hub.
 - [ ] add Client sections for Infrastructure, KB, Credentials, Tasks and Time.
 - [ ] add Client period summaries (especially time by week/month).
@@ -119,19 +118,19 @@ These are not prerequisites for starting other operational modules, but remain u
 - [x] website contact form creates a Lead.
 - [x] new Contact Form Leads feed the canonical Ticket ingestion path.
 - [x] Lead/ticket creation is idempotent and public lead capture fails open if ticket routing fails.
+- [x] Lead detail workspace.
+- [x] create Lead manually.
+- [x] edit Lead.
+- [x] owner/assignee workflows with dedicated capability permission.
+- [x] matching Ticket/email history visible from the Lead.
+- [x] Lead -> Client/primary Contact conversion while retaining Lead and Ticket/communication history.
 
 ### Missing
 
-- [ ] Lead detail workspace.
-- [ ] create Lead manually.
-- [ ] edit Lead.
-- [ ] archive/close Lead.
-- [ ] owner/assignee workflows.
+- [ ] archive/close Lead lifecycle beyond normal pipeline status changes.
 - [ ] practical pipeline/list/filter views.
-- [ ] communication/ticket history visible from the Lead.
-- [ ] explicit ticket/email linking for manually-created/updated Leads.
+- [ ] explicit manual ticket/email linking for Leads when sender matching is insufficient.
 - [ ] contact deduplication/matching workflows.
-- [ ] Lead -> Client/Contact conversion while retaining Ticket/communication history.
 - [ ] optional value/currency/follow-up metadata where useful.
 
 ## 6. Projects
@@ -140,18 +139,22 @@ These are not prerequisites for starting other operational modules, but remain u
 
 - [x] operational Project model separated from public Portfolio/CaseStudy.
 - [x] Project register/list foundation.
-- [x] basic Client relationship and development data.
+- [x] Client/Internal ownership and scoped visibility.
+- [x] Project detail workspace.
+- [x] create Project.
+- [x] edit Project.
+- [x] archive/change status through the Project lifecycle status.
+- [x] Client/Internal project workflows.
+- [x] start/end dates and budget/hourly-rate metadata.
+- [x] permission-aware related Task counts/open-task summary.
+- [x] permission-aware related Time-entry count and tracked/billable-hour summary.
+- [x] ownership changes are blocked when linked Tasks, Task Lists or Time entries would become inconsistent.
 
 ### Missing
 
-- [ ] Project detail page/workspace.
-- [ ] create Project.
-- [ ] edit Project.
-- [ ] archive/change status.
-- [ ] Client/Internal project workflows.
-- [ ] dates/milestones and ownership/participants where useful.
-- [ ] related Tasks.
-- [ ] related Time entries and summaries.
+- [ ] milestones and project ownership/participants where useful.
+- [ ] richer related Task workspace/actions.
+- [ ] richer related Time entry list/reporting.
 - [ ] related Tickets/KB/Infrastructure links.
 - [ ] project-centric timer start/stop actions.
 
