@@ -52,10 +52,18 @@ export const AdminAPI = {
             queue: (id: number) => `${API_BASE_URL}/admin/tickets/${id}/queue`,
         },
         settings: {
+            runtime: () => `${API_BASE_URL}/admin/settings/ticketing/runtime`,
             graphConnections: () =>
                 `${API_BASE_URL}/admin/settings/ticketing/graph-connections`,
             mailboxes: () =>
                 `${API_BASE_URL}/admin/settings/ticketing/mailboxes`,
+            vendors: () => `${API_BASE_URL}/admin/settings/ticketing/vendors`,
+            vendorEnabled: (id: number) =>
+                `${API_BASE_URL}/admin/settings/ticketing/vendors/${id}/enabled`,
+            vendorRules: () =>
+                `${API_BASE_URL}/admin/settings/ticketing/vendor-sender-rules`,
+            vendorRuleEnabled: (id: number) =>
+                `${API_BASE_URL}/admin/settings/ticketing/vendor-sender-rules/${id}/enabled`,
         },
     },
     credentials: {
