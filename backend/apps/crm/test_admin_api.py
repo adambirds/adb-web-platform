@@ -22,11 +22,7 @@ class LeadAdminApiTests(TestCase):
             first_name="Admin",
             last_name="User",
         )
-        self.brand = Brand.objects.create(
-            name="ADB Software Solutions",
-            slug="adb-software-solutions",
-            domain="adbsoftwaresolutions.co.uk",
-        )
+        self.brand = Brand.objects.get(slug="adb-software-solutions")
         self.status = LeadStatus.objects.create(name="Qualified", order=20)
         self.source = LeadSource.objects.create(name="Referral")
 
@@ -110,8 +106,8 @@ class LeadAdminApiTests(TestCase):
             source=self.source,
         )
         queue = TicketQueue.objects.create(
-            name="Sales",
-            key="sales",
+            name="Lead Test Sales",
+            key="lead-test-sales",
             brand=self.brand,
             purpose="Sales enquiries",
         )
