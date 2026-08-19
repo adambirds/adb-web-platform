@@ -1,0 +1,53 @@
+name: Dev Container CI
+
+on:
+    push:
+        branches: ["main"]
+        paths:
+            - ".devcontainer/**"
+            - ".github/workflows/devcontainer-ci.yml"
+    pull_request:
+        paths:
+            - ".devcontainer/**"
+            - ".github/workflows/devcontainer-ci.yml"
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: devcontainer-ci-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    build:
+        name: Build (${{ matrix.architecture }})
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - architecture: amd64
+                      runner: ubuntu-24.04
+                    - architecture: arm64
+                      runner: ubuntu-24.04-arm
+        runs-on: ${{ matrix.runner }}
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Prepare development environment
+              run: cp .devcontainer/.env.example .devcontainer/.env
+
+            - name: Validate Compose configuration
+              run: docker compose -f .devcontainer/docker-compose.yml config >/dev/null
+
+            - name: Validate optional ClamAV image
+              run: >-
+                  docker compose
+                  -f .devcontainer/docker-compose.yml
+                  --profile malware-scanning
+                  pull clamav
+
+            - name: Build dev container
+              uses: devcontainers/ci@v0.3
+              with:
+                  push: never
