@@ -45,6 +45,28 @@ class MailboxOut(Schema):
     last_error: str
 
 
+class VendorOut(Schema):
+    id: int
+    name: str
+    website_url: str
+    notes: str
+    enabled: bool
+
+
+class VendorSenderRuleOut(Schema):
+    id: int
+    vendor_id: int
+    vendor_name: str
+    match_type: str
+    match_value: str
+    target_queue_id: int | None
+    target_queue_name: str | None
+    priority: str
+    enabled: bool
+    ordering: int
+    notes: str
+
+
 class TicketListItemOut(Schema):
     id: int
     reference: str
@@ -57,6 +79,8 @@ class TicketListItemOut(Schema):
     client_name: str | None
     primary_contact_id: int | None
     primary_contact_name: str | None
+    vendor_id: int | None
+    vendor_name: str | None
     status: str
     priority: str
     classification: str
@@ -117,6 +141,7 @@ class TicketAttachmentOut(Schema):
     scan_engine: str
     scanned_at: datetime | None
     safe_at: datetime | None
+    downloadable: bool
 
 
 class TicketDetailOut(Schema):
@@ -131,6 +156,8 @@ class TicketDetailOut(Schema):
     client_name: str | None
     primary_contact_id: int | None
     primary_contact_name: str | None
+    vendor_id: int | None
+    vendor_name: str | None
     status: str
     priority: str
     classification: str

@@ -29,6 +29,7 @@ interface TicketListItem {
     queue_name: string;
     client_name: string | null;
     primary_contact_name: string | null;
+    vendor_name: string | null;
     status: string;
     priority: string;
     classification: string;
@@ -165,7 +166,7 @@ export function TicketList() {
                 <Input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Search reference, subject, client or contact..."
+                    placeholder="Search reference, subject, client, contact or vendor..."
                     aria-label="Search tickets"
                 />
                 <Select value={status} onChange={(event) => setStatus(event.target.value)}>
@@ -204,7 +205,7 @@ export function TicketList() {
                         <tr>
                             <TableHeaderCell>Ticket</TableHeaderCell>
                             <TableHeaderCell>Queue</TableHeaderCell>
-                            <TableHeaderCell>Customer</TableHeaderCell>
+                            <TableHeaderCell>Customer / vendor</TableHeaderCell>
                             <TableHeaderCell>Status</TableHeaderCell>
                             <TableHeaderCell>Priority</TableHeaderCell>
                             <TableHeaderCell>Updated</TableHeaderCell>
@@ -237,12 +238,14 @@ export function TicketList() {
                                 </TableCell>
                                 <TableCell>
                                     <div className="text-slate-300">
-                                        {ticket.client_name || "Unmatched sender"}
+                                        {ticket.client_name || ticket.vendor_name || "Unmatched sender"}
                                     </div>
                                     {ticket.primary_contact_name ? (
                                         <div className="mt-1 text-xs text-slate-500">
                                             {ticket.primary_contact_name}
                                         </div>
+                                    ) : ticket.vendor_name ? (
+                                        <div className="mt-1 text-xs text-slate-500">Vendor / service</div>
                                     ) : null}
                                 </TableCell>
                                 <TableCell>

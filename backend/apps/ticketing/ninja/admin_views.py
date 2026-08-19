@@ -9,6 +9,7 @@ from pydantic import Field
 
 from apps.access_control.policies import scope_clients_for_user, scope_ticket_queues_for_user
 from apps.ticketing.models import Ticket, TicketAttachment, TicketMessage, TicketNote, TicketQueue
+from apps.ticketing.services.attachments import attachment_is_downloadable
 from apps.ticketing.services.replies import TicketReplyError, prepare_ticket_reply
 from apps.ticketing.tasks import deliver_ticket_reply_task
 from authentication.models import User
@@ -76,6 +77,7 @@ def _visible_tickets(request: HttpRequest) -> QuerySet[Ticket]:
         "queue",
         "client",
         "primary_contact",
+        "vendor",
         "assigned_to",
     )
     if request.user.is_superuser:
@@ -213,6 +215,7 @@ def list_tickets(
                 | Q(client__company__icontains=search)
                 | Q(primary_contact__name__icontains=search)
                 | Q(primary_contact__email__icontains=search)
+                | Q(vendor__name__icontains=search)
             )
 
     total = tickets.count()
@@ -236,6 +239,8 @@ def list_tickets(
                 primary_contact_name=(
                     ticket.primary_contact.name if ticket.primary_contact else None
                 ),
+                vendor_id=ticket.vendor_id,
+                vendor_name=ticket.vendor.name if ticket.vendor else None,
                 status=ticket.status,
                 priority=ticket.priority,
                 classification=ticket.classification,
@@ -298,6 +303,7 @@ def get_ticket(request: HttpRequest, ticket_id: int) -> TicketDetailOut | StaffP
                 scan_engine=attachment.scan_engine,
                 scanned_at=attachment.scanned_at,
                 safe_at=attachment.safe_at,
+                downloadable=attachment_is_downloadable(attachment),
             )
             for attachment in attachments
         ]
@@ -314,6 +320,8 @@ def get_ticket(request: HttpRequest, ticket_id: int) -> TicketDetailOut | StaffP
         client_name=str(ticket.client) if ticket.client else None,
         primary_contact_id=ticket.primary_contact_id,
         primary_contact_name=ticket.primary_contact.name if ticket.primary_contact else None,
+        vendor_id=ticket.vendor_id,
+        vendor_name=ticket.vendor.name if ticket.vendor else None,
         status=ticket.status,
         priority=ticket.priority,
         classification=ticket.classification,
