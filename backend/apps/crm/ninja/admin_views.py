@@ -1,7 +1,7 @@
 from typing import Any, cast
 
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.http import HttpRequest
 from ninja import Router
 
@@ -195,7 +195,7 @@ def _apply_lead_payload(lead: Lead, payload: LeadIn) -> StaffProblem | None:
     return None
 
 
-def _lead_queryset():
+def _lead_queryset() -> QuerySet[Lead]:
     return Lead.objects.select_related(
         "brand",
         "status",
