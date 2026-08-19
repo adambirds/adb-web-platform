@@ -4,7 +4,6 @@ import typing
 
 from ninja import Schema
 
-
 ClientStatus = typing.Literal["active", "inactive", "archived"]
 
 
