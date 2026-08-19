@@ -36,6 +36,10 @@ export const AdminAPI = {
     },
     leads: {
         list: () => `${API_BASE_URL}/admin/leads`,
+        get: (id: number) => `${API_BASE_URL}/admin/leads/${id}`,
+        create: () => `${API_BASE_URL}/admin/leads`,
+        update: (id: number) => `${API_BASE_URL}/admin/leads/${id}`,
+        options: () => `${API_BASE_URL}/admin/lead-options`,
     },
     tickets: {
         list: (query = "") =>

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui";
 import { AdminAPI } from "@/lib/api/endpoints";
 import { fetchAPI } from "@/lib/api/fetch";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 interface LeadSummary {
@@ -107,27 +108,22 @@ export function LeadList() {
                 {leads.map((lead) => (
                     <TableRow key={lead.id}>
                         <TableCell>
-                            <div className="font-medium text-slate-100">
+                            <Link
+                                href={`/admin/leads/${lead.id}`}
+                                className="font-medium text-slate-100 hover:text-cyan-300"
+                            >
                                 {lead.company || lead.name}
-                            </div>
+                            </Link>
                             <div className="mt-1 text-xs text-slate-500">
                                 {lead.name} · {lead.email}
                             </div>
                         </TableCell>
                         <TableCell>
-                            <Badge className={statusClasses(lead.status)}>
-                                {lead.status}
-                            </Badge>
+                            <Badge className={statusClasses(lead.status)}>{lead.status}</Badge>
                         </TableCell>
-                        <TableCell className="text-slate-400">
-                            {lead.brand}
-                        </TableCell>
-                        <TableCell className="text-slate-400">
-                            {lead.source}
-                        </TableCell>
-                        <TableCell className="text-slate-400">
-                            {formatDate(lead.created_at)}
-                        </TableCell>
+                        <TableCell className="text-slate-400">{lead.brand}</TableCell>
+                        <TableCell className="text-slate-400">{lead.source}</TableCell>
+                        <TableCell className="text-slate-400">{formatDate(lead.created_at)}</TableCell>
                     </TableRow>
                 ))}
             </TableBody>
