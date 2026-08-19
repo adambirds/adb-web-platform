@@ -28,7 +28,7 @@ class ProjectAdminApiTests(TestCase):
             first_name="Admin",
             last_name="User",
         )
-        self.client = Client.objects.create(
+        self.primary_client = Client.objects.create(
             name="Primary Client",
             company="Primary Ltd",
             email="primary@example.com",
@@ -50,7 +50,7 @@ class ProjectAdminApiTests(TestCase):
             "description": "Operational project",
             "status": "active",
             "ownership_type": "client",
-            "client_id": self.client.id,
+            "client_id": self.primary_client.id,
             "start_date": "2026-08-01",
             "end_date": "2026-10-31",
             "budget": "12000.00",
@@ -101,14 +101,14 @@ class ProjectAdminApiTests(TestCase):
 
     def test_staff_can_create_project_for_client_in_scope(self) -> None:
         user = self._staff_with_permissions(("clients", "add_project"))
-        self._grant_client(user, self.client)
+        self._grant_client(user, self.primary_client)
 
         result = create_project(self._request(user, "post"), self._payload())
 
         self.assertIsInstance(result, tuple)
         status_code, response = cast(tuple[int, ProjectDetailOut], result)
         self.assertEqual(status_code, 201)
-        self.assertEqual(response.client_id, self.client.id)
+        self.assertEqual(response.client_id, self.primary_client.id)
 
     def test_staff_cannot_create_project_for_client_outside_scope(self) -> None:
         user = self._staff_with_permissions(("clients", "add_project"))
@@ -126,10 +126,10 @@ class ProjectAdminApiTests(TestCase):
 
     def test_list_and_detail_respect_client_scope_but_include_internal(self) -> None:
         user = self._staff_with_permissions(("clients", "view_project"))
-        self._grant_client(user, self.client)
+        self._grant_client(user, self.primary_client)
         visible = Project.objects.create(
             ownership_type="client",
-            client=self.client,
+            client=self.primary_client,
             name="Visible",
             start_date=timezone.localdate(),
         )
@@ -159,7 +159,7 @@ class ProjectAdminApiTests(TestCase):
     def test_update_project_changes_operational_fields(self) -> None:
         project = Project.objects.create(
             ownership_type="client",
-            client=self.client,
+            client=self.primary_client,
             name="Original",
             start_date=timezone.localdate(),
         )
@@ -192,13 +192,13 @@ class ProjectAdminApiTests(TestCase):
     def test_ownership_change_is_blocked_when_related_work_exists(self) -> None:
         project = Project.objects.create(
             ownership_type="client",
-            client=self.client,
+            client=self.primary_client,
             name="In use",
             start_date=timezone.localdate(),
         )
         Task.objects.create(
             ownership_type="client",
-            client=self.client,
+            client=self.primary_client,
             project=project,
             title="Linked task",
         )
@@ -220,29 +220,29 @@ class ProjectAdminApiTests(TestCase):
             ("clients", "view_timeentry"),
             ("tasks", "view_task"),
         )
-        self._grant_client(user, self.client)
+        self._grant_client(user, self.primary_client)
         project = Project.objects.create(
             ownership_type="client",
-            client=self.client,
+            client=self.primary_client,
             name="Measured",
             start_date=timezone.localdate(),
         )
         Task.objects.create(
             ownership_type="client",
-            client=self.client,
+            client=self.primary_client,
             project=project,
             title="Open task",
         )
         Task.objects.create(
             ownership_type="client",
-            client=self.client,
+            client=self.primary_client,
             project=project,
             title="Completed task",
             completed_at=timezone.now(),
         )
         TimeEntry.objects.create(
             ownership_type="client",
-            client=self.client,
+            client=self.primary_client,
             project=project,
             user=user,
             date=timezone.localdate(),
@@ -252,7 +252,7 @@ class ProjectAdminApiTests(TestCase):
         )
         TimeEntry.objects.create(
             ownership_type="client",
-            client=self.client,
+            client=self.primary_client,
             project=project,
             user=user,
             date=timezone.localdate(),
