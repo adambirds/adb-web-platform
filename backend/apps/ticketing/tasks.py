@@ -11,7 +11,7 @@ from django.utils import timezone
 from django_redis import get_redis_connection
 from redis.exceptions import LockError
 
-from apps.ticketing.config import graph_sync_lock_seconds
+from apps.ticketing.config import graph_sync_lock_seconds, malware_scanning_enabled
 from apps.ticketing.models import Mailbox, MicrosoftGraphConnection, TicketAttachment, TicketMessage
 from apps.ticketing.services.attachments import quarantine_attachment
 from apps.ticketing.services.contracts import CanonicalMessage
@@ -40,6 +40,7 @@ REPLY_DELIVERY_LOCK_PREFIX = "ticketing:reply-delivery"
 ATTACHMENT_SCAN_LOCK_PREFIX = "ticketing:attachment-scan"
 REPLY_DELIVERY_LOCK_SECONDS = 300
 ATTACHMENT_SCAN_LOCK_SECONDS = 5 * 60
+ATTACHMENT_SCAN_DISPATCH_BATCH_SIZE = 200
 BACKGROUND_AUTH_METHODS = (
     MicrosoftGraphConnection.AuthenticationMethod.CERTIFICATE,
     MicrosoftGraphConnection.AuthenticationMethod.CLIENT_SECRET,
@@ -95,6 +96,28 @@ def sync_graph_mailbox_task(mailbox_id: int) -> int:
         return sync_graph_mailbox(mailbox, adapter, consumer)
 
 
+@shared_task(name="ticketing.enqueue_attachment_scans")
+def enqueue_attachment_scans() -> int:
+    """Backfill pending/failed attachment scans when malware scanning is enabled."""
+    if not malware_scanning_enabled():
+        return 0
+
+    attachment_ids = list(
+        TicketAttachment.objects.filter(
+            scan_status__in=(
+                TicketAttachment.ScanStatus.PENDING,
+                TicketAttachment.ScanStatus.FAILED,
+            )
+        )
+        .exclude(storage_key="")
+        .order_by("id")
+        .values_list("id", flat=True)[:ATTACHMENT_SCAN_DISPATCH_BATCH_SIZE]
+    )
+    for attachment_id in attachment_ids:
+        scan_ticket_attachment_task.delay(attachment_id)
+    return len(attachment_ids)
+
+
 @shared_task(
     name="ticketing.scan_ticket_attachment",
     autoretry_for=(AttachmentScanError,),
@@ -105,6 +128,9 @@ def sync_graph_mailbox_task(mailbox_id: int) -> int:
 )
 def scan_ticket_attachment_task(attachment_id: int) -> int:
     """Scan a quarantined attachment and release it only after a clean verdict."""
+    if not malware_scanning_enabled():
+        return 0
+
     attachment = TicketAttachment.objects.filter(id=attachment_id).first()
     if attachment is None or attachment.scan_status in TERMINAL_ATTACHMENT_SCAN_STATUSES:
         return 0
@@ -266,7 +292,7 @@ def _consume_canonical_message(
 
     for payload in adapter.fetch_file_attachments(mailbox, canonical.provider_message_id):
         quarantined = quarantine_attachment(result.message, payload)
-        if quarantined.attachment.scan_status in (
+        if malware_scanning_enabled() and quarantined.attachment.scan_status in (
             TicketAttachment.ScanStatus.PENDING,
             TicketAttachment.ScanStatus.FAILED,
         ):

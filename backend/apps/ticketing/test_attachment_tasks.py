@@ -62,6 +62,7 @@ class GraphAttachmentIngestionTaskTests(TestCase):
         )
         self.adapter = Mock(spec=MicrosoftGraphAdapter)
 
+    @patch.dict("os.environ", {"TICKETING_MALWARE_SCANNING_ENABLED": "1"})
     @patch("apps.ticketing.tasks.scan_ticket_attachment_task.delay")
     @patch("apps.ticketing.tasks.quarantine_attachment")
     @patch("apps.ticketing.tasks.ingest_canonical_message")
@@ -96,6 +97,28 @@ class GraphAttachmentIngestionTaskTests(TestCase):
         )
         quarantine.assert_called_once_with(stored_message, attachment)
         scan_delay.assert_called_once_with(42)
+
+    @patch("apps.ticketing.tasks.scan_ticket_attachment_task.delay")
+    @patch("apps.ticketing.tasks.quarantine_attachment")
+    @patch("apps.ticketing.tasks.ingest_canonical_message")
+    def test_consumer_keeps_unscanned_attachment_available_when_scanning_is_disabled(
+        self,
+        ingest: Mock,
+        quarantine: Mock,
+        scan_delay: Mock,
+    ) -> None:
+        ingest.return_value.message = Mock()
+        attachment = AttachmentPayload(
+            provider_attachment_id="attachment-id",
+            filename="invoice.pdf",
+            content=b"pdf",
+        )
+        self.adapter.fetch_file_attachments.return_value = (attachment,)
+        quarantine.return_value.attachment.scan_status = TicketAttachment.ScanStatus.PENDING
+
+        _consume_canonical_message(self.mailbox, self.canonical, adapter=self.adapter)
+
+        scan_delay.assert_not_called()
 
     @patch("apps.ticketing.tasks.scan_ticket_attachment_task.delay")
     @patch("apps.ticketing.tasks.quarantine_attachment")

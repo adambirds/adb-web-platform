@@ -8,6 +8,7 @@ from apps.ticketing.config import (
     DEFAULT_GRAPH_SYNC_LOCK_SECONDS,
     graph_sync_interval_seconds,
     graph_sync_lock_seconds,
+    malware_scanning_enabled,
 )
 
 
@@ -58,8 +59,26 @@ class TicketingConfigurationTests(SimpleTestCase):
         ):
             graph_sync_lock_seconds()
 
-    def test_celery_beat_schedule_dispatches_graph_mailboxes(self) -> None:
+    @patch.dict("os.environ", {"TICKETING_MALWARE_SCANNING_ENABLED": ""})
+    def test_malware_scanning_is_disabled_by_default(self) -> None:
+        self.assertFalse(malware_scanning_enabled())
+
+    @patch.dict("os.environ", {"TICKETING_MALWARE_SCANNING_ENABLED": "true"})
+    def test_malware_scanning_can_be_enabled(self) -> None:
+        self.assertTrue(malware_scanning_enabled())
+
+    @patch.dict("os.environ", {"TICKETING_MALWARE_SCANNING_ENABLED": "sometimes"})
+    def test_malware_scanning_rejects_invalid_boolean(self) -> None:
+        with self.assertRaisesMessage(
+            ImproperlyConfigured,
+            "TICKETING_MALWARE_SCANNING_ENABLED must be a boolean value.",
+        ):
+            malware_scanning_enabled()
+
+    def test_celery_beat_schedule_dispatches_ticketing_work(self) -> None:
         from adbsoftwaresolutions.celery import app
 
-        schedule = app.conf.beat_schedule["ticketing-graph-mailbox-sync"]
-        self.assertEqual(schedule["task"], "ticketing.enqueue_graph_mailbox_syncs")
+        graph_schedule = app.conf.beat_schedule["ticketing-graph-mailbox-sync"]
+        self.assertEqual(graph_schedule["task"], "ticketing.enqueue_graph_mailbox_syncs")
+        attachment_schedule = app.conf.beat_schedule["ticketing-attachment-scan-dispatch"]
+        self.assertEqual(attachment_schedule["task"], "ticketing.enqueue_attachment_scans")

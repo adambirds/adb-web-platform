@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from tempfile import TemporaryDirectory
 from typing import cast
+from unittest.mock import patch
 
 from django.contrib.auth.models import Permission
 from django.core.files.base import ContentFile
@@ -105,7 +106,17 @@ class TicketAttachmentDownloadTests(TestCase):
         self.assertEqual(response["Cache-Control"], "private, no-store")
         self.assertEqual(response["X-Content-Type-Options"], "nosniff")
 
-    def test_pending_attachment_is_not_downloadable(self) -> None:
+    def test_pending_attachment_is_downloadable_when_scanning_is_disabled(self) -> None:
+        self.attachment.scan_status = TicketAttachment.ScanStatus.PENDING
+        self.attachment.safe_at = None
+        self.attachment.save(update_fields=["scan_status", "safe_at"])
+
+        response = self.client.get(f"/api/admin/ticket-attachments/{self.attachment.id}/download")
+
+        self.assertEqual(response.status_code, 200)
+
+    @patch.dict("os.environ", {"TICKETING_MALWARE_SCANNING_ENABLED": "1"})
+    def test_pending_attachment_is_not_downloadable_when_scanning_is_enabled(self) -> None:
         self.attachment.scan_status = TicketAttachment.ScanStatus.PENDING
         self.attachment.safe_at = None
         self.attachment.save(update_fields=["scan_status", "safe_at"])
@@ -114,6 +125,15 @@ class TicketAttachmentDownloadTests(TestCase):
 
         self.assertEqual(response.status_code, 409)
         self.assertEqual(response.json()["code"], "attachment_not_safe")
+
+    def test_infected_attachment_is_never_downloadable(self) -> None:
+        self.attachment.scan_status = TicketAttachment.ScanStatus.INFECTED
+        self.attachment.safe_at = None
+        self.attachment.save(update_fields=["scan_status", "safe_at"])
+
+        response = self.client.get(f"/api/admin/ticket-attachments/{self.attachment.id}/download")
+
+        self.assertEqual(response.status_code, 409)
 
     def test_attachment_permission_is_required(self) -> None:
         self.user.user_permissions.remove(

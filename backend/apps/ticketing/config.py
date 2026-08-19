@@ -6,6 +6,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 DEFAULT_GRAPH_SYNC_INTERVAL_SECONDS = 60
 DEFAULT_GRAPH_SYNC_LOCK_SECONDS = 15 * 60
+DEFAULT_MALWARE_SCANNING_ENABLED = False
 MIN_GRAPH_SYNC_INTERVAL_SECONDS = 30
 MIN_GRAPH_SYNC_LOCK_SECONDS = 60
 
@@ -25,6 +26,20 @@ def graph_sync_lock_seconds() -> int:
         "TICKETING_GRAPH_SYNC_LOCK_SECONDS",
         default=DEFAULT_GRAPH_SYNC_LOCK_SECONDS,
         minimum=MIN_GRAPH_SYNC_LOCK_SECONDS,
+    )
+
+
+def malware_scanning_enabled() -> bool:
+    """Return whether quarantined attachments must pass malware scanning before download."""
+    raw_value = os.environ.get("TICKETING_MALWARE_SCANNING_ENABLED", "").strip().lower()
+    if not raw_value:
+        return DEFAULT_MALWARE_SCANNING_ENABLED
+    if raw_value in {"1", "true", "yes", "on"}:
+        return True
+    if raw_value in {"0", "false", "no", "off"}:
+        return False
+    raise ImproperlyConfigured(
+        "TICKETING_MALWARE_SCANNING_ENABLED must be a boolean value."
     )
 
 

@@ -24,6 +24,10 @@ app.conf.beat_schedule = {
         "task": "ticketing.enqueue_graph_mailbox_syncs",
         "schedule": graph_sync_interval_seconds(),
     },
+    "ticketing-attachment-scan-dispatch": {
+        "task": "ticketing.enqueue_attachment_scans",
+        "schedule": 60,
+    },
 }
 app.conf.timezone = "UTC"
 

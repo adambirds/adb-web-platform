@@ -7,6 +7,7 @@ from django.http import FileResponse, HttpRequest, JsonResponse
 from ninja import Router
 
 from apps.access_control.policies import can_access_client, can_access_ticket_queue
+from apps.ticketing.config import malware_scanning_enabled
 from apps.ticketing.models import Ticket, TicketAttachment
 
 attachment_router = Router(tags=["admin-ticket-attachments"])
@@ -33,12 +34,25 @@ def _can_view_ticket(user: Any, ticket: Ticket) -> bool:
     return True
 
 
+def _attachment_is_downloadable(attachment: TicketAttachment) -> bool:
+    if not attachment.storage_key:
+        return False
+    if attachment.scan_status == TicketAttachment.ScanStatus.SAFE:
+        return attachment.safe_at is not None
+    if malware_scanning_enabled():
+        return False
+    return attachment.scan_status in {
+        TicketAttachment.ScanStatus.PENDING,
+        TicketAttachment.ScanStatus.FAILED,
+    }
+
+
 @attachment_router.get("/ticket-attachments/{attachment_id}/download")
 def download_ticket_attachment(
     request: HttpRequest,
     attachment_id: int,
 ) -> FileResponse | JsonResponse:
-    """Stream a ticket attachment only after a clean malware-scan verdict."""
+    """Stream an attachment when its current malware-scanning policy allows access."""
     if not request.user.is_authenticated:
         return _problem(401, "User not authenticated", "unauthenticated")
     if not (request.user.is_staff or request.user.is_superuser):
@@ -67,14 +81,10 @@ def download_ticket_attachment(
     if attachment is None or not _can_view_ticket(request.user, attachment.message.ticket):
         return _problem(404, "Attachment not found.", "not_found")
 
-    if (
-        attachment.scan_status != TicketAttachment.ScanStatus.SAFE
-        or attachment.safe_at is None
-        or not attachment.storage_key
-    ):
+    if not _attachment_is_downloadable(attachment):
         return _problem(
             409,
-            "Attachment is not available because it has not passed malware scanning.",
+            "Attachment is not available under the current malware-scanning policy.",
             "attachment_not_safe",
         )
     if not default_storage.exists(attachment.storage_key):

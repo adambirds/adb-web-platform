@@ -6,7 +6,7 @@ from django.utils import timezone
 from apps.core.models import Brand
 from apps.ticketing.models import Ticket, TicketAttachment, TicketMessage, TicketQueue
 from apps.ticketing.services.scanning import AttachmentScanResult
-from apps.ticketing.tasks import scan_ticket_attachment_task
+from apps.ticketing.tasks import enqueue_attachment_scans, scan_ticket_attachment_task
 
 
 class AttachmentScanTaskTests(TestCase):
@@ -43,6 +43,7 @@ class AttachmentScanTaskTests(TestCase):
             quarantined_at=timezone.now(),
         )
 
+    @patch.dict("os.environ", {"TICKETING_MALWARE_SCANNING_ENABLED": "1"})
     @patch("apps.ticketing.tasks.default_storage.open")
     @patch("apps.ticketing.tasks.clamav_scanner_from_environment")
     @patch("apps.ticketing.tasks._ticket_attachment_scan_lock")
@@ -69,6 +70,7 @@ class AttachmentScanTaskTests(TestCase):
         self.assertIsNotNone(self.attachment.scanned_at)
         self.assertIsNotNone(self.attachment.safe_at)
 
+    @patch.dict("os.environ", {"TICKETING_MALWARE_SCANNING_ENABLED": "1"})
     @patch("apps.ticketing.tasks.default_storage.open")
     @patch("apps.ticketing.tasks.clamav_scanner_from_environment")
     @patch("apps.ticketing.tasks._ticket_attachment_scan_lock")
@@ -100,6 +102,18 @@ class AttachmentScanTaskTests(TestCase):
         storage_open.assert_called_once_with(self.attachment.storage_key, "rb")
 
     @patch("apps.ticketing.tasks.clamav_scanner_from_environment")
+    def test_scanner_is_not_used_when_malware_scanning_is_disabled(
+        self,
+        scanner_factory: Mock,
+    ) -> None:
+        result = scan_ticket_attachment_task.run(self.attachment.id)
+
+        self.assertEqual(result, 0)
+        scanner_factory.assert_not_called()
+        self.attachment.refresh_from_db()
+        self.assertEqual(self.attachment.scan_status, TicketAttachment.ScanStatus.PENDING)
+
+    @patch("apps.ticketing.tasks.clamav_scanner_from_environment")
     def test_blocked_attachment_is_never_sent_to_scanner(self, scanner_factory: Mock) -> None:
         self.attachment.scan_status = TicketAttachment.ScanStatus.BLOCKED
         self.attachment.storage_key = ""
@@ -109,3 +123,18 @@ class AttachmentScanTaskTests(TestCase):
 
         self.assertEqual(result, 0)
         scanner_factory.assert_not_called()
+
+    @patch.dict("os.environ", {"TICKETING_MALWARE_SCANNING_ENABLED": "1"})
+    @patch("apps.ticketing.tasks.scan_ticket_attachment_task.delay")
+    def test_dispatcher_backfills_unscanned_attachments(self, scan_delay: Mock) -> None:
+        result = enqueue_attachment_scans.run()
+
+        self.assertEqual(result, 1)
+        scan_delay.assert_called_once_with(self.attachment.id)
+
+    @patch("apps.ticketing.tasks.scan_ticket_attachment_task.delay")
+    def test_dispatcher_is_idle_when_scanning_is_disabled(self, scan_delay: Mock) -> None:
+        result = enqueue_attachment_scans.run()
+
+        self.assertEqual(result, 0)
+        scan_delay.assert_not_called()
