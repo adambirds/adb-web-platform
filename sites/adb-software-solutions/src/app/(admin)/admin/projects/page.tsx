@@ -1,4 +1,4 @@
-import { Container, PageHeader } from "@/components/ui";
+import { ButtonLink, Container, PageHeader } from "@/components/ui";
 import { ProjectList } from "./ProjectList";
 
 export const metadata = {
@@ -11,6 +11,7 @@ export default function ProjectsPage() {
             <PageHeader
                 title="Projects"
                 description="Client-owned and internal work visible to your staff account."
+                actions={<ButtonLink href="/admin/projects/new">Add project</ButtonLink>}
             />
             <div className="mt-6">
                 <ProjectList />

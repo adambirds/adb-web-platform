@@ -26,6 +26,8 @@ export const AdminAPI = {
     projects: {
         list: () => `${API_BASE_URL}/admin/projects`,
         get: (id: number) => `${API_BASE_URL}/admin/projects/${id}`,
+        create: () => `${API_BASE_URL}/admin/projects`,
+        update: (id: number) => `${API_BASE_URL}/admin/projects/${id}`,
     },
     tasks: {
         list: () => `${API_BASE_URL}/admin/tasks`,

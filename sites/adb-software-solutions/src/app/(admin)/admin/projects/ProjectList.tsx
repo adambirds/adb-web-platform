@@ -14,6 +14,7 @@ import {
 } from "@/components/ui";
 import { AdminAPI } from "@/lib/api/endpoints";
 import { fetchAPI } from "@/lib/api/fetch";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 interface ProjectSummary {
@@ -37,6 +38,9 @@ function statusClasses(status: string) {
     }
     if (status === "completed") {
         return "border-cyan-900/70 bg-cyan-950/40 text-cyan-300";
+    }
+    if (status === "planning") {
+        return "border-indigo-900/70 bg-indigo-950/40 text-indigo-300";
     }
     return "border-slate-700 bg-slate-900 text-slate-400";
 }
@@ -68,9 +72,7 @@ export function ProjectList() {
         try {
             setIsLoading(true);
             setError(null);
-            const data = (await fetchAPI(
-                AdminAPI.projects.list(),
-            )) as ProjectSummary[];
+            const data = (await fetchAPI(AdminAPI.projects.list())) as ProjectSummary[];
             setProjects(data);
         } catch (loadError) {
             setError(
@@ -99,7 +101,7 @@ export function ProjectList() {
         return (
             <EmptyState
                 title="No projects in your scope"
-                description="Client and internal projects will appear here when your account has permission to view them."
+                description="Create a client or internal project to start tracking delivery work."
             />
         );
     }
@@ -113,18 +115,19 @@ export function ProjectList() {
                     <TableHeaderCell>Status</TableHeaderCell>
                     <TableHeaderCell>Start</TableHeaderCell>
                     <TableHeaderCell>End</TableHeaderCell>
-                    <TableHeaderCell className="text-right">
-                        Budget
-                    </TableHeaderCell>
+                    <TableHeaderCell className="text-right">Budget</TableHeaderCell>
                 </tr>
             </TableHead>
             <TableBody>
                 {projects.map((project) => (
                     <TableRow key={project.id}>
                         <TableCell>
-                            <div className="font-medium text-slate-100">
+                            <Link
+                                href={`/admin/projects/${project.id}`}
+                                className="font-medium text-slate-100 hover:text-adb-cyan-300"
+                            >
                                 {project.name}
-                            </div>
+                            </Link>
                             <div className="mt-1 text-xs text-slate-500">
                                 {project.ownership_type === "internal"
                                     ? "Internal project"
