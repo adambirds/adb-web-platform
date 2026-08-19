@@ -14,7 +14,7 @@ import requests
 from django.utils import timezone
 
 from apps.ticketing.models import Mailbox
-from apps.ticketing.services.attachments import AttachmentPayload, DEFAULT_MAX_ATTACHMENT_BYTES
+from apps.ticketing.services.attachments import DEFAULT_MAX_ATTACHMENT_BYTES, AttachmentPayload
 from apps.ticketing.services.contracts import CanonicalMessage
 
 GRAPH_API_ROOT = "https://graph.microsoft.com/v1.0"
