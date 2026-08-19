@@ -7,8 +7,12 @@ from dataclasses import dataclass
 from django.db import IntegrityError, transaction
 
 from apps.clients.models import Client, ClientContact
-from apps.ticketing.models import Mailbox, Ticket, TicketMessage
-from apps.ticketing.services.classification import classify_message
+from apps.core.models import Brand
+from apps.ticketing.models import Mailbox, Ticket, TicketMessage, TicketQueue
+from apps.ticketing.services.classification import (
+    ClassificationDecision,
+    classify_message_for_purpose,
+)
 from apps.ticketing.services.contracts import CanonicalMessage
 from apps.ticketing.services.normalisation import normalize_message_body
 
@@ -28,14 +32,59 @@ class TicketIngestionResult:
     created: bool
 
 
+@dataclass(frozen=True, slots=True)
+class TicketIngestionSource:
+    """Routing context supplied by a provider adapter before ticket persistence."""
+
+    brand: Brand
+    queue: TicketQueue
+    source: str
+    purpose: str
+    mailbox: Mailbox | None = None
+    allow_thread_matching: bool = False
+
+
 def ingest_canonical_message(
     mailbox: Mailbox,
     canonical: CanonicalMessage,
 ) -> TicketIngestionResult:
-    """Persist a provider-neutral inbound message idempotently."""
+    """Persist a provider-neutral mailbox message idempotently."""
+    source = TicketIngestionSource(
+        brand=mailbox.brand,
+        queue=mailbox.default_queue,
+        source=Ticket.Source.EMAIL,
+        purpose=mailbox.purpose,
+        mailbox=mailbox,
+        allow_thread_matching=True,
+    )
+    return ingest_source_message(source, canonical)
+
+
+def ingest_contact_form_message(
+    brand: Brand,
+    queue: TicketQueue,
+    canonical: CanonicalMessage,
+) -> TicketIngestionResult:
+    """Persist a public website contact submission through the canonical ticket pipeline."""
+    source = TicketIngestionSource(
+        brand=brand,
+        queue=queue,
+        source=Ticket.Source.CONTACT_FORM,
+        purpose=Mailbox.Purpose.SALES,
+    )
+    return ingest_source_message(source, canonical)
+
+
+def ingest_source_message(
+    source: TicketIngestionSource,
+    canonical: CanonicalMessage,
+) -> TicketIngestionResult:
+    """Persist a canonical inbound message from any configured ticket source."""
     provider_message_id = canonical.provider_message_id.strip()
     if not provider_message_id:
         raise TicketIngestionError("Canonical messages require a provider message ID.")
+    if source.queue.brand_id is not None and source.queue.brand_id != source.brand.id:
+        raise TicketIngestionError("Ticket source queue does not belong to the selected Brand.")
 
     existing = _existing_provider_message(provider_message_id)
     if existing is not None:
@@ -43,7 +92,7 @@ def ingest_canonical_message(
 
     try:
         with transaction.atomic():
-            return _persist_canonical_message(mailbox, canonical, provider_message_id)
+            return _persist_source_message(source, canonical, provider_message_id)
     except IntegrityError:
         existing = _existing_provider_message(provider_message_id)
         if existing is not None:
@@ -51,34 +100,31 @@ def ingest_canonical_message(
         raise
 
 
-def _persist_canonical_message(
-    mailbox: Mailbox,
+def _persist_source_message(
+    source: TicketIngestionSource,
     canonical: CanonicalMessage,
     provider_message_id: str,
 ) -> TicketIngestionResult:
     client, contact = _resolve_sender(canonical.sender_address)
-    decision = classify_message(mailbox, canonical, client)
-    logger.info(
-        "Classified ticket message %s as %s with score %d using %s",
-        provider_message_id,
-        decision.classification,
-        decision.score,
-        ",".join(decision.reasons),
-    )
-    ticket = _find_thread(mailbox, canonical)
+    decision = classify_message_for_purpose(source.purpose, canonical, client)
+    _log_classification(provider_message_id, decision)
+
+    ticket = None
+    if source.allow_thread_matching and source.mailbox is not None:
+        ticket = _find_thread(source.mailbox, canonical)
 
     if ticket is None:
         ticket = Ticket.objects.create(
-            brand=mailbox.brand,
-            queue=mailbox.default_queue,
-            mailbox=mailbox,
+            brand=source.brand,
+            queue=source.queue,
+            mailbox=source.mailbox,
             client=client,
             primary_contact=contact,
             subject=canonical.subject.strip() or "(No subject)",
             status=Ticket.Status.NEW,
-            priority=decision.suggested_priority or mailbox.default_queue.default_priority,
+            priority=decision.suggested_priority or source.queue.default_priority,
             classification=decision.classification,
-            source=Ticket.Source.EMAIL,
+            source=source.source,
             last_message_at=canonical.sent_or_received_at,
         )
     else:
@@ -116,6 +162,19 @@ def _persist_canonical_message(
         delivery_status="received",
     )
     return TicketIngestionResult(ticket=ticket, message=ticket_message, created=True)
+
+
+def _log_classification(
+    provider_message_id: str,
+    decision: ClassificationDecision,
+) -> None:
+    logger.info(
+        "Classified ticket message %s as %s with score %d using %s",
+        provider_message_id,
+        decision.classification,
+        decision.score,
+        ",".join(decision.reasons),
+    )
 
 
 def _existing_provider_message(provider_message_id: str) -> TicketMessage | None:
