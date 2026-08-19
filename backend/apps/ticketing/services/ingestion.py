@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
 
@@ -7,8 +8,11 @@ from django.db import IntegrityError, transaction
 
 from apps.clients.models import Client, ClientContact
 from apps.ticketing.models import Mailbox, Ticket, TicketMessage
+from apps.ticketing.services.classification import classify_message
 from apps.ticketing.services.contracts import CanonicalMessage
 from apps.ticketing.services.normalisation import normalize_message_body
+
+logger = logging.getLogger(__name__)
 
 _TICKET_REFERENCE_RE = re.compile(r"\bADB-[A-Z0-9]{10}\b", flags=re.IGNORECASE)
 
@@ -53,7 +57,14 @@ def _persist_canonical_message(
     provider_message_id: str,
 ) -> TicketIngestionResult:
     client, contact = _resolve_sender(canonical.sender_address)
-    classification = _initial_classification(mailbox, client)
+    decision = classify_message(mailbox, canonical, client)
+    logger.info(
+        "Classified ticket message %s as %s with score %d using %s",
+        provider_message_id,
+        decision.classification,
+        decision.score,
+        ",".join(decision.reasons),
+    )
     ticket = _find_thread(mailbox, canonical)
 
     if ticket is None:
@@ -65,8 +76,8 @@ def _persist_canonical_message(
             primary_contact=contact,
             subject=canonical.subject.strip() or "(No subject)",
             status=Ticket.Status.NEW,
-            priority=mailbox.default_queue.default_priority,
-            classification=classification,
+            priority=decision.suggested_priority or mailbox.default_queue.default_priority,
+            classification=decision.classification,
             source=Ticket.Source.EMAIL,
             last_message_at=canonical.sent_or_received_at,
         )
@@ -77,7 +88,7 @@ def _persist_canonical_message(
             canonical=canonical,
             client=client,
             contact=contact,
-            classification=classification,
+            classification=decision.classification,
         )
 
     ticket_message = TicketMessage.objects.create(
@@ -166,16 +177,6 @@ def _find_thread(mailbox: Mailbox, canonical: CanonicalMessage) -> Ticket | None
             .first()
         )
     return None
-
-
-def _initial_classification(mailbox: Mailbox, client: Client | None) -> str:
-    if mailbox.purpose == Mailbox.Purpose.SALES:
-        return Ticket.Classification.SALES
-    if mailbox.purpose == Mailbox.Purpose.ACCOUNTS:
-        return Ticket.Classification.ACCOUNTS
-    if client is not None:
-        return Ticket.Classification.CLIENT_SUPPORT
-    return Ticket.Classification.UNKNOWN
 
 
 def _compatible_sender_context(
