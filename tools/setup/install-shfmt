@@ -5,18 +5,18 @@ version=3.2.4
 machine="$(uname -m)"
 
 case "$machine" in
-	x86_64 | amd64)
-		architecture=amd64
-		sha256=3f5a47f8fec27fae3e06d611559a2063f5d27e4b9501171dde9959b8c60a3538
-		;;
-	aarch64 | arm64)
-		architecture=arm64
-		sha256=6474d9cc08a1c9fe2ef4be7a004951998e3067d46cf55a011ddd5ff7bfab3de6
-		;;
-	*)
-		echo "Unsupported shfmt architecture: $machine" >&2
-		exit 1
-		;;
+x86_64 | amd64)
+	architecture=amd64
+	sha256=3f5a47f8fec27fae3e06d611559a2063f5d27e4b9501171dde9959b8c60a3538
+	;;
+aarch64 | arm64)
+	architecture=arm64
+	sha256=6474d9cc08a1c9fe2ef4be7a004951998e3067d46cf55a011ddd5ff7bfab3de6
+	;;
+*)
+	echo "Unsupported shfmt architecture: $machine" >&2
+	exit 1
+	;;
 esac
 
 binary="shfmt_v${version}_linux_${architecture}"
