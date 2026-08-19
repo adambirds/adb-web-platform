@@ -96,9 +96,7 @@ def _scoped_projects(request: HttpRequest) -> QuerySet[Project]:
     if request.user.is_superuser:
         return projects
     clients = scope_clients_for_user(request.user)
-    return projects.filter(
-        Q(ownership_type=OwnershipType.INTERNAL) | Q(client__in=clients)
-    )
+    return projects.filter(Q(ownership_type=OwnershipType.INTERNAL) | Q(client__in=clients))
 
 
 def _build_contact_out(contact: ClientContact) -> ClientContactOut:
@@ -161,16 +159,15 @@ def _build_project_detail(request: HttpRequest, project: Project) -> ProjectDeta
         open_task_count = tasks.filter(completed_at__isnull=True).count()
 
     time_entry_count = 0
-    tracked_hours = Decimal("0")
-    billable_hours = Decimal("0")
+    tracked_hours = Decimal(0)
+    billable_hours = Decimal(0)
     if request.user.has_perm("clients.view_timeentry"):
         entries = project.time_entries.all()
         time_entry_count = entries.count()
-        tracked_hours = entries.aggregate(total=Sum("duration_hours"))["total"] or Decimal("0")
-        billable_hours = (
-            entries.filter(billable=True).aggregate(total=Sum("duration_hours"))["total"]
-            or Decimal("0")
-        )
+        tracked_hours = entries.aggregate(total=Sum("duration_hours"))["total"] or Decimal(0)
+        billable_hours = entries.filter(billable=True).aggregate(total=Sum("duration_hours"))[
+            "total"
+        ] or Decimal(0)
 
     return ProjectDetailOut(
         id=project.id,
@@ -248,17 +245,11 @@ def _apply_project_payload(
         return _project_problem("Internal projects cannot be linked to a client.")
 
     target_client_id = client.id if client else None
-    ownership_changed = (
-        project.pk is not None
-        and (
-            project.ownership_type != payload.ownership_type
-            or project.client_id != target_client_id
-        )
+    ownership_changed = project.pk is not None and (
+        project.ownership_type != payload.ownership_type or project.client_id != target_client_id
     )
     if ownership_changed and (
-        project.tasks.exists()
-        or project.task_lists.exists()
-        or project.time_entries.exists()
+        project.tasks.exists() or project.task_lists.exists() or project.time_entries.exists()
     ):
         return _project_problem(
             "Project ownership cannot change while tasks, task lists or time entries are linked.",
