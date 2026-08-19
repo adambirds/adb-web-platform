@@ -20,14 +20,14 @@ class ClientContactAdminApiTests(TestCase):
             first_name="Admin",
             last_name="User",
         )
-        self.client = Client.objects.create(
+        self.account = Client.objects.create(
             name="Jane Example",
             company="Example Ltd",
             email="jane@example.com",
         )
 
     def _request(self, user: User, method: str = "post") -> HttpRequest:
-        request = getattr(self.factory, method)(f"/api/admin/clients/{self.client.id}/contacts")
+        request = getattr(self.factory, method)(f"/api/admin/clients/{self.account.id}/contacts")
         request.user = user
         return request
 
@@ -63,7 +63,7 @@ class ClientContactAdminApiTests(TestCase):
     def test_superuser_can_create_contact_and_email_is_normalised(self) -> None:
         result = create_client_contact(
             self._request(self.superuser),
-            self.client.id,
+            self.account.id,
             self._payload(is_primary=True),
         )
 
@@ -77,7 +77,7 @@ class ClientContactAdminApiTests(TestCase):
 
     def test_new_primary_contact_replaces_existing_primary(self) -> None:
         existing = ClientContact.objects.create(
-            client=self.client,
+            client=self.account,
             name="Existing Contact",
             email="existing@example.com",
             is_primary=True,
@@ -85,7 +85,7 @@ class ClientContactAdminApiTests(TestCase):
 
         result = create_client_contact(
             self._request(self.superuser),
-            self.client.id,
+            self.account.id,
             self._payload(is_primary=True),
         )
 
@@ -100,7 +100,7 @@ class ClientContactAdminApiTests(TestCase):
 
         result = create_client_contact(
             self._request(user),
-            self.client.id,
+            self.account.id,
             self._payload(),
         )
 
@@ -113,9 +113,9 @@ class ClientContactAdminApiTests(TestCase):
     def test_deactivating_contact_clears_operational_responsibilities(self) -> None:
         user = self._staff_with_permission("change_clientcontact")
         profile = StaffAccessProfile.objects.create(user=user, all_clients=False)
-        ClientAccessGrant.objects.create(profile=profile, client=self.client, granted_by=user)
+        ClientAccessGrant.objects.create(profile=profile, client=self.account, granted_by=user)
         contact = ClientContact.objects.create(
-            client=self.client,
+            client=self.account,
             name="Alex Contact",
             email="alex@example.com",
             is_primary=True,
@@ -125,9 +125,11 @@ class ClientContactAdminApiTests(TestCase):
 
         result = update_client_contact(
             self._request(user, "put"),
-            self.client.id,
+            self.account.id,
             contact.id,
-            self._payload(email="alex@example.com", is_active=False, is_primary=True, is_billing=True),
+            self._payload(
+                email="alex@example.com", is_active=False, is_primary=True, is_billing=True
+            ),
         )
 
         self.assertIsInstance(result, ClientContactOut)

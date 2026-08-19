@@ -57,7 +57,9 @@ def _permission_problem(request: HttpRequest, permission: str) -> StaffProblem |
     return None
 
 
-def _validation_problem(error: ValidationError, fallback: str = "Invalid client details.") -> StaffProblem:
+def _validation_problem(
+    error: ValidationError, fallback: str = "Invalid client details."
+) -> StaffProblem:
     return 400, {
         "message": "; ".join(error.messages) or fallback,
         "success": False,
