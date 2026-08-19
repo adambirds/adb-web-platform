@@ -137,16 +137,16 @@ In the Microsoft Entra admin center:
 1. Go to **Entra ID -> App registrations -> New registration**.
 2. Give it a clear name, for example:
 
-   ```text
-   ADB Business Platform Ticketing
-   ```
+    ```text
+    ADB Business Platform Ticketing
+    ```
 
 3. Choose **Accounts in this organizational directory only** for the normal single-tenant ADB deployment.
 4. No interactive redirect URI is required for this app-only background integration.
 5. Create the registration.
 6. From **Overview**, record:
-   - **Application (client) ID** — this becomes `MicrosoftGraphConnection.client_id`;
-   - **Directory (tenant) ID** — this becomes `MicrosoftGraphConnection.tenant_id`.
+    - **Application (client) ID** — this becomes `MicrosoftGraphConnection.client_id`;
+    - **Directory (tenant) ID** — this becomes `MicrosoftGraphConnection.tenant_id`.
 
 The app registration creates/relates to a service principal in the tenant. Exchange RBAC needs the **service principal Object ID**, not the App Registration object's Object ID.
 
@@ -518,11 +518,11 @@ Once the Graph connection exists:
 3. The **Microsoft 365 connection** section should show `ADB Microsoft 365`.
 4. Under **Shared ticket mailboxes**, choose **Add shared mailbox**.
 5. Enter:
-   - Shared Mailbox email address;
-   - optional display name;
-   - Brand;
-   - purpose: Support, Sales, Accounts, Operations or General;
-   - default Ticket Queue.
+    - Shared Mailbox email address;
+    - optional display name;
+    - Brand;
+    - purpose: Support, Sales, Accounts, Operations or General;
+    - default Ticket Queue.
 6. Save.
 
 If exactly one enabled Graph connection exists, the UI/API selects it automatically. If multiple connections exist later, the UI asks which connection owns the mailbox.
@@ -630,9 +630,9 @@ Safe sequence:
 1. Generate a new Fernet key.
 2. Configure:
 
-   ```env
-   CREDENTIAL_ENCRYPTION_KEYS=<NEW-KEY>,<OLD-KEY>,...
-   ```
+    ```env
+    CREDENTIAL_ENCRYPTION_KEYS=<NEW-KEY>,<OLD-KEY>,...
+    ```
 
 3. Deploy the key list to every backend/worker process.
 4. Re-encrypt stored credentials using the platform rotation service/command as it becomes available; currently `rotate_credential_encryption(credential)` can rotate individual records.

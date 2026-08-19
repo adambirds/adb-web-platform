@@ -17,27 +17,27 @@ The design must remain pragmatic. Future capabilities should influence clean bou
 ADB operates three public brands:
 
 1. **ADB Software Solutions** — `adbsoftwaresolutions.co.uk`
-   - bespoke software development;
-   - SaaS and application development;
-   - APIs and third-party integrations;
-   - automation;
-   - mobile applications;
-   - software consultancy;
-   - ADB-owned software products.
+    - bespoke software development;
+    - SaaS and application development;
+    - APIs and third-party integrations;
+    - automation;
+    - mobile applications;
+    - software consultancy;
+    - ADB-owned software products.
 2. **ADB Web Designs** — `adbwebdesigns.co.uk`
-   - website design and development;
-   - WordPress and Next.js delivery;
-   - website rescue/remediation;
-   - performance improvements;
-   - hosting and maintenance;
-   - ongoing website support.
+    - website design and development;
+    - WordPress and Next.js delivery;
+    - website rescue/remediation;
+    - performance improvements;
+    - hosting and maintenance;
+    - ongoing website support.
 3. **ADB Technology** — `adbtechnology.co.uk`
-   - DevOps;
-   - cloud and infrastructure engineering;
-   - IT consultancy;
-   - systems administration;
-   - technical support;
-   - infrastructure and operational support services.
+    - DevOps;
+    - cloud and infrastructure engineering;
+    - IT consultancy;
+    - systems administration;
+    - technical support;
+    - infrastructure and operational support services.
 
 The three public brands have separate positioning and public experiences, but they share **one ADB Business Platform** behind them.
 

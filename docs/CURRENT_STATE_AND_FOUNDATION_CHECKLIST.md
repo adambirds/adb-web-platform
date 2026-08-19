@@ -370,32 +370,32 @@ Public-site fixes, security work and stable integration changes can still happen
 This is the current intended sequence, subject to normal small adjustments as implementation reveals dependencies:
 
 1. **Docs/config/dependency health**
-   - canonical roadmap reconciliation;
-   - Microsoft Graph deployment runbook;
-   - Dependabot/security updates;
-   - CI green.
+    - canonical roadmap reconciliation;
+    - Microsoft Graph deployment runbook;
+    - Dependabot/security updates;
+    - CI green.
 2. **Clients/Contacts + Users & Access**
-   - full CRUD and scopes;
-   - complete Client hub foundation;
-   - repair Users & Access 404.
+    - full CRUD and scopes;
+    - complete Client hub foundation;
+    - repair Users & Access 404.
 3. **Leads + Projects + Tasks operational workflows**
-   - detail/create/edit/status/complete/list modes;
-   - Ticket/email links for Leads;
-   - contextual relationships.
+    - detail/create/edit/status/complete/list modes;
+    - Ticket/email links for Leads;
+    - contextual relationships.
 4. **Knowledge Base + Credentials + Infrastructure**
-   - IT Glue-style CRUD/detail/search/relationships;
-   - secure vault reveal/copy/rotation.
+    - IT Glue-style CRUD/detail/search/relationships;
+    - secure vault reveal/copy/rotation.
 5. **Time Tracking + Calendar**
-   - running timers from Task/Project/Ticket;
-   - reporting by period/context;
-   - calendar/agenda aggregation.
+    - running timers from Task/Project/Ticket;
+    - reporting by period/context;
+    - calendar/agenda aggregation.
 6. **Integrated Client workspaces + configurable Dashboard**
-   - full cross-domain Client context;
-   - user-configurable widget layouts.
+    - full cross-domain Client context;
+    - user-configurable widget layouts.
 7. **Public websites**
-   - complete the three brand sites against stable platform contracts.
+    - complete the three brand sites against stable platform contracts.
 8. **Later commercial/client-facing features**
-   - portal, quotes, contracts, invoicing, Stripe/payments.
+    - portal, quotes, contracts, invoicing, Stripe/payments.
 
 ## 18. Definition of internal-platform readiness for public-site focus
 
