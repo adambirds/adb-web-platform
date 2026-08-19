@@ -126,7 +126,7 @@ class VendorRoutingTests(TestCase):
 
         result = ingest_source_message(
             self._source(),
-            self._canonical("alerts@examplevendor.test", provider_id="disabled-rule"),
+            self._canonical("hello@examplevendor.test", provider_id="disabled-rule"),
         )
 
         self.assertIsNone(result.ticket.vendor)

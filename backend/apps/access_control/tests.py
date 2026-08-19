@@ -54,7 +54,7 @@ class ClientAccessPolicyTests(TestCase):
 
         self.assertTrue(can_access_client(self.user, self.allowed_client))
         self.assertTrue(can_access_client(self.user, self.denied_client))
-        self.assertEqual(scope_clients_for_user(self.user).count(), 2)
+        self.assertEqual(scope_clients_for_user(self.user).count(), Client.objects.count())
 
     def test_superuser_bypasses_object_scope(self) -> None:
         superuser = User.objects.create_superuser(
@@ -65,7 +65,7 @@ class ClientAccessPolicyTests(TestCase):
         )
 
         self.assertTrue(can_access_client(superuser, self.denied_client))
-        self.assertEqual(scope_clients_for_user(superuser).count(), 2)
+        self.assertEqual(scope_clients_for_user(superuser).count(), Client.objects.count())
 
 
 class TicketQueueAccessPolicyTests(TestCase):
@@ -114,7 +114,10 @@ class TicketQueueAccessPolicyTests(TestCase):
 
         self.assertTrue(can_access_ticket_queue(self.user, self.allowed_queue))
         self.assertTrue(can_access_ticket_queue(self.user, self.denied_queue))
-        self.assertEqual(scope_ticket_queues_for_user(self.user).count(), 2)
+        self.assertEqual(
+            scope_ticket_queues_for_user(self.user).count(),
+            TicketQueue.objects.count(),
+        )
 
     def test_superuser_bypasses_ticket_queue_scope(self) -> None:
         superuser = User.objects.create_superuser(
@@ -125,4 +128,7 @@ class TicketQueueAccessPolicyTests(TestCase):
         )
 
         self.assertTrue(can_access_ticket_queue(superuser, self.denied_queue))
-        self.assertEqual(scope_ticket_queues_for_user(superuser).count(), 2)
+        self.assertEqual(
+            scope_ticket_queues_for_user(superuser).count(),
+            TicketQueue.objects.count(),
+        )

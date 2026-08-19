@@ -1,6 +1,7 @@
+from typing import Any
+
 import django.db.models.deletion
 from django.db import migrations, models
-
 
 INITIAL_VENDORS = (
     ("GitHub", "github.com"),
@@ -14,7 +15,7 @@ INITIAL_VENDORS = (
 )
 
 
-def seed_vendor_routing(apps, schema_editor):
+def seed_vendor_routing(apps: Any, schema_editor: Any) -> None:
     TicketQueue = apps.get_model("ticketing", "TicketQueue")
     Vendor = apps.get_model("ticketing", "Vendor")
     VendorSenderRule = apps.get_model("ticketing", "VendorSenderRule")
@@ -47,7 +48,7 @@ def seed_vendor_routing(apps, schema_editor):
         )
 
 
-def unseed_vendor_routing(apps, schema_editor):
+def unseed_vendor_routing(apps: Any, schema_editor: Any) -> None:
     Vendor = apps.get_model("ticketing", "Vendor")
     Vendor.objects.filter(name__in=[name for name, _ in INITIAL_VENDORS]).delete()
 

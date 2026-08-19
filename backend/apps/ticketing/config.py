@@ -38,9 +38,7 @@ def malware_scanning_enabled() -> bool:
         return True
     if raw_value in {"0", "false", "no", "off"}:
         return False
-    raise ImproperlyConfigured(
-        "TICKETING_MALWARE_SCANNING_ENABLED must be a boolean value."
-    )
+    raise ImproperlyConfigured("TICKETING_MALWARE_SCANNING_ENABLED must be a boolean value.")
 
 
 def _configured_seconds(name: str, *, default: int, minimum: int) -> int:
