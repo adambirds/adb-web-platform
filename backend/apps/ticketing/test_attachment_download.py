@@ -1,8 +1,11 @@
+from collections.abc import Iterable
 from tempfile import TemporaryDirectory
+from typing import cast
 
 from django.contrib.auth.models import Permission
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django.http import StreamingHttpResponse
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
@@ -91,12 +94,12 @@ class TicketAttachmentDownloadTests(TestCase):
         self.user.user_permissions.add(*permissions)
 
     def test_safe_attachment_is_streamed_as_download(self) -> None:
-        response = self.client.get(
-            f"/api/admin/ticket-attachments/{self.attachment.id}/download"
-        )
+        response = self.client.get(f"/api/admin/ticket-attachments/{self.attachment.id}/download")
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(b"".join(response.streaming_content), b"safe attachment bytes")
+        streaming_response = cast(StreamingHttpResponse, response)
+        streaming_content = cast(Iterable[bytes], streaming_response.streaming_content)
+        self.assertEqual(b"".join(streaming_content), b"safe attachment bytes")
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertIn("invoice.pdf", response["Content-Disposition"])
         self.assertEqual(response["Cache-Control"], "private, no-store")
@@ -107,9 +110,7 @@ class TicketAttachmentDownloadTests(TestCase):
         self.attachment.safe_at = None
         self.attachment.save(update_fields=["scan_status", "safe_at"])
 
-        response = self.client.get(
-            f"/api/admin/ticket-attachments/{self.attachment.id}/download"
-        )
+        response = self.client.get(f"/api/admin/ticket-attachments/{self.attachment.id}/download")
 
         self.assertEqual(response.status_code, 409)
         self.assertEqual(response.json()["code"], "attachment_not_safe")
@@ -122,9 +123,7 @@ class TicketAttachmentDownloadTests(TestCase):
             )
         )
 
-        response = self.client.get(
-            f"/api/admin/ticket-attachments/{self.attachment.id}/download"
-        )
+        response = self.client.get(f"/api/admin/ticket-attachments/{self.attachment.id}/download")
 
         self.assertEqual(response.status_code, 403)
 
@@ -153,9 +152,7 @@ class TicketAttachmentDownloadTests(TestCase):
             safe_at=timezone.now(),
         )
 
-        response = self.client.get(
-            f"/api/admin/ticket-attachments/{hidden_attachment.id}/download"
-        )
+        response = self.client.get(f"/api/admin/ticket-attachments/{hidden_attachment.id}/download")
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json()["code"], "not_found")

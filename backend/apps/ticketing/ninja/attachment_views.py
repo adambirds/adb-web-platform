@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from django.core.files.storage import default_storage
-from django.http import FileResponse, HttpRequest, HttpResponse, JsonResponse
+from django.http import FileResponse, HttpRequest, JsonResponse
 from ninja import Router
 
 from apps.access_control.policies import can_access_client, can_access_ticket_queue
@@ -34,7 +34,10 @@ def _can_view_ticket(user: Any, ticket: Ticket) -> bool:
 
 
 @attachment_router.get("/ticket-attachments/{attachment_id}/download")
-def download_ticket_attachment(request: HttpRequest, attachment_id: int) -> HttpResponse:
+def download_ticket_attachment(
+    request: HttpRequest,
+    attachment_id: int,
+) -> FileResponse | JsonResponse:
     """Stream a ticket attachment only after a clean malware-scan verdict."""
     if not request.user.is_authenticated:
         return _problem(401, "User not authenticated", "unauthenticated")

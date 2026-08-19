@@ -5,12 +5,7 @@ from unittest.mock import Mock, patch
 from django.test import TestCase
 
 from apps.core.models import Brand
-from apps.ticketing.models import (
-    Mailbox,
-    MicrosoftGraphConnection,
-    TicketAttachment,
-    TicketQueue,
-)
+from apps.ticketing.models import Mailbox, MicrosoftGraphConnection, TicketAttachment, TicketQueue
 from apps.ticketing.services.attachments import AttachmentPayload
 from apps.ticketing.services.contracts import CanonicalMessage
 from apps.ticketing.services.graph import MicrosoftGraphAdapter

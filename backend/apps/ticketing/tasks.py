@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 from functools import partial
+from typing import BinaryIO, cast
 
 from celery import shared_task
 from django.core.files.storage import default_storage
@@ -11,12 +12,7 @@ from django_redis import get_redis_connection
 from redis.exceptions import LockError
 
 from apps.ticketing.config import graph_sync_lock_seconds
-from apps.ticketing.models import (
-    Mailbox,
-    MicrosoftGraphConnection,
-    TicketAttachment,
-    TicketMessage,
-)
+from apps.ticketing.models import Mailbox, MicrosoftGraphConnection, TicketAttachment, TicketMessage
 from apps.ticketing.services.attachments import quarantine_attachment
 from apps.ticketing.services.contracts import CanonicalMessage
 from apps.ticketing.services.graph import (
@@ -37,10 +33,7 @@ from apps.ticketing.services.replies import (
     fail_ticket_reply,
     mark_ticket_reply_sending,
 )
-from apps.ticketing.services.scanning import (
-    AttachmentScanError,
-    clamav_scanner_from_environment,
-)
+from apps.ticketing.services.scanning import AttachmentScanError, clamav_scanner_from_environment
 
 GRAPH_SYNC_LOCK_PREFIX = "ticketing:graph-mailbox-sync"
 REPLY_DELIVERY_LOCK_PREFIX = "ticketing:reply-delivery"
@@ -144,7 +137,7 @@ def scan_ticket_attachment_task(attachment_id: int) -> int:
             if not attachment.storage_key:
                 raise AttachmentScanError("Quarantined attachment content is unavailable.")
             with default_storage.open(attachment.storage_key, "rb") as stream:
-                verdict = scanner.scan(stream)
+                verdict = scanner.scan(cast(BinaryIO, stream))
         except AttachmentScanError as exc:
             _record_attachment_scan_failure(attachment, scanner.engine_name, exc)
             raise

@@ -1,12 +1,11 @@
 from io import BytesIO
-from unittest.mock import patch
+from types import TracebackType
+from typing import Self
+from unittest.mock import Mock, patch
 
 from django.test import SimpleTestCase
 
-from apps.ticketing.services.scanning import (
-    AttachmentScanError,
-    ClamAVScanner,
-)
+from apps.ticketing.services.scanning import AttachmentScanError, ClamAVScanner
 
 
 class FakeSocket:
@@ -16,10 +15,15 @@ class FakeSocket:
         self.timeout: int | None = None
         self._read = False
 
-    def __enter__(self) -> "FakeSocket":
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type, exc, traceback) -> None:
+    def __exit__(
+        self,
+        _exc_type: type[BaseException] | None,
+        _exc: BaseException | None,
+        _traceback: TracebackType | None,
+    ) -> None:
         return None
 
     def settimeout(self, timeout: int) -> None:
@@ -38,7 +42,7 @@ class FakeSocket:
 
 class ClamAVScannerTests(SimpleTestCase):
     @patch("apps.ticketing.services.scanning.socket.create_connection")
-    def test_clean_stream_returns_safe_verdict(self, create_connection) -> None:
+    def test_clean_stream_returns_safe_verdict(self, create_connection: Mock) -> None:
         fake_socket = FakeSocket(b"stream: OK\0")
         create_connection.return_value = fake_socket
         scanner = ClamAVScanner("clamav.internal", 3310, timeout_seconds=7)
@@ -54,7 +58,7 @@ class ClamAVScannerTests(SimpleTestCase):
         self.assertIn(b"safe attachment", fake_socket.sent)
 
     @patch("apps.ticketing.services.scanning.socket.create_connection")
-    def test_infected_stream_returns_signature(self, create_connection) -> None:
+    def test_infected_stream_returns_signature(self, create_connection: Mock) -> None:
         create_connection.return_value = FakeSocket(b"stream: Eicar-Signature FOUND\0")
         scanner = ClamAVScanner()
 
@@ -64,7 +68,7 @@ class ClamAVScannerTests(SimpleTestCase):
         self.assertEqual(result.signature, "Eicar-Signature")
 
     @patch("apps.ticketing.services.scanning.socket.create_connection")
-    def test_indeterminate_reply_fails_closed(self, create_connection) -> None:
+    def test_indeterminate_reply_fails_closed(self, create_connection: Mock) -> None:
         create_connection.return_value = FakeSocket(b"stream: scanner error ERROR\0")
         scanner = ClamAVScanner()
 
@@ -75,7 +79,7 @@ class ClamAVScannerTests(SimpleTestCase):
         "apps.ticketing.services.scanning.socket.create_connection",
         side_effect=OSError("connection refused"),
     )
-    def test_connection_failure_is_a_scan_error(self, create_connection) -> None:
+    def test_connection_failure_is_a_scan_error(self, create_connection: Mock) -> None:
         scanner = ClamAVScanner()
 
         with self.assertRaisesMessage(AttachmentScanError, "connect"):
