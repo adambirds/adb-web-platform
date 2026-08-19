@@ -9,6 +9,8 @@ from apps.ticketing.models import (
     TicketMessage,
     TicketNote,
     TicketQueue,
+    Vendor,
+    VendorSenderRule,
 )
 
 
@@ -33,6 +35,28 @@ class TicketQueueAdmin(ModelAdmin):
     search_fields = ("name", "key", "purpose")
 
 
+@admin.register(Vendor)
+class VendorAdmin(ModelAdmin):
+    list_display = ("name", "enabled", "updated_at")
+    list_filter = ("enabled",)
+    search_fields = ("name", "website_url", "notes")
+
+
+@admin.register(VendorSenderRule)
+class VendorSenderRuleAdmin(ModelAdmin):
+    list_display = (
+        "vendor",
+        "match_type",
+        "match_value",
+        "target_queue",
+        "priority",
+        "enabled",
+        "ordering",
+    )
+    list_filter = ("match_type", "enabled", "vendor", "target_queue", "priority")
+    search_fields = ("vendor__name", "match_value", "notes")
+
+
 @admin.register(Mailbox)
 class MailboxAdmin(ModelAdmin):
     list_display = (
@@ -55,13 +79,29 @@ class TicketAdmin(ModelAdmin):
         "subject",
         "queue",
         "client",
+        "vendor",
         "status",
         "priority",
         "assigned_to",
         "last_message_at",
     )
-    list_filter = ("brand", "queue", "mailbox", "status", "priority", "classification", "source")
-    search_fields = ("reference", "subject", "client__name", "client__company")
+    list_filter = (
+        "brand",
+        "queue",
+        "mailbox",
+        "vendor",
+        "status",
+        "priority",
+        "classification",
+        "source",
+    )
+    search_fields = (
+        "reference",
+        "subject",
+        "client__name",
+        "client__company",
+        "vendor__name",
+    )
     readonly_fields = ("reference", "created_at", "updated_at")
 
 

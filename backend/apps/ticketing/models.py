@@ -4,6 +4,7 @@ import uuid
 from typing import Any
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from apps.clients.models import Client, ClientContact
@@ -194,6 +195,13 @@ class Ticket(models.Model):
         null=True,
         blank=True,
     )
+    vendor = models.ForeignKey(
+        "Vendor",
+        on_delete=models.SET_NULL,
+        related_name="tickets",
+        null=True,
+        blank=True,
+    )
     subject = models.CharField(max_length=500)
     status = models.CharField(
         max_length=32,
@@ -245,6 +253,75 @@ class Ticket(models.Model):
 
     def __str__(self) -> str:
         return f"{self.reference}: {self.subject}"
+
+
+class Vendor(models.Model):
+    """External provider whose operational email should be kept out of customer queues."""
+
+    name = models.CharField(max_length=160, unique=True)
+    website_url = models.URLField(blank=True)
+    notes = models.TextField(blank=True)
+    enabled = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        permissions = [("configure_vendors", "Can configure ticket vendors")]
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class VendorSenderRule(models.Model):
+    """Explicit sender address/domain rule for vendor identification and routing."""
+
+    class MatchType(models.TextChoices):
+        EMAIL = "email", "Exact email address"
+        DOMAIN = "domain", "Email domain"
+
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="sender_rules")
+    match_type = models.CharField(max_length=16, choices=MatchType.choices)
+    match_value = models.CharField(max_length=320)
+    target_queue = models.ForeignKey(
+        TicketQueue,
+        on_delete=models.SET_NULL,
+        related_name="vendor_sender_rules",
+        null=True,
+        blank=True,
+    )
+    priority = models.CharField(max_length=20, choices=Ticket.Priority.choices, blank=True)
+    enabled = models.BooleanField(default=True)
+    ordering = models.PositiveIntegerField(default=0)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["ordering", "vendor__name", "match_value"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["match_type", "match_value"],
+                name="unique_vendor_sender_rule",
+            )
+        ]
+
+    def clean(self) -> None:
+        value = self.match_value.strip().lower().lstrip("@")
+        if self.match_type == self.MatchType.EMAIL:
+            if "@" not in value or value.startswith("@") or value.endswith("@"):
+                raise ValidationError({"match_value": "Enter a complete email address."})
+        elif self.match_type == self.MatchType.DOMAIN:
+            if "@" in value or "." not in value or value.startswith(".") or value.endswith("."):
+                raise ValidationError({"match_value": "Enter a complete email domain."})
+        self.match_value = value
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        self.match_value = self.match_value.strip().lower().lstrip("@")
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"{self.vendor}: {self.match_type}={self.match_value}"
 
 
 class TicketMessage(models.Model):

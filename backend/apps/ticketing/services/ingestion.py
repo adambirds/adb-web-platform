@@ -8,7 +8,7 @@ from django.db import IntegrityError, transaction
 
 from apps.clients.models import Client, ClientContact
 from apps.core.models import Brand
-from apps.ticketing.models import Mailbox, Ticket, TicketMessage, TicketQueue
+from apps.ticketing.models import Mailbox, Ticket, TicketMessage, TicketQueue, Vendor
 from apps.ticketing.services.classification import (
     ClassificationDecision,
     classify_message_for_purpose,
@@ -16,6 +16,7 @@ from apps.ticketing.services.classification import (
 from apps.ticketing.services.contracts import CanonicalMessage
 from apps.ticketing.services.normalisation import normalize_message_body
 from apps.ticketing.services.routing import route_queue_for_classification
+from apps.ticketing.services.vendor_resolution import VendorSenderMatch, resolve_vendor_sender
 
 logger = logging.getLogger(__name__)
 
@@ -112,12 +113,14 @@ def _persist_source_message(
     provider_message_id: str,
 ) -> TicketIngestionResult:
     client, contact = _resolve_sender(canonical.sender_address)
-    decision = classify_message_for_purpose(source.purpose, canonical, client)
+    vendor_match = None if client is not None else resolve_vendor_sender(canonical.sender_address)
+    decision = _classification_decision(source, canonical, client, vendor_match)
     _log_classification(provider_message_id, decision)
     routed_queue = route_queue_for_classification(
         source.brand,
         source.queue,
         decision.classification,
+        preferred_queue=vendor_match.rule.target_queue if vendor_match is not None else None,
     )
 
     ticket = None
@@ -131,6 +134,7 @@ def _persist_source_message(
             mailbox=source.mailbox,
             client=client,
             primary_contact=contact,
+            vendor=vendor_match.vendor if vendor_match is not None else None,
             subject=canonical.subject.strip() or "(No subject)",
             status=Ticket.Status.NEW,
             priority=decision.suggested_priority or routed_queue.default_priority,
@@ -145,6 +149,7 @@ def _persist_source_message(
             canonical=canonical,
             client=client,
             contact=contact,
+            vendor=vendor_match.vendor if vendor_match is not None else None,
             classification=decision.classification,
         )
 
@@ -173,6 +178,22 @@ def _persist_source_message(
         delivery_status="received",
     )
     return TicketIngestionResult(ticket=ticket, message=ticket_message, created=True)
+
+
+def _classification_decision(
+    source: TicketIngestionSource,
+    canonical: CanonicalMessage,
+    client: Client | None,
+    vendor_match: VendorSenderMatch | None,
+) -> ClassificationDecision:
+    if vendor_match is not None:
+        return ClassificationDecision(
+            classification=Ticket.Classification.VENDOR,
+            score=100,
+            reasons=("explicit_vendor_sender_rule", f"vendor:{vendor_match.vendor.id}"),
+            suggested_priority=vendor_match.rule.priority or None,
+        )
+    return classify_message_for_purpose(source.purpose, canonical, client)
 
 
 def _log_classification(
@@ -265,6 +286,7 @@ def _update_existing_ticket(
     canonical: CanonicalMessage,
     client: Client | None,
     contact: ClientContact | None,
+    vendor: Vendor | None,
     classification: str,
 ) -> None:
     update_fields: set[str] = set()
@@ -275,6 +297,9 @@ def _update_existing_ticket(
     if ticket.primary_contact_id is None and contact is not None:
         ticket.primary_contact = contact
         update_fields.add("primary_contact")
+    if ticket.client_id is None and ticket.vendor_id is None and vendor is not None:
+        ticket.vendor = vendor
+        update_fields.add("vendor")
     if (
         ticket.classification == Ticket.Classification.UNKNOWN
         and classification != Ticket.Classification.UNKNOWN
