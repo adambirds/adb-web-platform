@@ -23,7 +23,9 @@ annotated-types==0.7.0 \
 anyio==4.4.0 \
     --hash=sha256:5aadc6a1bbb7cdb0bede386cac5e2940f5e2ff3aa20277e991cf028e0585ce94 \
     --hash=sha256:c1b2d8f46a8a812513012e1107cb0e68c17159a7a594208005a57dc776e1bdc7
-    # via watchfiles
+    # via
+    #   starlette
+    #   watchfiles
 arrow==1.2.2 \
     --hash=sha256:05caf1fd3d9a11a1135b2b6f09887421153b94558e5ef4d090b567b47173ac2b \
     --hash=sha256:d622c46ca681b5b3e3574fcb60a04e5cc81b9625112d5fb2b44220c36c892177
@@ -1125,6 +1127,10 @@ sqlparse==0.6.0 \
     # via
     #   django
     #   django-debug-toolbar
+starlette==1.6.0 \
+    --hash=sha256:a86dd39d14bb45f85a3d18525215a9ef0cfd1f192ac793220e72598c90335f0c \
+    --hash=sha256:d4e3ac5e546444960c710297a3c9fc3f7ebae1b7e963f3d36173b49da535be9b
+    # via -r backend/requirements/common.in
 svg-py==1.10.0 \
     --hash=sha256:2e1391411a205220a0e72ca303f3c2d11dbd564cb1dbc445406c5e11421bcc4b \
     --hash=sha256:54c7470347d5d79b30d059584a4f449da08b462903e8ce262981338bab755560
@@ -1179,6 +1185,7 @@ typing-extensions==4.14.1 \
     #   mypy
     #   pydantic
     #   pydantic-core
+    #   starlette
     #   typing-inspection
 typing-inspection==0.4.2 \
     --hash=sha256:4ed1cacbdc298c220f1bd249ed5287caa16f34d44ef4e9c3d0cbad5b521545e7 \
