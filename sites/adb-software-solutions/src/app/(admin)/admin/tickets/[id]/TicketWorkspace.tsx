@@ -39,6 +39,7 @@ interface TicketAttachment {
     size: number;
     scan_status: string;
     scan_engine: string;
+    downloadable: boolean;
 }
 
 interface TicketDetail {
@@ -51,6 +52,8 @@ interface TicketDetail {
     client_name: string | null;
     primary_contact_id: number | null;
     primary_contact_name: string | null;
+    vendor_id: number | null;
+    vendor_name: string | null;
     status: string;
     priority: string;
     classification: string;
@@ -99,6 +102,12 @@ function parseRecipients(value: string) {
                 .filter(Boolean),
         ),
     ];
+}
+
+function attachmentScanLabel(attachment: TicketAttachment) {
+    if (attachment.scan_status === "safe") return "Safe";
+    if (attachment.downloadable) return "Malware scan not required";
+    return label(attachment.scan_status);
 }
 
 export function TicketWorkspace({ ticketId }: { ticketId: number }) {
@@ -358,7 +367,7 @@ export function TicketWorkspace({ ticketId }: { ticketId: number }) {
 
                 <aside className="space-y-4">
                     <Card className="p-5">
-                        <h2 className="text-sm font-semibold text-white">Customer context</h2>
+                        <h2 className="text-sm font-semibold text-white">Customer / vendor context</h2>
                         <dl className="mt-4 space-y-4 text-sm">
                             <div>
                                 <dt className="text-xs text-slate-500">Client</dt>
@@ -375,6 +384,12 @@ export function TicketWorkspace({ ticketId }: { ticketId: number }) {
                                     )}
                                 </dd>
                             </div>
+                            {ticket.vendor_name ? (
+                                <div>
+                                    <dt className="text-xs text-slate-500">Vendor / service</dt>
+                                    <dd className="mt-1 text-slate-300">{ticket.vendor_name}</dd>
+                                </div>
+                            ) : null}
                             <div>
                                 <dt className="text-xs text-slate-500">Primary contact</dt>
                                 <dd className="mt-1 text-slate-300">
@@ -459,7 +474,7 @@ export function TicketWorkspace({ ticketId }: { ticketId: number }) {
                                             <div className="min-w-0 text-sm font-medium text-slate-300">
                                                 {attachment.original_filename}
                                             </div>
-                                            {attachment.scan_status === "safe" ? (
+                                            {attachment.downloadable ? (
                                                 <a
                                                     href={AdminAPI.tickets.attachments.download(
                                                         attachment.id,
@@ -478,7 +493,7 @@ export function TicketWorkspace({ ticketId }: { ticketId: number }) {
                                             {formatBytes(attachment.size)}
                                         </div>
                                         <div className="mt-2 text-xs text-slate-500">
-                                            Scan: {label(attachment.scan_status)}
+                                            Scan: {attachmentScanLabel(attachment)}
                                             {attachment.scan_engine ? ` · ${attachment.scan_engine}` : ""}
                                         </div>
                                     </div>
