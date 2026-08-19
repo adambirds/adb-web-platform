@@ -1,14 +1,16 @@
-# Current State and Foundation Checklist
+# Current State and Operational Roadmap
 
-This document records the implementation state of the ADB Business Platform foundation phase. It is an implementation companion to the canonical architecture documents:
+This document is the implementation companion to:
 
-- `docs/PLATFORM_MASTER_PLAN.md` — product vision and target architecture;
-- `docs/PERMISSIONS_AND_ACCESS_MODEL.md` — authorisation and object-scope rules;
-- `docs/DOMAIN_MODEL_AUDIT.md` — decisions from the existing Django model review.
+- `docs/PLATFORM_MASTER_PLAN.md` — canonical product/architecture plan;
+- `docs/PERMISSIONS_AND_ACCESS_MODEL.md` — capability and scope rules;
+- `docs/DOMAIN_MODEL_AUDIT.md` — model audit decisions;
+- `docs/TICKETING_ARCHITECTURE.md` — ticketing/communications architecture;
+- `docs/MICROSOFT_GRAPH_TICKETING_SETUP.md` — Microsoft 365/Graph deployment runbook.
 
-The master plan describes what the platform is intended to become. This file records what currently exists, what has been completed during the foundation phase, and what must still happen before broad business-feature development begins.
+It records what is actually implemented and, importantly, what is still missing before the public websites become the primary development focus.
 
-## 1. Repository structure
+## 1. Current repository topology
 
 ```text
 backend/
@@ -18,343 +20,396 @@ sites/
     adb-web-designs/
     adb-technology/
     auth-adb-software-solutions/
-    admin-adb-software-solutions/
 ```
 
-The repository is a pnpm workspace. Each browser-facing application remains independently buildable and deployable, while shared frontend/tooling code belongs under `packages/`.
-
-The shared Django backend is the source of truth for authentication, permissions, CMS content, business data, and future operational APIs.
-
-## 2. Foundation decisions already made
-
-### Brand
-
-`apps.core.Brand` is the first-class identity for the public ADB brands:
-
-- ADB Software Solutions;
-- ADB Web Designs;
-- ADB Technology.
-
-Brand is deliberately separate from Client ownership. A resource can belong to a Brand, a Client, both, or neither depending on its domain purpose.
-
-### Operational ownership
-
-Operational resources must be either:
-
-- client-owned; or
-- explicitly internal.
-
-Do not create a fake "Internal Client" merely to satisfy a foreign key. Each operational domain should represent internal ownership deliberately when that domain is implemented.
-
-### Permissions
-
-Django permissions/groups define capabilities such as `view`, `add`, `change`, `delete`, and sensitive custom capabilities. Object scope is independent of capability.
-
-Current object-scope foundations include:
-
-- `StaffAccessProfile`;
-- all-clients versus selected-client access;
-- `ClientAccessGrant`;
-- reusable client-scope policy helpers;
-- superuser bypass behaviour.
-
-Ticket-queue scope remains deferred until the ticket domain exists.
-
-### Audit
-
-`apps.core.AuditEvent` is the append-only audit foundation. Sensitive APIs should emit audit events as they are implemented. Credential reveal/copy, permission changes, ticket assignment changes, and later financial actions are expected audit targets.
-
-### Public content
-
-Static marketing/service pages are code-owned. CMS content is limited to dynamic content that benefits from administration:
-
-- blog posts/categories/tags;
-- testimonials;
-- FAQs/categories;
-- public case studies/Portfolio.
-
-All CMS content is explicitly Brand-aware.
-
-## 3. Authentication and account system
-
-Authentication remains the most mature subsystem.
-
-Existing capabilities include:
-
-- custom User model;
-- email/password authentication;
-- email verification;
-- password reset;
-- TOTP two-factor authentication;
-- recovery codes;
-- WebAuthn/passkeys;
-- authentication/security logs;
-- tracked sessions/devices;
-- login/register/2FA rate limiting;
-- staff-only administration authentication endpoints;
-- general account/authentication endpoints;
-- account-security UI for passwords, 2FA, passkeys, and sessions.
-
-Foundation work completed:
-
-- [x] Remove duplicate TechWiki-derived admin authentication implementation.
-- [x] Correct the active admin AuthContext to the real backend response contract.
-- [x] Preserve staff/superuser enforcement on the administration auth API.
-- [x] Centralise admin API/auth application URLs.
-- [x] Validate return URLs used by admin -> auth flows.
-- [x] Ensure admin logout uses CSRF-aware API handling.
-- [x] Expose effective capability permissions and object scopes to the admin frontend.
-- [x] Add frontend `hasPermission()` helper for UI affordances.
-- [x] Remove template/eBay-specific User residue identified during the first audit.
-- [x] Remove public marketing metadata from the internal admin application.
-
-Remaining authentication foundation work:
-
-- [ ] Remove remaining verbose diagnostic logging from the general auth API utility.
-- [ ] Tighten security-sensitive frontend API types where practical.
-- [ ] Verify cookie, CSRF, CORS and session behaviour against the eventual production-domain arrangement.
-- [ ] Strengthen admin/auth integration tests around redirects and authenticated state.
-- [ ] Move transactional verification/reset email delivery behind the future email/Celery service when that service is implemented.
-
-## 4. Brand-aware CMS
-
-Backend foundation completed:
-
-- [x] Add Brand relationships to Portfolio/case studies.
-- [x] Add Brand relationships to testimonials.
-- [x] Add Brand relationships to blog posts.
-- [x] Add Brand relationships to blog categories.
-- [x] Add Brand relationships to blog tags.
-- [x] Add Brand relationships to FAQs.
-- [x] Add Brand relationships to FAQ categories.
-- [x] Require Brand context on public CMS APIs.
-- [x] Return `brand_slugs` from CMS API representations.
-- [x] Accept `brand_ids` in CMS administration mutations.
-- [x] Add `/api/admin/brands` for administration UI use.
-- [x] Enforce Django capability permissions on CMS administration endpoints.
-
-Custom administration UI foundation completed:
-
-- [x] Add reusable `BrandSelector` component.
-- [x] Make testimonial creation/editing Brand-aware.
-- [x] Add testimonial Brand filtering/display.
-- [x] Make FAQ and FAQ-category creation/editing Brand-aware.
-- [x] Add FAQ/category Brand filtering/display.
-- [x] Make Portfolio/case-study creation/editing Brand-aware.
-- [x] Add Portfolio Brand filtering/display.
-- [x] Make blog post creation/editing Brand-aware.
-- [x] Make blog category/tag creation/editing Brand-aware.
-- [x] Add blog/category/tag Brand filtering/display.
-
-CMS tests:
-
-- [x] Test testimonial public Brand isolation.
-- [x] Test blog public Brand isolation.
-- [x] Test FAQ public Brand isolation.
-- [x] Test Portfolio public Brand isolation.
-- [x] Test CMS capability denial/allow behaviour.
-- [x] Test multi-brand testimonial persistence.
-- [x] Test multi-brand blog-post persistence.
-- [x] Test multi-brand FAQ persistence.
-- [x] Test multi-brand Portfolio persistence.
-- [x] Test invalid Brand IDs are rejected.
-
-Remaining CMS refinement, not blocking the first operational phase:
-
-- [ ] Consider shared Brand-aware category/tag selection helpers to reduce repeated UI code.
-- [ ] Validate that selected post/FAQ categories are compatible with the resource Brand set.
-- [ ] Decide whether `Portfolio` should eventually be renamed to `CaseStudy`; do not perform migration churn without a clear benefit.
-- [ ] Replace direct contact-submission handling with ticket/lead ingestion when ticketing exists.
-
-## 5. Clients and contacts
-
-Existing Django models/admin provide an initial data structure, but the custom admin page and operational API are not yet complete.
-
-Canonical decisions:
-
-- Client is the organisation/account root.
-- ClientContact represents individual people belonging to the client.
-- Contact email addresses will later drive automatic ticket/client matching.
-- Client records must support active/archive lifecycle rather than destructive deletion for ordinary business use.
-- Contacts need explicit primary/billing/technical semantics where useful.
-- Future client portal identities should link to contacts rather than create a second customer-data model.
-
-This is the first broad operational phase after foundations.
-
-## 6. CRM and leads
-
-Existing CRM models primarily cover Lead concepts. `Lead` supports an originating Brand.
-
-CRM remains the sales pipeline and must not become the support-ticket domain.
-
-Future work includes:
-
-- lead owner/assignee;
-- richer source metadata;
-- potential value/currency fields;
-- linked communications/tickets;
-- lead-to-client conversion;
-- contact deduplication/matching.
-
-## 7. Projects, tasks and time
-
-Operational `Project` is separate from public Portfolio/case-study content.
-
-Projects represent real work performed internally or for clients. Tasks may be associated with projects but must not require a project.
-
-Target task behaviour includes:
-
-- project-linked tasks;
-- client-linked tasks;
-- future ticket-linked tasks;
-- standalone internal tasks;
-- recurrence rules;
-- due dates/priorities;
-- staff assignment;
-- recurring business operations such as monthly invoice reminders.
-
-Time entries will later connect staff work to clients/projects and eventually billing/invoicing where appropriate.
-
-## 8. Tickets and communications
-
-Ticketing has not yet been implemented and remains a major later phase.
-
-The intended architecture is documented in `PLATFORM_MASTER_PLAN.md`. Key rules are:
-
-- ticketing is a dedicated domain rather than part of CRM;
-- incoming email and website forms become ticket messages;
-- mailboxes are first-class configuration records;
-- Microsoft Graph is the initial mailbox provider;
-- known ClientContact email addresses automatically resolve Client context;
-- tickets expose client KB/credential/infrastructure context without broadening permissions;
-- queues have explicit access scope;
-- spam classification is not purely binary and can route vendor/automated messages into low-priority queues.
-
-Expected mailboxes include support/accounts/sales addresses across multiple ADB brands.
-
-## 9. Knowledge base, credentials and infrastructure
-
-These domains form the IT Glue-style structured-documentation side of the platform.
-
-### Knowledge base
-
-Required future behaviour includes:
-
-- client/internal ownership;
-- sections/categories/tags;
-- version history;
-- author/editor metadata;
-- permission scope;
-- global/client-context search;
-- explicit future portal visibility that defaults private.
-
-### Credentials
-
-The current legacy credential secret fields are plaintext and must not be treated as a production vault.
-
-Foundation already defines separate capabilities for:
-
-- viewing credential metadata;
-- revealing secrets;
-- copying secrets.
-
-Before production credential storage is used, implement:
-
-- encrypted-at-rest secret storage;
-- explicit key-management design;
-- metadata-only list/search APIs;
-- audited reveal/copy operations;
-- client/internal ownership;
-- infrastructure/application relationships;
-- safe rotation/expiry behaviour.
-
-### Infrastructure
-
-The existing model set already covers structured concepts such as servers, databases, websites, domains, certificates and applications.
-
-A deeper field-by-field redesign remains deferred until the infrastructure workspace is implemented. Infrastructure records must use the same client/internal scope and permission model and should reference credentials rather than duplicate secrets.
-
-## 10. Celery and integration architecture
-
-Celery plumbing and local worker commands exist, but broad business workflows are not yet implemented.
-
-Planned responsibilities include:
-
-- transactional email;
-- Microsoft Graph mailbox ingestion/sync;
-- ticket classification/routing;
-- notifications;
-- recurring task generation;
-- scheduled integration work.
-
-Reusable business logic belongs in services. Celery tasks should orchestrate asynchronous execution rather than contain the only implementation of business rules.
-
-## 11. Legacy/template cleanup status
-
-- [x] Remove `Project Template` naming from active Django API/settings.
-- [x] Remove TechWiki-specific active admin authentication code.
-- [x] Search active code for remaining `TechWiki` identifiers.
-- [x] Search active code for stale `auth-frontend` and `admin-website` path names.
-- [x] Replace the README's old generic project description with the current platform architecture.
-- [ ] Review remaining comments/TODOs as touched and remove statements that describe superseded architecture.
-- [ ] Perform a final old-port/reference scan before marking foundation complete.
-
-## 12. Historical documentation status
-
-The repository contains historical planning files that pre-date the multi-brand platform design. They remain useful context but are no longer authoritative.
-
-Canonical documentation priority is:
-
-1. `docs/PLATFORM_MASTER_PLAN.md`;
-2. `docs/PERMISSIONS_AND_ACCESS_MODEL.md`;
-3. `docs/DOMAIN_MODEL_AUDIT.md`;
-4. this checklist;
-5. historical root-level planning documents.
-
-Where historical documents conflict with the canonical `docs/` architecture, the canonical documents win.
-
-Remaining documentation work:
-
-- [ ] Add explicit superseded/canonical-document notices to `ADB_SOFTWARE_SOLUTIONS_BUILD_PLAN.md`.
-- [ ] Add explicit superseded/canonical-document notices to `DJANGO_ARCHITECTURE.md`.
-- [x] Update the repository README to describe the multi-brand business platform.
-- [x] Keep root/scoped AGENTS guidance pointed at canonical architecture documents.
-
-## 13. Foundation completion gate
-
-Before moving to Clients + Contacts, the following are considered blocking:
-
-- [x] Canonical architecture/product documentation exists.
-- [x] Existing backend model audit exists.
-- [x] Brand exists as a first-class domain model.
-- [x] CMS backend is Brand-aware.
-- [x] Custom CMS administration is Brand-aware.
-- [x] Capability permissions and initial Client object scope exist.
-- [x] Audit-event foundation exists.
-- [x] TechWiki/template residue has been substantially removed.
-- [x] README reflects the real platform.
-- [ ] CI/lint/tests are green for the completed foundation branch.
-- [ ] Remaining auth diagnostic logging is removed or deliberately gated.
-- [ ] Historical architecture docs are clearly marked as superseded where appropriate.
-
-Production-domain cookie/CORS verification is important but can only be completely validated once deployment hostnames are defined; this must remain documented rather than block all operational development indefinitely.
-
-## 14. Ordered phases after foundation
-
-Unless a later explicit architecture decision changes the order:
-
-1. Clients and Contacts.
-2. Projects.
-3. Tasks and recurrence.
-4. Time tracking.
-5. CRM/Leads.
-6. Tickets and queues.
-7. Microsoft Graph Mailboxes and background sync.
-8. Website contact forms -> tickets/leads.
-9. Spam/classification/routing.
-10. Knowledge base.
-11. Credentials vault.
-12. Infrastructure workspace.
-13. Client-context/global search.
-14. Public-site integration with the stable CMS.
-15. Client portals and commercial features such as quotes, contracts, invoicing and Stripe payments once the internal platform is mature.
+`sites/adb-software-solutions/` is the combined ADB Software Solutions application. Its authenticated operations workspace lives under `/admin`; there is no separate admin application/deployment.
+
+The authentication/account application remains separate at `sites/auth-adb-software-solutions/`.
+
+## 2. Foundation status
+
+### Completed architecture/foundation
+
+- [x] Shared Django backend is the business-data and authorisation authority.
+- [x] Django Ninja is the established API layer.
+- [x] ADB Software Solutions, Web Designs and Technology are first-class Brands.
+- [x] Client/Internal ownership conventions are established.
+- [x] Capability permissions and Client access scopes exist.
+- [x] Append-only AuditEvent foundation exists.
+- [x] CMS content is Brand-aware and public content is isolated by Brand.
+- [x] Authentication frontend has been migrated to Next.js while preserving Django sessions/TOTP/WebAuthn.
+- [x] ADB Software Solutions public/admin topology has been unified into one Next.js app with `/admin`.
+- [x] Internal operations shell, navigation and reusable data-table/state primitives exist.
+- [x] Deterministic development seed data exists.
+- [x] Celery worker/beat and Redis orchestration are available.
+- [x] Devcontainer CI builds on AMD64 and ARM64.
+
+### Documentation/configuration work in progress
+
+- [x] Replace stale separate-admin architecture in canonical plans.
+- [x] Record the expanded operational roadmap before public-site focus.
+- [x] Mark obsolete root planning docs as superseded.
+- [x] Add a full Microsoft Graph / Exchange RBAC deployment runbook.
+- [ ] Keep the runbook updated if Graph credential/storage or mailbox UI changes.
+
+## 3. Ticketing and communications
+
+The ticketing foundation is implemented end-to-end and is no longer a future-only phase.
+
+### Implemented
+
+- [x] TicketQueue, Ticket, TicketMessage, TicketNote and TicketAttachment domains.
+- [x] queue/client permission scoping.
+- [x] paginated/filterable Ticket APIs and list/detail workspace.
+- [x] assignment, status, priority and queue operations.
+- [x] internal notes and customer replies.
+- [x] Client and Contact Ticket context.
+- [x] MicrosoftGraphConnection and Mailbox configuration.
+- [x] encrypted integration credential support.
+- [x] certificate/client-secret app-only Graph authentication.
+- [x] Shared Mailbox verification before save.
+- [x] Graph delta sync, persisted cursors and worker locking.
+- [x] inbound message normalisation/thread matching.
+- [x] outbound Graph replies with Celery retries/duplicate-send controls.
+- [x] website contact-form Lead -> canonical Ticket ingestion.
+- [x] deterministic classification/routing and probable-spam quarantine behaviour.
+- [x] database-backed Vendor + VendorSenderRule routing.
+- [x] attachment quarantine, filename/size/hash/MIME policy.
+- [x] optional ClamAV malware scanning with central-scanner support.
+- [x] attachment download policy exposed to the UI.
+
+### Follow-up ticket refinements
+
+These are not prerequisites for starting other operational modules, but remain useful follow-up work:
+
+- [ ] harden ambiguous Graph-send idempotency for the rare case where Graph accepts a send but the worker loses the response before persistence;
+- [ ] continue improving operational ticket search/filter/automation as real usage identifies needs;
+- [ ] add richer links from Tickets into Tasks/Time/KB/Infrastructure as those modules mature;
+- [ ] add notification preferences/agent notifications when the broader notification system is designed.
+
+## 4. Clients and Contacts
+
+### Implemented
+
+- [x] Client and ClientContact models.
+- [x] Client permission/scope policy foundation.
+- [x] Client list/register API/UI.
+- [x] Client detail workspace foundation.
+- [x] Client contacts/projects/tickets can be surfaced in context.
+- [x] Contact email matching participates in inbound Ticket resolution.
+
+### Missing for day-to-day use
+
+- [ ] create Client from the custom operations UI.
+- [ ] edit Client.
+- [ ] archive/reactivate Client.
+- [ ] create/edit/archive contacts.
+- [ ] manage primary/billing/technical contact semantics.
+- [ ] improve Client detail into the main operational hub.
+- [ ] add Client sections for Infrastructure, KB, Credentials, Tasks and Time.
+- [ ] add Client period summaries (especially time by week/month).
+- [ ] permission-aware quick actions from the Client workspace.
+
+## 5. CRM / Leads
+
+### Implemented
+
+- [x] Lead domain foundation and Brand/source concepts.
+- [x] Lead list/register foundation.
+- [x] website contact form creates a Lead.
+- [x] new Contact Form Leads feed the canonical Ticket ingestion path.
+- [x] Lead/ticket creation is idempotent and public lead capture fails open if ticket routing fails.
+
+### Missing
+
+- [ ] Lead detail workspace.
+- [ ] create Lead manually.
+- [ ] edit Lead.
+- [ ] archive/close Lead.
+- [ ] owner/assignee workflows.
+- [ ] practical pipeline/list/filter views.
+- [ ] communication/ticket history visible from the Lead.
+- [ ] explicit ticket/email linking for manually-created/updated Leads.
+- [ ] contact deduplication/matching workflows.
+- [ ] Lead -> Client/Contact conversion while retaining Ticket/communication history.
+- [ ] optional value/currency/follow-up metadata where useful.
+
+## 6. Projects
+
+### Implemented
+
+- [x] operational Project model separated from public Portfolio/CaseStudy.
+- [x] Project register/list foundation.
+- [x] basic Client relationship and development data.
+
+### Missing
+
+- [ ] Project detail page/workspace.
+- [ ] create Project.
+- [ ] edit Project.
+- [ ] archive/change status.
+- [ ] Client/Internal project workflows.
+- [ ] dates/milestones and ownership/participants where useful.
+- [ ] related Tasks.
+- [ ] related Time entries and summaries.
+- [ ] related Tickets/KB/Infrastructure links.
+- [ ] project-centric timer start/stop actions.
+
+## 7. Tasks
+
+### Implemented
+
+- [x] Task model/domain foundation.
+- [x] standalone tasks are supported conceptually and do not require Projects.
+- [x] Task register/list foundation.
+- [x] assignment/due/priority concepts exist in the operational model where established.
+
+### Missing
+
+- [ ] create Task.
+- [ ] edit Task.
+- [ ] delete/archive Task according to lifecycle rules.
+- [ ] mark complete/reopen.
+- [ ] recurrence UX/worker behaviour where recurrence is enabled.
+- [ ] list modes: My Tasks, Today, Upcoming, Overdue, Completed.
+- [ ] filters by Client, Project, assignee, status and priority.
+- [ ] Project-linked, Client-linked and future Ticket-linked quick creation.
+- [ ] task detail/workspace where detail justifies it.
+- [ ] task-centric timer start/stop.
+- [ ] Calendar integration.
+
+## 8. Calendar / work planning
+
+### Current status
+
+There is no complete operations calendar yet.
+
+### Required
+
+- [ ] day/week/month calendar views.
+- [ ] aggregate Task due/start dates.
+- [ ] aggregate Project milestones/deadlines.
+- [ ] support recurring work once materialised.
+- [ ] filter by user, Client, Project and source type.
+- [ ] permission-aware event loading.
+- [ ] design a first-class Event/Meeting domain later without pretending every Task is an Event.
+- [ ] leave a clean integration path for external calendars if/when that becomes useful.
+
+## 9. Time tracking
+
+### Implemented
+
+- [x] TimeEntry domain foundation.
+- [x] Time register/list foundation.
+- [x] Project/Client relationships exist where currently modelled.
+
+### Missing
+
+- [ ] manually add time.
+- [ ] edit time.
+- [ ] delete time subject to permissions.
+- [ ] running timer model/lifecycle.
+- [ ] Start timer action.
+- [ ] Stop timer action with backend-calculated duration.
+- [ ] enforce one active timer per user initially.
+- [ ] start/stop from Project.
+- [ ] start/stop from Task.
+- [ ] start/stop from Ticket.
+- [ ] direct Client association for valid non-project work.
+- [ ] daily/weekly/monthly views.
+- [ ] totals by Client, Project, Task, Ticket and staff user.
+- [ ] Client workspace time reporting by week/month/custom range.
+- [ ] Project/Ticket contextual time totals.
+- [ ] future billable/invoice linkage without making invoicing a current dependency.
+
+## 10. Knowledge Base
+
+### Implemented
+
+- [x] Knowledge Base model/register foundation.
+- [x] Client/Internal ownership foundation.
+- [x] permission/scoping foundation.
+
+### Missing
+
+- [ ] create/edit/archive/delete-policy workflow.
+- [ ] document detail/read experience.
+- [ ] categories/sections/tags.
+- [ ] controlled Markdown/rich-text editing.
+- [ ] attachments where justified.
+- [ ] author/editor metadata in UI.
+- [ ] version/change history.
+- [ ] Client-context navigation.
+- [ ] links to Tickets, Projects and Infrastructure.
+- [ ] global and Client-context search.
+- [ ] explicit future portal visibility, private by default.
+
+## 11. Credentials vault
+
+### Implemented
+
+- [x] StoredCredential model.
+- [x] Client/Internal ownership.
+- [x] encrypted secret payload service using Fernet/MultiFernet.
+- [x] environment-managed encryption keys.
+- [x] separate view/reveal/copy capabilities.
+- [x] service-level decryption path for integrations such as Microsoft Graph.
+- [x] audit support for user secret reveal/copy.
+- [x] metadata register/list foundation.
+
+### Missing
+
+- [ ] custom operations UI to create credentials securely.
+- [ ] edit metadata.
+- [ ] replace/rotate secret values.
+- [ ] reveal UX.
+- [ ] copy UX.
+- [ ] expiry/rotation reminders/metadata.
+- [ ] relationships to Infrastructure/Application records.
+- [ ] Client-context credential navigation.
+- [ ] search metadata only, never secret content.
+- [ ] remove/deprecate remaining legacy plaintext-field use before production credential migration.
+
+The Microsoft Graph bootstrap runbook currently documents a safe shell/service bootstrap path because full credential CRUD UI is not yet complete.
+
+## 12. Infrastructure inventory
+
+### Implemented
+
+- [x] structured model foundation covering Servers, Databases, Websites, Domains, SSL Certificates, Licences, Applications and related operational resource types.
+- [x] Infrastructure overview/register foundations.
+- [x] Client/Internal ownership conventions.
+
+### Missing
+
+- [ ] full create/edit/archive workflows across resource types.
+- [ ] useful detail workspaces.
+- [ ] relationships among Application, Website, API, Database, Server, Domain, Licence and Certificate records.
+- [ ] Credential links instead of duplicated secrets.
+- [ ] KB/document links.
+- [ ] Client-context Infrastructure views.
+- [ ] expiry/renewal operational views and dashboard widgets.
+- [ ] global/client search.
+
+## 13. Users and Access
+
+### Current problem
+
+The custom operations navigation includes Users & Access but the route currently resolves to 404. This is a priority operational defect/feature gap.
+
+### Required
+
+- [ ] create a working Users & Access route/workspace.
+- [ ] staff user list/detail.
+- [ ] create/invite/activate/deactivate according to the existing identity model.
+- [ ] Group/capability permission management.
+- [ ] Client scope management.
+- [ ] Ticket Queue scope management.
+- [ ] clear effective-permission display.
+- [ ] audit permission/scope changes.
+- [ ] backend permission-boundary tests.
+
+Routine staff administration must not require making users Django superusers.
+
+## 14. Dashboard
+
+### Implemented
+
+- [x] initial operational dashboard/API with fixed summary content.
+
+### Missing
+
+- [ ] configurable widget catalogue.
+- [ ] per-user persisted dashboard layout/configuration.
+- [ ] reorder/move/resize where practical.
+- [ ] widget permission filtering.
+- [ ] Ticket Queue widget configurable to a selected queue.
+- [ ] Assigned-to-me Ticket widget.
+- [ ] unassigned/overdue/open Ticket widgets.
+- [ ] My Tasks/Overdue/Upcoming widgets.
+- [ ] active timer/recent Time widgets.
+- [ ] Lead follow-up widgets.
+- [ ] Project milestone/status widgets.
+- [ ] Infrastructure expiry/renewal widgets.
+- [ ] calendar agenda widget.
+
+Widgets must query through normal scoped backend services/APIs rather than bypassing access rules.
+
+## 15. Client workspace completion target
+
+A Client should ultimately be one of the most useful pages in the entire platform.
+
+From a Client, authorised staff should be able to access:
+
+- [x] basic Client details.
+- [x] Contacts foundation.
+- [x] Tickets foundation.
+- [x] Projects foundation.
+- [ ] Leads/sales history where relevant.
+- [ ] Infrastructure.
+- [ ] Knowledge Base.
+- [ ] Credentials.
+- [ ] Tasks.
+- [ ] Time entries.
+- [ ] Time totals by week/month/custom period.
+- [ ] activity/history.
+- [ ] contextual create actions for Project/Task/Time/KB/Infrastructure/Credential where permission permits.
+
+Related data must remain permission-scoped. Client context enriches navigation; it does not widen access.
+
+## 16. Public websites
+
+The public-site CMS/content plumbing and contact-form ingestion foundations exist, but the public websites are **not the next main phase**.
+
+Primary public-site feature development is deferred until the internal operational platform has completed the core items in sections 4–15 sufficiently to run normal ADB work.
+
+Public-site fixes, security work and stable integration changes can still happen opportunistically.
+
+## 17. Ordered implementation sequence
+
+This is the current intended sequence, subject to normal small adjustments as implementation reveals dependencies:
+
+1. **Docs/config/dependency health**
+   - canonical roadmap reconciliation;
+   - Microsoft Graph deployment runbook;
+   - Dependabot/security updates;
+   - CI green.
+2. **Clients/Contacts + Users & Access**
+   - full CRUD and scopes;
+   - complete Client hub foundation;
+   - repair Users & Access 404.
+3. **Leads + Projects + Tasks operational workflows**
+   - detail/create/edit/status/complete/list modes;
+   - Ticket/email links for Leads;
+   - contextual relationships.
+4. **Knowledge Base + Credentials + Infrastructure**
+   - IT Glue-style CRUD/detail/search/relationships;
+   - secure vault reveal/copy/rotation.
+5. **Time Tracking + Calendar**
+   - running timers from Task/Project/Ticket;
+   - reporting by period/context;
+   - calendar/agenda aggregation.
+6. **Integrated Client workspaces + configurable Dashboard**
+   - full cross-domain Client context;
+   - user-configurable widget layouts.
+7. **Public websites**
+   - complete the three brand sites against stable platform contracts.
+8. **Later commercial/client-facing features**
+   - portal, quotes, contracts, invoicing, Stripe/payments.
+
+## 18. Definition of internal-platform readiness for public-site focus
+
+The internal platform does not need every imaginable feature before public-site work, but it should meet this practical gate:
+
+- Clients and Contacts can be created/edited/managed in the custom UI;
+- Leads can be viewed/managed and their communication relationship is visible;
+- Projects and Tasks have usable detail/CRUD/workflow screens;
+- Users & Access works;
+- Knowledge Base/Credentials/Infrastructure have functional CRUD/detail workflows;
+- Time supports manual entries and start/stop timers with contextual links;
+- Calendar provides useful work planning;
+- Client workspace exposes the major related operational domains;
+- dashboard is materially useful and at least supports configurable/persisted widgets;
+- CI/security/dependency health is green.
+
+At that point the internal platform is sufficiently coherent that the public sites can be built without repeatedly redesigning the operational contracts underneath them.

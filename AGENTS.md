@@ -4,114 +4,123 @@ Guidance for AI coding agents working in this repository.
 
 ## Canonical platform documentation
 
-Before making architectural, domain-model, permissions, CMS, CRM, ticketing, credential, infrastructure, authentication or admin-platform changes, read the relevant canonical documents:
+Before making architectural, domain-model, permissions, CMS, CRM, ticketing, credential, infrastructure, authentication or operations-platform changes, read the relevant canonical documents:
 
 - `docs/PLATFORM_MASTER_PLAN.md` — overall product and architecture plan;
 - `docs/PERMISSIONS_AND_ACCESS_MODEL.md` — authorisation, roles, sensitive capabilities and object scoping;
-- `docs/DOMAIN_MODEL_AUDIT.md` — current model review and keep/amend/defer decisions;
-- `docs/CURRENT_STATE_AND_FOUNDATION_CHECKLIST.md` — implementation state and ordered foundation work.
+- `docs/DOMAIN_MODEL_AUDIT.md` — model review and keep/amend/defer decisions;
+- `docs/CURRENT_STATE_AND_FOUNDATION_CHECKLIST.md` — current implementation state and ordered operational roadmap;
+- `docs/TICKETING_ARCHITECTURE.md` — ticketing and communication architecture;
+- `docs/MICROSOFT_GRAPH_TICKETING_SETUP.md` — Microsoft 365/Graph deployment runbook.
 
-These documents are the canonical product and architecture guidance for the ADB Business Platform. Older planning documents are historical context and must not override them when they conflict.
+These documents are canonical. Older root-level planning documents are historical context and must not override them when they conflict.
 
 Do not invent a new architecture from partial code or stale documentation. If code conflicts with the canonical plan, determine whether the code is legacy/incomplete before copying its pattern into new work.
 
 ## Project
 
-This repository is the shared application platform for the ADB businesses. It contains a shared Django backend, shared packages, three separate public websites, a dedicated authentication frontend, and an internal administration application.
+This repository is the shared application platform for the ADB businesses. It contains one shared Django backend, shared packages, three public brand applications, a dedicated authentication/account application, and the internal operations workspace.
 
-All browser-facing applications belong under `sites/`. Public marketing functionality must remain separate from the admin and authentication applications.
+The ADB Software Solutions public routes and internal operations workspace are intentionally one Next.js deployable application. Privileged internal routes live under `/admin` and remain clearly separated from public routes through App Router route/layout boundaries.
 
 ## Repository layout
 
-- `backend/` — Django backend, Django Ninja APIs, CRM, clients, infrastructure, credentials, knowledge base, tasks, ticketing/email integrations, Celery and shared business data.
-- `sites/adb-software-solutions/` — public ADB Software Solutions website.
+- `backend/` — Django backend, Django Ninja APIs, CRM, Clients, Projects, Tasks, Time, Ticketing/Graph, Knowledge Base, Credentials, Infrastructure, CMS, Celery and shared business data.
+- `sites/adb-software-solutions/` — combined ADB Software Solutions Next.js app: public routes plus authenticated operations under `/admin`.
 - `sites/adb-web-designs/` — public ADB Web Designs website.
-- `sites/adb-technology/` — public ADB Technology website for DevOps, infrastructure, IT consultancy, and support services.
-- `sites/auth-adb-software-solutions/` — dedicated authentication/account frontend, including login, 2FA, passkeys and session-management flows.
-- `sites/admin-adb-software-solutions/` — internal Next.js administration application. This is not a public marketing site.
+- `sites/adb-technology/` — public ADB Technology website.
+- `sites/auth-adb-software-solutions/` — dedicated Next.js authentication/account frontend including login, TOTP, passkeys and session management.
 - `packages/ui/` — genuinely reusable UI primitives and brand-neutral types.
-- `packages/api-client/` — shared API client helpers and contracts used by multiple frontends.
-- `packages/eslint-config/` — shared lint configuration where it is actually useful.
+- `packages/api-client/` — shared API helpers/contracts used by multiple frontends.
+- `packages/eslint-config/` — shared ESLint configuration.
 - `packages/typescript-config/` — shared TypeScript configuration.
 - `tools/` — repository linting, testing and development tooling.
 
+There is no `sites/admin-adb-software-solutions/` application. Do not recreate it unless an explicit future architectural decision reverses the combined-app topology.
+
 ## Architectural priorities
 
-1. Keep the Django backend as the single business-data and operations backend for all ADB brands.
-2. Keep authentication and the internal administration experience separate from public marketing websites.
-3. Treat ADB Software Solutions, ADB Web Designs and ADB Technology as first-class Brands; do not scatter brand identity as hard-coded strings through business logic.
-4. Keep Brand scope separate from operational ownership. Operational resources are client-owned or explicitly internal.
-5. Treat Client as the main operational context linking contacts, tickets, projects, tasks, time, documentation, credentials and infrastructure.
-6. Public-site enquiries should ultimately become tickets and sales/CRM records with an explicit originating brand/source rather than creating separate communication silos.
-7. Microsoft 365/Graph email integration belongs in the shared backend/admin platform, not in individual marketing sites.
-8. Fine-grained permissions and access scopes are foundational. Do not assume every staff user is a superuser.
-9. Backend Django permission checks are authoritative. Frontend visibility is UX, not security.
-10. Sensitive actions such as credential reveals and permission changes must be auditable.
-11. Prefer straightforward, maintainable implementations over new infrastructure or abstractions added pre-emptively.
-12. Shared packages must contain code that is genuinely shared. Do not force public brands to use identical layouts or visual identities merely because they live in one repository.
-13. Preserve strict typing and explicit API contracts between Django and TypeScript applications.
-14. Keep CI/CD and container images application-focused even though frontend applications share a pnpm workspace.
+1. Keep Django as the single business-data/operations backend for all ADB brands.
+2. Keep Django authoritative for authentication, permissions, scope and business rules.
+3. Keep public routes and authenticated `/admin` routes clearly separated even though ADB Software Solutions serves both from one Next.js app.
+4. Preserve the dedicated authentication/account application rather than duplicating security flows into every site.
+5. Treat ADB Software Solutions, ADB Web Designs and ADB Technology as first-class Brands; do not scatter brand identity as hard-coded business-logic strings.
+6. Keep Brand separate from Client/Internal operational ownership.
+7. Treat Client as the main operational context linking Contacts, Tickets, Projects, Tasks, Time, KB, Credentials and Infrastructure.
+8. Unify inbound communication around Tickets. Graph email, website forms and future portal communication must not become unrelated silos.
+9. Keep Microsoft 365/Graph integration in the shared backend/operations platform, not individual public sites.
+10. Fine-grained capabilities and object scopes are foundational. Never assume all staff are superusers.
+11. Sensitive actions such as credential reveal, access changes and governed attachment actions must be explicitly permissioned/auditable.
+12. Prefer maintainable domain services over logic hidden only inside Celery tasks or frontend components.
+13. Keep strict typing and explicit Django/TypeScript contracts.
+14. Shared packages contain genuinely shared code, not forced brand uniformity.
+15. Keep CI/container images application-focused even though the repository uses pnpm workspaces.
 
 ## Stack
 
 - Backend: Python 3.12+, Django, Django Ninja, PostgreSQL, Redis and Celery.
-- Authentication frontend: React/Vite/TypeScript.
-- Internal admin frontend: Next.js, React and TypeScript using the App Router.
-- Public websites: Next.js, React, TypeScript and Tailwind CSS using the App Router.
+- ADB Software Solutions: Next.js App Router, React, TypeScript and Tailwind CSS; internal operations live under `/admin`.
+- Authentication/account frontend: Next.js App Router, React and TypeScript.
+- Other public websites: Next.js App Router, React, TypeScript and Tailwind CSS.
 - Tooling: pnpm, repository `tools/` suite, Ruff, mypy, pytest, ESLint, Prettier and Stylelint.
 
 Do not replace Django, Django Ninja, the existing authentication subsystem or the established deployment pipeline without an explicit architectural decision.
 
 ## Authentication and permissions
 
-Authentication is a first-class subsystem. Preserve `sites/auth-adb-software-solutions/` and the backend authentication flows unless a task explicitly changes them. Passwords, 2FA, passkeys, sessions and account-security behaviour are security-sensitive. Use established libraries and never implement cryptographic primitives manually.
+Authentication is security-sensitive. Preserve `sites/auth-adb-software-solutions/` and the Django-backed identity/session/TOTP/WebAuthn flows unless a task explicitly changes them. Do not introduce Auth.js/NextAuth, local-storage JWTs or a second identity authority by default.
 
-The public marketing sites must not gain privileged admin functionality. Internal administration routes belong in `sites/admin-adb-software-solutions/` and authenticated account/security flows belong in `sites/auth-adb-software-solutions/`.
+Public marketing routes must not expose privileged operations. Internal operations belong under `sites/adb-software-solutions/.../admin` and authenticated account/security flows belong in `sites/auth-adb-software-solutions/`.
 
-Permissions must support meaningful capabilities and scope. A permission such as viewing tickets does not automatically imply access to every client or ticket queue. Credentials require particularly deliberate handling: viewing metadata and revealing a secret are separate capabilities, and secret reveals must be audit logged.
+Permissions must support capability and scope. A permission such as viewing Tickets does not imply access to every Client or Ticket Queue. Credential metadata view and secret reveal/copy are separate capabilities. Permission-boundary tests are mandatory for restricted APIs.
 
-Use Django Groups/Permissions for capability grants and the access-control scope layer for object visibility. Do not introduce a generic content-type ACL system unless the canonical permissions plan is explicitly changed.
-
-When implementing restricted APIs, add tests for both permitted and denied access paths. Never rely on a React component hiding an action as the permission check.
+Use Django Groups/Permissions for capabilities and the established access-control scope layer for object visibility. Never rely on a React component hiding an action as the security check.
 
 ## Public websites and CMS
 
-The three public websites serve different commercial purposes and must not become recoloured copies of one template.
+The three public brands serve different commercial purposes and must not become recoloured copies of one template.
 
-- ADB Software Solutions focuses on bespoke software, integrations, automation, SaaS/product development, client software work and ADB software products.
-- ADB Web Designs focuses on websites, WordPress/Next.js delivery, website rescue, hosting, maintenance, performance and ongoing support.
-- ADB Technology focuses on DevOps, cloud/infrastructure engineering, IT consultancy and technical support.
+Main marketing pages are code-owned. CMS-managed content is intentionally limited to editorial content such as blog posts, testimonials, FAQs and optionally public Case Studies/Portfolio. CMS content must be Brand-aware and public APIs must not leak content between Brands.
 
-Main marketing pages are code-owned. CMS-managed content is intentionally limited to editorial content such as blog posts, testimonials, FAQs and optionally public case studies/projects. CMS content must be brand-aware and public APIs must not leak content between brands.
+Operational `Project` is not public `Portfolio`/CaseStudy. They may reference one another later, but remain separate concepts.
 
-Operational `Project` records are not public case studies. A public case study may reference an operational Project, but they must remain separate models/concepts.
-
-Share low-level primitives when useful, but keep brand messaging, page composition, navigation, imagery and visual identity owned by each site.
+Public forms should call the shared Django backend and identify Brand/source. Website contact forms currently participate in the Lead + Ticket ingestion pipeline; preserve that unified communication model.
 
 ## Business platform domains
 
-The internal platform is intended to cover clients/contacts, CRM/leads, projects, standalone and project-linked tasks, time tracking, ticketing/communications, knowledge base, credentials, infrastructure inventory and content management.
+Before making public-site development the main focus, the internal platform roadmap prioritises:
 
-Future capabilities include client portals, quotes, contracts, invoicing and Stripe payments. These future features may influence clean extension points but must not be implemented speculatively during unrelated work.
+- Client/Contact CRUD and complete Client workspaces;
+- Lead detail/CRUD and Ticket/email relationships;
+- Project detail/CRUD;
+- Task CRUD/completion/list modes;
+- Users & Access;
+- IT Glue-style Knowledge Base, Credentials and Infrastructure;
+- timer-based integrated Time Tracking;
+- Calendar/work planning;
+- configurable per-user Dashboard widgets/layouts;
+- cross-domain Client context/search.
 
-Tasks do not require projects. Standalone and recurring internal work, such as monthly invoice reminders, is a valid first-class use case.
+Future capabilities include client portals, quotes, contracts, invoicing and Stripe payments. These may influence clean extension points but must not be implemented speculatively during unrelated work.
 
-Inbound communication should ultimately unify around Tickets. Microsoft Graph email, contact forms and future portal messages should not become unrelated communication stores.
+Tasks do not require Projects. Standalone and recurring internal work is a valid first-class use case.
 
 ## Working rules
 
-Read nearby code, tests and documentation before editing. Keep changes scoped to the requested task. Add or update tests for behavioural changes. Do not silently weaken lint, type or test rules. Do not commit secrets, credentials, local environment files or generated coverage output.
+Read nearby code, tests and documentation before editing. Keep changes scoped to the requested task. Add/update tests for behavioural changes. Do not silently weaken lint, type or test rules. Do not commit secrets, credentials, local environment files or generated coverage output.
 
-The lint runner discovers tracked files through Git. Stage intended new files before running `tools/lint`, review the staged scope with `git status`, then run `tools/lint` and the relevant tests before considering work complete. If a check cannot run, state exactly why.
+The lint runner discovers tracked files through Git. Stage intended new files before running `tools/lint`, review staged scope with `git status`, then run `tools/lint` and relevant tests before considering work complete. If a check cannot run, state exactly why.
 
-For Python, use modern typing and follow existing Django conventions. For TypeScript, keep strict typing and avoid `any` unless unavoidable and documented. Prefer Server Components by default in Next.js public sites and introduce client components only when browser-side state or APIs are required.
+For Python, use modern typing and existing Django conventions. For TypeScript, keep strict typing and avoid `any` unless unavoidable/documented. Prefer Server Components for public pages by default; use client components where browser-side state/APIs are genuinely required. Operational admin pages may use client components when interactive workflow state requires them.
+
+Generated Python requirement lock files must never be hand-edited. Change `backend/requirements/*.in`, run `tools/update-locked-requirements`, and commit the source and generated lock files together. Likewise, regenerate pnpm lock state with pnpm rather than editing `pnpm-lock.yaml` by hand.
 
 ## Commit messages
 
-When creating a commit, use `<type>: <Imperative summary>.`, keep the complete title at or below 76 characters, and follow the repository's existing conventional commit rules. Use `tools/commit-message-lint` before handing off a commit.
+Use `<type>: <Imperative summary>.`, keep the complete title at or below 76 characters, and follow repository conventional-commit rules. Use `tools/commit-message-lint` before handoff where available.
 
 ## Documentation
 
-Update README/docs when adding a public application, environment variable, port, deployment requirement, data-store requirement, authentication change or breaking API/configuration change. Keep repository structure documentation accurate whenever an application is moved or renamed.
+Update README/docs when adding or changing an application, environment variable, port, deployment requirement, data store, authentication behaviour, external integration or breaking API/configuration.
 
-Architectural decisions that affect the platform plan must update the canonical docs in the same change so a future agent does not need chat history to reconstruct the intent.
+Architectural decisions must update canonical docs in the same change so future developers/agents do not need chat history to reconstruct intent.

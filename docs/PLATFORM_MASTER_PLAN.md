@@ -1,59 +1,53 @@
 # ADB Business Platform Master Plan
 
-## Purpose of this document
+## Purpose
 
-This document is the canonical product and architecture plan for the ADB business platform. It is intentionally detailed so that a new developer, coding agent, or future conversation can understand the intended system without relying on historical chat context.
+This document is the canonical product and architecture plan for the ADB Business Platform. It describes the platform that exists today, the architectural rules that must remain true, and the ordered work required before the public websites become the main development focus.
 
-When older planning documents conflict with this document, this document takes precedence unless a newer architectural decision explicitly supersedes it.
+When older root-level planning documents conflict with this document, this document takes precedence unless a newer explicit architectural decision updates it.
 
-The platform is not merely a collection of marketing websites with an admin area. It is intended to become the central system used to operate the ADB businesses: customer relationship management, project and task management, support and email ticketing, documentation, infrastructure inventory, credentials, content publishing, and eventually quoting, contracts, invoicing, payments and client portals.
+The platform is not merely three marketing websites with an admin area. It is intended to become the central operational system used to run the ADB businesses: CRM, clients, projects, tasks, time tracking, ticketing and email, documentation, credentials, infrastructure inventory, content publishing, staff access, dashboards, calendar/work planning, and later client-facing/commercial workflows.
 
-The design must remain pragmatic. Features described as future work should influence data boundaries and extensibility where useful, but must not be implemented prematurely.
+The design must remain pragmatic. Future capabilities should influence clean boundaries where useful, but speculative features must not be implemented prematurely.
 
 ---
 
 ## 1. Product vision
 
-ADB operates three distinct public brands:
+ADB operates three public brands:
 
 1. **ADB Software Solutions** — `adbsoftwaresolutions.co.uk`
-    - Bespoke software development.
-    - SaaS and application development.
-    - API and third-party integrations.
-    - Automation.
-    - Mobile applications.
-    - Software consultancy.
-    - ADB-owned software products.
-
+   - bespoke software development;
+   - SaaS and application development;
+   - APIs and third-party integrations;
+   - automation;
+   - mobile applications;
+   - software consultancy;
+   - ADB-owned software products.
 2. **ADB Web Designs** — `adbwebdesigns.co.uk`
-    - Website design and development.
-    - WordPress and Next.js delivery.
-    - Website rescue and remediation.
-    - Performance improvements.
-    - Hosting and maintenance.
-    - Ongoing website support.
-
+   - website design and development;
+   - WordPress and Next.js delivery;
+   - website rescue/remediation;
+   - performance improvements;
+   - hosting and maintenance;
+   - ongoing website support.
 3. **ADB Technology** — `adbtechnology.co.uk`
-    - DevOps.
-    - Cloud and infrastructure engineering.
-    - IT consultancy.
-    - Systems administration.
-    - Technical support.
-    - Infrastructure and operational support services.
+   - DevOps;
+   - cloud and infrastructure engineering;
+   - IT consultancy;
+   - systems administration;
+   - technical support;
+   - infrastructure and operational support services.
 
-These brands have separate public websites and should not be treated as recoloured versions of one template. They share infrastructure and business operations, but their public positioning, information architecture, content and presentation may differ significantly.
+The three public brands have separate positioning and public experiences, but they share **one ADB Business Platform** behind them.
 
-Behind all three brands sits **one shared ADB Business Platform**.
-
-The platform should eventually replace or reduce dependence on separate products such as CRM, helpdesk, task management, infrastructure documentation, password/documentation systems and lightweight invoicing tools.
-
-Conceptually, it combines relevant capabilities from systems such as HubSpot, IT Glue, Asana and a ticket/helpdesk platform, but it should be designed specifically around ADB's workflows rather than reproducing those products feature-for-feature.
+The internal platform should reduce dependence on separate CRM, helpdesk, task-management, documentation, infrastructure-inventory and lightweight commercial tools. It takes inspiration from systems such as HubSpot, IT Glue, Asana and modern ticket/helpdesk products, while being designed around ADB's actual workflows rather than reproducing those systems feature-for-feature.
 
 ---
 
-## 2. Repository/application architecture
+## 2. Repository and application architecture
 
-The repository is a monorepo with this high-level layout:
+The repository is a monorepo with this current high-level layout:
 
 ```text
 backend/
@@ -63,103 +57,82 @@ sites/
     adb-web-designs/
     adb-technology/
     auth-adb-software-solutions/
-    admin-adb-software-solutions/
 ```
 
-### Backend
+There is **no separate `admin-adb-software-solutions` application**. The ADB Software Solutions Next.js application serves both its eventual public marketing routes and the authenticated internal operations workspace under `/admin`.
 
-`backend/` is the single Django backend for the entire platform. It owns:
+### 2.1 Shared Django backend
+
+`backend/` is the single business-data and operations backend. It owns:
 
 - authentication and authorisation;
-- staff users;
-- future client-portal users;
-- brands;
+- staff users and access scopes;
+- Brands;
 - clients and contacts;
 - CRM/leads;
 - projects;
 - tasks;
 - time tracking;
-- tickets and communications;
-- mailbox and Microsoft Graph integrations;
-- CMS content;
-- credentials;
+- ticketing and communications;
+- Microsoft Graph connections and mailboxes;
 - knowledge base;
+- credentials/secrets;
 - infrastructure inventory;
+- CMS content;
 - audit logging;
 - Celery/background processing;
-- future quoting/contracts/invoicing/payment data.
+- future calendar/event persistence where required;
+- future quoting/contracts/invoicing/payment data;
+- future client-portal data and visibility rules.
 
-Django remains the authority for permissions and business rules. A frontend hiding a button is never sufficient access control.
+Django remains authoritative for permissions, object scope and business rules. Frontend visibility is UX, never an authorisation boundary.
 
-### Public websites
+The API layer is **Django Ninja**. Do not reintroduce historical plans for DRF or GraphQL unless a future explicit decision requires them.
 
-The three public sites use Next.js App Router and TypeScript.
+### 2.2 ADB Software Solutions application
 
-The majority of normal marketing pages are **code-owned**, not CMS pages. This includes home, about, services, service landing pages and other structured marketing pages.
+`sites/adb-software-solutions/` is a Next.js App Router / TypeScript application with two distinct route concerns:
 
-The CMS is intentionally limited to content that benefits from ongoing editorial management:
+- public ADB Software Solutions marketing routes; and
+- authenticated internal operations routes under `/admin`.
 
-- blog posts;
-- testimonials;
-- FAQs;
-- optionally public case studies/projects.
+These concerns share one deployable application but must remain cleanly separated through App Router route groups/layout boundaries. The internal admin is a dark, information-dense operations console; public marketing UX must not leak privileged internal functionality.
 
-This prevents the backend from becoming a generic page builder.
+### 2.3 Other public websites
 
-### Authentication frontend
+`sites/adb-web-designs/` and `sites/adb-technology/` remain independent Next.js public applications. The three public sites must not become recoloured copies of one template. Shared packages are for genuinely shared primitives, contracts and tooling, not forced visual uniformity.
 
-`sites/auth-adb-software-solutions/` is the dedicated account and authentication UI. It is responsible for:
+Normal marketing pages are code-owned. CMS-managed public content is intentionally limited to content that benefits from ongoing editorial management, including blog posts, testimonials, FAQs and optionally public case studies.
 
-- login;
-- logout;
-- account registration where enabled;
+### 2.4 Authentication/account application
+
+`sites/auth-adb-software-solutions/` is the dedicated Next.js authentication/account-security application. Django remains the identity/session authority.
+
+It owns browser flows for:
+
+- login/logout;
+- registration where enabled;
 - email verification;
-- forgotten/reset password flows;
-- account security settings;
-- passkeys;
-- TOTP two-factor authentication;
+- password reset;
+- account/security settings;
+- passkeys/WebAuthn;
+- TOTP 2FA;
 - recovery codes;
 - sessions/devices.
 
-It is deliberately separate from both the public sites and the internal admin application.
-
-### Admin frontend
-
-`sites/admin-adb-software-solutions/` is the internal operations UI. It will eventually expose the majority of the business platform features described in this plan.
-
-It is not a marketing website and must not contain public marketing routes.
+Do not introduce Auth.js/NextAuth, browser-stored JWTs or another authentication authority without an explicit architectural decision.
 
 ---
 
-## 3. Core architectural concepts
+## 3. Core domain rules
 
-### 3.1 Brand is a first-class concept
+### 3.1 Brand is first-class
 
-A `Brand` represents one of the public ADB businesses.
+`Brand` represents the public ADB business under which public content, communication or work is presented. Initial Brands are ADB Software Solutions, ADB Web Designs and ADB Technology.
 
-Initial brands are:
+Brand is not a substitute for Client ownership.
 
-- ADB Software Solutions;
-- ADB Web Designs;
-- ADB Technology.
-
-The platform must not encode these only as hard-coded strings scattered through application logic.
-
-A Brand will eventually provide or reference configuration such as:
-
-- display name;
-- slug;
-- primary domain;
-- active/inactive status;
-- public-site identity;
-- default support mailbox;
-- default sales/contact mailbox;
-- default accounts mailbox where relevant;
-- other brand-specific integration settings where genuinely required.
-
-Brand scope and client ownership are **different dimensions**.
-
-For example:
+Example:
 
 ```text
 Ticket
@@ -167,873 +140,345 @@ brand = ADB Web Designs
 client = Welcome to Travel
 ```
 
-A blog post may be brand-owned but have no client relationship.
+### 3.2 Operational ownership is Client or Internal
 
-An internal server may be internal to ADB and not belong to a public brand at all.
-
-### 3.2 Operational ownership is client or internal
-
-Operational resources should have an explicit ownership context.
-
-The core rule is:
+Operational resources must model their ownership context deliberately:
 
 ```text
 Operational resource
-├── Client-owned
-│   └── belongs to a Client
-└── Internal
-    └── belongs to ADB itself
+├── client-owned
+│   └── Client
+└── internal
+    └── ADB itself
 ```
 
-This applies to resources such as:
+Never create a fake ADB Client merely to represent internal resources.
 
-- knowledge-base documents;
-- credentials;
-- infrastructure inventory;
-- projects where appropriate;
-- tasks where appropriate;
-- licences;
-- documentation;
-- future contracts and commercial records.
+### 3.3 Client is the primary operational context
 
-Do not misuse Brand as the ownership mechanism. A resource may be internal yet related to one brand, client-owned yet serviced under another brand, or not brand-specific at all.
-
-### 3.3 Client is the main operational context
-
-A Client represents a customer/business rather than merely a row of company details.
-
-A client workspace should ultimately expose:
+A Client is an operational workspace, not merely a company row. The target Client workspace is:
 
 ```text
 Client
 ├── Contacts
-├── Tickets and communications
-├── Leads/history where applicable
+├── Tickets / communications
+├── Leads / sales history where relevant
 ├── Projects
 ├── Tasks
-├── Time entries
-├── Knowledge base
+├── Time entries and reports
+├── Knowledge Base
 ├── Credentials
 ├── Infrastructure
-├── Domains
-├── Licences
-├── Notes/activity
-├── Future quotes/contracts
-├── Future invoices/payments
-└── Future client-portal access
+├── Domains / licences / certificates
+├── Activity / notes / audit context
+└── future quotes, contracts, invoices and portal access
 ```
 
-This relationship is central to the platform's value. When working on a support ticket, the operator should immediately have access to the relevant client's context rather than manually searching unrelated systems.
+Staff should be able to move through this context without repeatedly searching unrelated modules.
 
-### 3.4 Contacts belong to clients
+### 3.4 Contacts bridge communications to Clients
 
-A client may have many contacts.
+ClientContact email addresses are a primary matching key for inbound communication. Known contacts should automatically enrich Tickets with Client context. Future portal identities should link to ClientContact rather than creating a duplicate customer-person model.
 
-Contacts should support, at minimum:
+### 3.5 Permissions = capability + scope
 
-- name;
-- one or more useful contact details, especially email;
-- role/job title where relevant;
-- active/inactive status;
-- primary-contact marker;
-- technical-contact marker;
-- billing-contact marker;
-- future portal-access relationship.
-
-Email addresses on client contacts are particularly important because they allow inbound mail to be automatically associated with the correct client.
-
-### 3.5 Internal records are not fake clients
-
-Do not create a fake `ADB Software Solutions` Client merely to represent internal ownership. Internal ownership should be a deliberate state in the model/domain design.
-
-Likewise, avoid ambiguous nullable relationships where `client = null` can mean several unrelated things. Application services and schemas should make the difference between internal and client-owned resources clear.
-
----
-
-## 4. Authentication and identity
-
-Authentication is already one of the more mature subsystems and should be consolidated rather than replaced.
-
-Required capabilities include:
-
-- email/password authentication;
-- email verification;
-- password reset;
-- TOTP two-factor authentication;
-- recovery codes;
-- WebAuthn/passkeys;
-- session/device management;
-- authentication/security event logging;
-- rate limiting of sensitive endpoints.
-
-### Internal staff and future client users
-
-Long term, the same identity system should be capable of representing both:
-
-```text
-User
-├── Internal staff user
-└── Client portal user
-```
-
-Do not create an entirely separate authentication implementation for future client portals.
-
-A future client user should be linked to a `ClientContact` and be constrained to that client's allowed portal resources.
-
-The portal itself is explicitly **future work** and is not part of the current foundational implementation.
-
----
-
-## 5. Permissions and authorisation
-
-Fine-grained permissions are foundational and must be designed from the beginning.
-
-The platform will have more than one internal user. Different staff may require different access to clients, features, ticket queues and sensitive resources.
-
-The permission architecture should combine three concepts:
-
-1. **Permission primitives** — what action a user may perform.
-2. **Roles** — convenient bundles of permissions.
-3. **Scope grants** — which clients/queues/resources those permissions apply to.
-
-### 5.1 Permission primitives
-
-Django model permissions may provide part of the foundation, but permissions must reflect meaningful business actions rather than only CRUD when required.
+Django Groups/Permissions grant capabilities. Scope determines which objects those capabilities apply to.
 
 Examples:
 
-```text
-clients.view_client
-clients.add_client
-clients.change_client
-clients.delete_client
-clients.manage_contacts
+- a user may have `view_ticket` but only for selected queues/clients;
+- credential metadata view and credential secret reveal are separate capabilities;
+- permission/access changes and sensitive reveals must be auditable.
 
-projects.view_project
-projects.add_project
-projects.change_project
-projects.archive_project
-
-work.view_task
-work.add_task
-work.change_task
-work.assign_task
-
-support.view_ticket
-support.reply_ticket
-support.assign_ticket
-support.change_priority
-support.merge_ticket
-support.close_ticket
-
-knowledge_base.view_document
-knowledge_base.change_document
-knowledge_base.publish_document
-
-credentials.view_credential
-credentials.add_credential
-credentials.change_credential
-credentials.delete_credential
-credentials.reveal_secret
-
-infrastructure.view_asset
-infrastructure.change_asset
-
-staff.manage_users
-staff.manage_roles
-staff.manage_permissions
-```
-
-Names may change during implementation, but the principle is important: revealing a credential secret, replying to a ticket and changing staff permissions are distinct capabilities.
-
-### 5.2 Roles
-
-Roles are reusable starting points, not hard security boundaries.
-
-Possible future roles include:
-
-- Administrator;
-- Support;
-- Operations;
-- Accounts;
-- Read-only;
-- Custom.
-
-A user may receive a role and then explicit additions/removals where needed.
-
-The initial system should not become excessively complicated by implementing every possible combination in the UI immediately. The data and backend policy model, however, must avoid assumptions that every staff member is a superuser.
-
-### 5.3 Client scope
-
-Possessing a permission does not necessarily grant access to every client.
-
-A staff member may be scoped to:
-
-- all clients;
-- selected clients;
-- internal resources;
-- combinations supported by the eventual policy model.
-
-The exact schema should be designed deliberately before feature APIs are implemented widely.
-
-### 5.4 Ticket queue scope
-
-Ticket access also needs queue-level restrictions.
-
-For example, a staff member may have access to Support and Sales but not Accounts.
-
-A user with `support.view_ticket` should still fail backend authorisation when the ticket belongs to a queue or client outside their permitted scope.
-
-### 5.5 Credential restrictions
-
-Credentials are unusually sensitive.
-
-At minimum, distinguish:
-
-- seeing that a credential record exists;
-- viewing non-secret metadata;
-- revealing/copying secret values;
-- editing the secret;
-- deleting the credential.
-
-Credential reveals must be auditable.
-
-### 5.6 Backend authority
-
-Every API query and mutation involving restricted data must enforce permissions in Django.
-
-The frontend may use permission data to:
-
-- hide unavailable navigation;
-- disable actions;
-- avoid requesting inaccessible data;
-- provide clearer UX.
-
-It must never be the only enforcement layer.
+The frontend should avoid showing unavailable actions but backend checks remain authoritative.
 
 ---
 
-## 6. Audit logging
+## 4. Current implemented platform foundation
 
-Audit logging is part of the foundation because permissions, credentials and future financial/client features require traceability.
+The following foundations now exist and should be treated as implemented architecture rather than future proposals:
 
-The platform should ultimately record meaningful security and administrative actions, including:
+- Brand-aware CMS and public content isolation;
+- Django-backed identity, session, TOTP and WebAuthn/passkey flows;
+- capability permissions and Client access scopes;
+- append-only audit-event foundation;
+- internal operations shell under `/admin`;
+- list/register views for Clients, Projects, Leads, Tasks, Time, Knowledge Base, Credentials and Infrastructure;
+- Client detail context for contacts/projects/tickets;
+- ticket queues, Tickets, Messages, Notes and Attachments;
+- queue/client permission scoping;
+- ticket assignment, status, priority and queue operations;
+- Microsoft Graph application connections and Shared Mailbox configuration;
+- app-only client-secret/certificate Graph authentication;
+- Graph mailbox verification, delta sync and outbound replies;
+- website contact-form Lead -> Ticket ingestion;
+- deterministic message classification/routing;
+- database-backed Vendor/service sender routing;
+- attachment quarantine/policy enforcement and optional ClamAV malware scanning;
+- Celery workers/beat and Redis-backed background orchestration;
+- development seed data and multi-architecture devcontainer CI.
 
-- authentication/security events;
-- permission changes;
-- staff-role changes;
-- credential reveals;
-- credential changes/deletions;
-- changes to sensitive client data;
-- ticket assignment/status changes where valuable;
-- other high-value administrative changes.
-
-An audit record should be able to retain relevant context such as:
-
-- actor/user;
-- event/action;
-- object type and identifier where applicable;
-- timestamp;
-- IP address;
-- session/device where available;
-- safe structured metadata describing the change.
-
-Never place plaintext credential secrets, passwords, tokens or similarly sensitive values in audit metadata.
-
----
-
-## 7. CMS and public content
-
-### 7.1 Code-owned pages
-
-The main marketing pages remain in the appropriate Next.js site repository directory and are changed through code review/deployment.
-
-Examples:
-
-- home;
-- about;
-- services;
-- service landing pages;
-- contact page layout;
-- static SEO/location/service content where appropriate.
-
-### 7.2 CMS-owned content
-
-The shared backend provides editorial management for:
-
-- blog posts;
-- blog categories/tags;
-- testimonials;
-- FAQs and FAQ categories;
-- optionally public projects/case studies.
-
-### 7.3 Brand-aware CMS
-
-Every published content item must explicitly identify where it is eligible to appear.
-
-A many-to-many Brand relationship is suitable for content that may legitimately appear on multiple brands, such as testimonials, FAQs or some case studies.
-
-Blog ownership may normally be one brand, but the final implementation may still use a multi-brand relationship if it keeps the model consistent and permits deliberate cross-publication.
-
-Public API queries must filter by brand and publication state. A public site must never accidentally display content belonging only to another brand.
-
-### 7.4 Internal Project versus public Case Study
-
-These are different concepts.
-
-`Project` is an operational record used to run work:
-
-- client/internal context;
-- tasks;
-- time entries;
-- status;
-- budget/billing metadata where relevant;
-- internal notes.
-
-A public case study/project is editorial content:
-
-- title;
-- public narrative;
-- problem;
-- solution;
-- outcome;
-- technologies;
-- images/media;
-- publication/SEO data;
-- brand visibility.
-
-A public case study may optionally reference an internal Project, but the two must not be the same model. This prevents internal/commercial details leaking into public APIs and allows editorial copy to differ from operational records.
+These implementations are foundations, not evidence that the operational modules are complete. Most non-ticket modules still need proper day-to-day CRUD/workflow UX.
 
 ---
 
-## 8. CRM and leads
+## 5. Ticketing and communications architecture
 
-CRM is responsible for the sales/pre-client lifecycle rather than general support communication.
+Tickets are the unified communication thread. Email messages, website contact submissions and future portal communication must not become unrelated silos.
 
-A Lead should eventually support concepts such as:
+Core rules:
 
-- originating brand;
-- source/channel;
-- contact information;
-- status/stage;
-- notes/activity;
-- linked conversations/tickets;
-- estimated value where useful;
-- won/lost state;
-- conversion to a Client.
+- Ticket is the operational thread;
+- TicketMessage is one inbound/outbound message;
+- TicketNote is internal-only;
+- TicketAttachment is governed/quarantined content;
+- Mailbox is first-class configuration;
+- known Client/Contact resolution occurs before Vendor classification;
+- unknown/non-client senders are not automatically spam;
+- queues are permission-scopeable;
+- threading uses message/provider references, never subject alone;
+- classification/routing is deterministic first and does not require AI;
+- Graph/Celery integrations must be idempotent and safely retryable.
 
-Typical sources include:
-
-- website enquiry;
-- direct email;
-- referral;
-- social media;
-- manual entry;
-- marketplace/other channel.
-
-When a lead becomes a client, its conversation history should remain connected rather than being duplicated or discarded.
+See `docs/TICKETING_ARCHITECTURE.md` for the detailed implementation architecture and `docs/MICROSOFT_GRAPH_TICKETING_SETUP.md` for tenant/deployment configuration.
 
 ---
 
-## 9. Projects
+## 6. Microsoft 365 / Graph deployment model
 
-Projects track real work being performed either for a client or internally.
+ADB ticketing normally uses one Microsoft Entra application and one tenant-level `MicrosoftGraphConnection`, with many database `Mailbox` rows representing operational Microsoft 365 Shared Mailboxes.
 
-A Project may include:
+Production should prefer certificate-based app-only authentication. Exchange Online RBAC for Applications provides the external mailbox boundary; database Mailbox rows provide the narrower application-level operational allow-list.
 
-- client or internal ownership;
-- title/name;
-- description;
-- status;
-- start/end dates;
-- project owner;
-- linked tasks;
-- linked tickets where useful;
-- linked time entries;
-- notes;
-- future billing metadata such as billing type, budget, rate and currency.
+Do not grant broad unscoped Entra mail application permissions alongside scoped Exchange RBAC in a way that restores organisation-wide access. The permissions are additive.
 
-Do not require every task to belong to a project.
+Mailbox sync and outbound delivery run in Celery. Application/domain logic belongs in reusable services rather than only in tasks.
 
 ---
 
-## 10. Tasks and work management
+## 7. Knowledge Base, Credentials and Infrastructure
 
-Tasks are first-class operational work items.
+These domains form the IT Glue-style operational documentation workspace and are a major pre-public-site development priority.
 
-A Task may optionally relate to:
+### 7.1 Knowledge Base
 
-- a Client;
-- a Project;
-- a Ticket;
-- a task list/category;
-- an assignee.
+Target capabilities:
 
-It may also be entirely internal and independent.
+- Client/Internal ownership;
+- create/edit/archive/delete policy appropriate to documentation;
+- categories/sections/tags;
+- Markdown or controlled rich-text content;
+- attachments where appropriate;
+- author/editor metadata;
+- change/version history;
+- global and Client-context search;
+- links to Infrastructure, Credentials, Tickets and Projects;
+- permission-aware results;
+- explicit future portal visibility, private by default.
 
-Example project task:
+### 7.2 Credentials vault
 
-```text
-Fix checkout bug
-client = Example Ltd
-project = Website Redesign
-```
+Target capabilities:
 
-Example support-derived task:
+- Client/Internal ownership;
+- encrypted-at-rest secret payloads;
+- metadata-only list/search responses;
+- explicit create/edit/rotate/archive flows;
+- separate reveal and copy permissions;
+- audited reveal/copy operations;
+- safe clipboard/reveal UX;
+- expiry/rotation metadata;
+- links to Infrastructure/Application records;
+- no secret values in ordinary logs, analytics or error payloads.
 
-```text
-Investigate DNS issue
-client = Example Ltd
-ticket = 1234
-project = null
-```
+The platform already has encrypted `StoredCredential` secret services; operational CRUD/reveal UX still needs completion.
 
-Example standalone internal recurring task:
+### 7.3 Infrastructure inventory
 
-```text
-Send monthly invoices
-client = null
-project = null
-internal = true
-recurrence = monthly
-```
+The target structured inventory includes Servers, Databases, Websites, Domains, SSL Certificates, Licences, logical Applications, Mobile Apps, APIs/services, Bots/automations, Email systems and related repository/provider metadata where useful.
 
-Required concepts over time include:
+Infrastructure should be navigable as a relationship graph in normal product UX without requiring a generic graph database. A logical Application may link to websites, APIs, databases, workers, domains, credentials, repositories and a Client.
 
-- title;
-- description;
-- todo/in-progress/blocked/done status;
-- priority;
-- due date/time;
-- assignee;
-- optional project/client/ticket;
-- recurrence;
-- overdue/due-soon views.
-
-Recurrence must be a real domain capability rather than generating an infinite set of future rows manually.
+Infrastructure records reference credentials; they do not duplicate plaintext secrets.
 
 ---
 
-## 11. Time tracking
+## 8. Operational CRUD and workflow completion
 
-Time entries are operational records used to understand work performed.
+Before public-site development becomes the main focus, the internal platform must become genuinely usable for daily operations.
 
-A time entry should support:
+### 8.1 Clients and Contacts
 
-- user;
-- date/time or duration;
-- description;
-- optional Client;
-- optional Project;
-- optional Task/Ticket where useful;
-- billable/non-billable state;
-- future rate/billing integration.
+Required work:
 
-Time reporting should eventually support client and project totals.
+- create and edit Clients;
+- archive/reactivate rather than relying on destructive deletion;
+- create/edit contacts and contact roles/flags;
+- Client detail workspace with coherent sections/tabs;
+- Client-scoped Tickets, Infrastructure, KB, Credentials, Projects, Tasks and Time;
+- Client activity/history where useful;
+- permission-aware actions and navigation.
 
----
+### 8.2 CRM / Leads
 
-## 12. Ticketing and communications
+Required work:
 
-Tickets will be a core domain, not merely a contact-form table inside the CRM.
+- Lead list variants and filters;
+- Lead detail view;
+- create/edit/archive/convert workflows;
+- owner/assignee;
+- Brand/source/value metadata where useful;
+- communication history;
+- explicit relationship to Tickets/email threads;
+- contact matching/deduplication;
+- Lead -> Client/Contact conversion without losing communication history.
 
-The ticket system unifies communication from:
+Website contact forms already create Leads and Tickets; the CRM UI must expose that relationship rather than treating them as separate records.
 
-- Microsoft Graph mailboxes;
-- public contact forms;
-- future portal-originated messages;
-- possible future integrations/channels.
+### 8.3 Projects
 
-### 12.1 Core model
+Required work:
 
-Conceptually:
+- Project detail workspace;
+- create/edit/archive/status workflows;
+- Client/Internal context;
+- staff ownership/participants where useful;
+- milestones/dates;
+- related Tasks, Time, Tickets, KB and Infrastructure links;
+- reporting/summaries appropriate to actual delivery work.
 
-```text
-Ticket
-├── brand
-├── client (optional until identified)
-├── contact (optional until identified)
-├── mailbox/source
-├── queue
-├── subject
-├── status
-├── priority
-├── assigned user/team
-├── category
-├── source
-├── timestamps
-└── messages
+Operational Project remains separate from public CaseStudy/Portfolio.
 
-TicketMessage
-├── ticket
-├── direction (incoming/outgoing/internal-note where applicable)
-├── sender
-├── recipients
-├── subject where needed
-├── text body
-├── HTML body
-├── provider message identifiers
-├── received/sent timestamps
-└── attachments
-```
+### 8.4 Tasks
 
-The exact schema must be finalised when ticket implementation begins.
+Required work:
 
-### 12.2 Contact form flow
+- create/edit/delete/archive as appropriate;
+- mark complete/reopen;
+- assignment;
+- priorities, due/start dates and recurrence;
+- standalone, Client, Project and future Ticket-related tasks;
+- practical list modes such as My Tasks, Today, Upcoming, Overdue, Completed, by Project and by Client;
+- filtering/sorting/pagination;
+- quick actions from relevant Client/Project/Ticket contexts.
 
-A public contact form should not create a separate siloed `ContactSubmission` workflow that must later be reconciled manually.
-
-Target flow:
-
-```text
-Public website form
-    ↓
-validate / abuse protection
-    ↓
-create or identify Lead/Contact
-    ↓
-create Ticket
-    ↓
-create initial TicketMessage
-    ↓
-route to appropriate queue
-```
-
-The ticket should retain originating brand and form/source metadata.
-
-The implementation should take inspiration from the existing ticket/contact work in `stackedfinds.co.uk` where appropriate, but must be adapted to this platform's multi-brand, client-aware model rather than copied blindly.
-
-### 12.3 Email threading
-
-Incoming provider messages should use reliable provider/internet message identifiers and conversation/thread metadata where available to associate replies with an existing ticket.
-
-Do not depend only on subject-line parsing.
-
-### 12.4 Client auto-association
-
-For an incoming message:
-
-1. inspect sender address;
-2. match to a known ClientContact email;
-3. attach the ticket to that Contact and Client automatically;
-4. expose that client's related knowledge base, credentials, infrastructure, projects and previous tickets in the operator UI.
-
-Unknown senders remain unassigned/prospect contacts until resolved.
-
-### 12.5 Queues
-
-Tickets should support queues such as:
-
-- Support;
-- Sales;
-- Accounts;
-- Vendor/Automated;
-- Internal/Monitoring;
-- Spam/Quarantine as appropriate.
-
-Queues must be permission-scopeable.
+Tasks must never require a Project.
 
 ---
 
-## 13. Microsoft Graph mailbox integration
+## 9. Calendar and work planning
 
-The platform will connect to multiple Microsoft 365 mailboxes, including examples such as:
+The admin platform needs a calendar/work-planning surface that can aggregate dated operational items without forcing every source record into one table.
 
-```text
-support@adbwebdesigns.co.uk
-support@adbsoftwaresolutions.co.uk
-support@adbtechnology.co.uk
-accounts@adbwebdesigns.co.uk
-```
+Initial calendar sources should include:
 
-Additional addresses are expected.
+- Task start/due dates;
+- Project milestones/deadlines;
+- scheduled recurring work where materialised;
+- later first-class Events/Meetings;
+- future external calendar integration only when explicitly designed.
 
-### 13.1 Mailbox abstraction
-
-Do not hard-code Graph logic directly around specific addresses.
-
-A `Mailbox` domain object should eventually include concepts such as:
-
-- Brand;
-- email address;
-- display name;
-- mailbox type (support, accounts, sales, general, etc.);
-- provider (`microsoft_graph` initially);
-- provider account/tenant configuration;
-- enabled state;
-- default ticket queue;
-- sync cursor/state;
-- ingestion rules where needed.
-
-Multiple mailboxes may share one Microsoft 365 tenant/provider configuration.
-
-Certificate/private-key material and provider credentials must use secure configuration/secret storage and must never be committed to the repository.
-
-### 13.2 Background processing
-
-Mailbox synchronisation and message ingestion belong in Celery/background workers, not request-response handlers.
-
-The system should be designed for idempotent processing so a Graph retry does not create duplicate tickets/messages.
-
-### 13.3 Outbound replies
-
-Replies created in the ticket UI should be sent through the correct originating/configured mailbox and persisted as TicketMessages with provider identifiers once sent.
+The calendar should support day/week/month views and permission-aware filtering by user, Client, Project and source type. A future Event/Meeting model can be added without pretending Tasks or Project milestones are events.
 
 ---
 
-## 14. Spam, automation and message classification
+## 10. Time tracking
 
-Inbound email should not be reduced to a binary spam/not-spam decision.
+Time tracking is a cross-cutting operational capability, not merely a register.
 
-A target ingestion pipeline is:
+Required behaviour:
 
-```text
-Incoming message
-    ↓
-provider validation / deduplication
-    ↓
-hard spam/abuse checks
-    ↓
-sender/contact/client recognition
-    ↓
-classification
-    ├── client/support
-    ├── sales enquiry
-    ├── accounts/billing
-    ├── vendor/automated
-    ├── monitoring/system
-    ├── newsletter/marketing
-    ├── probable spam
-    └── unknown
-    ↓
-queue + priority rules
-    ↓
-ticket creation/update
-```
+- manually create/edit/delete time entries subject to permissions;
+- start a running timer and stop it to calculate duration;
+- only one active timer per user unless a future explicit decision changes that rule;
+- start timers from Task, Project and Ticket contexts;
+- optionally associate Client directly where no Project is required;
+- description/notes and billable/non-billable metadata where useful;
+- daily/weekly/monthly views;
+- summaries by Client, Project, Task, Ticket and staff user;
+- Client workspace time totals and period reporting;
+- future billing/invoice linkage without making invoicing a current dependency.
 
-Vendor or automated mail should generally not be discarded simply because it is non-human. Useful provider notifications can go to a low-priority Vendor/Automated queue.
-
-Spam classification should use deterministic rules first where practical and leave room for more advanced classification later. Do not make an AI dependency foundational unless there is a clear benefit.
+Timer lifecycle operations must be backend-authoritative so browser refreshes or multiple tabs do not corrupt elapsed time.
 
 ---
 
-## 15. Knowledge base
+## 11. Users and Access
 
-The internal knowledge base is intended to provide structured operational documentation similar in spirit to IT Glue.
+The `/admin` Users & Access experience must be a functioning first-class administration area, not a dead navigation route.
 
-A document is either:
+Required behaviour:
 
-- internal; or
-- linked to a Client.
+- list/view staff users;
+- create/invite/activate/deactivate according to the established identity model;
+- manage Groups/capability permissions;
+- manage Client access scopes;
+- manage Ticket Queue access scopes;
+- expose effective access clearly;
+- audit permission/scope changes;
+- never require routine operators to become Django superusers.
 
-Required/likely capabilities include:
-
-- title;
-- structured sections/categories;
-- Markdown or rich-text content with a controlled representation;
-- tags;
-- attachments where useful;
-- author/editor;
-- version history;
-- search;
-- audit trail;
-- permissions and client scope.
-
-The knowledge base is internal by default. Future client-portal publication should require an explicit visibility state and must not expose internal documents accidentally.
+Security-sensitive identity changes remain in Django and must have explicit tests for permitted and denied paths.
 
 ---
 
-## 16. Credentials vault
+## 12. Dashboard
 
-Credentials are structured sensitive records, either internal or client-owned.
+The dashboard should evolve from a fixed overview into a configurable operations surface.
 
-Examples include:
+Target model:
 
-- website administrator credentials;
-- hosting logins;
-- API keys;
-- database credentials;
-- service accounts;
-- tokens;
-- licence keys where appropriate.
+- widget catalogue controlled by effective permissions;
+- per-user persisted layout/configuration;
+- movable/resizable/reorderable widgets where practical;
+- sensible default dashboard;
+- widgets own explicit filters/config rather than embedding one giant dashboard query.
 
-### Security requirements
+Example widgets:
 
-- secret values encrypted at rest using a well-reviewed mechanism;
-- encryption key stored outside the database/repository;
-- reveal permission separate from metadata view permission;
-- reveal operations audit logged;
-- secrets never written to normal application logs;
-- secrets never returned from list endpoints unnecessarily;
-- frontend should request reveal only when explicitly required;
-- sensitive values excluded from analytics/error-reporting payloads.
+- Tickets assigned to me;
+- Ticket Queue with a selected queue;
+- unassigned/open/overdue Tickets;
+- My Tasks / overdue Tasks / upcoming work;
+- active timer and recent Time;
+- Leads requiring follow-up;
+- Project status/milestones;
+- expiring Domains/Licences/Certificates;
+- recent audit/security events for authorised users;
+- calendar agenda.
 
-Credentials should be linkable to relevant infrastructure or systems without forcing the secret into those records themselves.
-
----
-
-## 17. Infrastructure inventory
-
-The infrastructure application is structured documentation, not merely free-form notes.
-
-Resources should support client/internal ownership and relationships to one another.
-
-Planned/established resource types include:
-
-- Servers;
-- Databases;
-- Websites;
-- Domains;
-- SSL certificates;
-- Licences;
-- logical Applications;
-- Mobile applications;
-- APIs/services;
-- Bots/automations;
-- Email systems/configuration;
-- repositories and related metadata where appropriate.
-
-### Logical Application abstraction
-
-A logical Application groups a system that may span several infrastructure components.
-
-For example, one SaaS product may include:
-
-- public web frontend;
-- admin frontend;
-- Django API;
-- PostgreSQL database;
-- Redis;
-- workers;
-- mobile apps;
-- domains;
-- GitHub repositories;
-- licences.
-
-Relationships should be explicit enough to navigate the system from a client/ticket context.
+Widget queries must obey the same backend permissions and object scopes as normal screens.
 
 ---
 
-## 18. Search
+## 13. Search and cross-context navigation
 
-Long-term global/contextual search is a major usability goal.
+Search is an important usability layer once CRUD/workspaces exist.
 
-From a ticket for a known client, an operator should eventually be able to search within that client and obtain relevant results across:
+Client-context search should cover permitted records across:
 
-- knowledge-base documents;
-- credentials metadata (with reveal still permission-protected);
-- infrastructure inventory;
-- previous tickets;
-- projects;
-- project notes;
-- contacts.
+- KB documents;
+- credential metadata (never secret values);
+- Infrastructure;
+- Tickets/messages where appropriate;
+- Projects;
+- Tasks;
+- Contacts;
+- Leads/history where relevant.
 
-Search results must obey the same permission scopes as direct resource APIs. Search must never become a path around credential/client access restrictions.
+A PostgreSQL-backed implementation is acceptable initially. Dedicated search infrastructure should only be added when scale/quality justifies it.
 
-A simple PostgreSQL-backed approach is acceptable initially. Dedicated search infrastructure should only be introduced when justified.
-
----
-
-## 19. Celery and asynchronous workflows
-
-Celery is the background execution layer for work that should not block web requests.
-
-Expected responsibilities include:
-
-- transactional email delivery;
-- Microsoft Graph synchronisation;
-- ticket ingestion/classification;
-- notifications;
-- scheduled/recurring task generation or scheduling;
-- publishing/scheduled content actions where appropriate;
-- future invoice reminders;
-- future integrations and maintenance jobs.
-
-Tasks should be designed for safe retry and idempotency when dealing with external systems.
-
-Do not put ordinary domain logic exclusively inside Celery tasks. Reusable services should contain the business operation; the task should orchestrate its asynchronous execution.
+Search must never bypass normal permission scope.
 
 ---
 
-## 20. Future client portal
+## 14. API and service design principles
 
-A client portal is planned but not part of the current implementation phase.
-
-Potential future portal capabilities include:
-
-- viewing/opening tickets;
-- replying to tickets;
-- viewing project status;
-- approved shared documents;
-- invoices;
-- quotes;
-- contracts;
-- payment links/status;
-- carefully selected knowledge-base content.
-
-Client portal users should use the existing identity system and be linked to ClientContact records.
-
-Portal visibility must always be explicit. Internal resources must never become portal-visible merely because they belong to the same client.
-
----
-
-## 21. Future commercial system
-
-Future planned capabilities include:
-
-### Quotes
-
-- client/contact;
-- line items;
-- taxes/discounts where needed;
-- acceptance status;
-- versioning;
-- conversion into project/contract/invoice workflow.
-
-### Contracts
-
-- contract templates;
-- generated agreement documents;
-- client/contact;
-- project/quote relationship;
-- signature workflow/provider integration;
-- immutable signed-document retention.
-
-### Invoicing
-
-- client/contact;
-- invoice number;
-- line items;
-- taxes;
-- due date;
-- status;
-- payment status;
-- recurring billing/invoice support where useful;
-- links to time/project data where appropriate.
-
-### Stripe payments
-
-Stripe may be used for future card/payment functionality.
-
-The platform should treat Stripe as an external payment provider, retaining local records of provider identifiers and state while verifying webhooks and avoiding storage of raw card details.
-
-These areas are intentionally deferred. Current models may leave reasonable extension points, but should not acquire speculative complexity solely for these future features.
-
----
-
-## 22. API design principles
-
-The backend uses Django Ninja.
-
-Target API groups should be coherent and domain based. Exact paths may evolve, but conceptually:
+Backend APIs should remain domain-based and explicit, for example:
 
 ```text
 /api/auth/...
-/api/auth-service/...
-/api/sessions/...
-
-/api/public/content/...
-
+/api/public/...
 /api/admin/brands/...
 /api/admin/clients/...
 /api/admin/crm/...
@@ -1044,56 +489,32 @@ Target API groups should be coherent and domain based. Exact paths may evolve, b
 /api/admin/knowledge-base/...
 /api/admin/credentials/...
 /api/admin/infrastructure/...
-/api/admin/content/...
 /api/admin/staff/...
+/api/admin/dashboard/...
+/api/admin/calendar/...
 /api/admin/audit/...
 ```
 
 Rules:
 
-- schemas are explicit;
-- responses should be consistently shaped;
-- pagination is consistent for collections;
-- errors have predictable contracts;
-- permission checks occur in backend handlers/services;
-- sensitive fields are opt-in, not returned by default;
-- list APIs avoid N+1 database queries;
-- public APIs are brand-scoped and read-only except explicit submission endpoints;
-- admin APIs are staff-authenticated and permission scoped.
-
-Shared TypeScript API contracts/helpers may live in `packages/api-client/` when genuinely shared across sites.
-
----
-
-## 23. Data model principles
-
-Before implementing new APIs widely, existing Django models must be reviewed against this plan.
-
-Prefer explicit domain relations over generic untyped key/value stores for core records.
-
-Important principles:
-
-- client/internal scope is deliberate;
-- Brand is separate from Client;
-- avoid fake clients to represent ADB itself;
-- public CaseStudy is separate from operational Project;
-- credentials contain/refer to secrets; infrastructure links to credentials rather than duplicating them;
-- Contacts are the identity bridge between inbound communications and Clients;
-- tickets own communication history;
-- leads own sales lifecycle;
-- tasks do not require projects;
-- future portal visibility is explicit;
-- model choices should support permissions without requiring every query to load an unbounded permission graph.
-
-Migrations should be incremental and safe. Existing data compatibility should be considered even while the system is pre-production.
+- explicit schemas;
+- consistent collection pagination;
+- predictable errors;
+- backend permission checks;
+- sensitive fields opt-in only;
+- avoid N+1 queries;
+- public APIs explicitly Brand-scoped;
+- reusable business logic lives in services;
+- Celery orchestrates async work rather than owning all domain logic;
+- external operations are idempotent/retry-safe where possible.
 
 ---
 
-## 24. UI/UX principles for the admin platform
+## 15. UI/UX principles for the operations platform
 
-The admin application should ultimately be organised around workflows, not merely a one-page-per-model CRUD generator.
+The admin is workflow-oriented, not a one-page-per-model CRUD generator.
 
-Likely top-level areas include:
+Top-level operational areas include:
 
 - Dashboard;
 - Tickets;
@@ -1101,250 +522,124 @@ Likely top-level areas include:
 - CRM/Leads;
 - Projects;
 - Tasks;
+- Calendar;
 - Time;
 - Knowledge Base;
 - Credentials;
 - Infrastructure;
 - Content;
-- Staff/Permissions;
+- Users & Access;
 - Audit/Security;
 - Settings/Integrations.
 
-### Client context
-
-A client detail view should become one of the main navigation hubs, with tabs/sections for contacts, tickets, projects, docs, credentials, infrastructure and other permitted data.
-
-### Ticket workspace
-
-A ticket view should provide contextual client information without requiring the operator to open several unrelated browser pages.
-
-### Permission-aware navigation
-
-The admin frontend should receive enough effective-permission/scope data to avoid presenting actions the current user cannot perform. Backend checks remain authoritative.
+Data-heavy pages use server-side pagination/filtering and clear drill-down navigation. Detail workspaces should surface related context rather than forcing operators to repeatedly return to global registers.
 
 ---
 
-## 25. Foundational implementation phase
+## 16. Ordered roadmap before public-site focus
 
-The immediate phase is deliberately focused on making the repository accurately represent the target platform before building major new features.
+The public websites remain important, but they are **not the next primary phase**. The internal platform must first become operationally complete enough to run day-to-day ADB work.
 
-### 25.1 Remove legacy/template residue
+### Phase A — Architecture, deployment docs and dependency health
 
-Remove or replace:
+- reconcile canonical/current-state documentation;
+- maintain complete Microsoft Graph deployment/setup documentation;
+- keep dependencies/security fixes current;
+- keep CI/devcontainer/deployment paths green.
 
-- `Project Template` names/descriptions;
-- TechWiki-specific types, routes and comments accidentally retained in the ADB admin application;
-- duplicate authentication contexts/clients;
-- obsolete hard-coded local URLs where environment configuration exists;
-- stale public-marketing metadata in the internal admin application;
-- other clearly inherited code that no longer represents ADB.
+### Phase B — Core operational CRUD and access
 
-Do not remove useful generic code solely because its history came from another project. Remove or adapt only incorrect domain-specific residue.
+- Clients/Contacts full CRUD/workspaces;
+- Leads full CRUD/detail/communication linkage;
+- Projects detail/CRUD;
+- Tasks full workflow/list modes;
+- repair and complete Users & Access.
 
-### 25.2 Stabilise auth/admin integration
+### Phase C — IT Glue-style workspace
 
-- use one admin AuthContext implementation;
-- ensure it consumes the actual `/api/auth/me` response contract correctly;
-- keep staff/superuser checks authoritative in Django;
-- redirect unauthenticated admin users to the auth frontend safely;
-- support return URLs using validated `next` parameters;
-- remove production-inappropriate debug logging from auth flows;
-- add/update integration-oriented tests around these contracts.
+- Knowledge Base CRUD, taxonomy, search and history;
+- Credentials vault CRUD/reveal/copy/rotation/audit;
+- Infrastructure CRUD/relationships;
+- cross-links among Clients, KB, Credentials and Infrastructure;
+- Client-context/global search.
 
-### 25.3 Introduce Brand
+Parts of B and C may proceed in parallel, but Client scope/ownership must remain the common foundation.
 
-Create the canonical Brand model and initial migration/seed strategy.
+### Phase D — Time and planning
 
-Do not rely on numeric IDs remaining identical between environments. Initial brands should be identifiable by stable slugs.
+- timer-based and manual Time Tracking;
+- integration with Clients/Projects/Tasks/Tickets;
+- week/month/reporting views;
+- Calendar aggregating Tasks, Project milestones and later Events/Meetings.
 
-### 25.4 Make CMS content brand-aware
+### Phase E — Integrated workspaces and configurable dashboard
 
-Review BlogPost, Testimonial, FAQ and public portfolio/case-study models.
+- complete Client workspace across Tickets/Infra/KB/Projects/Tasks/Time;
+- contextual Project/Ticket work surfaces;
+- configurable per-user dashboard widgets/layout;
+- operational summaries/alerts.
 
-Add explicit Brand relationships and update public/admin APIs so content cannot leak between brands.
+### Phase F — Public websites
 
-### 25.5 Define ownership and permissions
+Only after the internal platform above is usable should the three public sites become the main development focus. Public-site work can still occur opportunistically for fixes or stable integration needs.
 
-Before adding broad CRUD APIs for the other business domains:
-
-- document/finalise client/internal ownership conventions;
-- implement the first backend permission/scoping primitives;
-- establish audit-log foundation;
-- define how effective permissions are exposed to the admin frontend.
-
-### 25.6 Review existing domain models
-
-Audit every current model in:
-
-- clients;
-- CRM;
-- tasks;
-- credentials;
-- knowledge base;
-- infrastructure;
-- website/content;
-- authentication.
-
-Classify each model as:
-
-- keep as-is;
-- keep but amend;
-- rename/reframe;
-- remove before production;
-- defer decision.
-
-Do not add broad API/UI implementation until this review is complete.
-
-### 25.7 Update repository documentation
-
-Keep this master plan, architecture docs, AGENTS guidance and README aligned with the actual architecture.
-
----
-
-## 26. Subsequent implementation roadmap
-
-### Phase 1 — Platform foundations
-
-- legacy/template cleanup;
-- auth/admin consolidation;
-- Brand model;
-- brand-aware CMS;
-- permissions/scopes foundation;
-- audit-log foundation;
-- domain-model review;
-- architecture documentation.
-
-### Phase 2 — Core business operations
-
-Build coherent backend APIs and admin UI for:
-
-1. Clients;
-2. Contacts;
-3. Projects;
-4. CRM/Leads;
-5. Tasks, including standalone and recurring tasks;
-6. Time tracking.
-
-The first objective is a genuinely useful system for running daily work, not merely completing every possible model.
-
-### Phase 3 — Ticketing and communications
-
-- Ticket/TicketMessage domain;
-- queues;
-- client/contact auto-association;
-- Mailbox/provider models;
-- Microsoft Graph certificate-based integration;
-- Celery ingestion;
-- threading/deduplication;
-- custom spam/filtering/classification;
-- ticket reply/send flow;
-- contact forms creating tickets and leads;
-- queue/client permission enforcement.
-
-### Phase 4 — Documentation and infrastructure workspace
-
-- internal knowledge base;
-- credential vault;
-- credential reveal auditing;
-- structured infrastructure inventory;
-- relationships between systems, credentials and clients;
-- client-context search.
-
-### Phase 5 — Public websites
-
-The public websites can be developed in parallel where useful once the content contracts are stable, but the key shared integration work is:
-
-- brand-aware blog;
-- testimonials;
-- FAQs;
-- public case studies if CMS-managed;
-- contact/ticket integration.
-
-Main marketing pages remain code-owned.
-
-### Phase 6 — Commercial/client-facing features
+### Phase G — Client-facing/commercial features
 
 Deferred until the internal platform is mature:
 
-- client portals;
+- client portal;
 - quotes;
 - contracts/signatures;
 - invoicing;
-- recurring billing workflows;
+- recurring billing;
 - Stripe payments;
 - client-facing project/ticket/document views.
 
 ---
 
-## 27. Security principles
-
-Security-sensitive areas include authentication, permissions, credentials, email integrations and future financial/client portal features.
-
-Rules include:
+## 17. Security principles
 
 - least privilege by default;
 - backend-enforced authorisation;
-- no secrets in Git;
-- no secrets in normal logs;
-- no credential secret in list/search responses;
+- no secrets in Git or ordinary logs;
+- no credential secrets in list/search responses;
 - audit sensitive actions;
-- use established cryptographic/authentication libraries;
-- validate redirect URLs;
-- protect state-changing requests against CSRF where session cookies are used;
-- secure cookies in production;
-- rate limit authentication and abuse-prone public endpoints;
-- verify external webhooks/providers;
+- use established cryptographic/auth libraries;
+- validate redirects;
+- CSRF protection for cookie-authenticated state changes;
+- secure production cookies/CORS configuration;
+- rate-limit authentication and abuse-prone public endpoints;
+- verify external providers/webhooks;
 - make background ingestion idempotent;
-- never rely on hidden UI as access control;
-- tests for permission boundaries are mandatory as restricted APIs are added.
+- infected/policy-blocked attachments never become downloadable;
+- permission-boundary tests are mandatory as restricted APIs are added.
 
 ---
 
-## 28. Testing and quality expectations
-
-Every new domain should be developed with tests rather than adding tests only after the platform is feature complete.
-
-Priority testing areas:
-
-- authentication flows;
-- permission and scope boundaries;
-- credential reveal restrictions;
-- brand filtering of public content;
-- client/contact matching;
-- ticket threading/idempotency;
-- external Graph integration boundaries using mocks/fakes;
-- recurring task behaviour;
-- future payment/webhook verification.
-
-Repository lint/type/test rules must not be weakened to make features pass.
-
----
-
-## 29. Important non-goals and anti-patterns
+## 18. Important non-goals and anti-patterns
 
 Do not:
 
-- create separate Django backends for each public brand;
-- duplicate the CMS per brand;
+- create separate Django backends per public Brand;
+- recreate a separate admin Next.js deployment;
+- duplicate CMS per Brand;
 - turn the CMS into a generic page builder;
-- force all tasks to belong to projects;
+- force Tasks to belong to Projects;
 - treat internal ADB as a fake Client;
-- use Brand as a substitute for client/internal ownership;
+- use Brand as a substitute for Client/Internal ownership;
 - merge operational Project and public CaseStudy models;
-- store plaintext credentials directly on infrastructure models;
+- store plaintext secrets on Infrastructure models;
 - implement authorisation only in React;
-- give every internal user superuser access because the team is currently small;
+- give all staff superuser access;
 - hard-code every mailbox as bespoke Graph logic;
-- treat every automated/vendor email as spam;
-- create separate contact-form and email communication silos instead of tickets;
-- build speculative Stripe/client-portal complexity during the foundation phase.
+- treat all automated/vendor mail as spam;
+- create separate contact-form and email communication silos;
+- build speculative client-portal/payment complexity before internal operations are mature.
 
 ---
 
-## 30. Current architectural statement
+## 19. Current architectural statement
 
-The concise definition of the platform is:
+> **The ADB Business Platform is one shared operational system serving multiple ADB brands. ADB Software Solutions combines its public site and authenticated `/admin` workspace in one Next.js application; Django is the shared business-data and authorisation authority; public editorial content is Brand-scoped; operational resources are Client-scoped or Internal; communications unify into Tickets; and every major operational domain should become navigable from the surrounding Client/work context.**
 
-> **The ADB Business Platform is one shared operational system serving multiple ADB brands. Public-facing editorial content is brand-scoped; operational resources are client-scoped or internal; fine-grained permissions constrain staff by capability and scope; communications unify into tickets and are enriched automatically with client context.**
-
-Any substantial future architectural decision should be checked against that statement and this document.
+Substantial future architectural decisions should be checked against this statement and the canonical documentation set.
