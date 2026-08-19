@@ -59,17 +59,22 @@ def quarantine_attachment(
     if existing is not None:
         return QuarantinedAttachmentResult(attachment=existing, created=False)
 
-    content_size = len(payload.content)
     if payload.reported_size is not None and payload.reported_size < 0:
         raise AttachmentQuarantineError("The provider reported an invalid attachment size.")
-    if content_size > max_bytes or (
-        payload.reported_size is not None and payload.reported_size > max_bytes
-    ):
-        raise AttachmentQuarantineError(
-            f"Attachment exceeds the {max_bytes}-byte quarantine limit."
+
+    content_size = len(payload.content)
+    safe_filename = _safe_filename(payload.filename)
+    reported_size = payload.reported_size or 0
+    if content_size > max_bytes or reported_size > max_bytes:
+        return _record_blocked_attachment(
+            message,
+            payload,
+            provider_attachment_id=provider_attachment_id,
+            safe_filename=safe_filename,
+            size=max(content_size, reported_size),
+            max_bytes=max_bytes,
         )
 
-    safe_filename = _safe_filename(payload.filename)
     storage_backend = storage or default_storage
     storage_key = storage_backend.save(
         f"ticketing/quarantine/{uuid.uuid4().hex}/{safe_filename}",
@@ -104,6 +109,38 @@ def quarantine_attachment(
         storage_backend.delete(storage_key)
         raise
 
+    return QuarantinedAttachmentResult(attachment=attachment, created=True)
+
+
+def _record_blocked_attachment(
+    message: TicketMessage,
+    payload: AttachmentPayload,
+    *,
+    provider_attachment_id: str,
+    safe_filename: str,
+    size: int,
+    max_bytes: int,
+) -> QuarantinedAttachmentResult:
+    try:
+        attachment = TicketAttachment.objects.create(
+            message=message,
+            provider_attachment_id=provider_attachment_id,
+            original_filename=safe_filename,
+            content_id=payload.content_id.strip()[:512],
+            is_inline=payload.is_inline,
+            declared_content_type=payload.declared_content_type.strip()[:255],
+            size=size,
+            scan_status=TicketAttachment.ScanStatus.BLOCKED,
+            scan_result=f"Attachment exceeds the {max_bytes}-byte quarantine limit.",
+        )
+    except IntegrityError:
+        existing = TicketAttachment.objects.filter(
+            message=message,
+            provider_attachment_id=provider_attachment_id,
+        ).first()
+        if existing is None:
+            raise
+        return QuarantinedAttachmentResult(attachment=existing, created=False)
     return QuarantinedAttachmentResult(attachment=attachment, created=True)
 
 

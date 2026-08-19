@@ -101,33 +101,36 @@ class AttachmentQuarantineTests(TestCase):
         self.assertEqual(TicketAttachment.objects.count(), 1)
         self.assertEqual(second.attachment.original_filename, "first.txt")
 
-    def test_quarantine_rejects_actual_or_reported_oversized_content(self) -> None:
-        with self.assertRaisesMessage(AttachmentQuarantineError, "exceeds"):
-            quarantine_attachment(
-                self.message,
-                AttachmentPayload(
-                    provider_attachment_id="attachment-1",
-                    filename="large.bin",
-                    content=b"1234",
-                ),
-                storage=self.storage,
-                max_bytes=3,
-            )
+    def test_quarantine_blocks_oversized_content_without_storing_it(self) -> None:
+        actual_size = quarantine_attachment(
+            self.message,
+            AttachmentPayload(
+                provider_attachment_id="attachment-1",
+                filename="large.bin",
+                content=b"1234",
+            ),
+            storage=self.storage,
+            max_bytes=3,
+        ).attachment
+        reported_size = quarantine_attachment(
+            self.message,
+            AttachmentPayload(
+                provider_attachment_id="attachment-2",
+                filename="reported-large.bin",
+                content=b"12",
+                reported_size=4,
+            ),
+            storage=self.storage,
+            max_bytes=3,
+        ).attachment
 
-        with self.assertRaisesMessage(AttachmentQuarantineError, "exceeds"):
-            quarantine_attachment(
-                self.message,
-                AttachmentPayload(
-                    provider_attachment_id="attachment-2",
-                    filename="reported-large.bin",
-                    content=b"12",
-                    reported_size=4,
-                ),
-                storage=self.storage,
-                max_bytes=3,
-            )
-
-        self.assertEqual(TicketAttachment.objects.count(), 0)
+        for attachment in (actual_size, reported_size):
+            self.assertEqual(attachment.scan_status, TicketAttachment.ScanStatus.BLOCKED)
+            self.assertEqual(attachment.storage_key, "")
+            self.assertIn("exceeds", attachment.scan_result)
+            self.assertFalse(attachment.sha256)
+        self.assertEqual(actual_size.size, 4)
+        self.assertEqual(reported_size.size, 4)
 
     def test_quarantine_requires_provider_attachment_id(self) -> None:
         with self.assertRaisesMessage(AttachmentQuarantineError, "provider attachment ID"):
