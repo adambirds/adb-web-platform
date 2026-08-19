@@ -5,7 +5,12 @@ from unittest.mock import Mock, patch
 from django.test import TestCase
 
 from apps.core.models import Brand
-from apps.ticketing.models import Mailbox, MicrosoftGraphConnection, TicketQueue
+from apps.ticketing.models import (
+    Mailbox,
+    MicrosoftGraphConnection,
+    TicketAttachment,
+    TicketQueue,
+)
 from apps.ticketing.services.attachments import AttachmentPayload
 from apps.ticketing.services.contracts import CanonicalMessage
 from apps.ticketing.services.graph import MicrosoftGraphAdapter
@@ -62,12 +67,14 @@ class GraphAttachmentIngestionTaskTests(TestCase):
         )
         self.adapter = Mock(spec=MicrosoftGraphAdapter)
 
+    @patch("apps.ticketing.tasks.scan_ticket_attachment_task.delay")
     @patch("apps.ticketing.tasks.quarantine_attachment")
     @patch("apps.ticketing.tasks.ingest_canonical_message")
-    def test_consumer_quarantines_graph_attachments_after_ingestion(
+    def test_consumer_quarantines_and_enqueues_graph_attachments(
         self,
         ingest: Mock,
         quarantine: Mock,
+        scan_delay: Mock,
     ) -> None:
         stored_message = Mock()
         ingest.return_value.message = stored_message
@@ -77,6 +84,9 @@ class GraphAttachmentIngestionTaskTests(TestCase):
             content=b"pdf",
         )
         self.adapter.fetch_file_attachments.return_value = (attachment,)
+        quarantined = quarantine.return_value.attachment
+        quarantined.id = 42
+        quarantined.scan_status = TicketAttachment.ScanStatus.PENDING
 
         _consume_canonical_message(
             self.mailbox,
@@ -90,13 +100,43 @@ class GraphAttachmentIngestionTaskTests(TestCase):
             "message-id",
         )
         quarantine.assert_called_once_with(stored_message, attachment)
+        scan_delay.assert_called_once_with(42)
 
+    @patch("apps.ticketing.tasks.scan_ticket_attachment_task.delay")
+    @patch("apps.ticketing.tasks.quarantine_attachment")
+    @patch("apps.ticketing.tasks.ingest_canonical_message")
+    def test_consumer_does_not_scan_policy_blocked_attachment(
+        self,
+        ingest: Mock,
+        quarantine: Mock,
+        scan_delay: Mock,
+    ) -> None:
+        ingest.return_value.message = Mock()
+        attachment = AttachmentPayload(
+            provider_attachment_id="attachment-id",
+            filename="large.bin",
+            content=b"",
+            reported_size=100_000_000,
+        )
+        self.adapter.fetch_file_attachments.return_value = (attachment,)
+        quarantine.return_value.attachment.scan_status = TicketAttachment.ScanStatus.BLOCKED
+
+        _consume_canonical_message(
+            self.mailbox,
+            self.canonical,
+            adapter=self.adapter,
+        )
+
+        scan_delay.assert_not_called()
+
+    @patch("apps.ticketing.tasks.scan_ticket_attachment_task.delay")
     @patch("apps.ticketing.tasks.quarantine_attachment")
     @patch("apps.ticketing.tasks.ingest_canonical_message")
     def test_consumer_skips_attachment_request_when_message_has_none(
         self,
         ingest: Mock,
         quarantine: Mock,
+        scan_delay: Mock,
     ) -> None:
         canonical = CanonicalMessage(
             provider=self.canonical.provider,
@@ -122,3 +162,4 @@ class GraphAttachmentIngestionTaskTests(TestCase):
         ingest.assert_called_once_with(self.mailbox, canonical)
         self.adapter.fetch_file_attachments.assert_not_called()
         quarantine.assert_not_called()
+        scan_delay.assert_not_called()

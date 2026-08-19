@@ -5,11 +5,18 @@ from contextlib import contextmanager, suppress
 from functools import partial
 
 from celery import shared_task
+from django.core.files.storage import default_storage
+from django.utils import timezone
 from django_redis import get_redis_connection
 from redis.exceptions import LockError
 
 from apps.ticketing.config import graph_sync_lock_seconds
-from apps.ticketing.models import Mailbox, MicrosoftGraphConnection, TicketMessage
+from apps.ticketing.models import (
+    Mailbox,
+    MicrosoftGraphConnection,
+    TicketAttachment,
+    TicketMessage,
+)
 from apps.ticketing.services.attachments import quarantine_attachment
 from apps.ticketing.services.contracts import CanonicalMessage
 from apps.ticketing.services.graph import (
@@ -30,15 +37,26 @@ from apps.ticketing.services.replies import (
     fail_ticket_reply,
     mark_ticket_reply_sending,
 )
+from apps.ticketing.services.scanning import (
+    AttachmentScanError,
+    clamav_scanner_from_environment,
+)
 
 GRAPH_SYNC_LOCK_PREFIX = "ticketing:graph-mailbox-sync"
 REPLY_DELIVERY_LOCK_PREFIX = "ticketing:reply-delivery"
+ATTACHMENT_SCAN_LOCK_PREFIX = "ticketing:attachment-scan"
 REPLY_DELIVERY_LOCK_SECONDS = 300
+ATTACHMENT_SCAN_LOCK_SECONDS = 5 * 60
 BACKGROUND_AUTH_METHODS = (
     MicrosoftGraphConnection.AuthenticationMethod.CERTIFICATE,
     MicrosoftGraphConnection.AuthenticationMethod.CLIENT_SECRET,
 )
 RETRYABLE_GRAPH_ERRORS = (MicrosoftGraphError, MicrosoftGraphAuthenticationError)
+TERMINAL_ATTACHMENT_SCAN_STATUSES = (
+    TicketAttachment.ScanStatus.SAFE,
+    TicketAttachment.ScanStatus.INFECTED,
+    TicketAttachment.ScanStatus.BLOCKED,
+)
 
 
 @shared_task(name="ticketing.enqueue_graph_mailbox_syncs")
@@ -82,6 +100,79 @@ def sync_graph_mailbox_task(mailbox_id: int) -> int:
         adapter = MicrosoftGraphAdapter(token_provider)
         consumer = partial(_consume_canonical_message, adapter=adapter)
         return sync_graph_mailbox(mailbox, adapter, consumer)
+
+
+@shared_task(
+    name="ticketing.scan_ticket_attachment",
+    autoretry_for=(AttachmentScanError,),
+    retry_backoff=True,
+    retry_backoff_max=300,
+    retry_jitter=True,
+    max_retries=3,
+)
+def scan_ticket_attachment_task(attachment_id: int) -> int:
+    """Scan a quarantined attachment and release it only after a clean verdict."""
+    attachment = TicketAttachment.objects.filter(id=attachment_id).first()
+    if attachment is None or attachment.scan_status in TERMINAL_ATTACHMENT_SCAN_STATUSES:
+        return 0
+
+    with _ticket_attachment_scan_lock(attachment.id) as acquired:
+        if not acquired:
+            return 0
+
+        attachment.refresh_from_db()
+        if attachment.scan_status in TERMINAL_ATTACHMENT_SCAN_STATUSES:
+            return 0
+
+        scanner = clamav_scanner_from_environment()
+        attachment.scan_status = TicketAttachment.ScanStatus.SCANNING
+        attachment.scan_engine = scanner.engine_name
+        attachment.scan_result = ""
+        attachment.scanned_at = None
+        attachment.safe_at = None
+        attachment.save(
+            update_fields=[
+                "scan_status",
+                "scan_engine",
+                "scan_result",
+                "scanned_at",
+                "safe_at",
+            ]
+        )
+
+        try:
+            if not attachment.storage_key:
+                raise AttachmentScanError("Quarantined attachment content is unavailable.")
+            with default_storage.open(attachment.storage_key, "rb") as stream:
+                verdict = scanner.scan(stream)
+        except AttachmentScanError as exc:
+            _record_attachment_scan_failure(attachment, scanner.engine_name, exc)
+            raise
+        except OSError as exc:
+            scan_error = AttachmentScanError("Unable to read quarantined attachment content.")
+            _record_attachment_scan_failure(attachment, scanner.engine_name, scan_error)
+            raise scan_error from exc
+
+        attachment.scan_engine = scanner.engine_name
+        attachment.scanned_at = timezone.now()
+        attachment.safe_at = None
+        if verdict.clean:
+            attachment.scan_status = TicketAttachment.ScanStatus.SAFE
+            attachment.scan_result = "OK"
+            attachment.safe_at = attachment.scanned_at
+        else:
+            attachment.scan_status = TicketAttachment.ScanStatus.INFECTED
+            attachment.scan_result = verdict.signature or "Malware detected"
+        attachment.save(
+            update_fields=[
+                "scan_status",
+                "scan_engine",
+                "scan_result",
+                "scanned_at",
+                "safe_at",
+            ]
+        )
+        return 1
 
 
 @shared_task(
@@ -181,7 +272,33 @@ def _consume_canonical_message(
         return
 
     for payload in adapter.fetch_file_attachments(mailbox, canonical.provider_message_id):
-        quarantine_attachment(result.message, payload)
+        quarantined = quarantine_attachment(result.message, payload)
+        if quarantined.attachment.scan_status in (
+            TicketAttachment.ScanStatus.PENDING,
+            TicketAttachment.ScanStatus.FAILED,
+        ):
+            scan_ticket_attachment_task.delay(quarantined.attachment.id)
+
+
+def _record_attachment_scan_failure(
+    attachment: TicketAttachment,
+    engine_name: str,
+    error: Exception,
+) -> None:
+    attachment.scan_status = TicketAttachment.ScanStatus.FAILED
+    attachment.scan_engine = engine_name
+    attachment.scan_result = f"{type(error).__name__}: {error}"[:2000]
+    attachment.scanned_at = timezone.now()
+    attachment.safe_at = None
+    attachment.save(
+        update_fields=[
+            "scan_status",
+            "scan_engine",
+            "scan_result",
+            "scanned_at",
+            "safe_at",
+        ]
+    )
 
 
 @contextmanager
@@ -210,6 +327,24 @@ def _ticket_reply_delivery_lock(message_id: int) -> Iterator[bool]:
     lock = redis.lock(
         f"{REPLY_DELIVERY_LOCK_PREFIX}:{message_id}",
         timeout=REPLY_DELIVERY_LOCK_SECONDS,
+        blocking_timeout=0,
+    )
+    acquired = bool(lock.acquire(blocking=False))
+    try:
+        yield acquired
+    finally:
+        if acquired:
+            with suppress(LockError):
+                lock.release()
+
+
+@contextmanager
+def _ticket_attachment_scan_lock(attachment_id: int) -> Iterator[bool]:
+    """Prevent duplicate scanner workers from scanning the same attachment concurrently."""
+    redis = get_redis_connection("default")
+    lock = redis.lock(
+        f"{ATTACHMENT_SCAN_LOCK_PREFIX}:{attachment_id}",
+        timeout=ATTACHMENT_SCAN_LOCK_SECONDS,
         blocking_timeout=0,
     )
     acquired = bool(lock.acquire(blocking=False))
