@@ -41,15 +41,26 @@ def classify_message(
     canonical: CanonicalMessage,
     client: Client | None,
 ) -> ClassificationDecision:
-    """Classify an inbound message using conservative, explainable deterministic rules."""
+    """Classify a mailbox message using conservative, explainable deterministic rules."""
+    return classify_message_for_purpose(mailbox.purpose, canonical, client)
+
+
+def classify_message_for_purpose(
+    purpose: str,
+    canonical: CanonicalMessage,
+    client: Client | None,
+) -> ClassificationDecision:
+    """Classify an inbound message without coupling source adapters to a Mailbox model."""
+    normalised_purpose = purpose.strip().lower()
+
     if client is not None:
-        if mailbox.purpose == Mailbox.Purpose.SALES:
+        if normalised_purpose == Mailbox.Purpose.SALES:
             return ClassificationDecision(
                 classification=Ticket.Classification.SALES,
                 score=100,
                 reasons=("known_client", "sales_mailbox"),
             )
-        if mailbox.purpose == Mailbox.Purpose.ACCOUNTS:
+        if normalised_purpose == Mailbox.Purpose.ACCOUNTS:
             return ClassificationDecision(
                 classification=Ticket.Classification.ACCOUNTS,
                 score=100,
@@ -102,13 +113,13 @@ def classify_message(
             suggested_priority=Ticket.Priority.LOW,
         )
 
-    if mailbox.purpose == Mailbox.Purpose.SALES:
+    if normalised_purpose == Mailbox.Purpose.SALES:
         return ClassificationDecision(
             classification=Ticket.Classification.SALES,
             score=60,
             reasons=("sales_mailbox",),
         )
-    if mailbox.purpose == Mailbox.Purpose.ACCOUNTS:
+    if normalised_purpose == Mailbox.Purpose.ACCOUNTS:
         return ClassificationDecision(
             classification=Ticket.Classification.ACCOUNTS,
             score=60,
