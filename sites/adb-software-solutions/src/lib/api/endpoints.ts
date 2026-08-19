@@ -36,6 +36,10 @@ export const AdminAPI = {
         reply: (id: number) => `${API_BASE_URL}/admin/tickets/${id}/reply`,
         notes: (id: number) => `${API_BASE_URL}/admin/tickets/${id}/notes`,
         queues: () => `${API_BASE_URL}/admin/ticket-queues`,
+        attachments: {
+            download: (id: number) =>
+                `${API_BASE_URL}/admin/ticket-attachments/${id}/download`,
+        },
         operations: {
             options: (id: number) =>
                 `${API_BASE_URL}/admin/tickets/${id}/operations`,

@@ -3,7 +3,6 @@
 import { Card, DataError, DataLoading, Select } from "@/components/ui";
 import { AdminAPI } from "@/lib/api/endpoints";
 import { fetchAPI } from "@/lib/api/fetch";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 interface TicketChoice {
@@ -51,7 +50,6 @@ interface TicketOperationOptions {
 type OperationName = "status" | "priority" | "queue" | "assignment";
 
 export function TicketControls({ ticketId }: { ticketId: number }) {
-    const router = useRouter();
     const [options, setOptions] = useState<TicketOperationOptions | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [pendingOperation, setPendingOperation] = useState<OperationName | null>(null);
@@ -99,7 +97,7 @@ export function TicketControls({ ticketId }: { ticketId: number }) {
                 AdminAPI.tickets.operations.options(ticketId),
             )) as TicketOperationOptions;
             setOptions(refreshed);
-            router.refresh();
+            window.dispatchEvent(new Event("adb:ticket-updated"));
         } catch (updateError) {
             setError(
                 updateError instanceof Error

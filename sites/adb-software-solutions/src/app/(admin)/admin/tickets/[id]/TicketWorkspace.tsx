@@ -132,6 +132,14 @@ export function TicketWorkspace({ ticketId }: { ticketId: number }) {
         void loadTicket();
     }, [loadTicket]);
 
+    useEffect(() => {
+        const handleTicketUpdated = () => {
+            void loadTicket();
+        };
+        window.addEventListener("adb:ticket-updated", handleTicketUpdated);
+        return () => window.removeEventListener("adb:ticket-updated", handleTicketUpdated);
+    }, [loadTicket]);
+
     async function handleReply(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         const bodyText = replyBody.trim();
@@ -443,9 +451,24 @@ export function TicketWorkspace({ ticketId }: { ticketId: number }) {
                                 </p>
                             ) : (
                                 ticket.attachments.map((attachment) => (
-                                    <div key={attachment.id} className="rounded-lg border border-slate-800 p-3">
-                                        <div className="text-sm font-medium text-slate-300">
-                                            {attachment.original_filename}
+                                    <div
+                                        key={attachment.id}
+                                        className="rounded-lg border border-slate-800 p-3"
+                                    >
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="min-w-0 text-sm font-medium text-slate-300">
+                                                {attachment.original_filename}
+                                            </div>
+                                            {attachment.scan_status === "safe" ? (
+                                                <a
+                                                    href={AdminAPI.tickets.attachments.download(
+                                                        attachment.id,
+                                                    )}
+                                                    className="shrink-0 text-xs font-medium text-cyan-400 hover:text-cyan-300"
+                                                >
+                                                    Download
+                                                </a>
+                                            ) : null}
                                         </div>
                                         <div className="mt-1 text-xs text-slate-500">
                                             {attachment.detected_content_type ||
