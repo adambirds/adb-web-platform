@@ -11,7 +11,10 @@ export default async function ClientPage({
 
     return (
         <Container className="py-8">
-            <div className="mb-4 flex justify-end">
+            <div className="mb-4 flex flex-wrap justify-end gap-2">
+                <ButtonLink href={`/admin/clients/${clientId}/contacts/new`}>
+                    Add contact
+                </ButtonLink>
                 <ButtonLink href={`/admin/clients/${clientId}/edit`} variant="secondary">
                     Edit client
                 </ButtonLink>

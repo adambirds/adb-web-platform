@@ -14,6 +14,14 @@ export const AdminAPI = {
         create: () => `${API_BASE_URL}/admin/clients`,
         update: (id: number) => `${API_BASE_URL}/admin/clients/${id}`,
         delete: (id: number) => `${API_BASE_URL}/admin/clients/${id}`,
+        contacts: {
+            create: (clientId: number) =>
+                `${API_BASE_URL}/admin/clients/${clientId}/contacts`,
+            get: (clientId: number, contactId: number) =>
+                `${API_BASE_URL}/admin/clients/${clientId}/contacts/${contactId}`,
+            update: (clientId: number, contactId: number) =>
+                `${API_BASE_URL}/admin/clients/${clientId}/contacts/${contactId}`,
+        },
     },
     projects: {
         list: () => `${API_BASE_URL}/admin/projects`,
