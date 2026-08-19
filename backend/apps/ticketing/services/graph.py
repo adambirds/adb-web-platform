@@ -14,7 +14,7 @@ import requests
 from django.utils import timezone
 
 from apps.ticketing.models import Mailbox
-from apps.ticketing.services.attachments import AttachmentPayload
+from apps.ticketing.services.attachments import AttachmentPayload, DEFAULT_MAX_ATTACHMENT_BYTES
 from apps.ticketing.services.contracts import CanonicalMessage
 
 GRAPH_API_ROOT = "https://graph.microsoft.com/v1.0"
@@ -118,11 +118,15 @@ class MicrosoftGraphAdapter:
         self,
         mailbox: Mailbox,
         provider_message_id: str,
+        *,
+        max_bytes: int = DEFAULT_MAX_ATTACHMENT_BYTES,
     ) -> tuple[AttachmentPayload, ...]:
         """Fetch file attachments for one immutable Graph message ID."""
         message_id = provider_message_id.strip()
         if not message_id:
             raise MicrosoftGraphError("A provider message ID is required to fetch attachments.")
+        if max_bytes <= 0:
+            raise MicrosoftGraphError("The attachment size limit must be positive.")
 
         mailbox_identifier = self._mailbox_identifier(mailbox)
         encoded_message_id = quote(message_id, safe="")
@@ -152,6 +156,18 @@ class MicrosoftGraphAdapter:
                     raise MicrosoftGraphPayloadError(
                         "Microsoft Graph file attachment is missing its ID."
                     )
+
+                reported_size = self._reported_attachment_size(row)
+                if reported_size is not None and reported_size > max_bytes:
+                    attachments.append(
+                        self._attachment_metadata_payload(
+                            row,
+                            attachment_id,
+                            reported_size=reported_size,
+                        )
+                    )
+                    continue
+
                 encoded_attachment_id = quote(attachment_id, safe="")
                 detail = self._get_json(f"{message_root}/attachments/{encoded_attachment_id}")
                 attachments.append(self._attachment_payload(detail, attachment_id))
@@ -277,24 +293,44 @@ class MicrosoftGraphAdapter:
                 "Microsoft Graph returned invalid file attachment content."
             ) from exc
 
-        size_value = payload.get("size")
-        reported_size: int | None = None
-        if size_value is not None:
-            if isinstance(size_value, bool) or not isinstance(size_value, int) or size_value < 0:
-                raise MicrosoftGraphPayloadError(
-                    "Microsoft Graph returned an invalid file attachment size."
-                )
-            reported_size = size_value
-
         return AttachmentPayload(
             provider_attachment_id=attachment_id,
             filename=str(payload.get("name") or "attachment.bin").strip(),
             content=content,
             declared_content_type=str(payload.get("contentType") or "").strip(),
+            reported_size=self._reported_attachment_size(payload),
+            content_id=str(payload.get("contentId") or "").strip(),
+            is_inline=bool(payload.get("isInline", False)),
+        )
+
+    @classmethod
+    def _attachment_metadata_payload(
+        cls,
+        payload: dict[str, Any],
+        attachment_id: str,
+        *,
+        reported_size: int,
+    ) -> AttachmentPayload:
+        return AttachmentPayload(
+            provider_attachment_id=attachment_id,
+            filename=str(payload.get("name") or "attachment.bin").strip(),
+            content=b"",
+            declared_content_type=str(payload.get("contentType") or "").strip(),
             reported_size=reported_size,
             content_id=str(payload.get("contentId") or "").strip(),
             is_inline=bool(payload.get("isInline", False)),
         )
+
+    @staticmethod
+    def _reported_attachment_size(payload: dict[str, Any]) -> int | None:
+        size_value = payload.get("size")
+        if size_value is None:
+            return None
+        if isinstance(size_value, bool) or not isinstance(size_value, int) or size_value < 0:
+            raise MicrosoftGraphPayloadError(
+                "Microsoft Graph returned an invalid file attachment size."
+            )
+        return size_value
 
     @staticmethod
     def _mailbox_identifier(mailbox: Mailbox) -> str:

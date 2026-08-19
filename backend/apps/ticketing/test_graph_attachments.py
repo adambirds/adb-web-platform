@@ -109,6 +109,37 @@ class MicrosoftGraphAttachmentTests(TestCase):
             f"{list_url}/file-attachment-id",
         )
 
+    def test_fetch_file_attachments_skips_content_request_for_oversized_file(self) -> None:
+        self.session.get.return_value = self._response(
+            {
+                "value": [
+                    {
+                        "@odata.type": "#microsoft.graph.fileAttachment",
+                        "id": "large-attachment-id",
+                        "name": "archive.zip",
+                        "contentType": "application/zip",
+                        "size": 4,
+                        "isInline": False,
+                    }
+                ]
+            }
+        )
+
+        attachments = self.adapter.fetch_file_attachments(
+            self.mailbox,
+            "message-id",
+            max_bytes=3,
+        )
+
+        self.assertEqual(len(attachments), 1)
+        attachment = attachments[0]
+        self.assertEqual(attachment.provider_attachment_id, "large-attachment-id")
+        self.assertEqual(attachment.filename, "archive.zip")
+        self.assertEqual(attachment.declared_content_type, "application/zip")
+        self.assertEqual(attachment.reported_size, 4)
+        self.assertEqual(attachment.content, b"")
+        self.assertEqual(self.session.get.call_count, 1)
+
     def test_fetch_file_attachments_uses_normalised_mailbox_address_without_graph_id(self) -> None:
         self.mailbox.graph_user_id = ""
         self.mailbox.save(update_fields=["graph_user_id"])
