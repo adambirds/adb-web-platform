@@ -1,30 +1,33 @@
-from django.contrib.auth import get_user_model
+from typing import Any, cast
+
 from django.contrib.auth.models import Permission
+from django.http import HttpRequest
 from django.test import RequestFactory, TestCase
 
 from apps.access_control.models import ClientAccessGrant, StaffAccessProfile
 from apps.clients.models import Client
 from apps.clients.ninja.admin_views import create_client, update_client
 from apps.clients.ninja.schemas import ClientDetailOut, ClientIn
+from authentication.models import User
 
 
 class ClientAdminApiTests(TestCase):
     def setUp(self) -> None:
         self.factory = RequestFactory()
-        self.superuser = get_user_model().objects.create_superuser(
+        self.superuser = User.objects.create_superuser(
             email="admin@example.com",
             password="test-password",
             first_name="Admin",
             last_name="User",
         )
 
-    def _request(self, user, method: str = "post"):
+    def _request(self, user: User, method: str = "post") -> HttpRequest:
         request = getattr(self.factory, method)("/api/admin/clients")
         request.user = user
         return request
 
-    def _payload(self, **overrides) -> ClientIn:
-        values = {
+    def _payload(self, **overrides: Any) -> ClientIn:
+        values: dict[str, Any] = {
             "name": "Jane Example",
             "company": "Example Ltd",
             "email": "JANE@EXAMPLE.COM",
@@ -40,8 +43,8 @@ class ClientAdminApiTests(TestCase):
         values.update(overrides)
         return ClientIn(**values)
 
-    def _staff_with_permission(self, codename: str):
-        user = get_user_model().objects.create_user(
+    def _staff_with_permission(self, codename: str) -> User:
+        user = User.objects.create_user(
             email=f"{codename}@example.com",
             password="test-password",
             first_name="Staff",
@@ -59,9 +62,9 @@ class ClientAdminApiTests(TestCase):
         create_result = create_client(self._request(self.superuser), self._payload())
 
         self.assertIsInstance(create_result, tuple)
-        status_code, detail = create_result
+        status_code, create_detail = create_result
         self.assertEqual(status_code, 201)
-        self.assertIsInstance(detail, ClientDetailOut)
+        detail = cast(ClientDetailOut, create_detail)
 
         client = Client.objects.get(id=detail.id)
         self.assertEqual(client.company, "Example Ltd")
@@ -85,8 +88,9 @@ class ClientAdminApiTests(TestCase):
         result = create_client(self._request(user), self._payload(email="new@example.com"))
 
         self.assertIsInstance(result, tuple)
-        status_code, detail = result
+        status_code, create_detail = result
         self.assertEqual(status_code, 201)
+        detail = cast(ClientDetailOut, create_detail)
         self.assertTrue(
             ClientAccessGrant.objects.filter(profile=profile, client_id=detail.id).exists()
         )
@@ -107,6 +111,6 @@ class ClientAdminApiTests(TestCase):
         )
 
         self.assertIsInstance(result, tuple)
-        status_code, problem = result
+        status_code, problem = cast(tuple[int, dict[str, Any]], result)
         self.assertEqual(status_code, 404)
         self.assertEqual(problem["code"], "not_found")

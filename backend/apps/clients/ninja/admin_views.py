@@ -1,5 +1,6 @@
-from typing import Any
+from typing import Any, cast
 
+from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.http import HttpRequest
 from ninja import Router
@@ -7,6 +8,7 @@ from ninja import Router
 from apps.access_control.models import ClientAccessGrant, StaffAccessProfile
 from apps.access_control.policies import scope_clients_for_user
 from apps.clients.models import Client, Project, TimeEntry
+from authentication.models import User
 from authentication.ninja.schemas import ProblemDetail
 
 from .schemas import (
@@ -51,6 +53,14 @@ def _permission_problem(request: HttpRequest, permission: str) -> StaffProblem |
             "code": "forbidden",
         }
     return None
+
+
+def _validation_problem(error: ValidationError) -> StaffProblem:
+    return 400, {
+        "message": "; ".join(error.messages) or "Invalid client details.",
+        "success": False,
+        "code": "validation_error",
+    }
 
 
 def _build_client_detail(request: HttpRequest, client: Client) -> ClientDetailOut:
@@ -106,7 +116,7 @@ def _build_client_detail(request: HttpRequest, client: Client) -> ClientDetailOu
 def _apply_client_payload(client: Client, payload: ClientIn) -> None:
     client.name = payload.name.strip()
     client.company = payload.company.strip()
-    client.email = str(payload.email).strip().lower()
+    client.email = payload.email.strip().lower()
     client.phone = payload.phone.strip()
     client.address = payload.address.strip()
     client.city = payload.city.strip()
@@ -117,18 +127,18 @@ def _apply_client_payload(client: Client, payload: ClientIn) -> None:
     client.notes = payload.notes.strip()
 
 
-def _grant_created_client_to_user(request: HttpRequest, client: Client) -> None:
-    if request.user.is_superuser:
+def _grant_created_client_to_user(user: User, client: Client) -> None:
+    if user.is_superuser:
         return
 
-    profile, _ = StaffAccessProfile.objects.get_or_create(user=request.user)
+    profile, _ = StaffAccessProfile.objects.get_or_create(user=user)
     if profile.all_clients:
         return
 
     ClientAccessGrant.objects.get_or_create(
         profile=profile,
         client=client,
-        defaults={"granted_by": request.user},
+        defaults={"granted_by": user},
     )
 
 
@@ -162,19 +172,30 @@ def list_clients(request: HttpRequest) -> list[ClientSummaryOut] | StaffProblem:
 
 @clients_admin_router.post(
     "/clients",
-    response={201: ClientDetailOut, 401: ProblemDetail, 403: ProblemDetail},
+    response={
+        201: ClientDetailOut,
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+    },
 )
-def create_client(request: HttpRequest, payload: ClientIn) -> tuple[int, ClientDetailOut] | StaffProblem:
+def create_client(
+    request: HttpRequest, payload: ClientIn
+) -> tuple[int, ClientDetailOut] | StaffProblem:
     problem = _permission_problem(request, "clients.add_client")
     if problem:
         return problem
 
     client = Client()
     _apply_client_payload(client, payload)
-    client.full_clean()
+    try:
+        client.full_clean()
+    except ValidationError as error:
+        return _validation_problem(error)
     client.save()
-    _grant_created_client_to_user(request, client)
 
+    user = cast(User, request.user)
+    _grant_created_client_to_user(user, client)
     return 201, _build_client_detail(request, client)
 
 
@@ -205,7 +226,13 @@ def get_client(request: HttpRequest, client_id: int) -> ClientDetailOut | StaffP
 
 @clients_admin_router.put(
     "/clients/{client_id}",
-    response={200: ClientDetailOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
+    response={
+        200: ClientDetailOut,
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+        404: ProblemDetail,
+    },
 )
 def update_client(
     request: HttpRequest,
@@ -230,7 +257,10 @@ def update_client(
         }
 
     _apply_client_payload(client, payload)
-    client.full_clean()
+    try:
+        client.full_clean()
+    except ValidationError as error:
+        return _validation_problem(error)
     client.save()
     return _build_client_detail(request, client)
 

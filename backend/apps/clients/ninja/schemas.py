@@ -3,7 +3,6 @@ from decimal import Decimal
 from typing import Literal
 
 from ninja import Schema
-from pydantic import EmailStr, Field
 
 
 ClientStatus = Literal["active", "inactive", "archived"]
@@ -58,15 +57,15 @@ class ClientDetailOut(Schema):
 
 
 class ClientIn(Schema):
-    name: str = Field(min_length=1, max_length=200)
-    company: str = Field(default="", max_length=200)
-    email: EmailStr
-    phone: str = Field(default="", max_length=20)
+    name: str
+    company: str = ""
+    email: str
+    phone: str = ""
     address: str = ""
-    city: str = Field(default="", max_length=100)
-    state: str = Field(default="", max_length=100)
-    country: str = Field(default="", max_length=100)
-    postal_code: str = Field(default="", max_length=20)
+    city: str = ""
+    state: str = ""
+    country: str = ""
+    postal_code: str = ""
     status: ClientStatus = "active"
     notes: str = ""
 
