@@ -40,6 +40,8 @@ export const AdminAPI = {
         create: () => `${API_BASE_URL}/admin/leads`,
         update: (id: number) => `${API_BASE_URL}/admin/leads/${id}`,
         options: () => `${API_BASE_URL}/admin/lead-options`,
+        assignment: (id: number) => `${API_BASE_URL}/admin/leads/${id}/assignment`,
+        convert: (id: number) => `${API_BASE_URL}/admin/leads/${id}/convert`,
     },
     tickets: {
         list: (query = "") =>
