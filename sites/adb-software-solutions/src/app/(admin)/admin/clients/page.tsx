@@ -1,4 +1,4 @@
-import { Container, PageHeader } from "@/components/ui";
+import { ButtonLink, Container, PageHeader } from "@/components/ui";
 import { ClientList } from "./ClientList";
 
 export const metadata = {
@@ -11,6 +11,7 @@ export default function ClientsPage() {
             <PageHeader
                 title="Clients"
                 description="Client accounts available within your current access scope."
+                actions={<ButtonLink href="/admin/clients/new">Add client</ButtonLink>}
             />
             <div className="mt-6">
                 <ClientList />
