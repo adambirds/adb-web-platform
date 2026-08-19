@@ -64,6 +64,8 @@ def ingest_contact_form_message(
     brand: Brand,
     queue: TicketQueue,
     canonical: CanonicalMessage,
+    *,
+    mailbox: Mailbox | None = None,
 ) -> TicketIngestionResult:
     """Persist a public website contact submission through the canonical ticket pipeline."""
     source = TicketIngestionSource(
@@ -71,6 +73,7 @@ def ingest_contact_form_message(
         queue=queue,
         source=Ticket.Source.CONTACT_FORM,
         purpose=Mailbox.Purpose.SALES,
+        mailbox=mailbox,
     )
     return ingest_source_message(source, canonical)
 
@@ -85,6 +88,8 @@ def ingest_source_message(
         raise TicketIngestionError("Canonical messages require a provider message ID.")
     if source.queue.brand_id is not None and source.queue.brand_id != source.brand.id:
         raise TicketIngestionError("Ticket source queue does not belong to the selected Brand.")
+    if source.mailbox is not None and source.mailbox.brand_id != source.brand.id:
+        raise TicketIngestionError("Ticket source mailbox does not belong to the selected Brand.")
 
     existing = _existing_provider_message(provider_message_id)
     if existing is not None:

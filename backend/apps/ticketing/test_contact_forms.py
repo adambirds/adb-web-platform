@@ -3,10 +3,17 @@ from django.test import TestCase
 from apps.clients.models import Client, ClientContact
 from apps.core.models import Brand
 from apps.crm.models import Lead
-from apps.ticketing.models import Ticket, TicketMessage, TicketQueue
+from apps.ticketing.models import (
+    Mailbox,
+    MicrosoftGraphConnection,
+    Ticket,
+    TicketMessage,
+    TicketQueue,
+)
 from apps.ticketing.services.contact_forms import (
     CONTACT_FORM_PROVIDER,
     contact_form_queue_for_brand,
+    contact_form_route_for_brand,
     ingest_website_contact_lead,
 )
 
@@ -22,14 +29,14 @@ class WebsiteContactTicketIngestionTests(TestCase):
             name="Support",
             key="support",
             brand=self.brand,
-            purpose="support",
+            purpose="Customer support",
             ordering=1,
         )
         self.sales_queue = TicketQueue.objects.create(
             name="Sales",
             key="sales",
             brand=self.brand,
-            purpose="sales",
+            purpose="Sales and pre-sales enquiries",
             default_priority=Ticket.Priority.NORMAL,
             ordering=2,
         )
@@ -51,6 +58,31 @@ class WebsiteContactTicketIngestionTests(TestCase):
 
     def test_sales_queue_is_preferred_for_contact_forms(self) -> None:
         self.assertEqual(contact_form_queue_for_brand(self.brand), self.sales_queue)
+
+    def test_sales_mailbox_default_queue_is_preferred_when_available(self) -> None:
+        connection = MicrosoftGraphConnection.objects.create(
+            name="Microsoft 365",
+            tenant_id="tenant-id",
+            client_id="client-id",
+        )
+        mailbox = Mailbox.objects.create(
+            graph_connection=connection,
+            email_address="sales@adb-test.example.test",
+            brand=self.brand,
+            purpose=Mailbox.Purpose.SALES,
+            default_queue=self.sales_queue,
+        )
+
+        route = contact_form_route_for_brand(self.brand)
+        result = ingest_website_contact_lead(self._lead())
+
+        self.assertIsNotNone(route)
+        assert route is not None
+        self.assertEqual(route.queue, self.sales_queue)
+        self.assertEqual(route.mailbox, mailbox)
+        self.assertIsNotNone(result)
+        assert result is not None
+        self.assertEqual(result.ticket.mailbox, mailbox)
 
     def test_contact_lead_creates_sales_ticket_and_normalised_message(self) -> None:
         lead = self._lead()

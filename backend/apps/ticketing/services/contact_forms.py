@@ -1,16 +1,25 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
+
+from django.db.models import Q
 
 from apps.core.models import Brand
 from apps.crm.models import Lead
-from apps.ticketing.models import TicketQueue
+from apps.ticketing.models import Mailbox, TicketQueue
 from apps.ticketing.services.contracts import CanonicalMessage
 from apps.ticketing.services.ingestion import TicketIngestionResult, ingest_contact_form_message
 
 logger = logging.getLogger(__name__)
 
 CONTACT_FORM_PROVIDER = "website_contact_form"
+
+
+@dataclass(frozen=True, slots=True)
+class ContactFormRoute:
+    queue: TicketQueue
+    mailbox: Mailbox | None = None
 
 
 def ingest_website_contact_lead(lead: Lead) -> TicketIngestionResult | None:
@@ -20,8 +29,8 @@ def ingest_website_contact_lead(lead: Lead) -> TicketIngestionResult | None:
         logger.warning("Cannot ingest website contact Lead %s without a Brand.", lead.pk)
         return None
 
-    queue = contact_form_queue_for_brand(brand)
-    if queue is None:
+    route = contact_form_route_for_brand(brand)
+    if route is None:
         logger.warning(
             "Cannot ingest website contact Lead %s because Brand %s has no enabled ticket queue.",
             lead.pk,
@@ -47,17 +56,50 @@ def ingest_website_contact_lead(lead: Lead) -> TicketIngestionResult | None:
         sent_or_received_at=lead.created_at,
         has_attachments=False,
     )
-    return ingest_contact_form_message(brand, queue, canonical)
+    return ingest_contact_form_message(
+        brand,
+        route.queue,
+        canonical,
+        mailbox=route.mailbox,
+    )
+
+
+def contact_form_route_for_brand(brand: Brand) -> ContactFormRoute | None:
+    """Prefer the Brand's sales mailbox/queue, then a matching enabled queue."""
+    sales_mailbox = (
+        Mailbox.objects.select_related("default_queue")
+        .filter(
+            brand=brand,
+            purpose=Mailbox.Purpose.SALES,
+            enabled=True,
+            default_queue__enabled=True,
+        )
+        .order_by("id")
+        .first()
+    )
+    if sales_mailbox is not None:
+        return ContactFormRoute(
+            queue=sales_mailbox.default_queue,
+            mailbox=sales_mailbox,
+        )
+
+    queues = TicketQueue.objects.filter(brand=brand, enabled=True)
+    for term in ("sales", "support"):
+        queue = (
+            queues.filter(Q(purpose__icontains=term) | Q(key__icontains=term))
+            .order_by("ordering", "name")
+            .first()
+        )
+        if queue is not None:
+            return ContactFormRoute(queue=queue)
+
+    queue = queues.order_by("ordering", "name").first()
+    return ContactFormRoute(queue=queue) if queue is not None else None
 
 
 def contact_form_queue_for_brand(brand: Brand) -> TicketQueue | None:
-    """Choose the Brand's sales queue, then support, then its first enabled queue."""
-    queues = TicketQueue.objects.filter(brand=brand, enabled=True)
-    for purpose in ("sales", "support"):
-        queue = queues.filter(purpose__iexact=purpose).order_by("ordering", "name").first()
-        if queue is not None:
-            return queue
-    return queues.order_by("ordering", "name").first()
+    route = contact_form_route_for_brand(brand)
+    return route.queue if route is not None else None
 
 
 def _contact_form_body(lead: Lead) -> str:
