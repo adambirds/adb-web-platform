@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -8,10 +8,15 @@ from ninja import Router
 from apps.access_control.policies import scope_clients_for_user, scope_ticket_queues_for_user
 from apps.core.models import Brand
 from apps.crm.models import Lead, LeadSource, LeadStatus
+from apps.crm.services import LeadOperationError, assign_lead, convert_lead
 from apps.ticketing.models import Ticket
+from authentication.models import User
 from authentication.ninja.schemas import ProblemDetail
 
 from .schemas import (
+    LeadAgentOut,
+    LeadAssignmentIn,
+    LeadConversionOut,
     LeadDetailOut,
     LeadIn,
     LeadLookupOut,
@@ -70,6 +75,31 @@ def _not_found_problem(resource: str) -> StaffProblem:
     }
 
 
+def _user_label(user: User | None) -> str | None:
+    if user is None:
+        return None
+    return user.get_full_name().strip() or user.email
+
+
+def _assignee_options() -> list[LeadAgentOut]:
+    assignees: list[LeadAgentOut] = []
+    for user in User.objects.filter(is_staff=True, is_active=True).order_by(
+        "first_name",
+        "last_name",
+        "email",
+    ):
+        if not user.has_perm("crm.view_lead"):
+            continue
+        assignees.append(
+            LeadAgentOut(
+                id=user.id,
+                name=_user_label(user) or user.email,
+                email=user.email,
+            )
+        )
+    return assignees
+
+
 def _related_tickets(request: HttpRequest, lead: Lead) -> list[LeadTicketOut]:
     if not request.user.has_perm("ticketing.view_ticket"):
         return []
@@ -100,6 +130,7 @@ def _related_tickets(request: HttpRequest, lead: Lead) -> list[LeadTicketOut]:
 
 
 def _build_lead_detail(request: HttpRequest, lead: Lead) -> LeadDetailOut:
+    converted = lead.converted_at is not None
     return LeadDetailOut(
         id=lead.id,
         name=lead.name,
@@ -112,6 +143,19 @@ def _build_lead_detail(request: HttpRequest, lead: Lead) -> LeadDetailOut:
         status_name=lead.status.name if lead.status else None,
         source_id=lead.source_id,
         source_name=lead.source.name if lead.source else None,
+        assigned_to_id=lead.assigned_to_id,
+        assigned_to_name=_user_label(lead.assigned_to),
+        converted_client_id=lead.converted_client_id,
+        converted_contact_id=lead.converted_contact_id,
+        converted_by_name=_user_label(lead.converted_by),
+        converted_at=lead.converted_at,
+        can_assign=request.user.has_perm("crm.assign_lead") and not converted,
+        can_convert=(
+            request.user.has_perm("crm.convert_lead")
+            and request.user.has_perm("clients.add_client")
+            and request.user.has_perm("clients.add_clientcontact")
+            and not converted
+        ),
         message=lead.message,
         notes=lead.notes,
         created_at=lead.created_at,
@@ -151,6 +195,18 @@ def _apply_lead_payload(lead: Lead, payload: LeadIn) -> StaffProblem | None:
     return None
 
 
+def _lead_queryset():
+    return Lead.objects.select_related(
+        "brand",
+        "status",
+        "source",
+        "assigned_to",
+        "converted_client",
+        "converted_contact",
+        "converted_by",
+    )
+
+
 @crm_admin_router.get(
     "/leads",
     response={200: list[LeadSummaryOut], 401: ProblemDetail, 403: ProblemDetail},
@@ -160,7 +216,7 @@ def list_leads(request: HttpRequest) -> list[LeadSummaryOut] | StaffProblem:
     if problem:
         return problem
 
-    leads = Lead.objects.select_related("brand", "source", "status").order_by("-created_at")
+    leads = _lead_queryset().order_by("-created_at")
     return [
         LeadSummaryOut(
             id=lead.id,
@@ -170,6 +226,8 @@ def list_leads(request: HttpRequest) -> list[LeadSummaryOut] | StaffProblem:
             status=lead.status.name if lead.status else "Unassigned",
             source=lead.source.name if lead.source else "Unknown",
             brand=lead.brand.name if lead.brand else "Unassigned",
+            assigned_to_name=_user_label(lead.assigned_to),
+            converted_at=lead.converted_at,
             created_at=lead.created_at,
         )
         for lead in leads
@@ -204,6 +262,7 @@ def lead_options(request: HttpRequest) -> LeadOptionsOut | StaffProblem:
             LeadLookupOut(id=source.id, name=source.name)
             for source in LeadSource.objects.order_by("name")
         ],
+        assignees=_assignee_options() if request.user.has_perm("crm.assign_lead") else [],
     )
 
 
@@ -243,7 +302,7 @@ def get_lead(request: HttpRequest, lead_id: int) -> LeadDetailOut | StaffProblem
     if problem:
         return problem
 
-    lead = Lead.objects.select_related("brand", "status", "source").filter(id=lead_id).first()
+    lead = _lead_queryset().filter(id=lead_id).first()
     if lead is None:
         return _not_found_problem("Lead")
     return _build_lead_detail(request, lead)
@@ -268,7 +327,7 @@ def update_lead(
     if problem:
         return problem
 
-    lead = Lead.objects.select_related("brand", "status", "source").filter(id=lead_id).first()
+    lead = _lead_queryset().filter(id=lead_id).first()
     if lead is None:
         return _not_found_problem("Lead")
 
@@ -281,3 +340,103 @@ def update_lead(
         return _validation_problem(error)
     lead.save()
     return _build_lead_detail(request, lead)
+
+
+@crm_admin_router.post(
+    "/leads/{lead_id}/assignment",
+    response={
+        200: LeadDetailOut,
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+        404: ProblemDetail,
+    },
+)
+def update_lead_assignment(
+    request: HttpRequest,
+    lead_id: int,
+    payload: LeadAssignmentIn,
+) -> LeadDetailOut | StaffProblem:
+    problem = _permission_problem(request, "crm.assign_lead")
+    if problem:
+        return problem
+
+    lead = _lead_queryset().filter(id=lead_id).first()
+    if lead is None:
+        return _not_found_problem("Lead")
+
+    assignee: User | None = None
+    if payload.assigned_to_id is not None:
+        assignee = User.objects.filter(
+            id=payload.assigned_to_id,
+            is_staff=True,
+            is_active=True,
+        ).first()
+        if assignee is None or not assignee.has_perm("crm.view_lead"):
+            return 400, {
+                "message": "The selected assignee cannot access leads.",
+                "success": False,
+                "code": "assignee_unavailable",
+            }
+
+    try:
+        assign_lead(lead, assignee)
+    except LeadOperationError as error:
+        return 400, {
+            "message": str(error),
+            "success": False,
+            "code": "assignment_invalid",
+        }
+    return _build_lead_detail(request, lead)
+
+
+@crm_admin_router.post(
+    "/leads/{lead_id}/convert",
+    response={
+        200: LeadConversionOut,
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+        404: ProblemDetail,
+    },
+)
+def convert_lead_to_client(
+    request: HttpRequest,
+    lead_id: int,
+) -> LeadConversionOut | StaffProblem:
+    problem = _permission_problem(request, "crm.convert_lead")
+    if problem:
+        return problem
+    if not (
+        request.user.has_perm("clients.add_client")
+        and request.user.has_perm("clients.add_clientcontact")
+    ):
+        return 403, {
+            "message": "You do not have permission to create the client and contact.",
+            "success": False,
+            "code": "forbidden",
+        }
+
+    lead = _lead_queryset().filter(id=lead_id).first()
+    if lead is None:
+        return _not_found_problem("Lead")
+
+    user = cast(User, request.user)
+    try:
+        result = convert_lead(lead, user)
+    except ValidationError as error:
+        return _validation_problem(error)
+    except LeadOperationError as error:
+        return 400, {
+            "message": str(error),
+            "success": False,
+            "code": "conversion_invalid",
+        }
+
+    lead = _lead_queryset().get(id=lead.id)
+    return LeadConversionOut(
+        lead=_build_lead_detail(request, lead),
+        client_id=result.client.id,
+        contact_id=result.contact.id,
+        linked_ticket_count=result.linked_ticket_count,
+    )
