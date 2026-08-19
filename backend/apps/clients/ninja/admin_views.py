@@ -1,17 +1,19 @@
 from typing import Any, cast
 
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Count, Q
 from django.http import HttpRequest
 from ninja import Router
 
 from apps.access_control.models import ClientAccessGrant, StaffAccessProfile
 from apps.access_control.policies import scope_clients_for_user
-from apps.clients.models import Client, Project, TimeEntry
+from apps.clients.models import Client, ClientContact, Project, TimeEntry
 from authentication.models import User
 from authentication.ninja.schemas import ProblemDetail
 
 from .schemas import (
+    ClientContactIn,
     ClientContactOut,
     ClientDetailOut,
     ClientIn,
@@ -55,31 +57,44 @@ def _permission_problem(request: HttpRequest, permission: str) -> StaffProblem |
     return None
 
 
-def _validation_problem(error: ValidationError) -> StaffProblem:
+def _validation_problem(error: ValidationError, fallback: str = "Invalid client details.") -> StaffProblem:
     return 400, {
-        "message": "; ".join(error.messages) or "Invalid client details.",
+        "message": "; ".join(error.messages) or fallback,
         "success": False,
         "code": "validation_error",
     }
 
 
+def _not_found_problem(resource: str) -> StaffProblem:
+    return 404, {
+        "message": f"{resource} not found or outside your access scope.",
+        "success": False,
+        "code": "not_found",
+    }
+
+
+def _get_scoped_client(request: HttpRequest, client_id: int) -> Client | None:
+    return scope_clients_for_user(request.user).filter(id=client_id).first()
+
+
+def _build_contact_out(contact: ClientContact) -> ClientContactOut:
+    return ClientContactOut(
+        id=contact.id,
+        name=contact.name,
+        email=contact.email,
+        phone=contact.phone,
+        role=contact.role,
+        is_active=contact.is_active,
+        is_primary=contact.is_primary,
+        is_billing=contact.is_billing,
+        is_technical=contact.is_technical,
+    )
+
+
 def _build_client_detail(request: HttpRequest, client: Client) -> ClientDetailOut:
     contacts = []
     if request.user.has_perm("clients.view_clientcontact"):
-        contacts = [
-            ClientContactOut(
-                id=contact.id,
-                name=contact.name,
-                email=contact.email,
-                phone=contact.phone,
-                role=contact.role,
-                is_active=contact.is_active,
-                is_primary=contact.is_primary,
-                is_billing=contact.is_billing,
-                is_technical=contact.is_technical,
-            )
-            for contact in client.contacts.all()
-        ]
+        contacts = [_build_contact_out(contact) for contact in client.contacts.all()]
 
     projects = []
     if request.user.has_perm("clients.view_project"):
@@ -125,6 +140,32 @@ def _apply_client_payload(client: Client, payload: ClientIn) -> None:
     client.postal_code = payload.postal_code.strip()
     client.status = payload.status
     client.notes = payload.notes.strip()
+
+
+def _apply_contact_payload(contact: ClientContact, payload: ClientContactIn) -> None:
+    contact.name = payload.name.strip()
+    contact.email = payload.email.strip().lower()
+    contact.phone = payload.phone.strip()
+    contact.role = payload.role.strip()
+    contact.is_active = payload.is_active
+    contact.is_primary = payload.is_primary
+    contact.is_billing = payload.is_billing
+    contact.is_technical = payload.is_technical
+
+    if not contact.is_active:
+        contact.is_primary = False
+        contact.is_billing = False
+        contact.is_technical = False
+
+
+def _save_contact(contact: ClientContact) -> None:
+    contact.full_clean()
+    with transaction.atomic():
+        if contact.is_primary:
+            ClientContact.objects.filter(client=contact.client, is_primary=True).exclude(
+                pk=contact.pk
+            ).update(is_primary=False)
+        contact.save()
 
 
 def _grant_created_client_to_user(user: User, client: Client) -> None:
@@ -215,11 +256,7 @@ def get_client(request: HttpRequest, client_id: int) -> ClientDetailOut | StaffP
         .first()
     )
     if client is None:
-        return 404, {
-            "message": "Client not found or outside your access scope.",
-            "success": False,
-            "code": "not_found",
-        }
+        return _not_found_problem("Client")
 
     return _build_client_detail(request, client)
 
@@ -250,11 +287,7 @@ def update_client(
         .first()
     )
     if client is None:
-        return 404, {
-            "message": "Client not found or outside your access scope.",
-            "success": False,
-            "code": "not_found",
-        }
+        return _not_found_problem("Client")
 
     _apply_client_payload(client, payload)
     try:
@@ -263,6 +296,100 @@ def update_client(
         return _validation_problem(error)
     client.save()
     return _build_client_detail(request, client)
+
+
+@clients_admin_router.post(
+    "/clients/{client_id}/contacts",
+    response={
+        201: ClientContactOut,
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+        404: ProblemDetail,
+    },
+)
+def create_client_contact(
+    request: HttpRequest,
+    client_id: int,
+    payload: ClientContactIn,
+) -> tuple[int, ClientContactOut] | StaffProblem:
+    problem = _permission_problem(request, "clients.add_clientcontact")
+    if problem:
+        return problem
+
+    client = _get_scoped_client(request, client_id)
+    if client is None:
+        return _not_found_problem("Client")
+
+    contact = ClientContact(client=client)
+    _apply_contact_payload(contact, payload)
+    try:
+        _save_contact(contact)
+    except ValidationError as error:
+        return _validation_problem(error, "Invalid contact details.")
+
+    return 201, _build_contact_out(contact)
+
+
+@clients_admin_router.get(
+    "/clients/{client_id}/contacts/{contact_id}",
+    response={200: ClientContactOut, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail},
+)
+def get_client_contact(
+    request: HttpRequest,
+    client_id: int,
+    contact_id: int,
+) -> ClientContactOut | StaffProblem:
+    problem = _permission_problem(request, "clients.view_clientcontact")
+    if problem:
+        return problem
+
+    client = _get_scoped_client(request, client_id)
+    if client is None:
+        return _not_found_problem("Client")
+
+    contact = ClientContact.objects.filter(client=client, id=contact_id).first()
+    if contact is None:
+        return _not_found_problem("Contact")
+
+    return _build_contact_out(contact)
+
+
+@clients_admin_router.put(
+    "/clients/{client_id}/contacts/{contact_id}",
+    response={
+        200: ClientContactOut,
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+        404: ProblemDetail,
+    },
+)
+def update_client_contact(
+    request: HttpRequest,
+    client_id: int,
+    contact_id: int,
+    payload: ClientContactIn,
+) -> ClientContactOut | StaffProblem:
+    problem = _permission_problem(request, "clients.change_clientcontact")
+    if problem:
+        return problem
+
+    client = _get_scoped_client(request, client_id)
+    if client is None:
+        return _not_found_problem("Client")
+
+    contact = ClientContact.objects.filter(client=client, id=contact_id).first()
+    if contact is None:
+        return _not_found_problem("Contact")
+
+    _apply_contact_payload(contact, payload)
+    try:
+        _save_contact(contact)
+    except ValidationError as error:
+        return _validation_problem(error, "Invalid contact details.")
+
+    return _build_contact_out(contact)
 
 
 @clients_admin_router.get(

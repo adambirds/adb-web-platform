@@ -29,6 +29,17 @@ class ClientContactOut(Schema):
     is_technical: bool
 
 
+class ClientContactIn(Schema):
+    name: str
+    email: str
+    phone: str = ""
+    role: str = ""
+    is_active: bool = True
+    is_primary: bool = False
+    is_billing: bool = False
+    is_technical: bool = False
+
+
 class ClientProjectOut(Schema):
     id: int
     name: str
