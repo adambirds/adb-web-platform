@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from contextlib import contextmanager, suppress
+from functools import partial
 
 from celery import shared_task
 from django_redis import get_redis_connection
@@ -9,6 +10,7 @@ from redis.exceptions import LockError
 
 from apps.ticketing.config import graph_sync_lock_seconds
 from apps.ticketing.models import Mailbox, MicrosoftGraphConnection, TicketMessage
+from apps.ticketing.services.attachments import quarantine_attachment
 from apps.ticketing.services.contracts import CanonicalMessage
 from apps.ticketing.services.graph import (
     MicrosoftGraphAdapter,
@@ -78,7 +80,8 @@ def sync_graph_mailbox_task(mailbox_id: int) -> int:
 
         token_provider = MicrosoftGraphTokenProvider(mailbox.graph_connection)
         adapter = MicrosoftGraphAdapter(token_provider)
-        return sync_graph_mailbox(mailbox, adapter, _consume_canonical_message)
+        consumer = partial(_consume_canonical_message, adapter=adapter)
+        return sync_graph_mailbox(mailbox, adapter, consumer)
 
 
 @shared_task(
@@ -167,8 +170,18 @@ def _deliver_graph_ticket_reply(message: TicketMessage) -> int:
     return 1
 
 
-def _consume_canonical_message(mailbox: Mailbox, canonical: CanonicalMessage) -> None:
-    ingest_canonical_message(mailbox, canonical)
+def _consume_canonical_message(
+    mailbox: Mailbox,
+    canonical: CanonicalMessage,
+    *,
+    adapter: MicrosoftGraphAdapter,
+) -> None:
+    result = ingest_canonical_message(mailbox, canonical)
+    if not canonical.has_attachments:
+        return
+
+    for payload in adapter.fetch_file_attachments(mailbox, canonical.provider_message_id):
+        quarantine_attachment(result.message, payload)
 
 
 @contextmanager

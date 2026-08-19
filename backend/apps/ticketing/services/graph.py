@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import binascii
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -12,6 +14,7 @@ import requests
 from django.utils import timezone
 
 from apps.ticketing.models import Mailbox
+from apps.ticketing.services.attachments import AttachmentPayload
 from apps.ticketing.services.contracts import CanonicalMessage
 
 GRAPH_API_ROOT = "https://graph.microsoft.com/v1.0"
@@ -34,6 +37,7 @@ GRAPH_MESSAGE_SELECT = (
     "hasAttachments",
     "isDraft",
 )
+GRAPH_FILE_ATTACHMENT_TYPE = "#microsoft.graph.fileAttachment"
 
 
 class MicrosoftGraphError(RuntimeError):
@@ -77,7 +81,7 @@ class MicrosoftGraphAdapter:
         if url:
             request_url = self._validated_graph_url(url)
         else:
-            mailbox_identifier = quote(mailbox.graph_user_id or mailbox.email_address, safe="")
+            mailbox_identifier = self._mailbox_identifier(mailbox)
             request_url = (
                 f"{GRAPH_API_ROOT}/users/{mailbox_identifier}/mailFolders/inbox/messages/delta"
             )
@@ -109,6 +113,52 @@ class MicrosoftGraphAdapter:
             next_link=next_link,
             delta_link=delta_link,
         )
+
+    def fetch_file_attachments(
+        self,
+        mailbox: Mailbox,
+        provider_message_id: str,
+    ) -> tuple[AttachmentPayload, ...]:
+        """Fetch file attachments for one immutable Graph message ID."""
+        message_id = provider_message_id.strip()
+        if not message_id:
+            raise MicrosoftGraphError("A provider message ID is required to fetch attachments.")
+
+        mailbox_identifier = self._mailbox_identifier(mailbox)
+        encoded_message_id = quote(message_id, safe="")
+        message_root = f"{GRAPH_API_ROOT}/users/{mailbox_identifier}/messages/{encoded_message_id}"
+        current_url = f"{message_root}/attachments"
+        attachments: list[AttachmentPayload] = []
+
+        while current_url:
+            payload = self._get_json(current_url)
+            rows = payload.get("value", [])
+            if not isinstance(rows, list):
+                raise MicrosoftGraphPayloadError(
+                    "Microsoft Graph attachment response has no attachment list."
+                )
+
+            for row in rows:
+                if not isinstance(row, dict):
+                    raise MicrosoftGraphPayloadError(
+                        "Microsoft Graph returned an invalid attachment record."
+                    )
+                attachment_type = str(row.get("@odata.type") or "").strip()
+                if attachment_type != GRAPH_FILE_ATTACHMENT_TYPE:
+                    continue
+
+                attachment_id = str(row.get("id") or "").strip()
+                if not attachment_id:
+                    raise MicrosoftGraphPayloadError(
+                        "Microsoft Graph file attachment is missing its ID."
+                    )
+                encoded_attachment_id = quote(attachment_id, safe="")
+                detail = self._get_json(f"{message_root}/attachments/{encoded_attachment_id}")
+                attachments.append(self._attachment_payload(detail, attachment_id))
+
+            current_url = self._optional_link(payload, "@odata.nextLink")
+
+        return tuple(attachments)
 
     def _get_json(
         self,
@@ -197,6 +247,61 @@ class MicrosoftGraphAdapter:
             sent_or_received_at=self._parse_datetime(str(received_at)),
             has_attachments=bool(payload.get("hasAttachments", False)),
         )
+
+    def _attachment_payload(
+        self,
+        payload: dict[str, Any],
+        expected_attachment_id: str,
+    ) -> AttachmentPayload:
+        attachment_type = str(payload.get("@odata.type") or "").strip()
+        if attachment_type and attachment_type != GRAPH_FILE_ATTACHMENT_TYPE:
+            raise MicrosoftGraphPayloadError(
+                "Microsoft Graph returned a non-file attachment for a file attachment request."
+            )
+
+        attachment_id = str(payload.get("id") or expected_attachment_id).strip()
+        if attachment_id != expected_attachment_id:
+            raise MicrosoftGraphPayloadError(
+                "Microsoft Graph returned a different attachment than requested."
+            )
+
+        encoded_content = payload.get("contentBytes")
+        if not isinstance(encoded_content, str):
+            raise MicrosoftGraphPayloadError(
+                "Microsoft Graph file attachment is missing its content bytes."
+            )
+        try:
+            content = base64.b64decode(encoded_content, validate=True)
+        except (binascii.Error, ValueError) as exc:
+            raise MicrosoftGraphPayloadError(
+                "Microsoft Graph returned invalid file attachment content."
+            ) from exc
+
+        size_value = payload.get("size")
+        reported_size: int | None = None
+        if size_value is not None:
+            if isinstance(size_value, bool) or not isinstance(size_value, int) or size_value < 0:
+                raise MicrosoftGraphPayloadError(
+                    "Microsoft Graph returned an invalid file attachment size."
+                )
+            reported_size = size_value
+
+        return AttachmentPayload(
+            provider_attachment_id=attachment_id,
+            filename=str(payload.get("name") or "attachment.bin").strip(),
+            content=content,
+            declared_content_type=str(payload.get("contentType") or "").strip(),
+            reported_size=reported_size,
+            content_id=str(payload.get("contentId") or "").strip(),
+            is_inline=bool(payload.get("isInline", False)),
+        )
+
+    @staticmethod
+    def _mailbox_identifier(mailbox: Mailbox) -> str:
+        identifier = mailbox.graph_user_id.strip()
+        if not identifier:
+            identifier = mailbox.email_address.strip().lower()
+        return quote(identifier, safe="")
 
     @staticmethod
     def _validated_graph_url(url: str) -> str:
