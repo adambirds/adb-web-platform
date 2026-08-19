@@ -41,26 +41,15 @@ def classify_message(
     canonical: CanonicalMessage,
     client: Client | None,
 ) -> ClassificationDecision:
-    """Classify a mailbox message using conservative, explainable deterministic rules."""
-    return classify_message_for_purpose(mailbox.purpose, canonical, client)
-
-
-def classify_message_for_purpose(
-    purpose: str,
-    canonical: CanonicalMessage,
-    client: Client | None,
-) -> ClassificationDecision:
-    """Classify an inbound message without coupling source adapters to a Mailbox model."""
-    normalised_purpose = purpose.strip().lower()
-
+    """Classify an inbound message using conservative, explainable deterministic rules."""
     if client is not None:
-        if normalised_purpose == Mailbox.Purpose.SALES:
+        if mailbox.purpose == Mailbox.Purpose.SALES:
             return ClassificationDecision(
                 classification=Ticket.Classification.SALES,
                 score=100,
                 reasons=("known_client", "sales_mailbox"),
             )
-        if normalised_purpose == Mailbox.Purpose.ACCOUNTS:
+        if mailbox.purpose == Mailbox.Purpose.ACCOUNTS:
             return ClassificationDecision(
                 classification=Ticket.Classification.ACCOUNTS,
                 score=100,
@@ -113,13 +102,13 @@ def classify_message_for_purpose(
             suggested_priority=Ticket.Priority.LOW,
         )
 
-    if normalised_purpose == Mailbox.Purpose.SALES:
+    if mailbox.purpose == Mailbox.Purpose.SALES:
         return ClassificationDecision(
             classification=Ticket.Classification.SALES,
             score=60,
             reasons=("sales_mailbox",),
         )
-    if normalised_purpose == Mailbox.Purpose.ACCOUNTS:
+    if mailbox.purpose == Mailbox.Purpose.ACCOUNTS:
         return ClassificationDecision(
             classification=Ticket.Classification.ACCOUNTS,
             score=60,
@@ -141,10 +130,4 @@ def _sender_local_part(sender_address: str) -> str:
 
 
 def _searchable_text(canonical: CanonicalMessage) -> str:
-    return "\n".join(
-        (
-            canonical.subject,
-            canonical.body_text,
-            canonical.body_html,
-        )
-    ).lower()
+    return f"{canonical.subject}\n{canonical.body_text}\n{canonical.body_html}".lower()

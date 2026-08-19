@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from django.test import TestCase
 
@@ -22,7 +22,7 @@ class WebsiteContactTicketIntegrationTests(TestCase):
         )
         self.payload = {
             "name": "Prospective Customer",
-            "email": "prospect@example.test",
+            "email": "prospect@example.com",
             "phone": "01234 567890",
             "company": "Prospect Ltd",
             "message": "We would like to discuss a new software project.",
@@ -65,7 +65,7 @@ class WebsiteContactTicketIntegrationTests(TestCase):
         "apps.ticketing.signals.ingest_website_contact_lead",
         side_effect=RuntimeError("ticketing unavailable"),
     )
-    def test_ticket_ingestion_failure_does_not_lose_public_lead(self, ingest) -> None:
+    def test_ticket_ingestion_failure_does_not_lose_public_lead(self, ingest: Mock) -> None:
         response = self.client.post(
             "/api/website/contact?brand=adb-test",
             data=self.payload,

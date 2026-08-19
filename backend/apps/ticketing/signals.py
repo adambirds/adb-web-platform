@@ -23,7 +23,9 @@ def ingest_contact_form_lead(
     del sender, kwargs
     if not created or instance.source_id is None:
         return
-    if instance.source.name.strip().casefold() != "contact form":
+
+    source = instance.source
+    if source is None or source.name.strip().casefold() != "contact form":
         return
 
     try:
