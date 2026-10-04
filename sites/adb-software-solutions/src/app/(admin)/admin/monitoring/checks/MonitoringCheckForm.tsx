@@ -103,7 +103,9 @@ export function MonitoringCheckForm({
     const router = useRouter();
     const { hasPermission } = useAuth();
     const canSave = hasPermission(
-        checkId ? "monitoring.change_monitorcheck" : "monitoring.add_monitorcheck",
+        checkId
+            ? "monitoring.change_monitorcheck"
+            : "monitoring.add_monitorcheck",
     );
     const [form, setForm] = useState<MonitorCheckFormState>({
         ...EMPTY_FORM,
@@ -155,7 +157,9 @@ export function MonitoringCheckForm({
                         (resource) => resource.id === initialResourceId,
                     )
                 ) {
-                    setError("The selected infrastructure resource is unavailable.");
+                    setError(
+                        "The selected infrastructure resource is unavailable.",
+                    );
                 }
             }
         } catch (loadError) {
@@ -255,7 +259,9 @@ export function MonitoringCheckForm({
 
     return (
         <form onSubmit={(event) => void save(event)} className="space-y-6">
-            {error ? <DataError message={error} onRetry={() => void load()} /> : null}
+            {error ? (
+                <DataError message={error} onRetry={() => void load()} />
+            ) : null}
 
             <Card className="p-5">
                 <div className="grid gap-5 md:grid-cols-2">
@@ -278,7 +284,10 @@ export function MonitoringCheckForm({
                             >
                                 <option value="">Choose resource</option>
                                 {options?.resources.map((resource) => (
-                                    <option key={resource.id} value={resource.id}>
+                                    <option
+                                        key={resource.id}
+                                        value={resource.id}
+                                    >
                                         {resourceLabel(resource)}
                                     </option>
                                 ))}
@@ -290,7 +299,9 @@ export function MonitoringCheckForm({
                         <span>Check name</span>
                         <Input
                             value={form.name}
-                            onChange={(event) => update("name", event.target.value)}
+                            onChange={(event) =>
+                                update("name", event.target.value)
+                            }
                             required
                             maxLength={200}
                             placeholder="Primary website health"
@@ -321,17 +332,26 @@ export function MonitoringCheckForm({
                             <option value="icmp">ICMP / ping</option>
                             <option value="tcp">TCP port</option>
                             <option value="http">HTTP / HTTPS</option>
-                            <option value="content">Expected / forbidden content</option>
+                            <option value="content">
+                                Expected / forbidden content
+                            </option>
                             <option value="tls">TLS certificate</option>
                             <option value="dns">DNS record</option>
-                            <option value="domain_expiry">Domain registration expiry</option>
+                            <option value="certificate_expiry">
+                                Stored certificate expiry
+                            </option>
+                            <option value="domain_expiry">
+                                Domain registration expiry
+                            </option>
                         </Select>
                     </label>
                     <label className={labelClasses}>
                         <span>Target</span>
                         <Input
                             value={form.target}
-                            onChange={(event) => update("target", event.target.value)}
+                            onChange={(event) =>
+                                update("target", event.target.value)
+                            }
                             required
                             maxLength={500}
                             placeholder="https://example.com or host.example.com"
@@ -339,15 +359,22 @@ export function MonitoringCheckForm({
                     </label>
                     {form.check_type === "tcp" || form.check_type === "tls" ? (
                         <label className={labelClasses}>
-                            <span>Port {form.check_type === "tls" ? "(optional)" : ""}</span>
+                            <span>
+                                Port{" "}
+                                {form.check_type === "tls" ? "(optional)" : ""}
+                            </span>
                             <Input
                                 type="number"
                                 min={1}
                                 max={65535}
                                 value={form.port}
-                                onChange={(event) => update("port", event.target.value)}
+                                onChange={(event) =>
+                                    update("port", event.target.value)
+                                }
                                 required={form.check_type === "tcp"}
-                                placeholder={form.check_type === "tls" ? "443" : "5432"}
+                                placeholder={
+                                    form.check_type === "tls" ? "443" : "5432"
+                                }
                             />
                         </label>
                     ) : null}
@@ -358,7 +385,10 @@ export function MonitoringCheckForm({
                                 <Textarea
                                     value={form.expected_value}
                                     onChange={(event) =>
-                                        update("expected_value", event.target.value)
+                                        update(
+                                            "expected_value",
+                                            event.target.value,
+                                        )
                                     }
                                     rows={3}
                                 />
@@ -368,7 +398,10 @@ export function MonitoringCheckForm({
                                 <Textarea
                                     value={form.forbidden_value}
                                     onChange={(event) =>
-                                        update("forbidden_value", event.target.value)
+                                        update(
+                                            "forbidden_value",
+                                            event.target.value,
+                                        )
                                     }
                                     rows={3}
                                 />
@@ -391,7 +424,9 @@ export function MonitoringCheckForm({
             </Card>
 
             <Card className="p-5">
-                <h2 className="text-sm font-semibold text-white">Execution policy</h2>
+                <h2 className="text-sm font-semibold text-white">
+                    Execution policy
+                </h2>
                 <div className="mt-4 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                     <label className={labelClasses}>
                         <span>Interval (seconds)</span>
@@ -443,7 +478,8 @@ export function MonitoringCheckForm({
                         />
                     </label>
                     {form.check_type === "tls" ||
-                    form.check_type === "domain_expiry" ? (
+                    form.check_type === "domain_expiry" ||
+                    form.check_type === "certificate_expiry" ? (
                         <label className={labelClasses}>
                             <span>Expiry warning (days)</span>
                             <Input
@@ -451,7 +487,10 @@ export function MonitoringCheckForm({
                                 min={1}
                                 value={form.expiry_warning_days}
                                 onChange={(event) =>
-                                    update("expiry_warning_days", event.target.value)
+                                    update(
+                                        "expiry_warning_days",
+                                        event.target.value,
+                                    )
                                 }
                                 required
                             />
@@ -461,21 +500,32 @@ export function MonitoringCheckForm({
             </Card>
 
             <Card className="border-slate-800 bg-slate-950/40 p-5">
-                <h2 className="text-sm font-semibold text-white">Authentication</h2>
+                <h2 className="text-sm font-semibold text-white">
+                    Authentication
+                </h2>
                 <p className="mt-2 text-xs leading-5 text-slate-500">
-                    This initial operator workflow creates unauthenticated probes. Vault-backed
-                    credentials remain server-side references; they will be exposed here only
-                    alongside an explicit authentication scheme so a saved credential can never be
-                    silently ignored or interpreted incorrectly.
+                    This initial operator workflow creates unauthenticated
+                    probes. Vault-backed credentials remain server-side
+                    references; they will be exposed here only alongside an
+                    explicit authentication scheme so a saved credential can
+                    never be silently ignored or interpreted incorrectly.
                 </p>
             </Card>
 
             <div className="flex flex-wrap gap-3">
                 <Button type="submit" disabled={isSaving}>
-                    {isSaving ? "Saving..." : checkId ? "Save changes" : "Create check"}
+                    {isSaving
+                        ? "Saving..."
+                        : checkId
+                          ? "Save changes"
+                          : "Create check"}
                 </Button>
                 <ButtonLink
-                    href={checkId ? `/admin/monitoring/checks/${checkId}` : "/admin/monitoring"}
+                    href={
+                        checkId
+                            ? `/admin/monitoring/checks/${checkId}`
+                            : "/admin/monitoring"
+                    }
                     variant="outline"
                 >
                     Cancel

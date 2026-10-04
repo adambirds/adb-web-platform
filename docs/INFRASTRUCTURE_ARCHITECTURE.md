@@ -473,6 +473,14 @@ failure-to-recovery periods.
 
 Celery Beat/workers execute due checks through reusable monitoring services.
 
+Domain and TLS inventory now receives daily public metadata discovery and
+automatic stored-expiry checks. Renewals update observed inventory dates; lookup
+errors preserve metadata and appear in resource details and Monitoring. The
+workflow reuses scoped incidents/notifications and never performs provider
+renewal transactions. See
+[Domain and TLS expiry tracking](INFRASTRUCTURE_EXPIRY_TRACKING.md) for scheduling,
+source authority, deployment and limitations.
+
 The Monitoring UI should follow the platform's current-first rule:
 
 - open incidents and unhealthy resources first;

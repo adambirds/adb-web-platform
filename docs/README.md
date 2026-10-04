@@ -67,6 +67,8 @@ decision says otherwise:
   handling, key rotation and legacy-secret reconciliation.
 - `INFRASTRUCTURE_ARCHITECTURE.md` — structured technical-resource graph,
   specialist reconciliation, Credentials, Knowledge and Monitoring direction.
+- `INFRASTRUCTURE_EXPIRY_TRACKING.md` — Domain/TLS discovery, renewal detection,
+  automatic expiry checks and Celery operating guidance.
 - `TICKETING_ARCHITECTURE.md` — unified communications and operational Ticket
   workflow.
 - `MICROSOFT_GRAPH_TICKETING_SETUP.md` — Microsoft 365 Shared Mailbox app-only

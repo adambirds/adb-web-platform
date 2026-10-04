@@ -223,6 +223,7 @@ class WebsiteEndpointAdmin(admin.ModelAdmin):
 
 @admin.register(DomainProfile)
 class DomainProfileAdmin(admin.ModelAdmin):
+    readonly_fields = ("last_metadata_checked_at", "metadata_refresh_error")
     list_display = (
         "domain_name",
         "resource",
@@ -261,6 +262,7 @@ class DNSRecordAdmin(admin.ModelAdmin):
 
 @admin.register(TLSCertificate)
 class TLSCertificateAdmin(admin.ModelAdmin):
+    readonly_fields = ("metadata_source", "last_metadata_checked_at", "metadata_refresh_error")
     list_display = (
         "resource",
         "certificate_type",

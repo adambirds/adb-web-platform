@@ -265,6 +265,9 @@ See `MICROSOFT_GRAPH_TICKETING_SETUP.md` and
 - [x] Native compute/network, Database, Application/Environment and Source
       Repository specialists.
 - [x] Native Website/Endpoint, Domain/DNS and TLS Certificate specialists.
+- [x] Daily Domain RDAP and verified TLS metadata discovery, renewal detection,
+      automatic expiry monitoring and visible refresh errors. See
+      `INFRASTRUCTURE_EXPIRY_TRACKING.md`.
 - [x] Docker/Kubernetes, storage/backups, system services and scheduled-job
       specialist technical operations.
 - [x] Bounded permission-aware resource topology traversal/workspace.

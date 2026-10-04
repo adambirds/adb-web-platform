@@ -62,3 +62,14 @@ class MonitorTaskTests(TestCase):
 
         execute.assert_called_once()
         record.assert_called_once_with(self.check.id, observation)
+
+    def test_archived_resource_is_not_executed(self) -> None:
+        self.resource.lifecycle_status = InfrastructureResource.LifecycleStatus.ARCHIVED
+        self.resource.save()
+        with (
+            patch("apps.monitoring.tasks._monitor_check_lock") as lock,
+            patch("apps.monitoring.tasks.execute_check") as execute,
+        ):
+            lock.return_value.__enter__.return_value = True
+            run_monitor_check(self.check.id)
+        execute.assert_not_called()

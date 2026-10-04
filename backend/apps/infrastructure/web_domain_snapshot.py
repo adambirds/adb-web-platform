@@ -157,6 +157,10 @@ def _domain_fields(resource: InfrastructureResource) -> tuple[SpecialistField, .
         _field("provider_domain_id", "Provider domain ID", domain.provider_domain_id, "code"),
         _field("status", "Registration status", domain.get_status_display()),
         _field("registered_on", "Registered", domain.registered_on),
+        _field(
+            "last_metadata_checked_at", "Metadata last checked", domain.last_metadata_checked_at
+        ),
+        _field("metadata_refresh_error", "Metadata refresh error", domain.metadata_refresh_error),
         _field("expires_on", "Expires", domain.expires_on),
         _field("auto_renew", "Auto-renew", domain.auto_renew),
         _field("transfer_lock_enabled", "Transfer lock", domain.transfer_lock_enabled),
@@ -238,6 +242,15 @@ def _tls_certificate_fields(
         _field("serial_number", "Serial number", certificate.serial_number, "code"),
         _field("fingerprint_sha256", "SHA-256 fingerprint", certificate.fingerprint_sha256, "code"),
         _field("issued_at", "Issued", certificate.issued_at),
+        _field(
+            "last_metadata_checked_at",
+            "Metadata last checked",
+            certificate.last_metadata_checked_at,
+        ),
+        _field(
+            "metadata_refresh_error", "Metadata refresh error", certificate.metadata_refresh_error
+        ),
+        _field("metadata_source", "Metadata source", certificate.metadata_source, "url"),
         _field("expires_at", "Expires", certificate.expires_at),
         _field("auto_renew", "Auto-renew", certificate.auto_renew),
         _field("domains", "Covered domains", "\n".join(covered_domains), "multiline"),

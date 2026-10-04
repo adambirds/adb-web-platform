@@ -38,3 +38,11 @@ Read the [backend guide](../../README.md) for shared conventions and the
 Specialist `*_edit.py` modules implement writes; `*_snapshot.py` modules build
 read projections. `legacy_*` modules are migration boundaries, not templates
 for new resource types.
+
+## Expiry and metadata discovery
+
+[metadata_refresh.py](./metadata_refresh.py) discovers public Domain registration
+and TLS metadata; [tasks.py](./tasks.py) schedules locked background refreshes.
+Resource details show refresh status. Automatic expiry checks use the existing
+Monitoring app. See the
+[operating guide](../../../docs/INFRASTRUCTURE_EXPIRY_TRACKING.md).

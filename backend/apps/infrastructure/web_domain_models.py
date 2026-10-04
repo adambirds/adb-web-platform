@@ -161,6 +161,8 @@ class DomainProfile(models.Model):
     auto_renew = models.BooleanField(null=True, blank=True)
     transfer_lock_enabled = models.BooleanField(null=True, blank=True)
     privacy_enabled = models.BooleanField(null=True, blank=True)
+    last_metadata_checked_at = models.DateTimeField(null=True, blank=True)
+    metadata_refresh_error = models.CharField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -350,6 +352,9 @@ class TLSCertificate(models.Model):
     issued_at = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
     auto_renew = models.BooleanField(null=True, blank=True)
+    metadata_source = models.CharField(max_length=500, blank=True)
+    last_metadata_checked_at = models.DateTimeField(null=True, blank=True)
+    metadata_refresh_error = models.CharField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

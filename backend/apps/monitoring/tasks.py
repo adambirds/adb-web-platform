@@ -9,6 +9,8 @@ from django.utils import timezone
 from django_redis import get_redis_connection
 from redis.exceptions import LockError
 
+from apps.infrastructure.models import InfrastructureResource
+
 from .execution import execute_check
 from .models import MonitorCheck
 from .services import record_observation
@@ -22,6 +24,12 @@ MINIMUM_MONITOR_CHECK_LOCK_SECONDS = 60
 def enqueue_due_checks() -> int:
     due_ids = list(
         MonitorCheck.objects.filter(enabled=True)
+        .exclude(
+            resource__lifecycle_status__in=[
+                InfrastructureResource.LifecycleStatus.RETIRED,
+                InfrastructureResource.LifecycleStatus.ARCHIVED,
+            ]
+        )
         .filter(Q(next_run_at__isnull=True) | Q(next_run_at__lte=timezone.now()))
         .values_list("id", flat=True)
     )
@@ -43,7 +51,11 @@ def run_monitor_check(check_id: int) -> None:
             return
 
         check.refresh_from_db()
-        if not check.enabled:
+        check.resource.refresh_from_db()
+        if not check.enabled or check.resource.lifecycle_status in [
+            InfrastructureResource.LifecycleStatus.RETIRED,
+            InfrastructureResource.LifecycleStatus.ARCHIVED,
+        ]:
             return
         if check.next_run_at is not None and check.next_run_at > timezone.now():
             return

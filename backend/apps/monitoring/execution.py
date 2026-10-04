@@ -154,6 +154,26 @@ def execute_check(check: MonitorCheck) -> CheckObservation:
 
         return _timed_observation(tls_probe)
 
+    if check.check_type == MonitorCheck.CheckType.CERTIFICATE_EXPIRY:
+
+        def certificate_expiry_probe() -> tuple[bool, str, int | None, str]:
+            certificate = getattr(check.resource, "tls_certificate", None)
+            if certificate is None or certificate.expires_at is None:
+                raise ValueError("Certificate expiry is not configured for this resource.")
+            if certificate.metadata_refresh_error:
+                raise ValueError(
+                    f"Certificate metadata refresh failed: {certificate.metadata_refresh_error}"
+                )
+            days = (certificate.expires_at - timezone.now()).days
+            return (
+                days >= check.expiry_warning_days,
+                f"Certificate expires in {days} days.",
+                None,
+                certificate.expires_at.isoformat(),
+            )
+
+        return _timed_observation(certificate_expiry_probe)
+
     if check.check_type == MonitorCheck.CheckType.DOMAIN_EXPIRY:
 
         def domain_expiry_probe() -> tuple[bool, str, int | None, str]:
@@ -162,6 +182,10 @@ def execute_check(check: MonitorCheck) -> CheckObservation:
                 raise ValueError("Domain profile is not configured for this resource.")
             if domain_profile.expires_on is None:
                 raise ValueError("Domain expiry date is not configured for this resource.")
+            if domain_profile.metadata_refresh_error:
+                raise ValueError(
+                    f"Domain metadata refresh failed: {domain_profile.metadata_refresh_error}"
+                )
             days = (domain_profile.expires_on - timezone.localdate()).days
             if days < 0:
                 return (

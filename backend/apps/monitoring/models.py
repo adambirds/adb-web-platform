@@ -22,6 +22,7 @@ class MonitorCheck(models.Model):
         CONTENT = "content", "Expected/forbidden content"
         TLS = "tls", "TLS certificate"
         DNS = "dns", "DNS record"
+        CERTIFICATE_EXPIRY = "certificate_expiry", "Stored certificate expiry"
         DOMAIN_EXPIRY = "domain_expiry", "Domain registration expiry"
 
     class Severity(models.TextChoices):
@@ -136,6 +137,12 @@ class MonitorCheck(models.Model):
             self.resource.resource_type != InfrastructureResource.ResourceType.DOMAIN
         ):
             raise ValidationError({"resource": "Domain expiry checks require a Domain resource."})
+        if self.check_type == self.CheckType.CERTIFICATE_EXPIRY and (
+            self.resource.resource_type != InfrastructureResource.ResourceType.TLS_CERTIFICATE
+        ):
+            raise ValidationError(
+                {"resource": "Certificate expiry checks require a TLS Certificate resource."}
+            )
         if self.check_type == self.CheckType.TCP and self.port is None:
             raise ValidationError({"port": "TCP checks require a port."})
         if self.check_type == self.CheckType.CONTENT and not (

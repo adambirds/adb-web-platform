@@ -20,6 +20,10 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 app.conf.beat_schedule = {
+    "infrastructure-metadata-refresh-dispatch": {
+        "task": "infrastructure.enqueue_metadata_refreshes",
+        "schedule": 300,
+    },
     "monitoring-due-check-dispatch": {
         "task": "monitoring.enqueue_due_checks",
         "schedule": 30,
