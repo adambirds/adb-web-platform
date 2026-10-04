@@ -257,6 +257,15 @@ SESSION_CACHE_ALIAS = "session"
 DATA_UPLOAD_MAX_MEMORY_SIZE = 500 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 500 * 1024 * 1024
 
+# Docker Compose injects .devcontainer/.env into the app environment in development.
+# Deployments provide the same variables through their runtime environment.
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "")
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "")
+CELERY_TASK_DEFAULT_QUEUE = "general"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",

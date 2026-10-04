@@ -10,7 +10,7 @@ from django.middleware.csrf import get_token
 from django.utils import timezone
 from graphql import GraphQLError
 
-from authentication.tasks import send_verification_email
+from authentication.auth_service.views import send_verification_email
 from authentication.types import UserType
 
 logger = logging.getLogger(__name__)
@@ -151,7 +151,7 @@ class UpdateUser(graphene.Mutation):
                 user.email_verified = False  # Reset email verification status
                 user.verification_token = user.generate_verification_token()  # Generate new token
                 user.last_verification_email_sent = timezone.now()
-                send_verification_email.delay(user.email, user.first_name, user.verification_token)
+                send_verification_email(user)
                 updated_fields["email"] = kwargs["email"]
 
             user.save()

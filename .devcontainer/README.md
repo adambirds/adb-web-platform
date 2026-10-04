@@ -128,21 +128,25 @@ When the devcontainer is running, access these services:
 
 ## 📦 Environment Variables
 
-The devcontainer uses environment variables defined in:
+Copy `.devcontainer/.env.example` to `.devcontainer/.env` before starting the
+container. Keep `.env` untracked. Docker Compose loads it into the app through
+`env_file`; Django reads the injected values with `os.environ`.
 
-- `.devcontainer/.env` - Devcontainer-specific environment variables (not committed to git)
+| Variable                | Local value                    | Purpose              |
+| ----------------------- | ------------------------------ | -------------------- |
+| `CACHE_BACKEND_URL`     | `redis://redis-cache:6379/0`   | Django default cache |
+| `SESSION_BACKEND_URL`   | `redis://redis-session:6379/0` | Django session cache |
+| `CELERY_BROKER_URL`     | `redis://redis-celery:6379/0`  | Celery task broker   |
+| `CELERY_RESULT_BACKEND` | `redis://redis-celery:6379/1`  | Celery task results  |
 
-**Setting up Environment Variables:**
+Sessions use the `session` cache alias. Celery's default queue is `general`,
+which the development worker scripts consume. Cache, sessions and Celery run
+on separate Redis services; broker and results use separate databases within
+`redis-celery`.
 
-1. Copy the example file: `cp .devcontainer/.env.example .devcontainer/.env`
-2. Edit `.devcontainer/.env` with your actual credentials and API keys
-3. The `.env` file is gitignored and will not be committed
-
-**Required Configuration:**
-
-- Update `SECRET_KEY` with a secure random string
-
-**Security Note:** Never commit the `.env` file - it contains sensitive credentials.
+After changing Compose or `.env`, run **Dev Containers: Rebuild Container**
+so the new service starts and the app receives the updated environment. Restart
+backend, worker, Beat and Flower processes after rebuilding.
 
 ## 🛡️ Optional local ClamAV
 

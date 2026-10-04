@@ -24,7 +24,9 @@ Credential-specific security and operational rules are defined in
 
 - [x] One shared Django backend is the business-data/auth/scope authority.
 - [x] Django Ninja is the API layer.
-- [x] PostgreSQL/Redis/Celery foundations are established.
+- [x] PostgreSQL/Redis/Celery foundations are established. Local development uses
+      separate `redis-cache`, `redis-session` and `redis-celery` services, configured
+      through `.devcontainer/.env`; Celery defaults to the `general` queue.
 - [x] ADB Software Solutions, ADB Web Designs and ADB Technology are
       first-class Brands.
 - [x] ADB Software Solutions public + `/admin` routes share one Next.js app.

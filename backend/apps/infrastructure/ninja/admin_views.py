@@ -28,6 +28,7 @@ from .schemas import (
     ServerSummaryOut,
     WebsiteSummaryOut,
 )
+from .web_domain_views import web_domain_specialist_router
 
 infrastructure_admin_router = Router(tags=["admin-infrastructure"])
 
@@ -167,7 +168,7 @@ def list_databases(request: HttpRequest) -> list[DatabaseSummaryOut] | StaffProb
     ]
 
 
-@infrastructure_admin_router.get(
+@web_domain_specialist_router.get(
     "/infrastructure/websites",
     response={200: list[WebsiteSummaryOut], 401: ProblemDetail, 403: ProblemDetail},
 )
@@ -191,7 +192,7 @@ def list_websites(request: HttpRequest) -> list[WebsiteSummaryOut] | StaffProble
     ]
 
 
-@infrastructure_admin_router.get(
+@web_domain_specialist_router.get(
     "/infrastructure/domains",
     response={200: list[DomainSummaryOut], 401: ProblemDetail, 403: ProblemDetail},
 )

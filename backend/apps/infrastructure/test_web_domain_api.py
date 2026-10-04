@@ -123,6 +123,78 @@ class WebDomainSpecialistApiTests(TestCase):
         profile, _ = StaffAccessProfile.objects.get_or_create(user=user)
         ClientAccessGrant.objects.create(profile=profile, client=client)
 
+    def test_collection_routes_dispatch_get_and_post(self) -> None:
+        user = self._user(
+            "web-routing@example.com",
+            [
+                "view_domain",
+                "view_website",
+                "add_infrastructureresource",
+                "add_domainprofile",
+                "add_websiteprofile",
+            ],
+        )
+        self.client.force_login(user)
+        for collection, fields, model in (
+            ("domains", {"domain_name": "routing.example"}, DomainProfile),
+            ("websites", {}, WebsiteProfile),
+        ):
+            with self.subTest(collection=collection):
+                url = f"/api/admin/infrastructure/{collection}"
+                self.assertEqual(self.client.get(url).status_code, 200)
+                response = self.client.post(
+                    url,
+                    data={"name": "Routing test", **fields},
+                    content_type="application/json",
+                )
+                self.assertEqual(response.status_code, 201, response.content)
+                self.assertTrue(
+                    model.objects.filter(resource_id=response.json()["resource_id"]).exists()
+                )
+
+    def test_collection_posts_enforce_permissions_and_client_scope(self) -> None:
+        user = self._user("web-routing-denied@example.com", [])
+        self.client.force_login(user)
+        for collection, fields in (
+            ("domains", {"domain_name": "denied.example"}),
+            ("websites", {}),
+        ):
+            with self.subTest(collection=collection):
+                response = self.client.post(
+                    f"/api/admin/infrastructure/{collection}",
+                    data={"name": "Denied", **fields},
+                    content_type="application/json",
+                )
+                self.assertEqual(response.status_code, 403)
+        user.user_permissions.add(
+            *Permission.objects.filter(
+                content_type__app_label="infrastructure",
+                codename__in=[
+                    "add_infrastructureresource",
+                    "add_domainprofile",
+                    "add_websiteprofile",
+                ],
+            )
+        )
+        for collection, fields in (
+            ("domains", {"domain_name": "out-of-scope.example"}),
+            ("websites", {}),
+        ):
+            with self.subTest(collection=collection):
+                response = self.client.post(
+                    f"/api/admin/infrastructure/{collection}",
+                    data={
+                        "name": "Outside scope",
+                        "ownership_type": "client",
+                        "client_id": self.client_b.id,
+                        **fields,
+                    },
+                    content_type="application/json",
+                )
+                self.assertEqual(response.status_code, 404)
+        self.assertFalse(DomainProfile.objects.exists())
+        self.assertFalse(WebsiteProfile.objects.exists())
+
     def test_options_only_return_accessible_current_resources(self) -> None:
         client_a_domain_resource = self._resource(
             "Client A Domain",

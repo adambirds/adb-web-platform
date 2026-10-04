@@ -10,6 +10,7 @@ services:
             - db
             - redis-cache
             - redis-session
+            - redis-celery
         networks:
             - adbsoftwaresolutions-dev
 
@@ -34,6 +35,12 @@ services:
             - adbsoftwaresolutions-dev
 
     redis-session:
+        image: redis:7.0.4
+        restart: unless-stopped
+        networks:
+            - adbsoftwaresolutions-dev
+
+    redis-celery:
         image: redis:7.0.4
         restart: unless-stopped
         networks:
