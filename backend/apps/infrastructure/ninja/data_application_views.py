@@ -9,6 +9,7 @@ from ninja import Router
 
 from apps.access_control.policies import scope_clients_for_user
 from apps.clients.models import Client
+from apps.core.models import AuditEvent
 from apps.infrastructure.models import (
     ApplicationEnvironment,
     ApplicationProfile,
@@ -1165,3 +1166,61 @@ def archive_source_repository(
         return _problem(404, "Source repository not found.", "not_found")
     _archive_resource(request, repository.resource)
     return _source_repository_out(repository)
+
+
+@data_application_specialist_router.put(
+    "/infrastructure/applications/{resource_id}/repositories/{link_id}",
+    response={
+        200: ApplicationRepositoryLinkOut,
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+        404: ProblemDetail,
+    },
+)
+def update_application_repository_link(
+    request: HttpRequest, resource_id: int, link_id: int, payload: ApplicationRepositoryLinkCreateIn
+) -> ApplicationRepositoryLinkOut | StaffProblem:
+    problem = _permission_problem(
+        request,
+        "infrastructure.view_infrastructureresource",
+        "infrastructure.view_applicationprofile",
+        "infrastructure.view_sourcerepository",
+        "infrastructure.view_applicationrepositorylink",
+        "infrastructure.change_applicationrepositorylink",
+    )
+    if problem:
+        return problem
+    owner = _visible_application(request, resource_id)
+    related = _visible_source_repository(request, payload.repository_resource_id)
+    if owner is None or related is None:
+        return _problem(404, "Resource not found.", "not_found")
+    try:
+        with transaction.atomic():
+            link = (
+                ApplicationRepositoryLink.objects.select_for_update()
+                .filter(
+                    id=link_id,
+                    application=owner,
+                    repository__resource__in=_visible_queryset(request),
+                )
+                .first()
+            )
+            if link is None:
+                return _problem(404, "Link not found.", "not_found")
+            link.repository = related
+            link.role = payload.role
+            link.path = payload.path.strip()
+            link.notes = payload.notes.strip()
+            link.full_clean()
+            link.save()
+            AuditEvent.record(
+                action="updated",
+                target=link,
+                actor=request.user,
+                resource_id=owner.resource_id,
+                client_id=owner.resource.client_id,
+            )
+    except ValidationError as error:
+        return _validation_problem(error)
+    return _repository_link_out(link)

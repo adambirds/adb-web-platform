@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import Any
 
 from .data_application_snapshot import data_application_resource_snapshot
-from .legacy_resource_snapshot import SpecialistField, SpecialistFieldKind
-from .models import InfrastructureResource, Network, ServerProfile, Subnet
+from .models import InfrastructureResource, Network, ProviderAccount, ServerProfile, Subnet
 from .operational_snapshot import operational_resource_snapshot
+from .snapshot_types import SpecialistField, SpecialistFieldKind
 from .web_domain_snapshot import web_domain_resource_snapshot
 
 
@@ -172,11 +172,29 @@ def _subnet_fields(resource: InfrastructureResource) -> tuple[SpecialistField, .
     )
 
 
+def _provider_account_fields(resource: InfrastructureResource) -> tuple[SpecialistField, ...]:
+    account = ProviderAccount.objects.select_related("provider").filter(resource=resource).first()
+    if account is None:
+        return ()
+    return _fields(
+        _field("provider", "Service provider", account.provider.name),
+        _field("account_identifier", "Account identifier", account.account_identifier, "code"),
+        _field("tenant_id", "Tenant ID", account.tenant_id, "code"),
+        _field("project_id", "Project ID", account.project_id, "code"),
+        _field("portal_url", "Provider portal", account.portal_url, "url"),
+        _field("default_region", "Default region", account.default_region),
+        _field("support_plan", "Support plan", account.support_plan),
+        _field("billing_reference", "Billing reference", account.billing_reference),
+    )
+
+
 def specialist_resource_snapshot(
     resource: InfrastructureResource,
 ) -> tuple[SpecialistField, ...]:
     """Return safe native specialist fields for one structured resource."""
 
+    if resource.resource_type == InfrastructureResource.ResourceType.PROVIDER_ACCOUNT:
+        return _provider_account_fields(resource)
     if resource.resource_type == InfrastructureResource.ResourceType.SERVER:
         return _server_fields(resource)
     if resource.resource_type == InfrastructureResource.ResourceType.NETWORK:

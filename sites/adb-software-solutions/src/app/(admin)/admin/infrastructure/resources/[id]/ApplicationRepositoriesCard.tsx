@@ -58,6 +58,7 @@ export function ApplicationRepositoriesCard({
 
     const [links, setLinks] = useState<RepositoryLink[]>([]);
     const [options, setOptions] = useState<DataApplicationOptions | null>(null);
+    const [editingId, setEditingId] = useState<number | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [repositoryId, setRepositoryId] = useState("");
     const [role, setRole] = useState("primary");
@@ -113,7 +114,12 @@ export function ApplicationRepositoriesCard({
         [clientId, options, ownershipType],
     );
 
-    async function openForm() {
+    async function openForm(link?: RepositoryLink) {
+        setEditingId(link?.id ?? null);
+        setRepositoryId(link ? String(link.repository_resource_id) : "");
+        setRole(link?.role ?? "primary");
+        setPath(link?.path ?? "");
+        setNotes(link?.notes ?? "");
         setShowForm(true);
         setError(null);
         if (options) return;
@@ -141,9 +147,9 @@ export function ApplicationRepositoriesCard({
             setIsSaving(true);
             setError(null);
             await fetchAPI(
-                `${API_URL}/api/admin/infrastructure/applications/${resourceId}/repositories`,
+                `${API_URL}/api/admin/infrastructure/applications/${resourceId}/repositories${editingId === null ? "" : `/${editingId}`}`,
                 {
-                    method: "POST",
+                    method: editingId === null ? "POST" : "PUT",
                     body: JSON.stringify({
                         repository_resource_id: Number(repositoryId),
                         role,
@@ -307,7 +313,11 @@ export function ApplicationRepositoriesCard({
                             onClick={() => void addRepository()}
                             disabled={isSaving || !repositoryId}
                         >
-                            {isSaving ? "Linking..." : "Link repository"}
+                            {isSaving
+                                ? "Saving..."
+                                : editingId === null
+                                  ? "Link repository"
+                                  : "Save repository link"}
                         </Button>
                     </div>
                 </div>
@@ -345,6 +355,18 @@ export function ApplicationRepositoriesCard({
                                     </div>
                                 ) : null}
                             </Link>
+                            {hasPermission(
+                                "infrastructure.change_applicationrepositorylink",
+                            ) ? (
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => void openForm(link)}
+                                >
+                                    Edit
+                                </Button>
+                            ) : null}
                             {canDelete ? (
                                 <Button
                                     type="button"

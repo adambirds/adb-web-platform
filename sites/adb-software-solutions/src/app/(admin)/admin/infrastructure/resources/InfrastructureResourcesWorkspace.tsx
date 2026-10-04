@@ -18,17 +18,12 @@ import { fetchAPI } from "@/lib/api/fetch";
 import { API_URL } from "@/lib/config";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { InfrastructureResourceWorkspace } from "./[id]/InfrastructureResourceWorkspace";
+import { InfrastructureCreateForm } from "./InfrastructureCreateForm";
 import {
-    DataApplicationInfrastructureForm,
-    DataApplicationType,
-} from "./DataApplicationInfrastructureForm";
-import { StructuredInfrastructureForm } from "./StructuredInfrastructureForm";
-import {
-    WebDomainInfrastructureForm,
-    WebDomainType,
-} from "./WebDomainInfrastructureForm";
-
-type ComputeNetworkType = "server" | "network" | "subnet";
+    RESOURCE_TYPES,
+    canCreateResource,
+    type CreatableResourceType,
+} from "./resourceCreation";
 
 interface ResourceSummary {
     id: number;
@@ -42,6 +37,9 @@ interface ResourceSummary {
     client_name: string | null;
     tags: { id: number; name: string; slug: string; colour: string }[];
     updated_at: string;
+    expires_on?: string | null;
+    expires_at?: string | null;
+    auto_renew?: boolean | null;
 }
 
 interface ResourcePage {
@@ -53,38 +51,6 @@ interface ResourcePage {
 }
 
 const PAGE_SIZE = 25;
-
-const RESOURCE_TYPES = [
-    "server",
-    "network",
-    "subnet",
-    "database_instance",
-    "logical_database",
-    "application",
-    "application_environment",
-    "source_repository",
-    "website",
-    "website_endpoint",
-    "domain",
-    "dns_zone",
-    "tls_certificate",
-    "provider_account",
-    "storage",
-    "backup_plan",
-    "container_stack",
-    "kubernetes_cluster",
-    "kubernetes_namespace",
-    "kubernetes_workload",
-    "system_service",
-    "scheduled_job",
-    "api",
-    "bot",
-    "mobile_app",
-    "licence",
-    "email_system",
-    "network_device",
-    "other",
-] as const;
 
 const LIFECYCLE = [
     "current",
@@ -136,62 +102,39 @@ function label(value: string): string {
     );
 }
 
-export function InfrastructureResourcesWorkspace() {
+interface InfrastructureResourcesWorkspaceProps {
+    resourceTypeFilter?: CreatableResourceType;
+    title?: string;
+    description?: string;
+}
+
+export function InfrastructureResourcesWorkspace({
+    resourceTypeFilter,
+    title = "Resources",
+    description = "Technical resources across ADB Internal and Client infrastructure. Open a resource to manage its details, credentials and relationships.",
+}: InfrastructureResourcesWorkspaceProps = {}) {
     const { hasPermission } = useAuth();
     const [data, setData] = useState<ResourcePage | null>(null);
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
     const [ownership, setOwnership] = useState("all");
     const [lifecycle, setLifecycle] = useState("current");
-    const [resourceType, setResourceType] = useState("all");
+    const [resourceType, setResourceType] = useState<string>(
+        resourceTypeFilter ?? "all",
+    );
     const [environment, setEnvironment] = useState("all");
     const [selectedResourceId, setSelectedResourceId] = useState<number | null>(
         null,
     );
-    const [showComputeCreate, setShowComputeCreate] = useState(false);
-    const [showDataCreate, setShowDataCreate] = useState(false);
-    const [showWebCreate, setShowWebCreate] = useState(false);
+    const [showCreate, setShowCreate] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const computeTypes: ComputeNetworkType[] = [];
-    const dataTypes: DataApplicationType[] = [];
-    const webTypes: WebDomainType[] = [];
-    if (hasPermission("infrastructure.add_infrastructureresource")) {
-        if (hasPermission("infrastructure.add_serverprofile"))
-            computeTypes.push("server");
-        if (hasPermission("infrastructure.add_network"))
-            computeTypes.push("network");
-        if (hasPermission("infrastructure.add_subnet"))
-            computeTypes.push("subnet");
-        if (hasPermission("infrastructure.add_databaseinstance")) {
-            dataTypes.push("database_instance");
-        }
-        if (hasPermission("infrastructure.add_logicaldatabase")) {
-            dataTypes.push("logical_database");
-        }
-        if (hasPermission("infrastructure.add_applicationprofile")) {
-            dataTypes.push("application");
-        }
-        if (hasPermission("infrastructure.add_applicationenvironment")) {
-            dataTypes.push("application_environment");
-        }
-        if (hasPermission("infrastructure.add_sourcerepository")) {
-            dataTypes.push("source_repository");
-        }
-        if (hasPermission("infrastructure.add_websiteprofile"))
-            webTypes.push("website");
-        if (hasPermission("infrastructure.add_websiteendpoint")) {
-            webTypes.push("website_endpoint");
-        }
-        if (hasPermission("infrastructure.add_domainprofile"))
-            webTypes.push("domain");
-        if (hasPermission("infrastructure.add_dnszone"))
-            webTypes.push("dns_zone");
-        if (hasPermission("infrastructure.add_tlscertificate")) {
-            webTypes.push("tls_certificate");
-        }
-    }
+    const createTypes = RESOURCE_TYPES.filter(
+        (type) =>
+            (!resourceTypeFilter || resourceTypeFilter === type) &&
+            canCreateResource(type, hasPermission),
+    );
 
     const url = useMemo(() => {
         const params = new URLSearchParams({
@@ -201,10 +144,20 @@ export function InfrastructureResourcesWorkspace() {
             lifecycle,
         });
         if (search.trim()) params.set("search", search.trim());
-        if (resourceType !== "all") params.set("resource_type", resourceType);
+        if (resourceTypeFilter) params.set("resource_type", resourceTypeFilter);
+        else if (resourceType !== "all")
+            params.set("resource_type", resourceType);
         if (environment !== "all") params.set("environment", environment);
         return `${API_URL}/api/admin/infrastructure/resources?${params.toString()}`;
-    }, [environment, lifecycle, ownership, page, resourceType, search]);
+    }, [
+        environment,
+        lifecycle,
+        ownership,
+        page,
+        resourceType,
+        resourceTypeFilter,
+        search,
+    ]);
 
     const load = useCallback(async () => {
         try {
@@ -215,7 +168,7 @@ export function InfrastructureResourcesWorkspace() {
             setError(
                 loadError instanceof Error
                     ? loadError.message
-                    : "Unable to load structured infrastructure resources.",
+                    : "Unable to load infrastructure resources.",
             );
         } finally {
             setIsLoading(false);
@@ -226,25 +179,29 @@ export function InfrastructureResourcesWorkspace() {
         void load();
     }, [load]);
 
+    useEffect(() => {
+        setPage(1);
+        setSelectedResourceId(null);
+        setShowCreate(false);
+    }, [resourceTypeFilter]);
+
     function resetPage() {
         setPage(1);
     }
 
     function openCreatedResource(resourceId: number) {
-        setShowComputeCreate(false);
-        setShowDataCreate(false);
-        setShowWebCreate(false);
+        setShowCreate(false);
         setSelectedResourceId(resourceId);
         void load();
     }
 
     if (isLoading && !data) {
-        return <DataLoading label="Loading structured infrastructure..." />;
+        return <DataLoading label="Loading infrastructure..." />;
     }
     if (error || !data) {
         return (
             <DataError
-                message={error || "Structured infrastructure is unavailable."}
+                message={error || "Infrastructure is unavailable."}
                 onRetry={() => void load()}
             />
         );
@@ -254,62 +211,42 @@ export function InfrastructureResourcesWorkspace() {
         <div className="space-y-6">
             <PageHeader
                 eyebrow="Technical operations"
-                title="Structured resources"
-                description="The shared operational resource graph across ADB Internal and Client infrastructure. Open a resource to see its technical details, credentials and relationships in context."
+                title={title}
+                description={description}
                 actions={
                     <>
-                        {computeTypes.length > 0 ? (
+                        {createTypes.length > 0 ? (
                             <Button
                                 type="button"
                                 onClick={() => {
                                     setSelectedResourceId(null);
-                                    setShowDataCreate(false);
-                                    setShowWebCreate(false);
-                                    setShowComputeCreate(true);
+                                    setShowCreate(true);
                                 }}
                             >
-                                Add compute / network
+                                Add resource
                             </Button>
                         ) : null}
-                        {dataTypes.length > 0 ? (
-                            <Button
-                                type="button"
+                        <ButtonLink
+                            href="/admin/infrastructure/provider-accounts"
+                            variant="secondary"
+                        >
+                            Provider accounts
+                        </ButtonLink>
+                        {hasPermission(
+                            "infrastructure.view_serviceprovider",
+                        ) ? (
+                            <ButtonLink
+                                href="/admin/infrastructure/service-providers"
                                 variant="secondary"
-                                onClick={() => {
-                                    setSelectedResourceId(null);
-                                    setShowComputeCreate(false);
-                                    setShowWebCreate(false);
-                                    setShowDataCreate(true);
-                                }}
                             >
-                                Add data / application
-                            </Button>
-                        ) : null}
-                        {webTypes.length > 0 ? (
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                onClick={() => {
-                                    setSelectedResourceId(null);
-                                    setShowComputeCreate(false);
-                                    setShowDataCreate(false);
-                                    setShowWebCreate(true);
-                                }}
-                            >
-                                Add web / domain
-                            </Button>
+                                Service providers
+                            </ButtonLink>
                         ) : null}
                         <ButtonLink
                             href="/admin/infrastructure"
                             variant="secondary"
                         >
                             Infrastructure overview
-                        </ButtonLink>
-                        <ButtonLink
-                            href="/admin/infrastructure/reconciliation"
-                            variant="secondary"
-                        >
-                            Reconcile legacy records
                         </ButtonLink>
                     </>
                 }
@@ -354,7 +291,8 @@ export function InfrastructureResourcesWorkspace() {
                     </Select>
                     <Select
                         aria-label="Resource type"
-                        value={resourceType}
+                        disabled={Boolean(resourceTypeFilter)}
+                        value={resourceTypeFilter ?? resourceType}
                         onChange={(event) => {
                             setResourceType(event.target.value);
                             resetPage();
@@ -407,7 +345,7 @@ export function InfrastructureResourcesWorkspace() {
                     <div className="p-5">
                         <EmptyState
                             title="No resources match this view"
-                            description="Try changing the filters, create a native structured resource, or reconcile an existing infrastructure record into the graph."
+                            description="Try changing the filters or add a resource using the available actions."
                         />
                     </div>
                 ) : (
@@ -421,6 +359,17 @@ export function InfrastructureResourcesWorkspace() {
                                     <th className="px-4 py-3">Environment</th>
                                     <th className="px-4 py-3">Lifecycle</th>
                                     <th className="px-4 py-3">Criticality</th>
+                                    {resourceTypeFilter === "domain" ||
+                                    resourceTypeFilter === "tls_certificate" ? (
+                                        <>
+                                            <th className="px-4 py-3">
+                                                Expires
+                                            </th>
+                                            <th className="px-4 py-3">
+                                                Auto renew
+                                            </th>
+                                        </>
+                                    ) : null}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/80">
@@ -484,6 +433,36 @@ export function InfrastructureResourcesWorkspace() {
                                                 {label(resource.criticality)}
                                             </span>
                                         </td>
+                                        {resourceTypeFilter === "domain" ||
+                                        resourceTypeFilter ===
+                                            "tls_certificate" ? (
+                                            <>
+                                                <td className="px-4 py-3 text-slate-400">
+                                                    {resource.expires_on ||
+                                                    resource.expires_at
+                                                        ? new Intl.DateTimeFormat(
+                                                              "en-GB",
+                                                              {
+                                                                  dateStyle:
+                                                                      "medium",
+                                                              },
+                                                          ).format(
+                                                              new Date(
+                                                                  resource.expires_on ||
+                                                                      resource.expires_at!,
+                                                              ),
+                                                          )
+                                                        : "Unknown"}
+                                                </td>
+                                                <td className="px-4 py-3 text-slate-400">
+                                                    {resource.auto_renew == null
+                                                        ? "Unknown"
+                                                        : resource.auto_renew
+                                                          ? "Yes"
+                                                          : "No"}
+                                                </td>
+                                            </>
+                                        ) : null}
                                     </tr>
                                 ))}
                             </tbody>
@@ -500,31 +479,15 @@ export function InfrastructureResourcesWorkspace() {
                 />
             </Card>
 
-            {showComputeCreate ? (
-                <RecordDrawer onClose={() => setShowComputeCreate(false)}>
-                    <StructuredInfrastructureForm
-                        allowedTypes={computeTypes}
-                        onCancel={() => setShowComputeCreate(false)}
-                        onCreated={openCreatedResource}
-                    />
-                </RecordDrawer>
-            ) : null}
-
-            {showDataCreate ? (
-                <RecordDrawer onClose={() => setShowDataCreate(false)}>
-                    <DataApplicationInfrastructureForm
-                        allowedTypes={dataTypes}
-                        onCancel={() => setShowDataCreate(false)}
-                        onCreated={openCreatedResource}
-                    />
-                </RecordDrawer>
-            ) : null}
-
-            {showWebCreate ? (
-                <RecordDrawer onClose={() => setShowWebCreate(false)}>
-                    <WebDomainInfrastructureForm
-                        allowedTypes={webTypes}
-                        onCancel={() => setShowWebCreate(false)}
+            {showCreate ? (
+                <RecordDrawer onClose={() => setShowCreate(false)}>
+                    <InfrastructureCreateForm
+                        allowedTypes={createTypes}
+                        initialType={
+                            resourceTypeFilter ??
+                            RESOURCE_TYPES.find((type) => type === resourceType)
+                        }
+                        onCancel={() => setShowCreate(false)}
                         onCreated={openCreatedResource}
                     />
                 </RecordDrawer>

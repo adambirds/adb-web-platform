@@ -13,9 +13,10 @@ from django.utils.text import slugify
 
 from apps.clients.models import Client, ClientContact, Project, ProjectNote, TimeEntry
 from apps.core.models import AuditEvent, Brand
+from apps.core.ownership import OwnershipType
 from apps.credentials.models import CredentialType, StoredCredential
 from apps.crm.models import Lead, LeadSource, LeadStatus
-from apps.infrastructure.models import Application, Database, Domain, Licence, Server, Website
+from apps.infrastructure.models import InfrastructureResource, ServerProfile
 from apps.knowledge_base.models import DocumentVersion, KnowledgeBaseDocument, KnowledgeBaseSection
 from apps.tasks.models import Task, TaskList, TaskStatus
 from apps.website.models import (
@@ -101,12 +102,11 @@ class Command(BaseCommand):
         Task.objects.filter(title__startswith=DEMO_PREFIX).delete()
         TaskList.objects.filter(name__startswith=DEMO_PREFIX).delete()
         Lead.objects.filter(company__startswith=DEMO_PREFIX).delete()
-        Application.objects.filter(name__startswith=DEMO_PREFIX).delete()
-        Licence.objects.filter(name__startswith=DEMO_PREFIX).delete()
-        Domain.objects.filter(domain_name__startswith="demo-").delete()
-        Website.objects.filter(name__startswith=DEMO_PREFIX).delete()
-        Database.objects.filter(name__startswith=DEMO_PREFIX).delete()
-        Server.objects.filter(hostname__startswith="demo-").delete()
+        InfrastructureResource.objects.filter(
+            name__startswith=DEMO_PREFIX,
+            resource_type=InfrastructureResource.ResourceType.SYSTEM_SERVICE,
+        ).delete()
+        InfrastructureResource.objects.filter(name__startswith=f"{DEMO_PREFIX} Compute ").delete()
         Client.objects.filter(company__startswith=DEMO_PREFIX).delete()
 
     def _seed_brands(self) -> list[Brand]:
@@ -471,118 +471,25 @@ class Command(BaseCommand):
                 },
             )
 
-    def _seed_infrastructure(
-        self,
-        rng: random.Random,
-        scale: int,
-    ) -> list[object]:
-        servers = []
-        for index in range(1, (14 * scale) + 1):
-            server, _ = Server.objects.update_or_create(
-                hostname=f"demo-web-{index:02d}.example.test",
+    def _seed_infrastructure(self, rng: random.Random, scale: int) -> list[InfrastructureResource]:
+        resources = []
+        for index in range(1, 14 * scale + 1):
+            resource, _ = InfrastructureResource.objects.update_or_create(
+                name=f"{DEMO_PREFIX} Compute {index:02d}",
+                defaults={"ownership_type": OwnershipType.INTERNAL, "resource_type": "server"},
+            )
+            ServerProfile.objects.update_or_create(
+                resource=resource,
                 defaults={
-                    "role": rng.choice(["web", "database", "management", "backup"]),
-                    "provider": "do",
-                    "region": rng.choice(["lon1", "fra1", "nyc3"]),
-                    "os": "ubuntu_24",
-                    "cpu": rng.choice(["2 vCPU", "4 vCPU", "8 vCPU"]),
-                    "ram_gb": rng.choice([2, 4, 8, 16]),
-                    "disk_gb": rng.choice([50, 80, 160, 320]),
-                    "virtualization_type": "vm",
-                    "notes": "Generated development infrastructure record.",
+                    "hostname": f"demo-web-{index:02d}.example.test",
+                    "os_family": "linux",
+                    "distribution": "Ubuntu",
+                    "os_version": "24.04",
+                    "ram_mb": rng.choice([2048, 4096, 8192]),
                 },
             )
-            servers.append(server)
-
-        databases = []
-        for index in range(1, (8 * scale) + 1):
-            database, _ = Database.objects.update_or_create(
-                name=f"{DEMO_PREFIX} PostgreSQL {index:02d}",
-                defaults={
-                    "db_type": "postgres",
-                    "provider": "self_hosted",
-                    "server": servers[index % len(servers)],
-                    "version": "17",
-                    "backup_strategy": (
-                        "Nightly encrypted backup with seven-day retention (demo data)."
-                    ),
-                },
-            )
-            databases.append(database)
-
-        websites = []
-        for index in range(1, (18 * scale) + 1):
-            website, _ = Website.objects.update_or_create(
-                primary_url=f"https://demo-site-{index}.example.test",
-                defaults={
-                    "name": f"{DEMO_PREFIX} Website {index:02d}",
-                    "environment_type": rng.choice(["production", "staging"]),
-                    "database": databases[index % len(databases)],
-                    "admin_url": f"https://demo-site-{index}.example.test/admin",
-                    "github_repository": "https://github.com/example/demo-repository",
-                    "has_cdn": True,
-                    "cdn_provider": "Cloudflare",
-                    "cache_layer": "Redis",
-                    "notes": "Generated development website record.",
-                },
-            )
-            website.servers.set([servers[index % len(servers)]])
-            websites.append(website)
-
-        domains = []
-        today = timezone.localdate()
-        for index, website in enumerate(websites, start=1):
-            domain, _ = Domain.objects.update_or_create(
-                domain_name=f"demo-{index}.example.test",
-                defaults={
-                    "registrar": "cloudflare",
-                    "expiry_date": today + timedelta(days=rng.randint(20, 600)),
-                    "auto_renew": rng.random() > 0.1,
-                    "nameservers": "demo1.example.test,demo2.example.test",
-                },
-            )
-            domain.websites.set([website])
-            domains.append(domain)
-
-        licences = []
-        for index in range(1, (12 * scale) + 1):
-            licence, _ = Licence.objects.update_or_create(
-                name=f"{DEMO_PREFIX} Software licence {index:02d}",
-                defaults={
-                    "licence_type": "subscription",
-                    "vendor": rng.choice(["Demo Vendor", "Example Software", "Sample Cloud"]),
-                    "renewal_date": today + timedelta(days=rng.randint(5, 365)),
-                    "renewal_cost": Decimal(str(rng.choice([9, 19, 49, 99, 199]))),
-                    "auto_renew": rng.random() > 0.15,
-                    "portal_url": "https://example.test",
-                    "licence_key": "DEMO-LICENCE-KEY-NOT-REAL",
-                    "notes": "Generated development licence.",
-                },
-            )
-            licence.websites.set([websites[index % len(websites)]])
-            licences.append(licence)
-
-        applications = []
-        for index in range(1, (10 * scale) + 1):
-            application, _ = Application.objects.update_or_create(
-                name=f"{DEMO_PREFIX} Application {index:02d}",
-                defaults={
-                    "app_type": rng.choice(["web_app", "saas", "api"]),
-                    "description": (
-                        "Generated logical application for development inventory views."
-                    ),
-                    "status": "active",
-                    "notes": "Fake development data.",
-                },
-            )
-            application.websites.set([websites[index % len(websites)]])
-            application.servers.set([servers[index % len(servers)]])
-            application.databases.set([databases[index % len(databases)]])
-            application.domains.set([domains[index % len(domains)]])
-            application.licences.set([licences[index % len(licences)]])
-            applications.append(application)
-
-        return [*servers, *databases, *websites, *domains, *licences, *applications]
+            resources.append(resource)
+        return resources
 
     def _seed_content(
         self,
@@ -710,7 +617,7 @@ class Command(BaseCommand):
         rng: random.Random,
         clients: list[Client],
         projects: list[Project],
-        infrastructure: list[object],
+        infrastructure: list[InfrastructureResource],
         scale: int,
     ) -> None:
         targets = [*clients, *projects, *infrastructure]

@@ -2,7 +2,7 @@ import { Container } from "@/components/ui";
 import { InfrastructureResourcesWorkspace } from "./InfrastructureResourcesWorkspace";
 
 export const metadata = {
-    title: "Structured Infrastructure Resources",
+    title: "Infrastructure Resources",
 };
 
 export default function InfrastructureResourcesPage() {

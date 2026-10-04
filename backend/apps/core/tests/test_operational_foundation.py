@@ -8,14 +8,7 @@ from django.test import TestCase
 from apps.clients.models import Client, Project, TimeEntry
 from apps.core.ownership import OwnershipType
 from apps.credentials.models import StoredCredential
-from apps.infrastructure.models import (
-    API,
-    Bot,
-    EmailSystem,
-    MobileApp,
-    SSLCertificate,
-    WebsiteTechStack,
-)
+from apps.infrastructure.models import InfrastructureResource, TLSCertificate, WebsiteProfile
 from apps.knowledge_base.models import KnowledgeBaseDocument, KnowledgeBaseSection
 from apps.tasks.models import Task, TaskList
 
@@ -197,22 +190,21 @@ class DevelopmentSeedCommandTests(TestCase):
 
         call_command("seed_all_development", "--reset", "--force", stdout=output)
 
-        self.assertGreater(WebsiteTechStack.objects.count(), 0)
-        self.assertGreater(SSLCertificate.objects.count(), 0)
-        self.assertGreater(
-            MobileApp.objects.filter(name__startswith="[DEMO]").count(),
-            0,
-        )
-        self.assertGreater(
-            API.objects.filter(name__startswith="[DEMO]").count(),
-            0,
-        )
-        self.assertGreater(
-            Bot.objects.filter(name__startswith="[DEMO]").count(),
-            0,
-        )
-        self.assertGreater(
-            EmailSystem.objects.filter(notes__startswith="[DEMO]").count(),
-            0,
-        )
+        self.assertGreater(WebsiteProfile.objects.count(), 0)
+        self.assertGreater(TLSCertificate.objects.count(), 0)
+        for resource_type in ("mobile_app", "api", "bot", "email_system"):
+            self.assertGreater(
+                InfrastructureResource.objects.filter(
+                    resource_type=resource_type, name__startswith="[DEMO]"
+                ).count(),
+                0,
+            )
         self.assertIn("Full platform development data ready", output.getvalue())
+        first_count = InfrastructureResource.objects.filter(name__startswith="[DEMO]").count()
+        call_command("seed_infrastructure_development", "--reset", "--force", stdout=StringIO())
+        call_command(
+            "seed_specialist_operations_development", "--reset", "--force", stdout=StringIO()
+        )
+        self.assertEqual(
+            InfrastructureResource.objects.filter(name__startswith="[DEMO]").count(), first_count
+        )

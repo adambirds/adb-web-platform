@@ -111,7 +111,6 @@ This applies to:
 - details/drawers;
 - Client-context Infrastructure views;
 - relationship selectors and mutations;
-- reconciliation;
 - specialist projections;
 - Credentials/KB/Monitoring panels;
 - search/topology.
@@ -169,10 +168,7 @@ Vault Credentials rather than adding password/token/private-key columns.
 
 ### Implemented compute/network specialist boundary
 
-The first native specialist family is implemented without renaming or deleting
-the still-live legacy `Server` model.
-
-`ServerProfile` is therefore the transitional modern compute model attached
+`ServerProfile` is the compute model attached
 one-to-one to a Server `InfrastructureResource`. It carries operational fields
 such as hostname/FQDN, purpose/role, compute type, architecture, CPU/RAM/disk,
 OS/kernel metadata, Provider Account/provider resource identifiers,
@@ -189,23 +185,19 @@ Networking is represented by typed models rather than free-text Server fields:
 
 The models validate resource type, Client/Internal boundaries, Network/Subnet
 consistency, gateway/CIDR membership and IP/interface/subnet membership.
-Provider/account relationships are explicit and never inferred from a legacy
-provider label.
+Provider/account relationships are explicit.
 
 Specialist create/edit/archive APIs use the canonical `InfrastructureResource`
 ID in their URL/API identity. Invalid specialist creation is atomic and must not
 leave an orphan shared resource. Archive is a shared resource lifecycle change,
 not hard deletion.
 
-The resource workspace projects safe native specialist metadata and falls back
-to the legacy specialist projection only where a native replacement does not yet
-exist. Linked active Credentials are already surfaced from the Vault through the
-same resource identity.
+The resource workspace projects native specialist metadata. Linked active
+Credentials are surfaced from the Vault through the same resource identity.
 
 ### Implemented Web/Domain/DNS/TLS specialist boundary
 
-Web infrastructure is now represented by native typed specialists rather than
-comma-separated legacy metadata:
+Web infrastructure is represented by typed specialists:
 
 - `WebsiteProfile` represents the logical web property and explicit hosting/CDN/WAF Provider Accounts;
 - `WebsiteEndpoint` represents a concrete URL and may link to its `ApplicationEnvironment`, `DomainProfile` and `TLSCertificate`;
@@ -298,80 +290,23 @@ Provider Account resource.
 
 ---
 
-## 8. Legacy specialist reconciliation
+## 8. Resource-only infrastructure
 
-The repository contains older flat specialist models including Server,
-Database, Website, Domain, SSLCertificate, Licence, Application, MobileApp, API,
-Bot and EmailSystem.
+This is a new system with no historical inventory to migrate. The obsolete flat
+Server, Database, Website, Domain, SSL, Licence, Application, MobileApp, API, Bot,
+EmailSystem and WebsiteTechStack models and their identity bridges are removed.
+Reconciliation, promotion and fallback projections are removed with them.
 
-These rows are preserved while the structured model becomes the operational
-identity.
+`InfrastructureResource` is the sole operational identity. Typed specialist
+profiles hold technical metadata. Credentials remain in the encrypted Vault.
+All category pages use the scoped resource collection with a fixed resource type;
+resource details, overview counts, topology and technology listings use the same
+identity and Client/Internal scope. Technology listings project recorded native
+CMS, framework, language, database, runtime and operating-system metadata.
 
-### Implemented transition model
-
-Every current legacy family has a typed one-to-one identity bridge to
-`InfrastructureResource`.
-
-The bridge enforces resource-type compatibility: a legacy Server reconciles
-only to a resource whose type is Server, a legacy Website only to Website, and
-so on.
-
-Reconciliation is explicit/operator-driven. The system does **not** guess
-Client/Internal ownership from historical data.
-
-The operator chooses/validates:
-
-- ownership type;
-- Client when Client-owned;
-- resource name;
-- lifecycle;
-- environment;
-- criticality.
-
-The dedicated `reconcile_legacy_infrastructure` permission protects this
-migration operation. Normal Client scope still applies.
-
-Each legacy row is reconciled only once.
-
-### Safe specialist projection and promotion
-
-During transition, structured resource detail may project safe specialist
-metadata from the legacy record.
-
-Reconciled legacy Servers additionally promote deterministic safe compute/IP
-facts into `ServerProfile`/`IPAddress`. Legacy Database/Application rows likewise
-promote only deterministic typed fields. Reconciled legacy Websites create a
-`WebsiteProfile` and primary Endpoint from the exact primary URL; Domains promote
-the exact name/expiry/auto-renew values; legacy SSL rows promote non-secret TLS
-metadata and link to a Domain only when that Domain has already been explicitly
-reconciled.
-
-Promotion deliberately does not infer Provider Accounts from legacy
-provider/registrar/CDN strings, parse comma-separated aliases or nameservers
-into new topology, infer ownership, or copy general free-text notes. The legacy
-identity bridge remains intact for provenance while the native specialist
-becomes the operational representation.
-
-Secret-bearing legacy fields such as licence keys, passwords/API material and
-general sensitive notes must not leak through the structured resource API.
-Where those values are migrated, the target is an encrypted Vault Credential,
-not another Infrastructure metadata field.
-
-The workspace retains provenance/back-links while the bridge remains useful.
-
-### Migration discipline
-
-1. preserve historical migrations;
-2. preserve legacy rows/model identity;
-3. do not guess ownership;
-4. add/keep typed identity bridges;
-5. make the structured resource the operational relationship anchor once
-   reconciled;
-6. introduce mature specialist CRUD progressively;
-7. migrate secret-bearing legacy values into the Credential Vault before
-   removing duplicate plaintext fields;
-8. retire duplicated legacy fields only after structured replacements are
-   migrated and verified.
+Historical migrations remain intact. Migration `0010_retire_obsolete_inventory`
+removes the redundant tables and obsolete capabilities. No data import or bridge
+is required. The old reconciliation browser URL redirects to Resources.
 
 ---
 
@@ -604,8 +539,6 @@ TLS technical details are rendered directly in the shared Resource workspace
 alongside active linked Credentials. Application workspaces surface typed Source
 Repository links separately from the generic topology graph, while Website,
 DNS Zone and TLS workspaces surface their useful nested technical records.
-Reconciled resources retain their legacy-source provenance/back-link during
-migration.
 
 The Credentials section is backed by the Vault's scoped resource-link API and
 retains independent secret-action permissions.
@@ -652,11 +585,6 @@ The technical foundation now provides:
 - current-first global/Client resource collections;
 - scoped resource detail/drawer workspaces;
 - relationship target/options/create/delete APIs/UI;
-- typed identity bridges for every current legacy specialist family;
-- explicit permission-aware legacy reconciliation;
-- safe legacy specialist projection/provenance;
-- deterministic reconciled legacy Server -> `ServerProfile`/`IPAddress`
-  promotion without provider/ownership guessing;
 - native `ServerProfile`, `Network`, `Subnet`, `NetworkInterface` and
   `IPAddress` specialist models;
 - resource-centric create/edit/archive APIs for Server/Network/Subnet plus
@@ -667,8 +595,6 @@ The technical foundation now provides:
 - typed `ApplicationRepositoryLink` role/path relationships;
 - resource-centric create/edit/archive APIs and scoped selectors for the
   data/application specialist family;
-- deterministic safe legacy Database/Application promotion without Provider
-  Account, Server or free-text guessing;
 - deterministic Internal and Client-owned development seed data for databases,
   applications, environments and source repositories;
 - native `WebsiteProfile`, `WebsiteEndpoint`, `DomainProfile`, `DNSZone`,
@@ -677,34 +603,32 @@ The technical foundation now provides:
   Domain, DNS and TLS resources;
 - nested Website Endpoint, DNS Record and TLS Domain-coverage management in the
   shared Resource workspace;
-- deterministic safe legacy Website/Domain/SSL promotion without Provider
-  Account, alias/nameserver or ownership guessing;
 - deterministic Internal and Client-owned development seed data for Website,
   Domain, DNS and TLS structures;
 - the typed encrypted Credential Vault;
 - Credential -> Infrastructure Resource links with ownership validation;
 - Client and Resource contextual Credential registers;
 - explicit reveal/copy/download audit boundaries;
-- atomic legacy StoredCredential secret reconciliation.
+- atomic legacy StoredCredential secret reconciliation;
+- native storage, backup, container, Kubernetes, system-service and scheduled-job profiles;
+- Domain/TLS metadata discovery and Monitoring expiry checks;
+- scoped category and technology registers backed solely by resources.
 
 It does **not** yet provide:
 
-- Monitoring checks/results/incidents;
-- redesigned KB folder/editor/resource links;
-- Docker/Kubernetes specialist structures;
 - firewall/load-balancer and other deeper networking specialists;
 - final broad technical topology/search polish.
 
 ---
 
-## 16. Current technical-operations sequence
+## 16. Technical-operations follow-up priorities
 
-1. Monitoring checks/history/incidents + technical dashboards;
+1. Monitoring history/incident and technical-dashboard refinement;
 2. Knowledge Base folder/editor/version/attachment work;
 3. KB/resource backlinks + contextual search foundations;
-4. Docker/Kubernetes structures;
+4. Docker/Kubernetes operational workflow refinement;
 5. storage/backups/system services/scheduled jobs and remaining specialist
-   operations records;
+   workflow refinement;
 6. unified topology/search/activity/audit polish;
 7. Credential expiry/rotation health and bulk rotation tooling as operational
    follow-up rather than a blocker for typed Infrastructure.
@@ -715,3 +639,22 @@ mature rather than waiting for one giant final integration PR.
 Every slice must preserve Client/Internal ownership, capability/scope,
 current-first UX, audit boundaries and the Credential Vault secret-handling
 contract.
+
+## Overview inventory counts
+
+The Infrastructure overview, resource registers and technology listings use
+the `view_infrastructureresource` capability and the same Client/Internal scope.
+Retired and Archived
+records are excluded from current views. Domain and certificate expiry counts
+use native profiles. Licence resources currently have no typed renewal metadata;
+the overview does not imply that licence renewal dates are being monitored.
+
+## Creation and catalogue management
+
+The Resources chooser exposes all 29 resource types through their existing typed
+forms or the common general-inventory form. Provider Accounts have resource-backed
+create/edit/archive APIs and a dedicated register. Service Providers have a
+separate paginated catalogue and can be created inline in the account form.
+Server workspaces expose interface/IP creation, and resource workspaces support
+shared tag creation and scoped assignment. See `INFRASTRUCTURE_CREATION.md` for
+the complete creation map and permission contracts.

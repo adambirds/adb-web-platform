@@ -1,6 +1,12 @@
 "use client";
 
-import { Button, Card, DataError, DataLoading, EmptyState } from "@/components/ui";
+import {
+    Button,
+    Card,
+    DataError,
+    DataLoading,
+    EmptyState,
+} from "@/components/ui";
 import { fetchAPI } from "@/lib/api/fetch";
 import { API_URL } from "@/lib/config";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -35,10 +41,6 @@ interface ClientOption {
     company: string;
 }
 
-interface ClientPage {
-    items: ClientOption[];
-}
-
 interface ResourceOption {
     id: number;
     name: string;
@@ -68,13 +70,17 @@ export function ActivityWorkspace() {
     useEffect(() => {
         async function loadContextOptions() {
             const [clientResult, resourceResult] = await Promise.allSettled([
-                fetchAPI(`${API_URL}/api/admin/clients?page_size=100`) as Promise<ClientPage>,
+                fetchAPI(`${API_URL}/api/admin/clients`) as Promise<
+                    ClientOption[]
+                >,
                 fetchAPI(
                     `${API_URL}/api/admin/infrastructure/resources?page_size=100&lifecycle=current`,
                 ) as Promise<ResourcePage>,
             ]);
-            if (clientResult.status === "fulfilled") setClients(clientResult.value.items);
-            if (resourceResult.status === "fulfilled") setResources(resourceResult.value.items);
+            if (clientResult.status === "fulfilled")
+                setClients(clientResult.value);
+            if (resourceResult.status === "fulfilled")
+                setResources(resourceResult.value.items);
         }
         void loadContextOptions();
     }, []);
@@ -82,7 +88,8 @@ export function ActivityWorkspace() {
     const visibleResources = useMemo(
         () =>
             resources.filter(
-                (resource) => clientId === null || resource.client_id === clientId,
+                (resource) =>
+                    clientId === null || resource.client_id === clientId,
             ),
         [clientId, resources],
     );
@@ -91,14 +98,24 @@ export function ActivityWorkspace() {
         try {
             setLoading(true);
             setError(null);
-            const query = new URLSearchParams({ page: String(page), page_size: "50" });
+            const query = new URLSearchParams({
+                page: String(page),
+                page_size: "50",
+            });
             if (clientId !== null) query.set("client_id", String(clientId));
-            if (resourceId !== null) query.set("resource_id", String(resourceId));
+            if (resourceId !== null)
+                query.set("resource_id", String(resourceId));
             setData(
-                (await fetchAPI(`${API_URL}/api/admin/activity?${query.toString()}`)) as ActivityResponse,
+                (await fetchAPI(
+                    `${API_URL}/api/admin/activity?${query.toString()}`,
+                )) as ActivityResponse,
             );
         } catch (loadError) {
-            setError(loadError instanceof Error ? loadError.message : "Unable to load activity.");
+            setError(
+                loadError instanceof Error
+                    ? loadError.message
+                    : "Unable to load activity.",
+            );
         } finally {
             setLoading(false);
         }
@@ -109,9 +126,12 @@ export function ActivityWorkspace() {
     }, [load]);
 
     async function acknowledge(eventId: number) {
-        await fetchAPI(`${API_URL}/api/admin/audit-events/${eventId}/acknowledge`, {
-            method: "POST",
-        });
+        await fetchAPI(
+            `${API_URL}/api/admin/audit-events/${eventId}/acknowledge`,
+            {
+                method: "POST",
+            },
+        );
         await load();
     }
 
@@ -121,20 +141,26 @@ export function ActivityWorkspace() {
         setPage(1);
     }
 
-    if (loading && !data) return <DataLoading label="Loading operational activity..." />;
-    if (error && !data) return <DataError message={error} onRetry={() => void load()} />;
+    if (loading && !data)
+        return <DataLoading label="Loading operational activity..." />;
+    if (error && !data)
+        return <DataError message={error} onRetry={() => void load()} />;
 
     return (
         <div className="space-y-5">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-adb-cyan-400">
+                    <p className="text-adb-cyan-400 text-xs font-semibold tracking-[0.18em] uppercase">
                         Stage 9 · Audit & security
                     </p>
-                    <h1 className="mt-2 text-2xl font-semibold text-white">Operational activity</h1>
+                    <h1 className="mt-2 text-2xl font-semibold text-white">
+                        Operational activity
+                    </h1>
                     <p className="mt-1 max-w-3xl text-sm text-slate-400">
-                        Append-only platform, Client and resource history filtered through your current object access.
-                        Sensitive request metadata is shown only when your role explicitly permits it.
+                        Append-only platform, Client and resource history
+                        filtered through your current object access. Sensitive
+                        request metadata is shown only when your role explicitly
+                        permits it.
                     </p>
                 </div>
                 <Button variant="outline" onClick={() => void load()}>
@@ -148,7 +174,9 @@ export function ActivityWorkspace() {
                         <span>Client context</span>
                         <select
                             value={clientId ?? ""}
-                            onChange={(event) => changeClient(event.target.value)}
+                            onChange={(event) =>
+                                changeClient(event.target.value)
+                            }
                             className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200"
                         >
                             <option value="">Platform-wide</option>
@@ -164,7 +192,11 @@ export function ActivityWorkspace() {
                         <select
                             value={resourceId ?? ""}
                             onChange={(event) => {
-                                setResourceId(event.target.value ? Number(event.target.value) : null);
+                                setResourceId(
+                                    event.target.value
+                                        ? Number(event.target.value)
+                                        : null,
+                                );
                                 setPage(1);
                             }}
                             className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200"
@@ -172,12 +204,16 @@ export function ActivityWorkspace() {
                             <option value="">All visible resources</option>
                             {visibleResources.map((resource) => (
                                 <option key={resource.id} value={resource.id}>
-                                    {resource.name} · {resource.resource_type.replaceAll("_", " ")}
+                                    {resource.name} ·{" "}
+                                    {resource.resource_type.replaceAll(
+                                        "_",
+                                        " ",
+                                    )}
                                 </option>
                             ))}
                         </select>
                     </label>
-                    {(clientId !== null || resourceId !== null) ? (
+                    {clientId !== null || resourceId !== null ? (
                         <Button
                             variant="ghost"
                             onClick={() => {
@@ -202,21 +238,32 @@ export function ActivityWorkspace() {
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-5 py-4">
                     <div>
                         <h2 className="font-semibold text-slate-100">
-                            {resourceId !== null ? "Resource activity" : clientId !== null ? "Client activity" : "Audit trail"}
+                            {resourceId !== null
+                                ? "Resource activity"
+                                : clientId !== null
+                                  ? "Client activity"
+                                  : "Audit trail"}
                         </h2>
-                        <p className="text-xs text-slate-500">{data?.total ?? 0} visible events</p>
+                        <p className="text-xs text-slate-500">
+                            {data?.total ?? 0} visible events
+                        </p>
                     </div>
                     <span className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-400">
-                        {data?.metadata_visible ? "Sensitive metadata permitted" : "Sensitive metadata hidden"}
+                        {data?.metadata_visible
+                            ? "Sensitive metadata permitted"
+                            : "Sensitive metadata hidden"}
                     </span>
                 </div>
 
                 <div className="divide-y divide-slate-800">
                     {data?.items.map((item) => (
-                        <div key={item.id} className="grid gap-3 px-5 py-4 lg:grid-cols-[1fr_auto]">
+                        <div
+                            key={item.id}
+                            className="grid gap-3 px-5 py-4 lg:grid-cols-[1fr_auto]"
+                        >
                             <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <span className="rounded-md bg-slate-800 px-2 py-1 text-[11px] font-semibold text-adb-cyan-200">
+                                    <span className="text-adb-cyan-200 rounded-md bg-slate-800 px-2 py-1 text-[11px] font-semibold">
                                         {labelAction(item.action)}
                                     </span>
                                     <span className="text-xs text-slate-500">
@@ -227,28 +274,44 @@ export function ActivityWorkspace() {
                                     </span>
                                 </div>
                                 <p className="mt-2 text-sm text-slate-200">
-                                    <span className="font-medium">{item.actor_name || "System"}</span>
-                                    {item.target_label ? ` · ${item.target_label}` : ""}
+                                    <span className="font-medium">
+                                        {item.actor_name || "System"}
+                                    </span>
+                                    {item.target_label
+                                        ? ` · ${item.target_label}`
+                                        : ""}
                                 </p>
                                 <p className="mt-1 text-xs text-slate-500">
                                     {item.target_type || "platform"}
-                                    {item.target_id ? ` #${item.target_id}` : ""}
-                                    {item.client_id ? ` · Client ${item.client_id}` : ""}
-                                    {item.resource_id ? ` · Resource ${item.resource_id}` : ""}
+                                    {item.target_id
+                                        ? ` #${item.target_id}`
+                                        : ""}
+                                    {item.client_id
+                                        ? ` · Client ${item.client_id}`
+                                        : ""}
+                                    {item.resource_id
+                                        ? ` · Resource ${item.resource_id}`
+                                        : ""}
                                 </p>
-                                {data?.metadata_visible && Object.keys(item.metadata).length > 0 ? (
+                                {data?.metadata_visible &&
+                                Object.keys(item.metadata).length > 0 ? (
                                     <pre className="mt-3 overflow-x-auto rounded-lg border border-slate-800 bg-slate-950 p-3 text-[11px] text-slate-400">
                                         {JSON.stringify(item.metadata, null, 2)}
                                     </pre>
                                 ) : null}
-                                {data?.metadata_visible && (item.ip_address || item.user_agent) ? (
-                                    <p className="mt-2 break-all text-[11px] text-slate-600">
-                                        {item.ip_address || "No IP"} · {item.user_agent || "No user agent"}
+                                {data?.metadata_visible &&
+                                (item.ip_address || item.user_agent) ? (
+                                    <p className="mt-2 text-[11px] break-all text-slate-600">
+                                        {item.ip_address || "No IP"} ·{" "}
+                                        {item.user_agent || "No user agent"}
                                     </p>
                                 ) : null}
                             </div>
                             {!item.action.startsWith("audit.acknowledged") ? (
-                                <Button variant="ghost" onClick={() => void acknowledge(item.id)}>
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => void acknowledge(item.id)}
+                                >
                                     Acknowledge
                                 </Button>
                             ) : null}
@@ -266,7 +329,11 @@ export function ActivityWorkspace() {
 
             {(data?.total_pages ?? 0) > 1 ? (
                 <div className="flex items-center justify-end gap-3 text-sm text-slate-400">
-                    <Button variant="outline" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>
+                    <Button
+                        variant="outline"
+                        disabled={page <= 1}
+                        onClick={() => setPage((value) => value - 1)}
+                    >
                         Previous
                     </Button>
                     <span>

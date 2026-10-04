@@ -85,6 +85,9 @@ class KnowledgeDocumentDetailOut(KnowledgeDocumentSummaryOut):
 
 
 class KnowledgeWorkspaceOut(Schema):
+    ownership_type: str
+    client_id: int | None
+    client_name: str | None
     sections: list[KnowledgeSectionOut]
     documents: list[KnowledgeDocumentSummaryOut]
     total_documents: int
@@ -144,3 +147,10 @@ class KnowledgeOptionsOut(Schema):
     sections: list[KnowledgeSectionOut]
     resources: list[KnowledgeOptionOut]
     credentials: list[KnowledgeOptionOut]
+
+
+class KnowledgeContextsOut(Schema):
+    items: list[KnowledgeOptionOut]
+    total: int
+    page: int
+    page_size: int

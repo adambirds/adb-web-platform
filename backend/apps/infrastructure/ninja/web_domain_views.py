@@ -10,6 +10,7 @@ from ninja import Router
 
 from apps.access_control.policies import scope_clients_for_user
 from apps.clients.models import Client
+from apps.core.models import AuditEvent
 from apps.infrastructure.models import (
     ApplicationEnvironment,
     DNSRecord,
@@ -1396,3 +1397,57 @@ def delete_tls_certificate_domain(
         return _problem(404, "TLS certificate domain link not found.", "not_found")
     link.delete()
     return 204, None
+
+
+@web_domain_specialist_router.put(
+    "/infrastructure/tls-certificates/{resource_id}/domains/{link_id}",
+    response={
+        200: TLSCertificateDomainOut,
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+        404: ProblemDetail,
+    },
+)
+def update_tls_certificate_domain(
+    request: HttpRequest, resource_id: int, link_id: int, payload: TLSCertificateDomainCreateIn
+) -> TLSCertificateDomainOut | StaffProblem:
+    problem = _permission_problem(
+        request,
+        "infrastructure.view_infrastructureresource",
+        "infrastructure.view_tlscertificate",
+        "infrastructure.view_domainprofile",
+        "infrastructure.view_tlscertificatedomain",
+        "infrastructure.change_tlscertificatedomain",
+    )
+    if problem:
+        return problem
+    owner = _visible_tls_certificate(request, resource_id)
+    related = _visible_domain(request, payload.domain_resource_id)
+    if owner is None or related is None:
+        return _problem(404, "Resource not found.", "not_found")
+    try:
+        with transaction.atomic():
+            link = (
+                TLSCertificateDomain.objects.select_for_update()
+                .filter(
+                    id=link_id, certificate=owner, domain__resource__in=_visible_queryset(request)
+                )
+                .first()
+            )
+            if link is None:
+                return _problem(404, "Link not found.", "not_found")
+            link.domain = related
+            link.is_primary = payload.is_primary
+            link.full_clean()
+            link.save()
+            AuditEvent.record(
+                action="updated",
+                target=link,
+                actor=request.user,
+                resource_id=owner.resource_id,
+                client_id=owner.resource.client_id,
+            )
+    except ValidationError as error:
+        return _validation_problem(error)
+    return _tls_domain_out(link)

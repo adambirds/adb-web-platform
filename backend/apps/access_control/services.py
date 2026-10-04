@@ -36,7 +36,6 @@ SENSITIVE_PERMISSION_CODES = {
     "credentials.copy_storedcredential_secret",
     "credentials.download_storedcredential_secret",
     "credentials.reconcile_legacy_credentials",
-    "infrastructure.reconcile_legacy_infrastructure",
     "ticketing.configure_graph_connections",
     "ticketing.configure_mailboxes",
 }

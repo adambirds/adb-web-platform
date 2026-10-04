@@ -1,6 +1,12 @@
 # Knowledge documents and protected attachments
 
-Client/Internal document trees, Markdown content, immutable versions and resource links. Portal visibility is explicit; attachments use protected access and scanning.
+Independent Client/Internal document trees, Markdown content, immutable versions and resource links.
+The workspace starts with a Client/Internal picker; collection and option APIs
+require one selected owner. The browser presents inline folders/articles with
+breadcrumbs and list/grid views. `browse=true` returns directory contents, and
+search includes descendants inside the selected owner. Creation inherits that
+owner and the current folder. See
+[`KNOWLEDGE_BASE_ARCHITECTURE.md`](../../../docs/KNOWLEDGE_BASE_ARCHITECTURE.md). Portal visibility is explicit; attachments use protected access and scanning.
 
 ## Code map
 

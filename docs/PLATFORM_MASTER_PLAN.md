@@ -304,8 +304,7 @@ The following are established platform architecture, not future-only ideas:
 - per-user Ticket Queue defaults stored server-side;
 - structured InfrastructureResource identity, Providers, tags and typed
   resource relationships;
-- explicit specialist legacy reconciliation and structured Infrastructure
-  resource workspaces;
+- resource-only Infrastructure workspaces and typed specialist profiles;
 - full typed Credential Vault with encrypted/versioned secrets, independent
   reveal/copy/download permissions, Client/Infrastructure context and atomic
   legacy-secret reconciliation;
@@ -528,8 +527,7 @@ The merged foundation includes:
 - Service Providers and resource-backed Provider Accounts;
 - typed relationships;
 - current-first resource views;
-- specialist legacy identity bridges;
-- explicit operator-driven reconciliation;
+- one authoritative resource identity across all Infrastructure pages;
 - Client-scoped/global structured resource workspaces;
 - contextual links to active Credentials;
 - native compute/network specialists;
@@ -538,7 +536,9 @@ The merged foundation includes:
 - native Source Repository specialists and typed Application/Repository links;
 - native Website/Website Endpoint, Domain/DNS Zone/DNS Record and TLS Certificate specialists;
 - nested Website endpoint, DNS record and TLS Domain-coverage operations in the shared resource workspace;
-- safe resource-centric create/edit/archive workflows and conservative legacy promotion;
+- safe resource-centric create/edit/archive workflows;
+- a permission-filtered creation chooser for every resource type, dedicated
+  Provider Account/vendor creation and nested server-network/tag controls;
 - bounded permission-aware topology traversal over visible resource relationships.
 
 Monitoring, Knowledge Base, specialist technical operations and topology extend
@@ -603,6 +603,11 @@ to guess Basic/Bearer or another wire-authentication contract.
 
 The Knowledge Base is an implemented Client/Internal documentation workspace
 with a filesystem-like folder/section structure rather than a flat list.
+Operators first open a Client or Internal Knowledge Base. Each owner has an
+independent folder tree; folder/article lists and create forms never combine
+Clients or default silently to Internal. The workspace is a single file browser
+with list/grid views, inline folders and articles, breadcrumbs and Up one level.
+Folder URLs preserve navigation, and creation uses the current folder.
 
 Implemented behaviour includes:
 
@@ -835,7 +840,6 @@ The platform now has:
 - Source Repository plus typed Application/Repository links;
 - Provider Account relationships;
 - safe resource create/edit/archive lifecycle;
-- conservative legacy promotion;
 - Credential references rather than duplicate secret fields.
 
 ### Stage 2 — Web Infrastructure — implemented
@@ -847,7 +851,6 @@ The platform now has:
 - explicit registrar/DNS/CDN/WAF/hosting Provider Account context;
 - Website Endpoint links to Application Environment, Domain and TLS Certificate;
 - nested operational cards for Website Endpoints, DNS Records and TLS Domain coverage;
-- conservative legacy Website/Domain/SSL promotion with no ownership/provider/alias/nameserver guessing;
 - Credential links through the shared resource identity for administrative/authentication material.
 
 ### Stage 3 — Monitoring and technical dashboards — implemented
@@ -1032,3 +1035,12 @@ Do not:
 
 Major future architectural decisions should be checked against this statement
 and the canonical documentation set.
+
+### Infrastructure editing completeness
+
+Service Provider metadata/status and shared tag metadata are editable with their
+separate view/change capabilities and audit events. All 29 native resource types
+use the standard Edit resource action in full pages and drawers. Server
+interfaces/IPs, repository links and TLS domain coverage can be edited in place;
+outgoing resource relationships retain editable notes and scoped targets.
+See `INFRASTRUCTURE_CREATION.md` for entry points and API boundaries.

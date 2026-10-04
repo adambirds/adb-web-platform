@@ -64,8 +64,6 @@ At normal scale, the development dataset covers realistic examples across:
 - Knowledge Base documents and version-history foundations;
 - fake Credential metadata and encrypted demo secret values;
 - active/inactive/archived Credential lifecycle examples where useful;
-- legacy Server, Database, Website, Domain, TLS, Licence, Application and
-  related infrastructure specialist examples;
 - native structured Provider Account, Server, Network, Subnet, network-interface and IP-address examples;
 - native Database Instance, Logical Database, Application, Application Environment and Source Repository examples;
 - typed Application/Repository role links;
@@ -81,16 +79,11 @@ The exact counts are seed implementation detail and may grow as a domain
 matures. Tests should not rely on specific production-like IDs/counts from the
 development seed command.
 
-### Structured Infrastructure transition
+### Resource-only Infrastructure
 
-The platform has `InfrastructureResource`, Provider and relationship foundations
-plus explicit specialist reconciliation and the first native typed
-compute/network specialists.
-
-Development data for older specialist records remains useful because the
-reconciliation workspace needs realistic legacy rows to review. Do not silently
-auto-assign Client/Internal ownership merely to make every seeded legacy row
-look reconciled.
+All infrastructure demo data uses `InfrastructureResource` and native typed
+profiles. The seeders no longer create flat inventory or reconciliation examples.
+Ownership is explicitly Internal or an existing demo Client.
 
 `seed_infrastructure_development` now also creates deterministic native examples
 for:
@@ -125,7 +118,6 @@ should exercise the same services/contracts as normal Vault records:
 - encrypted secret payloads;
 - Active-first lifecycle;
 - Infrastructure resource links where useful;
-- legacy reconciliation examples only when testing that migration path.
 
 Fake credential secrets must be obvious placeholders such as
 `demo-password-not-a-real-secret` and must use the encrypted credential service

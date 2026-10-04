@@ -14,13 +14,7 @@ export default function InfrastructurePage() {
                 actions={
                     <>
                         <ButtonLink href="/admin/infrastructure/resources">
-                            Structured resources
-                        </ButtonLink>
-                        <ButtonLink
-                            href="/admin/infrastructure/reconciliation"
-                            variant="secondary"
-                        >
-                            Reconcile existing records
+                            Resources
                         </ButtonLink>
                     </>
                 }

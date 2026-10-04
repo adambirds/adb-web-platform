@@ -8,6 +8,7 @@ import {
     DataError,
     DataLoading,
     EmptyState,
+    Pagination,
     Select,
 } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
@@ -81,6 +82,7 @@ function label(value: string): string {
 
 export function SpecialistOperationsWorkspace() {
     const { hasPermission } = useAuth();
+    const [page, setPage] = useState(1);
     const [type, setType] = useState<OperationalType>("container_stack");
     const [data, setData] = useState<ResourcePage | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -92,8 +94,9 @@ export function SpecialistOperationsWorkspace() {
         () =>
             OPERATIONAL_TYPES.filter(
                 (item) =>
-                    hasPermission("infrastructure.add_infrastructureresource") &&
-                    hasPermission(ADD_PERMISSIONS[item]),
+                    hasPermission(
+                        "infrastructure.add_infrastructureresource",
+                    ) && hasPermission(ADD_PERMISSIONS[item]),
             ),
         [hasPermission],
     );
@@ -106,8 +109,8 @@ export function SpecialistOperationsWorkspace() {
                 resource_type: type,
                 lifecycle: "current",
                 ownership: "all",
-                page: "1",
-                page_size: "100",
+                page: String(page),
+                page_size: "25",
             });
             setData(
                 (await fetchAPI(
@@ -123,7 +126,7 @@ export function SpecialistOperationsWorkspace() {
         } finally {
             setIsLoading(false);
         }
-    }, [type]);
+    }, [page, type]);
 
     useEffect(() => {
         void load();
@@ -144,7 +147,10 @@ export function SpecialistOperationsWorkspace() {
                         <Select
                             className="mt-1.5"
                             value={type}
-                            onChange={(event) => setType(event.target.value as OperationalType)}
+                            onChange={(event) => {
+                                setType(event.target.value as OperationalType);
+                                setPage(1);
+                            }}
                         >
                             {OPERATIONAL_TYPES.map((item) => (
                                 <option key={item} value={item}>
@@ -165,15 +171,22 @@ export function SpecialistOperationsWorkspace() {
                                 Add operational resource
                             </Button>
                         ) : null}
-                        <ButtonLink href="/admin/infrastructure/resources" variant="secondary">
+                        <ButtonLink
+                            href="/admin/infrastructure/resources"
+                            variant="secondary"
+                        >
                             All structured resources
                         </ButtonLink>
                     </div>
                 </div>
             </Card>
 
-            {error ? <DataError message={error} onRetry={() => void load()} /> : null}
-            {isLoading && !data ? <DataLoading label="Loading operational resources…" /> : null}
+            {error ? (
+                <DataError message={error} onRetry={() => void load()} />
+            ) : null}
+            {isLoading && !data ? (
+                <DataLoading label="Loading operational resources…" />
+            ) : null}
 
             {!isLoading && data?.items.length === 0 ? (
                 <EmptyState
@@ -184,22 +197,26 @@ export function SpecialistOperationsWorkspace() {
 
             <div className="grid gap-3 xl:grid-cols-2">
                 {data?.items.map((resource) => {
-                    const resourceType = resource.resource_type as OperationalType;
+                    const resourceType =
+                        resource.resource_type as OperationalType;
                     const canEdit =
-                        hasPermission("infrastructure.change_infrastructureresource") &&
-                        hasPermission(CHANGE_PERMISSIONS[resourceType]);
+                        hasPermission(
+                            "infrastructure.change_infrastructureresource",
+                        ) && hasPermission(CHANGE_PERMISSIONS[resourceType]);
                     return (
                         <Card key={resource.id} className="p-5">
                             <div className="flex items-start justify-between gap-4">
                                 <div className="min-w-0">
-                                    <p className="text-xs font-medium tracking-wide text-adb-cyan-300 uppercase">
+                                    <p className="text-adb-cyan-300 text-xs font-medium tracking-wide uppercase">
                                         {label(resource.resource_type)}
                                     </p>
                                     <h2 className="mt-1 truncate font-semibold text-slate-100">
                                         {resource.name}
                                     </h2>
                                     <p className="mt-2 text-sm text-slate-500">
-                                        {resource.client_name ?? "ADB Internal"} · {label(resource.environment)} · {label(resource.lifecycle_status)}
+                                        {resource.client_name ?? "ADB Internal"}{" "}
+                                        · {label(resource.environment)} ·{" "}
+                                        {label(resource.lifecycle_status)}
                                     </p>
                                 </div>
                                 <div className="flex shrink-0 flex-wrap gap-2">
@@ -214,7 +231,9 @@ export function SpecialistOperationsWorkspace() {
                                         <Button
                                             size="sm"
                                             type="button"
-                                            onClick={() => setEditResourceId(resource.id)}
+                                            onClick={() =>
+                                                setEditResourceId(resource.id)
+                                            }
                                         >
                                             Edit
                                         </Button>
@@ -225,6 +244,16 @@ export function SpecialistOperationsWorkspace() {
                     );
                 })}
             </div>
+
+            {data ? (
+                <Pagination
+                    page={data.page}
+                    pageSize={data.page_size}
+                    totalItems={data.total}
+                    onPageChange={setPage}
+                    disabled={isLoading}
+                />
+            ) : null}
 
             {showCreate ? (
                 <RecordDrawer onClose={() => setShowCreate(false)}>

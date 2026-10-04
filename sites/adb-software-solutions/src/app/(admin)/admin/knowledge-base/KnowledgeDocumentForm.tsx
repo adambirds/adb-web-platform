@@ -22,6 +22,13 @@ import type {
     KnowledgeOptionsResponse,
 } from "./types";
 
+import {
+    knowledgeBaseHref,
+    knowledgeContextParams,
+    parseKnowledgeContext,
+    type KnowledgeContext,
+} from "./context";
+
 const BASE = `${API_URL}/api/admin/knowledge-base`;
 
 interface FormState {
@@ -53,7 +60,9 @@ const EMPTY_FORM: FormState = {
 const labelClass = "space-y-1.5 text-sm font-medium text-slate-300";
 
 function toggleId(values: number[], id: number): number[] {
-    return values.includes(id) ? values.filter((value) => value !== id) : [...values, id];
+    return values.includes(id)
+        ? values.filter((value) => value !== id)
+        : [...values, id];
 }
 
 function OptionChecklist({
@@ -84,7 +93,7 @@ function OptionChecklist({
                             type="checkbox"
                             checked={selected.includes(option.id)}
                             onChange={() => onToggle(option.id)}
-                            className="mt-0.5 rounded border-slate-600 bg-slate-900 text-adb-cyan-500 focus:ring-adb-cyan-500"
+                            className="text-adb-cyan-500 focus:ring-adb-cyan-500 mt-0.5 rounded border-slate-600 bg-slate-900"
                         />
                         <span>
                             <span className="block">{option.label}</span>
@@ -103,10 +112,12 @@ function OptionChecklist({
 
 export function KnowledgeDocumentForm({
     documentId,
-    initialClientId,
+    initialContext,
+    initialSectionId,
 }: {
     documentId?: number;
-    initialClientId?: number;
+    initialContext?: KnowledgeContext;
+    initialSectionId?: number;
 }) {
     const router = useRouter();
     const { hasPermission } = useAuth();
@@ -117,45 +128,70 @@ export function KnowledgeDocumentForm({
     );
     const [form, setForm] = useState<FormState>({
         ...EMPTY_FORM,
-        ownership_type: initialClientId ? "client" : "internal",
-        client_id: initialClientId ? String(initialClientId) : "",
+        ownership_type: initialContext?.ownership_type ?? "",
+        client_id: initialContext?.client_id
+            ? String(initialContext.client_id)
+            : "",
+        section_id: initialSectionId ? String(initialSectionId) : "",
     });
-    const [options, setOptions] = useState<KnowledgeOptionsResponse | null>(null);
-    const [original, setOriginal] = useState<KnowledgeDocumentDetail | null>(null);
+    const [options, setOptions] = useState<KnowledgeOptionsResponse | null>(
+        null,
+    );
+    const [original, setOriginal] = useState<KnowledgeDocumentDetail | null>(
+        null,
+    );
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const load = useCallback(async () => {
-        if (!canSave) {
+        if (!canSave || (!documentId && !initialContext)) {
             setIsLoading(false);
             return;
         }
         try {
             setIsLoading(true);
             setError(null);
-            const loadedOptions = (await fetchAPI(`${BASE}/options`)) as KnowledgeOptionsResponse;
-            setOptions(loadedOptions);
+            let context = initialContext;
             if (documentId) {
                 const document = (await fetchAPI(
                     `${BASE}/documents/${documentId}`,
                 )) as KnowledgeDocumentDetail;
+                context =
+                    parseKnowledgeContext(
+                        document.ownership_type,
+                        document.client_id === null
+                            ? undefined
+                            : String(document.client_id),
+                    ) ?? undefined;
                 setOriginal(document);
                 setForm({
                     ownership_type: document.ownership_type,
-                    client_id: document.client_id ? String(document.client_id) : "",
+                    client_id: document.client_id
+                        ? String(document.client_id)
+                        : "",
                     title: document.title,
                     summary: document.summary,
                     section_id: String(document.section_id),
                     content: document.content,
                     tags: document.tags.join(", "),
                     change_summary: "",
-                    resource_ids: document.resources.map((resource) => resource.resource_id),
+                    resource_ids: document.resources.map(
+                        (resource) => resource.resource_id,
+                    ),
                     credential_ids: document.credentials.map(
                         (credential) => credential.credential_id,
                     ),
                 });
             }
+            if (!context)
+                throw new Error(
+                    "Choose a Client or Internal Knowledge Base first.",
+                );
+            const loadedOptions = (await fetchAPI(
+                `${BASE}/options?${knowledgeContextParams(context)}`,
+            )) as KnowledgeOptionsResponse;
+            setOptions(loadedOptions);
         } catch (loadError) {
             setError(
                 loadError instanceof Error
@@ -165,7 +201,7 @@ export function KnowledgeDocumentForm({
         } finally {
             setIsLoading(false);
         }
-    }, [canSave, documentId]);
+    }, [canSave, documentId, initialContext]);
 
     useEffect(() => {
         void load();
@@ -204,33 +240,9 @@ export function KnowledgeDocumentForm({
         setForm((current) => ({ ...current, [key]: value }));
     }
 
-    function changeOwnership(value: string) {
-        if (documentId) return;
-        setForm((current) => ({
-            ...current,
-            ownership_type: value,
-            client_id: value === "internal" ? "" : current.client_id,
-            section_id: "",
-            resource_ids: [],
-            credential_ids: [],
-        }));
-    }
-
-    function changeClient(value: string) {
-        if (documentId) return;
-        setForm((current) => ({
-            ...current,
-            client_id: value,
-            ownership_type: value ? "client" : current.ownership_type,
-            section_id: "",
-            resource_ids: [],
-            credential_ids: [],
-        }));
-    }
-
     async function save(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        if (!canSave) return;
+        if (!canSave || (!documentId && !initialContext)) return;
         if (!form.title.trim()) {
             setError("Document title is required.");
             return;
@@ -254,14 +266,20 @@ export function KnowledgeDocumentForm({
                 .map((tag) => tag.trim())
                 .filter(Boolean),
         };
-        const canManageResources = (options?.resources.length ?? 0) > 0 || !documentId;
-        const canManageCredentials = (options?.credentials.length ?? 0) > 0 || !documentId;
+        const canManageResources =
+            (options?.resources.length ?? 0) > 0 || !documentId;
+        const canManageCredentials =
+            (options?.credentials.length ?? 0) > 0 || !documentId;
         const payload = documentId
             ? {
                   ...common,
                   change_summary: form.change_summary.trim(),
-                  ...(canManageResources ? { resource_ids: form.resource_ids } : {}),
-                  ...(canManageCredentials ? { credential_ids: form.credential_ids } : {}),
+                  ...(canManageResources
+                      ? { resource_ids: form.resource_ids }
+                      : {}),
+                  ...(canManageCredentials
+                      ? { credential_ids: form.credential_ids }
+                      : {}),
               }
             : {
                   ...common,
@@ -275,7 +293,9 @@ export function KnowledgeDocumentForm({
             setIsSaving(true);
             setError(null);
             const saved = (await fetchAPI(
-                documentId ? `${BASE}/documents/${documentId}` : `${BASE}/documents`,
+                documentId
+                    ? `${BASE}/documents/${documentId}`
+                    : `${BASE}/documents`,
                 {
                     method: documentId ? "PUT" : "POST",
                     body: JSON.stringify(payload),
@@ -284,14 +304,32 @@ export function KnowledgeDocumentForm({
             router.push(`/admin/knowledge-base/documents/${saved.id}`);
             router.refresh();
         } catch (saveError) {
-            setError(saveError instanceof Error ? saveError.message : "Unable to save document.");
+            setError(
+                saveError instanceof Error
+                    ? saveError.message
+                    : "Unable to save document.",
+            );
         } finally {
             setIsSaving(false);
         }
     }
 
+    if (!documentId && !initialContext)
+        return (
+            <Card className="space-y-3 p-5">
+                <p>
+                    Choose a Client or Internal Knowledge Base before creating a
+                    document.
+                </p>
+                <ButtonLink href="/admin/knowledge-base">
+                    Choose Knowledge Base
+                </ButtonLink>
+            </Card>
+        );
     if (!canSave) {
-        return <DataError message="You do not have permission to save Knowledge Base documents." />;
+        return (
+            <DataError message="You do not have permission to save Knowledge Base documents." />
+        );
     }
     if (isLoading) return <DataLoading />;
 
@@ -304,25 +342,22 @@ export function KnowledgeDocumentForm({
                         <div className="grid gap-4 md:grid-cols-2">
                             <label className={labelClass}>
                                 Ownership
-                                <Select
-                                    value={form.ownership_type}
-                                    disabled={Boolean(documentId)}
-                                    onChange={(event) => changeOwnership(event.target.value)}
-                                >
-                                    <option value="internal">ADB Internal</option>
+                                <Select value={form.ownership_type} disabled>
+                                    <option value="internal">
+                                        ADB Internal
+                                    </option>
                                     <option value="client">Client</option>
                                 </Select>
                             </label>
                             <label className={labelClass}>
                                 Client
-                                <Select
-                                    value={form.client_id}
-                                    disabled={Boolean(documentId) || form.ownership_type === "internal"}
-                                    onChange={(event) => changeClient(event.target.value)}
-                                >
+                                <Select value={form.client_id} disabled>
                                     <option value="">Select client</option>
                                     {options?.clients.map((client) => (
-                                        <option key={client.id} value={client.id}>
+                                        <option
+                                            key={client.id}
+                                            value={client.id}
+                                        >
                                             {client.label}
                                         </option>
                                     ))}
@@ -331,14 +366,18 @@ export function KnowledgeDocumentForm({
                         </div>
                         {documentId ? (
                             <p className="text-xs text-slate-500">
-                                Ownership is immutable in normal edits. Moving documentation between scopes requires an explicit migration.
+                                Ownership is immutable in normal edits. Moving
+                                documentation between scopes requires an
+                                explicit migration.
                             </p>
                         ) : null}
                         <label className={labelClass}>
                             Title
                             <Input
                                 value={form.title}
-                                onChange={(event) => update("title", event.target.value)}
+                                onChange={(event) =>
+                                    update("title", event.target.value)
+                                }
                                 maxLength={200}
                                 required
                             />
@@ -347,22 +386,49 @@ export function KnowledgeDocumentForm({
                             Summary
                             <Textarea
                                 value={form.summary}
-                                onChange={(event) => update("summary", event.target.value)}
+                                onChange={(event) =>
+                                    update("summary", event.target.value)
+                                }
                                 rows={3}
                                 placeholder="Short operational summary…"
                             />
                         </label>
+                        {sections.length === 0 ? (
+                            <p className="text-sm text-slate-400">
+                                Create a folder in this Knowledge Base before
+                                adding an article.{" "}
+                                <ButtonLink
+                                    variant="secondary"
+                                    href={knowledgeBaseHref(
+                                        parseKnowledgeContext(
+                                            form.ownership_type,
+                                            form.client_id || undefined,
+                                        ) ?? {
+                                            ownership_type: "internal",
+                                            client_id: null,
+                                        },
+                                    )}
+                                >
+                                    Open folders
+                                </ButtonLink>
+                            </p>
+                        ) : null}
                         <div className="grid gap-4 md:grid-cols-2">
                             <label className={labelClass}>
                                 Folder
                                 <Select
                                     value={form.section_id}
-                                    onChange={(event) => update("section_id", event.target.value)}
+                                    onChange={(event) =>
+                                        update("section_id", event.target.value)
+                                    }
                                     required
                                 >
                                     <option value="">Select folder</option>
                                     {sections.map((section) => (
-                                        <option key={section.id} value={section.id}>
+                                        <option
+                                            key={section.id}
+                                            value={section.id}
+                                        >
                                             {section.path}
                                         </option>
                                     ))}
@@ -372,7 +438,9 @@ export function KnowledgeDocumentForm({
                                 Tags
                                 <Input
                                     value={form.tags}
-                                    onChange={(event) => update("tags", event.target.value)}
+                                    onChange={(event) =>
+                                        update("tags", event.target.value)
+                                    }
                                     placeholder="deployment, nginx, runbook"
                                 />
                             </label>
@@ -382,15 +450,20 @@ export function KnowledgeDocumentForm({
                     <Card className="p-5">
                         <div className="mb-3 flex items-center justify-between gap-3">
                             <div>
-                                <h2 className="font-semibold text-slate-100">Markdown</h2>
+                                <h2 className="font-semibold text-slate-100">
+                                    Markdown
+                                </h2>
                                 <p className="mt-1 text-xs text-slate-500">
-                                    GitHub-flavoured Markdown; raw HTML is not rendered.
+                                    GitHub-flavoured Markdown; raw HTML is not
+                                    rendered.
                                 </p>
                             </div>
                         </div>
                         <Textarea
                             value={form.content}
-                            onChange={(event) => update("content", event.target.value)}
+                            onChange={(event) =>
+                                update("content", event.target.value)
+                            }
                             rows={24}
                             className="font-mono text-sm"
                         />
@@ -402,7 +475,12 @@ export function KnowledgeDocumentForm({
                                 Version change summary
                                 <Input
                                     value={form.change_summary}
-                                    onChange={(event) => update("change_summary", event.target.value)}
+                                    onChange={(event) =>
+                                        update(
+                                            "change_summary",
+                                            event.target.value,
+                                        )
+                                    }
                                     maxLength={500}
                                     placeholder="What changed in this revision?"
                                 />
@@ -413,7 +491,9 @@ export function KnowledgeDocumentForm({
 
                 <div className="space-y-5">
                     <Card className="p-5">
-                        <h2 className="mb-4 font-semibold text-slate-100">Live preview</h2>
+                        <h2 className="mb-4 font-semibold text-slate-100">
+                            Live preview
+                        </h2>
                         <div className="max-h-[34rem] overflow-y-auto pr-2">
                             <MarkdownContent content={form.content} />
                         </div>
@@ -423,7 +503,12 @@ export function KnowledgeDocumentForm({
                         description="Backlink this document to structured resources in the same ownership scope."
                         options={resources}
                         selected={form.resource_ids}
-                        onToggle={(id) => update("resource_ids", toggleId(form.resource_ids, id))}
+                        onToggle={(id) =>
+                            update(
+                                "resource_ids",
+                                toggleId(form.resource_ids, id),
+                            )
+                        }
                     />
                     <OptionChecklist
                         title="Credential Vault"
@@ -431,7 +516,10 @@ export function KnowledgeDocumentForm({
                         options={credentials}
                         selected={form.credential_ids}
                         onToggle={(id) =>
-                            update("credential_ids", toggleId(form.credential_ids, id))
+                            update(
+                                "credential_ids",
+                                toggleId(form.credential_ids, id),
+                            )
                         }
                     />
                 </div>
@@ -439,13 +527,23 @@ export function KnowledgeDocumentForm({
 
             <div className="flex flex-wrap items-center justify-end gap-3">
                 <ButtonLink
-                    href={documentId ? `/admin/knowledge-base/documents/${documentId}` : "/admin/knowledge-base"}
+                    href={
+                        documentId
+                            ? `/admin/knowledge-base/documents/${documentId}`
+                            : initialContext
+                              ? `${knowledgeBaseHref(initialContext)}${initialSectionId ? `&section_id=${initialSectionId}` : ""}`
+                              : "/admin/knowledge-base"
+                    }
                     variant="secondary"
                 >
                     Cancel
                 </ButtonLink>
                 <Button type="submit" disabled={isSaving}>
-                    {isSaving ? "Saving…" : original ? "Save revision" : "Create document"}
+                    {isSaving
+                        ? "Saving…"
+                        : original
+                          ? "Save revision"
+                          : "Create document"}
                 </Button>
             </div>
         </form>

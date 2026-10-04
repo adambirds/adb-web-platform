@@ -25,14 +25,15 @@ from apps.crm.ninja.email_views import lead_email_router
 from apps.crm.ninja.overview_views import lead_overview_router
 from apps.infrastructure.ninja.admin_views import infrastructure_admin_router
 from apps.infrastructure.ninja.application_repository_views import application_repository_router
+from apps.infrastructure.ninja.catalogue_views import catalogue_router
 from apps.infrastructure.ninja.data_application_views import data_application_specialist_router
-from apps.infrastructure.ninja.extended_views import infrastructure_extended_router
 from apps.infrastructure.ninja.operational_nested_views import operational_nested_router
 from apps.infrastructure.ninja.operational_views import operational_specialist_router
-from apps.infrastructure.ninja.reconciliation_views import infrastructure_reconciliation_router
 from apps.infrastructure.ninja.resource_views import infrastructure_resource_router
 from apps.infrastructure.ninja.specialist_edit_views import infrastructure_specialist_edit_router
 from apps.infrastructure.ninja.specialist_views import infrastructure_specialist_router
+from apps.infrastructure.ninja.tag_views import tag_router
+from apps.infrastructure.ninja.technology_views import technology_router
 from apps.infrastructure.ninja.topology_views import topology_router
 from apps.infrastructure.ninja.web_domain_nested_views import web_domain_nested_router
 from apps.infrastructure.ninja.web_domain_views import web_domain_specialist_router
@@ -112,9 +113,9 @@ admin_router.add_router("", ticketing_settings_router)
 admin_router.add_router("", vendor_settings_router)
 admin_router.add_router("", sla_router)
 admin_router.add_router("", infrastructure_admin_router)
-admin_router.add_router("", infrastructure_extended_router)
+admin_router.add_router("", catalogue_router)
+admin_router.add_router("", tag_router)
 admin_router.add_router("", infrastructure_resource_router)
-admin_router.add_router("", infrastructure_reconciliation_router)
 admin_router.add_router("", infrastructure_specialist_router)
 admin_router.add_router("", infrastructure_specialist_edit_router)
 admin_router.add_router("", data_application_specialist_router)
@@ -124,6 +125,7 @@ admin_router.add_router("", web_domain_nested_router)
 admin_router.add_router("", operational_specialist_router)
 admin_router.add_router("", operational_nested_router)
 admin_router.add_router("", topology_router)
+admin_router.add_router("", technology_router)
 admin_router.add_router("", monitoring_router)
 admin_router.add_router("", credential_router)
 admin_router.add_router("", credential_lifecycle_router)

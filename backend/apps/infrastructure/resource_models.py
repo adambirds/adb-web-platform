@@ -138,12 +138,6 @@ class InfrastructureResource(models.Model):
 
     class Meta:
         ordering = ["name", "id"]
-        permissions = [
-            (
-                "reconcile_legacy_infrastructure",
-                "Can reconcile legacy infrastructure with structured resources",
-            )
-        ]
         constraints = [ownership_constraint("infrastructure_resource_valid_ownership")]
         indexes = [
             models.Index(

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from .legacy_resource_snapshot import SpecialistField, SpecialistFieldKind
 from .models import (
     BackupPlanProfile,
     ContainerStackProfile,
@@ -14,6 +13,7 @@ from .models import (
     StorageProfile,
     SystemServiceProfile,
 )
+from .snapshot_types import SpecialistField, SpecialistFieldKind
 
 
 def _value(value: Any) -> str:

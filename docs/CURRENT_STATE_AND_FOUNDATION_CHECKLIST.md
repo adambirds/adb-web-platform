@@ -257,8 +257,10 @@ See `MICROSOFT_GRAPH_TICKETING_SETUP.md` and
 - [x] Service Providers and resource-backed Provider Accounts.
 - [x] Typed `ResourceRelationship` topology with ownership validation.
 - [x] Permission-aware global/Client resource collections and details.
-- [x] Typed legacy specialist identity bridges and operator-driven
-      reconciliation.
+- [x] Creation entry points for all 29 resource types, Service Providers,
+      server interfaces/IP addresses and resource tags.
+- [x] Resource-only Infrastructure identity, native category registers and removal
+      of obsolete inventory models/reconciliation.
 - [x] Structured resource drawer/full-page workspaces.
 - [x] Relationship management and Client-context Infrastructure workspace.
 - [x] Resource workspaces surface linked active Credentials.
@@ -305,7 +307,10 @@ See `MICROSOFT_GRAPH_TICKETING_SETUP.md` and
 ### Implemented
 
 - [x] Client/Internal ownership.
-- [x] Filesystem-like folder/section tree.
+- [x] Independent folder trees per Client and Internal, with mandatory context
+      selection before folder/article browsing or creation.
+- [x] File-browser folder navigation with list/grid contents, breadcrumbs,
+      folder deep links and current-folder creation.
 - [x] Document read/workspace experience and Markdown editing.
 - [x] Immutable versions with author/editor context.
 - [x] Protected attachments.
@@ -469,3 +474,12 @@ for Stages 1–9:
 The next sustained implementation phase is Stage 10 commercial and analytics.
 The public websites remain Stage 11 and the Client portal follows only after
 internal/commercial visibility rules are mature.
+
+### Infrastructure editing completeness
+
+Service Provider metadata/status and shared tag metadata are editable with their
+separate view/change capabilities and audit events. All 29 native resource types
+use the standard Edit resource action in full pages and drawers. Server
+interfaces/IPs, repository links and TLS domain coverage can be edited in place;
+outgoing resource relationships retain editable notes and scoped targets.
+See `INFRASTRUCTURE_CREATION.md` for entry points and API boundaries.

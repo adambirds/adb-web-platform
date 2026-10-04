@@ -7,7 +7,7 @@ from apps.access_control.models import ClientAccessGrant, StaffAccessProfile
 from apps.clients.models import Client, Project, TimeEntry
 from apps.core.ownership import OwnershipType
 from apps.crm.models import Lead
-from apps.infrastructure.models import Server
+from apps.infrastructure.models import InfrastructureResource, ServerProfile
 from apps.tasks.models import Task
 from authentication.models import User
 
@@ -86,12 +86,10 @@ class AdminOperationsAPITests(TestCase):
         )
 
         Lead.objects.create(name="Demo Lead", email="lead@example.test", company="Lead Company")
-        Server.objects.create(
-            hostname="operations-test.example.test",
-            role="web",
-            provider="do",
-            os="ubuntu_24",
+        resource = InfrastructureResource.objects.create(
+            name="Operations server", resource_type="server", ownership_type=OwnershipType.INTERNAL
         )
+        ServerProfile.objects.create(resource=resource, hostname="operations-test.example.test")
 
         self.client.force_login(self.staff)
 
@@ -142,19 +140,19 @@ class AdminOperationsAPITests(TestCase):
         denied_counts = self.client.get("/api/admin/infrastructure/summary")
         self.assertEqual(denied_counts.status_code, 200)
         self.assertEqual(denied_counts.json()["server_count"], 0)
-        self.grant("infrastructure", "view_server")
+        self.grant("infrastructure", "view_infrastructureresource")
         allowed_counts = self.client.get("/api/admin/infrastructure/summary")
         self.assertEqual(allowed_counts.status_code, 200)
         self.assertEqual(allowed_counts.json()["server_count"], 1)
         self.assertEqual(allowed_counts.json()["database_count"], 0)
 
     def test_server_register_requires_permission_and_returns_inventory(self) -> None:
-        denied = self.client.get("/api/admin/infrastructure/servers")
+        denied = self.client.get("/api/admin/infrastructure/resources?resource_type=server")
         self.assertEqual(denied.status_code, 403)
 
-        self.grant("infrastructure", "view_server")
-        allowed = self.client.get("/api/admin/infrastructure/servers")
+        self.grant("infrastructure", "view_infrastructureresource")
+        allowed = self.client.get("/api/admin/infrastructure/resources?resource_type=server")
 
         self.assertEqual(allowed.status_code, 200)
-        self.assertEqual(len(allowed.json()), 1)
-        self.assertEqual(allowed.json()[0]["hostname"], "operations-test.example.test")
+        self.assertEqual(len(allowed.json()["items"]), 1)
+        self.assertEqual(allowed.json()["items"][0]["name"], "Operations server")

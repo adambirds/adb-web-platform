@@ -13,10 +13,8 @@ renewal transactions, ACME issuance and payments are outside this workflow.
 
 ## Operating the workflow
 
-1. Create a structured Domain resource and its Domain profile, or reconcile a
-   legacy Domain into the structured model.
-   The legacy Domains/SSL registers include links to Resources and
-   Reconciliation; unreconciled legacy rows are not automatically modified.
+1. Create a Domain from **Infrastructure → Domains** or **Resources**. Both
+   pages manage the same resource-backed Domain profile and show its expiry.
 2. For TLS, create a structured TLS Certificate. Link a concrete HTTPS Website
    Endpoint to it, or supply a concrete certificate common name. Wildcards need
    an explicit linked endpoint; Domain-coverage links do not prove where a

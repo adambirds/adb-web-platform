@@ -127,8 +127,8 @@ class WebDomainSpecialistApiTests(TestCase):
         user = self._user(
             "web-routing@example.com",
             [
-                "view_domain",
-                "view_website",
+                "view_infrastructureresource",
+                "view_websiteprofile",
                 "add_infrastructureresource",
                 "add_domainprofile",
                 "add_websiteprofile",
@@ -141,7 +141,9 @@ class WebDomainSpecialistApiTests(TestCase):
         ):
             with self.subTest(collection=collection):
                 url = f"/api/admin/infrastructure/{collection}"
-                self.assertEqual(self.client.get(url).status_code, 200)
+                self.assertEqual(
+                    self.client.get("/api/admin/infrastructure/resources").status_code, 200
+                )
                 response = self.client.post(
                     url,
                     data={"name": "Routing test", **fields},

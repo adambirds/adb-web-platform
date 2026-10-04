@@ -419,6 +419,8 @@ It does not replace specialist relational models with EAV/JSON.
 ### ServiceProvider — Keep
 
 Provider identity belongs in data rather than hard-coded provider choice lists.
+The vendor catalogue has a permissioned creation UI/API and is also available
+inline while creating Provider Accounts.
 
 ### ProviderAccount — Keep
 
@@ -427,6 +429,8 @@ InfrastructureResource so Credentials, KB, Monitoring and relationships can
 attach consistently.
 
 Secrets do not belong directly on ProviderAccount. They link through the Vault.
+Accounts have resource-backed create/edit/archive APIs and dedicated browser
+entry points, with capability and Client scope enforced in Django.
 
 ### ResourceRelationship — Keep
 
@@ -443,21 +447,13 @@ Preserve:
 Strong specialist foreign keys remain preferable for known technical
 semantics; generic edges complement them rather than replace them.
 
-### Existing Server/Database/Website/Domain/etc. specialist models — Transitional
+### Flat inventory models and identity bridges — Remove
 
-The legacy specialist tables remain intact while the structured resource
-architecture is introduced.
-
-Each current specialist family may be bound to one InfrastructureResource by
-the typed one-to-one reconciliation bridge.
-
-Do not guess ownership for historical rows. Reconciliation remains explicit and
-permission-controlled.
-
-Safe specialist metadata can be projected during transition; secret-bearing
-legacy fields must not leak through the structured resource API. Secret values
-move to Vault Credentials where appropriate before old plaintext columns are
-retired.
+The system has no historical infrastructure inventory. `InfrastructureResource`
+and its native specialist profiles are authoritative. Remove the obsolete flat
+models, identity bridges, reconciliation/promotion services and APIs rather than
+maintaining duplicate stores. Preserve historical migrations and append a removal
+migration. Native resources, ownership, relationships and Vault links remain.
 
 ### Native typed specialist models/relationships — Keep / extend progressively
 
@@ -484,15 +480,16 @@ Implement these progressively rather than redesigning every technical model in o
 
 ## 11. Knowledge Base
 
-### KnowledgeBaseSection / folder structure — Amend in KB redesign
+### KnowledgeBaseSection / folder structure — Keep scoped hierarchy
 
-The existing section foundation is useful but the agreed product direction is a
-filesystem-like Client/Internal documentation hierarchy rather than a flat
-section register.
-
-The redesign should preserve deterministic ownership/scope and avoid forcing
-Clients to duplicate reusable structure where templates/shared patterns are
-useful.
+Sections already have explicit Client/Internal ownership and enforce identical
+ownership for parent/child folders and contained documents. Each Client and
+Internal has an independent tree; identical folder names across owners are valid.
+The workspace requires selecting one owner before returning folders or articles.
+Folder/article creation inherits that owner and cannot silently fall back to
+Internal. The UI browses immediate child folders/articles in one file browser
+with breadcrumbs; subtree search keeps the same ownership boundary. Reusable
+templates may be considered later without sharing live trees.
 
 ### KnowledgeBaseDocument — Keep / redesign workspace
 
@@ -582,10 +579,8 @@ model says otherwise.
 
 - Never delete/rewrite historical migrations that have been applied.
 - Append new migrations.
-- Transitional specialist reconciliation must preserve existing Django
-  app/model/database identity.
-- Do not make specialist InfrastructureResource links mandatory until legacy
-  rows are deliberately reconciled.
+- Infrastructure uses mandatory resource-backed specialist identity. The
+  obsolete flat inventory is removed through an appended migration.
 - Do not remove credential legacy plaintext columns until Vault reconciliation
   and production verification are complete.
 - New secret-bearing fields belong in the encrypted Vault rather than new
@@ -606,3 +601,12 @@ The model work now follows the product roadmap:
    require them;
 7. add commercial models only in the commercial phase;
 8. add portal visibility/identity only in the portal phase.
+
+### Infrastructure editing completeness
+
+Service Provider metadata/status and shared tag metadata are editable with their
+separate view/change capabilities and audit events. All 29 native resource types
+use the standard Edit resource action in full pages and drawers. Server
+interfaces/IPs, repository links and TLS domain coverage can be edited in place;
+outgoing resource relationships retain editable notes and scoped targets.
+See `INFRASTRUCTURE_CREATION.md` for entry points and API boundaries.

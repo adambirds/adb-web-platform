@@ -118,14 +118,16 @@ class KnowledgeBaseAPITests(TestCase):
     def test_workspace_hides_out_of_scope_client_documents(self) -> None:
         self.grant(("knowledge_base", "view_knowledgebasedocument"))
 
-        response = self.client.get("/api/admin/knowledge-base/workspace")
+        response = self.client.get(
+            f"/api/admin/knowledge-base/workspace?client_id={self.visible_client.id}"
+        )
         hidden_filter = self.client.get(
             f"/api/admin/knowledge-base/workspace?client_id={self.hidden_client.id}"
         )
 
         self.assertEqual(response.status_code, 200)
         ids = {document["id"] for document in response.json()["documents"]}
-        self.assertEqual(ids, {self.internal_document.id, self.visible_document.id})
+        self.assertEqual(ids, {self.visible_document.id})
         self.assertNotIn(self.hidden_document.id, ids)
         self.assertEqual(hidden_filter.status_code, 404)
 
@@ -135,12 +137,18 @@ class KnowledgeBaseAPITests(TestCase):
             ("knowledge_base", "change_knowledgebasedocument"),
         )
 
-        search = self.client.get("/api/admin/knowledge-base/workspace?q=deployment")
+        search = self.client.get(
+            "/api/admin/knowledge-base/workspace?ownership_type=internal&q=deployment"
+        )
         archive = self.client.post(
             f"/api/admin/knowledge-base/documents/{self.internal_document.id}/archive"
         )
-        current = self.client.get("/api/admin/knowledge-base/workspace?view=current")
-        archived = self.client.get("/api/admin/knowledge-base/workspace?view=archived")
+        current = self.client.get(
+            "/api/admin/knowledge-base/workspace?ownership_type=internal&view=current"
+        )
+        archived = self.client.get(
+            "/api/admin/knowledge-base/workspace?ownership_type=internal&view=archived"
+        )
 
         self.assertEqual(search.status_code, 200)
         self.assertEqual(search.json()["documents"][0]["id"], self.internal_document.id)
@@ -318,3 +326,259 @@ class KnowledgeBaseAPITests(TestCase):
         self.assertEqual(document.credential_links.count(), 1)
         self.assertEqual(response.json()["resources"], [])
         self.assertEqual(response.json()["credentials"], [])
+
+    def test_read_collections_require_a_single_context(self) -> None:
+        self.grant(("knowledge_base", "view_knowledgebasedocument"))
+        for endpoint in ("workspace", "options"):
+            for query in (
+                "",
+                "?ownership_type=client",
+                "?ownership_type=all",
+                f"?ownership_type=internal&client_id={self.visible_client.id}",
+            ):
+                with self.subTest(endpoint=endpoint, query=query):
+                    self.assertEqual(
+                        self.client.get(f"/api/admin/knowledge-base/{endpoint}{query}").status_code,
+                        400,
+                    )
+            self.assertEqual(
+                self.client.get(
+                    f"/api/admin/knowledge-base/{endpoint}?client_id={self.hidden_client.id}"
+                ).status_code,
+                404,
+            )
+
+    def test_client_picker_is_scoped_searchable_and_paginated(self) -> None:
+        self.grant(("knowledge_base", "view_knowledgebasedocument"))
+        result = self.client.get("/api/admin/knowledge-base/contexts?page_size=1")
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual([item["id"] for item in result.json()["items"]], [self.visible_client.id])
+        self.assertEqual(result.json()["total"], 1)
+        self.assertNotIn("sections", result.json())
+        self.assertEqual(
+            self.client.get("/api/admin/knowledge-base/contexts?q=Hidden").json()["items"], []
+        )
+        self.assertEqual(
+            self.client.get("/api/admin/knowledge-base/contexts?page=2&page_size=1").json()[
+                "items"
+            ],
+            [],
+        )
+
+    def test_independent_trees_for_two_accessible_clients_and_internal(self) -> None:
+        self.grant(
+            ("knowledge_base", "view_knowledgebasedocument"),
+            ("knowledge_base", "add_knowledgebasesection"),
+        )
+        profile = StaffAccessProfile.objects.get(user=self.staff)
+        ClientAccessGrant.objects.create(profile=profile, client=self.hidden_client)
+        sections = []
+        for ownership, client_id in (
+            ("internal", None),
+            ("client", self.visible_client.id),
+            ("client", self.hidden_client.id),
+        ):
+            result = self.client.post(
+                "/api/admin/knowledge-base/sections",
+                data={"ownership_type": ownership, "client_id": client_id, "name": "Runbooks"},
+                content_type="application/json",
+            )
+            self.assertEqual(result.status_code, 201)
+            sections.append(result.json()["id"])
+        self.assertEqual(len(set(sections)), 3)
+        for index, query in enumerate(
+            (
+                "ownership_type=internal",
+                f"client_id={self.visible_client.id}",
+                f"client_id={self.hidden_client.id}",
+            )
+        ):
+            for endpoint in ("workspace", "options"):
+                result = self.client.get(f"/api/admin/knowledge-base/{endpoint}?{query}")
+                ids = {section["id"] for section in result.json()["sections"]}
+                self.assertIn(sections[index], ids)
+                self.assertTrue(set(sections).difference({sections[index]}).isdisjoint(ids))
+        mismatch = self.client.get(
+            f"/api/admin/knowledge-base/workspace?client_id={self.visible_client.id}&section_id={sections[2]}"
+        )
+        self.assertEqual(mismatch.status_code, 404)
+
+    def test_options_scope_link_choices_before_returning_them(self) -> None:
+        self.grant(
+            ("knowledge_base", "view_knowledgebasedocument"),
+            ("infrastructure", "view_infrastructureresource"),
+            ("credentials", "view_storedcredential"),
+        )
+        ClientAccessGrant.objects.create(
+            profile=StaffAccessProfile.objects.get(user=self.staff), client=self.hidden_client
+        )
+        result = self.client.get(
+            f"/api/admin/knowledge-base/options?client_id={self.visible_client.id}"
+        )
+        self.assertEqual(
+            [item["id"] for item in result.json()["resources"]], [self.visible_resource.id]
+        )
+        self.assertEqual(
+            [item["id"] for item in result.json()["credentials"]], [self.visible_credential.id]
+        )
+        internal = self.client.get("/api/admin/knowledge-base/options?ownership_type=internal")
+        self.assertEqual(internal.json()["resources"], [])
+        self.assertEqual(internal.json()["credentials"], [])
+        self.assertEqual(
+            [section["id"] for section in internal.json()["sections"]], [self.internal_section.id]
+        )
+
+    def test_resource_context_infers_owner_and_rejects_mismatches(self) -> None:
+        self.grant(("knowledge_base", "view_knowledgebasedocument"))
+        url = f"/api/admin/knowledge-base/workspace?resource_id={self.visible_resource.id}"
+        self.assertEqual(self.client.get(url).status_code, 403)
+        self.grant(("infrastructure", "view_infrastructureresource"))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["client_id"], self.visible_client.id)
+        self.assertEqual([s["id"] for s in response.json()["sections"]], [self.visible_section.id])
+        self.assertEqual(self.client.get(url + "&ownership_type=internal").status_code, 400)
+        self.assertEqual(
+            self.client.get(
+                f"/api/admin/knowledge-base/workspace?resource_id={self.hidden_resource.id}"
+            ).status_code,
+            404,
+        )
+
+    def test_cross_context_parent_and_document_folder_writes_are_rejected(self) -> None:
+        self.grant(
+            ("knowledge_base", "add_knowledgebasesection"),
+            ("knowledge_base", "add_knowledgebasedocument"),
+        )
+        folder = self.client.post(
+            "/api/admin/knowledge-base/sections",
+            data={
+                "ownership_type": "client",
+                "client_id": self.visible_client.id,
+                "parent_id": self.internal_section.id,
+                "name": "Invalid child",
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(folder.status_code, 404)
+        article = self.client.post(
+            "/api/admin/knowledge-base/documents",
+            data={
+                "ownership_type": "client",
+                "client_id": self.visible_client.id,
+                "section_id": self.internal_section.id,
+                "title": "Invalid article",
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(article.status_code, 404)
+        self.assertFalse(KnowledgeBaseSection.objects.filter(name="Invalid child").exists())
+        self.assertFalse(KnowledgeBaseDocument.objects.filter(title="Invalid article").exists())
+
+    def test_context_reads_require_staff_and_document_view_capability(self) -> None:
+        for endpoint in (
+            "contexts",
+            "workspace?ownership_type=internal",
+            "options?ownership_type=internal",
+        ):
+            self.assertEqual(
+                self.client.get(f"/api/admin/knowledge-base/{endpoint}").status_code, 403
+            )
+        self.grant(("knowledge_base", "view_knowledgebasedocument"))
+        self.staff.is_staff = False
+        self.staff.save(update_fields=["is_staff"])
+        self.assertEqual(self.client.get("/api/admin/knowledge-base/contexts").status_code, 403)
+        self.client.logout()
+        self.assertEqual(self.client.get("/api/admin/knowledge-base/contexts").status_code, 401)
+
+    def test_directory_browsing_returns_only_articles_directly_in_the_open_folder(self) -> None:
+        self.grant(("knowledge_base", "view_knowledgebasedocument"))
+        child = KnowledgeBaseSection.objects.create(
+            ownership_type="client",
+            client=self.visible_client,
+            parent=self.visible_section,
+            name="Child",
+        )
+        nested_document = create_document(
+            write=DocumentWrite(
+                ownership_type="client",
+                client_id=self.visible_client.id,
+                title="Nested runbook",
+                summary="",
+                section=child,
+                content="# Nested",
+            ),
+            editor=self.staff,
+        )
+        root = self.client.get(
+            f"/api/admin/knowledge-base/workspace?client_id={self.visible_client.id}&browse=true"
+        )
+        self.assertEqual(root.status_code, 200)
+        self.assertEqual(root.json()["documents"], [])
+        direct = self.client.get(
+            f"/api/admin/knowledge-base/workspace?client_id={self.visible_client.id}&browse=true&section_id={self.visible_section.id}"
+        )
+        self.assertEqual([d["id"] for d in direct.json()["documents"]], [self.visible_document.id])
+        nested = self.client.get(
+            f"/api/admin/knowledge-base/workspace?client_id={self.visible_client.id}&browse=true&section_id={child.id}"
+        )
+        self.assertEqual([d["id"] for d in nested.json()["documents"]], [nested_document.id])
+        panel = self.client.get(
+            f"/api/admin/knowledge-base/workspace?client_id={self.visible_client.id}"
+        )
+        self.assertEqual(panel.json()["total_documents"], 2)
+        hidden = self.client.get(
+            f"/api/admin/knowledge-base/workspace?client_id={self.visible_client.id}&browse=true&section_id={self.hidden_section.id}"
+        )
+        self.assertEqual(hidden.status_code, 404)
+
+    def test_directory_search_includes_descendants_and_excludes_siblings_and_other_clients(
+        self,
+    ) -> None:
+        self.grant(("knowledge_base", "view_knowledgebasedocument"))
+        child = KnowledgeBaseSection.objects.create(
+            ownership_type="client",
+            client=self.visible_client,
+            parent=self.visible_section,
+            name="Child",
+        )
+        child_document = create_document(
+            write=DocumentWrite(
+                ownership_type="client",
+                client_id=self.visible_client.id,
+                title="Nested runbook",
+                summary="",
+                section=child,
+                content="# Nested",
+            ),
+            editor=self.staff,
+        )
+        sibling = KnowledgeBaseSection.objects.create(
+            ownership_type="client", client=self.visible_client, name="Sibling"
+        )
+        sibling_document = create_document(
+            write=DocumentWrite(
+                ownership_type="client",
+                client_id=self.visible_client.id,
+                title="Sibling runbook",
+                summary="",
+                section=sibling,
+                content="# Sibling",
+            ),
+            editor=self.staff,
+        )
+        ClientAccessGrant.objects.create(
+            profile=StaffAccessProfile.objects.get(user=self.staff), client=self.hidden_client
+        )
+        query = f"/api/admin/knowledge-base/workspace?client_id={self.visible_client.id}&browse=true&q=runbook"
+        root = self.client.get(query)
+        self.assertEqual(
+            {d["id"] for d in root.json()["documents"]},
+            {self.visible_document.id, child_document.id, sibling_document.id},
+        )
+        folder = self.client.get(query + f"&section_id={self.visible_section.id}")
+        self.assertEqual(
+            {d["id"] for d in folder.json()["documents"]},
+            {self.visible_document.id, child_document.id},
+        )
+        self.assertNotIn(self.hidden_document.id, {d["id"] for d in folder.json()["documents"]})

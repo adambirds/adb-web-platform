@@ -97,7 +97,6 @@ ticketing.close_ticket
 
 infrastructure.view_infrastructureresource
 infrastructure.change_infrastructureresource
-infrastructure.reconcile_legacy_infrastructure
 
 credentials.view_storedcredential
 credentials.add_storedcredential
@@ -241,6 +240,16 @@ required domain capability
 
 Internal records have their own staff-only policy and do not use a fake Client.
 
+Knowledge Base folder/article collections require one selected Internal or
+Client context. The server restricts folders and link options to that owner
+after applying Client scope; selecting a context cannot widen access. The
+context picker exposes accessible Client metadata only. Resource-context KB
+requests require independent Infrastructure visibility and resolve the owning
+Client/Internal context. Parent folders and document folders must share the
+exact owner; normal edits cannot transfer ownership. Directory browsing and
+subtree search apply those same boundaries, including section-ID validation
+before querying descendants.
+
 Cross-domain references must validate ownership consistency. For example, a
 Client A Task cannot silently move into Client B Project context, and a Client A
 Credential cannot link to Client B or Internal Infrastructure.
@@ -293,12 +302,18 @@ This policy applies to:
 - relationship target options;
 - relationship create/delete;
 - specialist projections;
-- legacy reconciliation;
 - Monitoring/KB/Credential contextual panels.
 
-The `reconcile_legacy_infrastructure` capability is intentionally separate from
-ordinary resource view/change. Reconciliation also validates the operator's
-Client scope and never guesses ownership.
+Resource creation uses the common add capability and each typed specialist's
+add capability. Provider Accounts additionally require vendor catalogue view;
+creating Service Providers uses its separate model add permission. General
+inventory create/update routes accept only types without typed profiles, so they
+cannot bypass specialist capability checks. Tags are shared catalogue entries;
+assignments require resource change/view, tag view and normal resource scope.
+See `INFRASTRUCTURE_CREATION.md` for the creation map and API contracts.
+
+Infrastructure has one resource identity; obsolete inventory-model and
+reconciliation capabilities are removed alongside the old models.
 
 Resource relationships must not bridge two different Client owners directly.
 Internal ADB resources may legitimately relate to Client resources without
@@ -432,7 +447,6 @@ Audit materially privileged/security-sensitive operations, including:
 - credential field copy;
 - credential field download;
 - credential legacy-secret reconciliation;
-- Infrastructure legacy reconciliation;
 - staff Group/capability changes;
 - Client/Ticket Queue scope changes;
 - account/security changes where appropriate;
@@ -520,3 +534,19 @@ Do not:
 - return secrets in normal Credential detail/list endpoints;
 - persist revealed secrets in browser storage/routes/caches;
 - make future portal visibility implicit.
+
+### Infrastructure catalogue and nested edits
+
+Service Provider updates require `view_serviceprovider` and
+`change_serviceprovider`; tag metadata updates require `view_infrastructuretag`
+and `change_infrastructuretag`. Both catalogues are shared across resource
+ownership contexts. A shared tag edit affects all resources using that tag.
+Resource-scoped assignment is independently permissioned.
+
+Repository-link and TLS Domain coverage updates require resource view, the
+parent/linked-profile view capabilities, link view and the link's `change_*`
+capability. Existing and replacement linked resources must be visible and model
+ownership validation still applies. Outgoing relationship editing requires
+resource view and `change_resourcerelationship`, visible source/old target/new
+target, and normal relationship validation. These updates append scoped audit
+events. Deactivating a Service Provider never deletes its Provider Accounts.

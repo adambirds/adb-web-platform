@@ -26,6 +26,7 @@ from apps.knowledge_base.models import (
 )
 from apps.knowledge_base.ninja.schemas import (
     KnowledgeAttachmentOut,
+    KnowledgeContextsOut,
     KnowledgeCredentialLinkOut,
     KnowledgeDocumentCreateIn,
     KnowledgeDocumentDetailOut,
@@ -330,6 +331,40 @@ def _resolve_scope(
     return ResolvedScope(OwnershipType.CLIENT, client_id)
 
 
+def _read_scope(
+    request: HttpRequest,
+    ownership_type: str | None,
+    client_id: int | None,
+    resource_id: int | None = None,
+) -> ResolvedScope | StaffProblem:
+    scope: ResolvedScope | None = None
+    if ownership_type is not None or client_id is not None:
+        resolved = _resolve_scope(request, ownership_type or OwnershipType.CLIENT, client_id)
+        if isinstance(resolved, tuple):
+            return resolved
+        scope = resolved
+    if resource_id is not None:
+        problem = _permission_problem(request, "infrastructure.view_infrastructureresource")
+        if problem:
+            return problem
+        resource = (
+            scope_infrastructure_resources_for_user(request.user).filter(id=resource_id).first()
+        )
+        if resource is None:
+            return _problem(404, "Infrastructure resource not found.", "not_found")
+        resource_scope = ResolvedScope(resource.ownership_type, resource.client_id)
+        if scope is not None and scope != resource_scope:
+            return _problem(
+                400, "The resource must belong to the selected Knowledge Base.", "validation_error"
+            )
+        scope = resource_scope
+    if scope is None:
+        return _problem(
+            400, "Choose a Client or Internal Knowledge Base first.", "knowledge_context_required"
+        )
+    return scope
+
+
 def _resolve_section(
     request: HttpRequest,
     section_id: int,
@@ -500,54 +535,44 @@ def knowledge_workspace(
     view: str = "current",
     page: int = 1,
     page_size: int = 50,
+    browse: bool = False,
 ) -> KnowledgeWorkspaceOut | StaffProblem:
     problem = _permission_problem(request, "knowledge_base.view_knowledgebasedocument")
     if problem:
         return problem
     if view not in {"current", "archived", "all"}:
         return _problem(400, "Unknown Knowledge Base view.", "validation_error")
-    if ownership_type is not None and ownership_type not in {
-        OwnershipType.INTERNAL,
-        OwnershipType.CLIENT,
-    }:
-        return _problem(400, "Unknown Knowledge Base ownership type.", "validation_error")
-    if (
-        client_id is not None
-        and not scope_clients_for_user(request.user).filter(id=client_id).exists()
-    ):
-        return _problem(404, "Client not found.", "not_found")
-    if ownership_type == OwnershipType.INTERNAL and client_id is not None:
-        return _problem(
-            400,
-            "Internal documentation cannot reference a client.",
-            "validation_error",
-        )
-
-    documents = _visible_documents(request).annotate(version_count=Count("versions", distinct=True))
-    sections = _visible_sections(request)
-    if ownership_type is not None:
-        documents = documents.filter(ownership_type=ownership_type)
-        sections = sections.filter(ownership_type=ownership_type)
-    if client_id is not None:
-        documents = documents.filter(client_id=client_id)
-        sections = sections.filter(client_id=client_id)
+    scope = _read_scope(request, ownership_type, client_id, resource_id)
+    if isinstance(scope, tuple):
+        return scope
+    documents = _visible_documents(request).filter(ownership_type=scope.ownership_type)
+    documents = (
+        documents.filter(client__isnull=True)
+        if scope.client_id is None
+        else documents.filter(client_id=scope.client_id)
+    )
+    documents = documents.annotate(version_count=Count("versions", distinct=True))
+    sections = _sections_for_scope(request, scope)
     if section_id is not None:
         if not sections.filter(id=section_id).exists():
             return _problem(404, "Knowledge Base section not found.", "not_found")
-        documents = documents.filter(section_id=section_id)
+        if not browse or not q.strip():
+            documents = documents.filter(section_id=section_id)
+        else:
+            descendants = {section_id}
+            tree = list(sections.values_list("id", "parent_id"))
+            changed = True
+            while changed:
+                additions = {
+                    folder_id for folder_id, parent_id in tree if parent_id in descendants
+                }.difference(descendants)
+                changed = bool(additions)
+                descendants.update(additions)
+            documents = documents.filter(section_id__in=descendants)
+    elif browse and not q.strip():
+        documents = documents.none()
     if resource_id is not None:
-        resource_problem = _permission_problem(
-            request,
-            "infrastructure.view_infrastructureresource",
-        )
-        if resource_problem:
-            return resource_problem
-        resource = (
-            scope_infrastructure_resources_for_user(request.user).filter(id=resource_id).first()
-        )
-        if resource is None:
-            return _problem(404, "Infrastructure resource not found.", "not_found")
-        documents = documents.filter(resource_links__resource=resource)
+        documents = documents.filter(resource_links__resource_id=resource_id)
 
     if view == "current":
         documents = documents.filter(archived_at__isnull=True)
@@ -569,7 +594,15 @@ def knowledge_workspace(
     total = documents.count()
     start = (page - 1) * page_size
     rows = list(documents[start : start + page_size])
+    client = (
+        scope_clients_for_user(request.user).filter(id=scope.client_id).first()
+        if scope.client_id
+        else None
+    )
     return KnowledgeWorkspaceOut(
+        ownership_type=scope.ownership_type,
+        client_id=scope.client_id,
+        client_name=str(client) if client else None,
         sections=[_section_out(section) for section in sections.order_by("order", "name", "id")],
         documents=[_document_summary(document) for document in rows],
         total_documents=total,
@@ -579,16 +612,66 @@ def knowledge_workspace(
 
 
 @knowledge_base_router.get(
-    "/knowledge-base/options",
-    response={200: KnowledgeOptionsOut, 401: ProblemDetail, 403: ProblemDetail},
+    "/knowledge-base/contexts",
+    response={200: KnowledgeContextsOut, 401: ProblemDetail, 403: ProblemDetail},
 )
-def knowledge_options(request: HttpRequest) -> KnowledgeOptionsOut | StaffProblem:
+def knowledge_contexts(
+    request: HttpRequest,
+    q: str = "",
+    page: int = 1,
+    page_size: int = 25,
+) -> KnowledgeContextsOut | StaffProblem:
     problem = _permission_problem(request, "knowledge_base.view_knowledgebasedocument")
     if problem:
         return problem
-    clients = scope_clients_for_user(request.user).order_by("company", "id")[:500]
-    sections = _visible_sections(request).order_by("order", "name", "id")[:1000]
+    clients = scope_clients_for_user(request.user)
+    if q.strip():
+        clients = clients.filter(Q(company__icontains=q.strip()) | Q(name__icontains=q.strip()))
+    clients = clients.order_by("company", "name", "id")
+    page, page_size = max(page, 1), min(max(page_size, 1), 100)
+    return KnowledgeContextsOut(
+        items=[
+            KnowledgeOptionOut(
+                id=client.id,
+                label=str(client),
+                ownership_type=OwnershipType.CLIENT,
+                client_id=client.id,
+                kind="client",
+            )
+            for client in clients[(page - 1) * page_size : page * page_size]
+        ],
+        total=clients.count(),
+        page=page,
+        page_size=page_size,
+    )
 
+
+@knowledge_base_router.get(
+    "/knowledge-base/options",
+    response={
+        200: KnowledgeOptionsOut,
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+        404: ProblemDetail,
+    },
+)
+def knowledge_options(
+    request: HttpRequest,
+    ownership_type: str | None = None,
+    client_id: int | None = None,
+) -> KnowledgeOptionsOut | StaffProblem:
+    problem = _permission_problem(request, "knowledge_base.view_knowledgebasedocument")
+    if problem:
+        return problem
+    scope = _read_scope(request, ownership_type, client_id)
+    if isinstance(scope, tuple):
+        return scope
+    clients = (
+        scope_clients_for_user(request.user).filter(id=scope.client_id)
+        if scope.client_id is not None
+        else scope_clients_for_user(request.user).none()
+    )
     resources: list[KnowledgeOptionOut] = []
     if request.user.has_perm("infrastructure.view_infrastructureresource"):
         resources = [
@@ -599,12 +682,8 @@ def knowledge_options(request: HttpRequest) -> KnowledgeOptionsOut | StaffProble
                 client_id=resource.client_id,
                 kind=resource.resource_type,
             )
-            for resource in scope_infrastructure_resources_for_user(request.user).order_by(
-                "name",
-                "id",
-            )[:1000]
+            for resource in _resources_for_scope(request, scope).order_by("name", "id")[:1000]
         ]
-
     credentials: list[KnowledgeOptionOut] = []
     if request.user.has_perm("credentials.view_storedcredential"):
         credentials = [
@@ -613,30 +692,28 @@ def knowledge_options(request: HttpRequest) -> KnowledgeOptionsOut | StaffProble
                 label=credential.name,
                 ownership_type=credential.ownership_type,
                 client_id=credential.client_id,
-                kind=(
-                    credential.credential_type.name
-                    if credential.credential_type is not None
-                    else None
-                ),
+                kind=credential.credential_type.name if credential.credential_type else None,
             )
-            for credential in scope_credentials_for_user(request.user)
+            for credential in _credentials_for_scope(request, scope)
             .filter(status=StoredCredential.Status.ACTIVE)
             .select_related("credential_type")
             .order_by("name", "id")[:1000]
         ]
-
     return KnowledgeOptionsOut(
         clients=[
             KnowledgeOptionOut(
                 id=client.id,
-                label=client.company,
+                label=str(client),
                 ownership_type=OwnershipType.CLIENT,
                 client_id=client.id,
                 kind="client",
             )
             for client in clients
         ],
-        sections=[_section_out(section) for section in sections],
+        sections=[
+            _section_out(section)
+            for section in _sections_for_scope(request, scope).order_by("order", "name", "id")
+        ],
         resources=resources,
         credentials=credentials,
     )

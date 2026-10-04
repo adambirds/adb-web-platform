@@ -1009,6 +1009,7 @@ export function TLSCertificateDomainsCard({
 
     const [links, setLinks] = useState<TLSCertificateDomain[]>([]);
     const [options, setOptions] = useState<WebDomainOptions | null>(null);
+    const [editingId, setEditingId] = useState<number | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [domainId, setDomainId] = useState("");
     const [isPrimary, setIsPrimary] = useState(false);
@@ -1053,13 +1054,17 @@ export function TLSCertificateDomainsCard({
                     optionAllowed(option, ownershipType, clientId) &&
                     !links.some(
                         (link) =>
+                            link.id !== editingId &&
                             link.domain_resource_id === option.resource_id,
                     ),
             ) ?? [],
-        [clientId, links, options, ownershipType],
+        [clientId, editingId, links, options, ownershipType],
     );
 
-    async function openForm() {
+    async function openForm(link?: TLSCertificateDomain) {
+        setEditingId(link?.id ?? null);
+        setDomainId(link ? String(link.domain_resource_id) : "");
+        setIsPrimary(link?.is_primary ?? false);
         setShowForm(true);
         setError(null);
         if (options) return;
@@ -1087,9 +1092,9 @@ export function TLSCertificateDomainsCard({
             setIsSaving(true);
             setError(null);
             await fetchAPI(
-                `${API_URL}/api/admin/infrastructure/tls-certificates/${resourceId}/domains`,
+                `${API_URL}/api/admin/infrastructure/tls-certificates/${resourceId}/domains${editingId === null ? "" : `/${editingId}`}`,
                 {
-                    method: "POST",
+                    method: editingId === null ? "POST" : "PUT",
                     body: JSON.stringify({
                         domain_resource_id: Number(domainId),
                         is_primary: isPrimary,
@@ -1211,7 +1216,11 @@ export function TLSCertificateDomainsCard({
                             onClick={() => void addDomain()}
                             disabled={isSaving || !domainId}
                         >
-                            {isSaving ? "Adding..." : "Add Domain"}
+                            {isSaving
+                                ? "Saving..."
+                                : editingId === null
+                                  ? "Add Domain"
+                                  : "Save domain coverage"}
                         </Button>
                     </div>
                 </div>
@@ -1244,6 +1253,18 @@ export function TLSCertificateDomainsCard({
                                     </span>
                                 ) : null}
                             </Link>
+                            {hasPermission(
+                                "infrastructure.change_tlscertificatedomain",
+                            ) ? (
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => void openForm(link)}
+                                >
+                                    Edit
+                                </Button>
+                            ) : null}
                             {canDelete ? (
                                 <Button
                                     type="button"

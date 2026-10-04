@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 
 from ninja import Schema
@@ -74,6 +74,9 @@ class InfrastructureResourceSummaryOut(Schema):
     client_name: str | None
     tags: list[InfrastructureTagOut]
     updated_at: datetime
+    expires_on: date | None = None
+    expires_at: datetime | None = None
+    auto_renew: bool | None = None
 
 
 class InfrastructureResourcePageOut(Schema):
@@ -89,6 +92,7 @@ class InfrastructureRelationshipOut(Schema):
     direction: Literal["outgoing", "incoming"]
     relationship_type: str
     label: str
+    notes: str = ""
     related_resource_id: int
     related_resource_name: str
     related_resource_type: str
@@ -126,18 +130,9 @@ class SpecialistFieldOut(Schema):
     kind: Literal["text", "code", "url", "multiline"]
 
 
-class LegacyResourceReferenceOut(Schema):
-    legacy_type: str
-    legacy_id: int
-    name: str
-    register_path: str
-    fields: list[SpecialistFieldOut]
-
-
 class InfrastructureResourceDetailOut(InfrastructureResourceSummaryOut):
     description: str
     is_portal_visible: bool
     relationships: list[InfrastructureRelationshipOut]
     specialist_fields: list[SpecialistFieldOut]
-    legacy_reference: LegacyResourceReferenceOut | None
     created_at: datetime

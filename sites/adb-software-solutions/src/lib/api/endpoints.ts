@@ -132,20 +132,6 @@ export const AdminAPI = {
     },
     infrastructure: {
         summary: () => `${API_BASE_URL}/admin/infrastructure/summary`,
-        servers: () => `${API_BASE_URL}/admin/infrastructure/servers`,
-        databases: () => `${API_BASE_URL}/admin/infrastructure/databases`,
-        websites: () => `${API_BASE_URL}/admin/infrastructure/websites`,
-        domains: () => `${API_BASE_URL}/admin/infrastructure/domains`,
-        licences: () => `${API_BASE_URL}/admin/infrastructure/licences`,
-        sslCertificates: () =>
-            `${API_BASE_URL}/admin/infrastructure/ssl-certificates`,
-        applications: () => `${API_BASE_URL}/admin/infrastructure/applications`,
-        mobileApps: () => `${API_BASE_URL}/admin/infrastructure/mobile-apps`,
-        apis: () => `${API_BASE_URL}/admin/infrastructure/apis`,
-        bots: () => `${API_BASE_URL}/admin/infrastructure/bots`,
-        emailSystems: () =>
-            `${API_BASE_URL}/admin/infrastructure/email-systems`,
-        techStack: () => `${API_BASE_URL}/admin/infrastructure/tech-stack`,
     },
     monitoring: {
         overview: () => `${API_BASE_URL}/admin/monitoring/overview`,

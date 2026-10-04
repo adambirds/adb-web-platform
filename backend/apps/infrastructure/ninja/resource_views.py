@@ -3,17 +3,19 @@ from __future__ import annotations
 import math
 
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Q
 from django.http import HttpRequest
 from ninja import Router
 
+from apps.core.models import AuditEvent
 from apps.core.ownership import OwnershipType
-from apps.infrastructure.legacy_resource_snapshot import legacy_resource_snapshot
 from apps.infrastructure.models import InfrastructureResource, ResourceRelationship
 from apps.infrastructure.policies import scope_infrastructure_resources_for_user
 from apps.infrastructure.specialist_snapshot import specialist_resource_snapshot
 from authentication.ninja.schemas import ProblemDetail
 
+from .catalogue_schemas import BasicResourceIn, BasicResourceUpdateIn, ResourceMutationOut
 from .resource_schemas import (
     InfrastructureRelationshipCreateIn,
     InfrastructureRelationshipOptionsOut,
@@ -24,13 +26,14 @@ from .resource_schemas import (
     InfrastructureResourcePageOut,
     InfrastructureResourceSummaryOut,
     InfrastructureTagOut,
-    LegacyResourceReferenceOut,
     ResourceEnvironmentFilter,
     ResourceLifecycleFilter,
     ResourceOwnershipFilter,
     ResourceTypeFilter,
     SpecialistFieldOut,
 )
+from .specialist_views import _new_resource, _problem, _update_resource
+from .specialist_views import _permission_problem as _write_permission_problem
 
 infrastructure_resource_router = Router(tags=["admin-infrastructure-resources"])
 StaffProblem = tuple[int, dict[str, object]]
@@ -95,7 +98,9 @@ def _visible_resource(
     return (
         scope_infrastructure_resources_for_user(
             request.user,
-            InfrastructureResource.objects.select_related("client").prefetch_related("tags"),
+            InfrastructureResource.objects.select_related(
+                "client", "domain_profile", "tls_certificate"
+            ).prefetch_related("tags"),
         )
         .filter(id=resource_id)
         .first()
@@ -111,6 +116,8 @@ def _resource_not_found() -> StaffProblem:
 
 
 def _resource_summary(resource: InfrastructureResource) -> InfrastructureResourceSummaryOut:
+    domain = getattr(resource, "domain_profile", None)
+    certificate = getattr(resource, "tls_certificate", None)
     return InfrastructureResourceSummaryOut(
         id=resource.id,
         name=resource.name,
@@ -131,6 +138,9 @@ def _resource_summary(resource: InfrastructureResource) -> InfrastructureResourc
             for tag in resource.tags.all()
         ],
         updated_at=resource.updated_at,
+        expires_on=domain.expires_on if domain else None,
+        expires_at=certificate.expires_at if certificate else None,
+        auto_renew=domain.auto_renew if domain else certificate.auto_renew if certificate else None,
     )
 
 
@@ -157,6 +167,7 @@ def _relationship_rows(
                 direction="outgoing" if outgoing else "incoming",
                 relationship_type=relationship.relationship_type,
                 label=relationship.label,
+                notes=relationship.notes,
                 related_resource_id=related.id,
                 related_resource_name=related.name,
                 related_resource_type=related.resource_type,
@@ -186,7 +197,9 @@ def list_infrastructure_resources(
 
     resources = scope_infrastructure_resources_for_user(
         request.user,
-        InfrastructureResource.objects.select_related("client").prefetch_related("tags"),
+        InfrastructureResource.objects.select_related(
+            "client", "domain_profile", "tls_certificate"
+        ).prefetch_related("tags"),
     )
 
     if ownership != "all":
@@ -345,6 +358,74 @@ def create_infrastructure_relationship(
         direction="outgoing",
         relationship_type=relationship.relationship_type,
         label=relationship.label,
+        notes=relationship.notes,
+        related_resource_id=target.id,
+        related_resource_name=target.name,
+        related_resource_type=target.resource_type,
+    )
+
+
+@infrastructure_resource_router.patch(
+    "/infrastructure/resources/{resource_id}/relationships/{relationship_id}",
+    response={
+        200: InfrastructureRelationshipOut,
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+        404: ProblemDetail,
+    },
+)
+def update_infrastructure_relationship(
+    request: HttpRequest,
+    resource_id: int,
+    relationship_id: int,
+    payload: InfrastructureRelationshipCreateIn,
+) -> InfrastructureRelationshipOut | StaffProblem:
+    problem = _relationship_permission_problem(
+        request,
+        "infrastructure.change_resourcerelationship",
+        "You do not have permission to edit infrastructure relationships.",
+    )
+    if problem:
+        return problem
+    source = _visible_resource(request, resource_id)
+    target = _visible_resource(request, payload.target_resource_id)
+    if source is None or target is None:
+        return _resource_not_found()
+    try:
+        with transaction.atomic():
+            relationship = (
+                ResourceRelationship.objects.select_for_update()
+                .filter(
+                    id=relationship_id,
+                    source_resource=source,
+                    target_resource__in=scope_infrastructure_resources_for_user(request.user),
+                )
+                .first()
+            )
+            if relationship is None:
+                return _resource_not_found()
+            relationship.target_resource = target
+            relationship.relationship_type = payload.relationship_type
+            relationship.label = payload.label.strip()
+            relationship.notes = payload.notes.strip()
+            relationship.full_clean()
+            relationship.save()
+            AuditEvent.record(
+                action="updated",
+                target=relationship,
+                actor=request.user,
+                resource_id=source.id,
+                client_id=source.client_id,
+            )
+    except ValidationError as error:
+        return _problem(400, " ".join(error.messages), "invalid_relationship")
+    return InfrastructureRelationshipOut(
+        id=relationship.id,
+        direction="outgoing",
+        relationship_type=relationship.relationship_type,
+        label=relationship.label,
+        notes=relationship.notes,
         related_resource_id=target.id,
         related_resource_name=target.name,
         related_resource_type=target.resource_type,
@@ -427,7 +508,6 @@ def get_infrastructure_resource(
     if resource is None:
         return _resource_not_found()
 
-    specialist = legacy_resource_snapshot(resource)
     native_fields = specialist_resource_snapshot(resource)
     summary = _resource_summary(resource)
     return InfrastructureResourceDetailOut(
@@ -444,24 +524,65 @@ def get_infrastructure_resource(
             )
             for field in native_fields
         ],
-        legacy_reference=(
-            LegacyResourceReferenceOut(
-                legacy_type=specialist.legacy_type,
-                legacy_id=specialist.legacy_id,
-                name=specialist.name,
-                register_path=specialist.register_path,
-                fields=[
-                    SpecialistFieldOut(
-                        key=field.key,
-                        label=field.label,
-                        value=field.value,
-                        kind=field.kind,
-                    )
-                    for field in specialist.fields
-                ],
-            )
-            if specialist
-            else None
-        ),
         created_at=resource.created_at,
     )
+
+
+BASIC_RESOURCE_TYPES = frozenset(
+    {"api", "bot", "mobile_app", "licence", "email_system", "network_device", "other"}
+)
+RESPONSES = {400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail, 404: ProblemDetail}
+
+
+@infrastructure_resource_router.post(
+    "/infrastructure/resources", response={201: ResourceMutationOut, **RESPONSES}
+)
+def create_basic_resource(
+    request: HttpRequest, payload: BasicResourceIn
+) -> tuple[int, ResourceMutationOut | dict[str, object]]:
+    problem = _write_permission_problem(
+        request,
+        "infrastructure.view_infrastructureresource",
+        "infrastructure.add_infrastructureresource",
+    )
+    if problem:
+        return problem
+    with transaction.atomic():
+        resource, problem = _new_resource(request, payload, payload.resource_type)
+        if problem:
+            return problem
+        assert resource is not None
+        AuditEvent.record(
+            action="created", target=resource, actor=request.user, client_id=resource.client_id
+        )
+    return 201, ResourceMutationOut(resource_id=resource.id)
+
+
+@infrastructure_resource_router.patch(
+    "/infrastructure/resources/{resource_id}", response={200: ResourceMutationOut, **RESPONSES}
+)
+def update_basic_resource(
+    request: HttpRequest, resource_id: int, payload: BasicResourceUpdateIn
+) -> ResourceMutationOut | StaffProblem:
+    problem = _write_permission_problem(
+        request,
+        "infrastructure.view_infrastructureresource",
+        "infrastructure.change_infrastructureresource",
+    )
+    if problem:
+        return problem
+    resource = (
+        scope_infrastructure_resources_for_user(request.user)
+        .filter(id=resource_id, resource_type__in=BASIC_RESOURCE_TYPES)
+        .first()
+    )
+    if resource is None:
+        return _problem(404, "Basic resource not found.", "not_found")
+    with transaction.atomic():
+        problem = _update_resource(request, resource, payload)
+        if problem:
+            return problem
+        AuditEvent.record(
+            action="updated", target=resource, actor=request.user, client_id=resource.client_id
+        )
+    return ResourceMutationOut(resource_id=resource.id)

@@ -25,6 +25,14 @@ import {
     WebDomainInfrastructureForm,
     type WebDomainType,
 } from "../WebDomainInfrastructureForm";
+import {
+    OperationalInfrastructureForm,
+    type OperationalType,
+} from "../OperationalInfrastructureForm";
+import { CatalogueResourceForm } from "../CatalogueResourceForm";
+import { isCatalogueResourceType } from "../resourceCreation";
+import { ServerNetworkingCard } from "./ServerNetworkingCard";
+import { ResourceTagsCard } from "./ResourceTagsCard";
 import { ApplicationRepositoriesCard } from "./ApplicationRepositoriesCard";
 import {
     DNSRecordsCard,
@@ -39,19 +47,12 @@ interface SpecialistField {
     kind: "text" | "code" | "url" | "multiline";
 }
 
-interface LegacyReference {
-    legacy_type: string;
-    legacy_id: number;
-    name: string;
-    register_path: string;
-    fields: SpecialistField[];
-}
-
 interface Relationship {
     id: number;
     direction: "outgoing" | "incoming";
     relationship_type: string;
     label: string;
+    notes: string;
     related_resource_id: number;
     related_resource_name: string;
     related_resource_type: string;
@@ -90,7 +91,6 @@ interface ResourceDetail {
     tags: { id: number; name: string; slug: string; colour: string }[];
     relationships: Relationship[];
     specialist_fields: SpecialistField[];
-    legacy_reference: LegacyReference | null;
     created_at: string;
     updated_at: string;
 }
@@ -102,7 +102,10 @@ interface InfrastructureResourceWorkspaceProps {
 
 type ComputeSpecialistType = "server" | "network" | "subnet";
 type EditableSpecialistType =
-    ComputeSpecialistType | DataApplicationType | WebDomainType;
+    | ComputeSpecialistType
+    | DataApplicationType
+    | WebDomainType
+    | OperationalType;
 
 const SPECIALIST_CHANGE_PERMISSIONS: Record<EditableSpecialistType, string> = {
     server: "infrastructure.change_serverprofile",
@@ -118,6 +121,14 @@ const SPECIALIST_CHANGE_PERMISSIONS: Record<EditableSpecialistType, string> = {
     domain: "infrastructure.change_domainprofile",
     dns_zone: "infrastructure.change_dnszone",
     tls_certificate: "infrastructure.change_tlscertificate",
+    storage: "infrastructure.change_storageprofile",
+    backup_plan: "infrastructure.change_backupplanprofile",
+    container_stack: "infrastructure.change_containerstackprofile",
+    kubernetes_cluster: "infrastructure.change_kubernetesclusterprofile",
+    kubernetes_namespace: "infrastructure.change_kubernetesnamespaceprofile",
+    kubernetes_workload: "infrastructure.change_kubernetesworkloadprofile",
+    system_service: "infrastructure.change_systemserviceprofile",
+    scheduled_job: "infrastructure.change_scheduledjobprofile",
 };
 
 function editableSpecialistType(value: string): EditableSpecialistType | null {
@@ -135,6 +146,14 @@ function editableSpecialistType(value: string): EditableSpecialistType | null {
         case "domain":
         case "dns_zone":
         case "tls_certificate":
+        case "storage":
+        case "backup_plan":
+        case "container_stack":
+        case "kubernetes_cluster":
+        case "kubernetes_namespace":
+        case "kubernetes_workload":
+        case "system_service":
+        case "scheduled_job":
             return value;
         default:
             return null;
@@ -157,6 +176,21 @@ function isWebDomainType(
         value === "dns_zone" ||
         value === "tls_certificate"
     );
+}
+
+function isOperationalType(
+    value: EditableSpecialistType,
+): value is OperationalType {
+    return [
+        "storage",
+        "backup_plan",
+        "container_stack",
+        "kubernetes_cluster",
+        "kubernetes_namespace",
+        "kubernetes_workload",
+        "system_service",
+        "scheduled_job",
+    ].includes(value);
 }
 
 function label(value: string): string {
@@ -248,6 +282,9 @@ export function InfrastructureResourceWorkspace({
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [editingRelationship, setEditingRelationship] =
+        useState<Relationship | null>(null);
+    const [relationshipNotes, setRelationshipNotes] = useState("");
     const [showRelationshipForm, setShowRelationshipForm] = useState(false);
     const [relationshipOptions, setRelationshipOptions] =
         useState<RelationshipOptions | null>(null);
@@ -296,7 +333,18 @@ export function InfrastructureResourceWorkspace({
         setRelationshipError(null);
     }, [resourceId]);
 
-    async function openRelationshipForm() {
+    async function openRelationshipForm(relationship?: Relationship) {
+        setEditingRelationship(relationship ?? null);
+        setRelationshipTargetId(
+            relationship ? String(relationship.related_resource_id) : "",
+        );
+        setRelationshipLabel(relationship?.label ?? "");
+        setRelationshipNotes(relationship?.notes ?? "");
+        setRelationshipType(
+            relationship?.relationship_type ??
+                relationshipOptions?.relationship_types[0]?.value ??
+                "",
+        );
         setShowRelationshipForm(true);
         setRelationshipError(null);
         if (relationshipOptions) return;
@@ -306,7 +354,11 @@ export function InfrastructureResourceWorkspace({
                 `${API_URL}/api/admin/infrastructure/resources/${resourceId}/relationship-options`,
             )) as RelationshipOptions;
             setRelationshipOptions(options);
-            setRelationshipType(options.relationship_types[0]?.value ?? "");
+            setRelationshipType(
+                relationship?.relationship_type ??
+                    options.relationship_types[0]?.value ??
+                    "",
+            );
         } catch (loadError) {
             setRelationshipError(
                 loadError instanceof Error
@@ -336,13 +388,14 @@ export function InfrastructureResourceWorkspace({
             setIsSavingRelationship(true);
             setRelationshipError(null);
             await fetchAPI(
-                `${API_URL}/api/admin/infrastructure/resources/${resourceId}/relationships`,
+                `${API_URL}/api/admin/infrastructure/resources/${resourceId}/relationships${editingRelationship ? `/${editingRelationship.id}` : ""}`,
                 {
-                    method: "POST",
+                    method: editingRelationship ? "PATCH" : "POST",
                     body: JSON.stringify({
                         target_resource_id: Number(relationshipTargetId),
                         relationship_type: relationshipType,
                         label: relationshipLabel.trim(),
+                        notes: relationshipNotes.trim(),
                     }),
                 },
             );
@@ -399,10 +452,33 @@ export function InfrastructureResourceWorkspace({
     }
 
     const editableType = editableSpecialistType(resource.resource_type);
-    const canEdit =
-        editableType !== null &&
+    const catalogueType = isCatalogueResourceType(resource.resource_type)
+        ? resource.resource_type
+        : null;
+    const canEditCatalogue =
+        catalogueType !== null &&
         hasPermission("infrastructure.change_infrastructureresource") &&
-        hasPermission(SPECIALIST_CHANGE_PERMISSIONS[editableType]);
+        (catalogueType !== "provider_account" ||
+            (hasPermission("infrastructure.view_provideraccount") &&
+                hasPermission("infrastructure.view_serviceprovider") &&
+                hasPermission("infrastructure.change_provideraccount")));
+    const canEdit =
+        canEditCatalogue ||
+        (editableType !== null &&
+            hasPermission("infrastructure.change_infrastructureresource") &&
+            hasPermission(SPECIALIST_CHANGE_PERMISSIONS[editableType]));
+    if (isEditing && catalogueType)
+        return (
+            <CatalogueResourceForm
+                type={catalogueType}
+                editResourceId={resourceId}
+                onCancel={() => setIsEditing(false)}
+                onSaved={() => {
+                    setIsEditing(false);
+                    void load();
+                }}
+            />
+        );
 
     if (isEditing && editableType !== null) {
         const sharedFormProps = {
@@ -429,6 +505,13 @@ export function InfrastructureResourceWorkspace({
                 />
             );
         }
+        if (isOperationalType(editableType))
+            return (
+                <OperationalInfrastructureForm
+                    allowedTypes={[editableType]}
+                    {...sharedFormProps}
+                />
+            );
         return (
             <DataApplicationInfrastructureForm
                 allowedTypes={[editableType]}
@@ -437,11 +520,7 @@ export function InfrastructureResourceWorkspace({
         );
     }
 
-    const technicalFields =
-        resource.specialist_fields.length > 0
-            ? resource.specialist_fields
-            : (resource.legacy_reference?.fields ?? []);
-    const showingNativeFields = resource.specialist_fields.length > 0;
+    const technicalFields = resource.specialist_fields;
 
     return (
         <div className="space-y-6">
@@ -505,6 +584,17 @@ export function InfrastructureResourceWorkspace({
                 ))}
             </div>
 
+            <ResourceTagsCard
+                resourceId={resourceId}
+                tags={resource.tags}
+                onChanged={() => void load()}
+            />
+            {resource.resource_type === "server" ? (
+                <ServerNetworkingCard
+                    resourceId={resourceId}
+                    onChanged={() => void load()}
+                />
+            ) : null}
             <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(19rem,1fr)]">
                 <div className="space-y-6">
                     <Card className="p-5">
@@ -514,22 +604,10 @@ export function InfrastructureResourceWorkspace({
                                     Technical details
                                 </h2>
                                 <p className="mt-1 text-xs leading-5 text-slate-500">
-                                    {showingNativeFields
-                                        ? "Native typed operational metadata attached to this resource identity."
-                                        : "Operational metadata from the legacy specialist record while this resource family is migrated."}
+                                    Technical metadata and configuration for
+                                    this resource.
                                 </p>
                             </div>
-                            {resource.legacy_reference ? (
-                                <ButtonLink
-                                    href={
-                                        resource.legacy_reference.register_path
-                                    }
-                                    variant="ghost"
-                                    size="sm"
-                                >
-                                    Open legacy register
-                                </ButtonLink>
-                            ) : null}
                         </div>
 
                         {technicalFields.length ? (
@@ -558,13 +636,6 @@ export function InfrastructureResourceWorkspace({
                                 for this resource yet.
                             </div>
                         )}
-                        {showingNativeFields && resource.legacy_reference ? (
-                            <p className="mt-5 border-t border-slate-800 pt-4 text-xs leading-5 text-slate-600">
-                                Native structured data is authoritative here.
-                                The legacy source remains intact and available
-                                during reconciliation.
-                            </p>
-                        ) : null}
                     </Card>
 
                     {resource.resource_type === "application" ? (
@@ -671,6 +742,22 @@ export function InfrastructureResourceWorkspace({
                                             <option value="">
                                                 Choose resource
                                             </option>
+                                            {editingRelationship &&
+                                            !relationshipOptions?.targets.some(
+                                                (target) =>
+                                                    target.id ===
+                                                    editingRelationship.related_resource_id,
+                                            ) ? (
+                                                <option
+                                                    value={
+                                                        editingRelationship.related_resource_id
+                                                    }
+                                                >
+                                                    {
+                                                        editingRelationship.related_resource_name
+                                                    }
+                                                </option>
+                                            ) : null}
                                             {relationshipOptions?.targets.map(
                                                 (target) => (
                                                     <option
@@ -722,6 +809,18 @@ export function InfrastructureResourceWorkspace({
                                     </p>
                                 ) : null}
 
+                                <label className="mt-4 block text-xs text-slate-400">
+                                    Relationship notes
+                                    <Input
+                                        value={relationshipNotes}
+                                        disabled={isSavingRelationship}
+                                        onChange={(event) =>
+                                            setRelationshipNotes(
+                                                event.target.value,
+                                            )
+                                        }
+                                    />
+                                </label>
                                 <div className="mt-4 flex justify-end gap-2">
                                     <Button
                                         type="button"
@@ -746,7 +845,9 @@ export function InfrastructureResourceWorkspace({
                                     >
                                         {isSavingRelationship
                                             ? "Adding..."
-                                            : "Add relationship"}
+                                            : editingRelationship
+                                              ? "Save relationship"
+                                              : "Add relationship"}
                                     </Button>
                                 </div>
                             </div>
@@ -793,6 +894,24 @@ export function InfrastructureResourceWorkspace({
                                                         relationship.relationship_type,
                                                     )}
                                             </div>
+                                            {relationship.direction ===
+                                                "outgoing" &&
+                                            hasPermission(
+                                                "infrastructure.change_resourcerelationship",
+                                            ) ? (
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="secondary"
+                                                    onClick={() =>
+                                                        void openRelationshipForm(
+                                                            relationship,
+                                                        )
+                                                    }
+                                                >
+                                                    Edit
+                                                </Button>
+                                            ) : null}
                                             {canDeleteRelationships ? (
                                                 <Button
                                                     type="button"
@@ -874,23 +993,6 @@ export function InfrastructureResourceWorkspace({
                             </div>
                         </dl>
                     </Card>
-
-                    {resource.legacy_reference ? (
-                        <Card className="border-amber-950/70 bg-amber-950/10 p-5">
-                            <h2 className="text-sm font-semibold text-amber-200">
-                                Legacy source
-                            </h2>
-                            <p className="mt-2 text-xs leading-5 text-amber-200/60">
-                                This resource is currently backed by the
-                                existing{" "}
-                                {label(resource.legacy_reference.legacy_type)}{" "}
-                                record # {resource.legacy_reference.legacy_id}.
-                                The structured identity is now the ownership and
-                                relationship anchor; the old row remains intact
-                                during migration.
-                            </p>
-                        </Card>
-                    ) : null}
 
                     <Card className="p-5">
                         <h2 className="text-sm font-semibold text-white">

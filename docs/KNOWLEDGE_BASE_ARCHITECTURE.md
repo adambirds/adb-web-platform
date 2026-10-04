@@ -16,7 +16,17 @@ Knowledge Base sections and documents use the shared platform ownership model:
 - A document cannot be moved between ownership scopes by a normal edit. Such a move requires an explicit future migration operation.
 - Client access is always restricted through the platform's existing client-scope policy.
 
-Sections form an adjacency-list tree through `parent`. Parent and child sections must use the same ownership scope. The UI presents the resulting `path` as a folder-style navigation tree.
+The Knowledge Base landing page is a searchable, paginated picker of accessible
+Clients plus an explicit Internal entry. Operators must open one owner before
+browsing folders, searching articles or creating either. There is no combined
+folder tree or all-Clients document workspace. Each Client and Internal has its
+own independent folder structure, even when folder names are identical.
+
+Sections form an adjacency-list tree through `parent`. Parent and child sections must use the same ownership scope. The UI uses a single file-browser surface with folders and articles together.
+Operators open folders through links, navigate ancestors through breadcrumbs
+and use Up one level. List and grid views show immediate child folders before
+articles; there is no separate folder sidebar. Folder IDs are retained in the
+URL, so deep links and browser Back/Forward preserve the directory.
 
 ## Core models
 
@@ -71,13 +81,28 @@ The staff API is mounted below `/api/admin/knowledge-base` and requires Django m
 
 Primary operations include:
 
-- workspace search/filter/pagination;
-- options for visible clients, sections, Infrastructure resources and active Vault records;
+- Client/Internal context selection and scoped workspace search/filter/pagination;
+- options restricted to the selected owner’s sections, Infrastructure resources and active Vault records;
 - document create/detail/update;
 - immutable version detail;
 - archive/restore;
 - section create/update;
 - attachment upload/download/delete.
+
+`GET /contexts` lists only accessible Client names/IDs, with search and pagination.
+It does not return folders or articles. `GET /workspace` and `GET /options`
+require `ownership_type=internal` or an accessible `client_id` (optionally with
+`ownership_type=client`). Missing, combined or contradictory contexts return
+400; out-of-scope Clients return 404. A resource-only workspace request resolves
+the visible resource’s owner and rejects any conflicting explicit context.
+
+The file browser opts into `GET /workspace?browse=true`. At the owner root it
+shows top-level folders; articles live inside folders. Opening a folder returns
+only articles directly in that folder. When a search is present, article matches
+include that folder’s descendants, or the whole selected Knowledge Base at the
+root. Returned section metadata remains scoped to that owner for breadcrumbs
+and child-folder navigation. Contextual document panels omit `browse` and retain
+their existing owner/resource document projections.
 
 Ownership, client, section and Infrastructure Resource filters always narrow the caller's already-resolved access scope; they never widen it. Resource-filtered requests also require independent Infrastructure Resource visibility before the filter can be applied.
 
@@ -91,16 +116,22 @@ Raw HTML embedded in Markdown is not rendered. This keeps the current reader/edi
 
 The operator workflow includes:
 
-- global scoped folder navigation;
-- search, ownership, client and archive-state filters;
-- controlled create/edit forms;
+- a Client/Internal picker followed by a list/grid file browser with inline folders, articles and breadcrumbs;
+- folder/subtree search and archive-state filters within the selected Knowledge Base;
+- create/edit forms with fixed ownership inherited from the selected Knowledge Base;
 - live Markdown preview;
 - reader view;
 - immutable revision browser;
 - Infrastructure and Vault context;
 - secure attachment controls.
 
-Client and Infrastructure Resource pages also expose contextual Knowledge Base panels so operational documentation is reachable from the records it describes.
+Client and Infrastructure Resource pages expose contextual Knowledge Base panels.
+Their open/create links preserve the resolved owner; resource open links also
+retain the resource filter. Article deep links resolve their existing owner and
+provide a return link to the containing folder. New folder creation uses the
+currently open folder as its parent, and new article links preselect that folder. A new-article link without a valid
+Client/Internal context redirects to the picker. Changing Knowledge Bases clears
+the previous tree and article results before loading the next owner.
 
 ## Attachments and quarantine
 

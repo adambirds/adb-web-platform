@@ -1,6 +1,14 @@
 "use client";
 
-import { Badge, Button, Card, DataError, DataLoading, EmptyState } from "@/components/ui";
+import {
+    Badge,
+    Button,
+    Card,
+    DataError,
+    DataLoading,
+    EmptyState,
+    Input,
+} from "@/components/ui";
 import { fetchAPI } from "@/lib/api/fetch";
 import { API_URL } from "@/lib/config";
 import Link from "next/link";
@@ -50,6 +58,7 @@ interface TopologyResponse {
 }
 
 export function TopologyWorkspace() {
+    const [resourceSearch, setResourceSearch] = useState("");
     const [resources, setResources] = useState<ResourceOption[]>([]);
     const [resourceId, setResourceId] = useState<number | null>(null);
     const [depth, setDepth] = useState(1);
@@ -58,20 +67,34 @@ export function TopologyWorkspace() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        let active = true;
         async function loadResources() {
             try {
                 const response = (await fetchAPI(
-                    `${API_URL}/api/admin/infrastructure/resources?page_size=100&lifecycle=current`,
+                    `${API_URL}/api/admin/infrastructure/resources?page_size=100&lifecycle=current&search=${encodeURIComponent(resourceSearch)}`,
                 )) as ResourcePage;
+                if (!active) return;
                 setResources(response.items);
-                setResourceId((current) => current ?? response.items[0]?.id ?? null);
+                setResourceId((current) =>
+                    response.items.some((resource) => resource.id === current)
+                        ? current
+                        : (response.items[0]?.id ?? null),
+                );
             } catch (loadError) {
-                setError(loadError instanceof Error ? loadError.message : "Unable to load resources.");
+                if (!active) return;
+                setError(
+                    loadError instanceof Error
+                        ? loadError.message
+                        : "Unable to load resources.",
+                );
                 setLoading(false);
             }
         }
         void loadResources();
-    }, []);
+        return () => {
+            active = false;
+        };
+    }, [resourceSearch]);
 
     const loadTopology = useCallback(async () => {
         if (!resourceId) {
@@ -88,7 +111,11 @@ export function TopologyWorkspace() {
                 )) as TopologyResponse,
             );
         } catch (loadError) {
-            setError(loadError instanceof Error ? loadError.message : "Unable to load topology.");
+            setError(
+                loadError instanceof Error
+                    ? loadError.message
+                    : "Unable to load topology.",
+            );
         } finally {
             setLoading(false);
         }
@@ -104,31 +131,52 @@ export function TopologyWorkspace() {
     );
     const root = data?.nodes.find((node) => node.is_root) ?? null;
 
-    if (loading && resources.length === 0) return <DataLoading label="Loading infrastructure topology..." />;
-    if (error && resources.length === 0) return <DataError message={error} onRetry={() => window.location.reload()} />;
+    if (loading && resources.length === 0)
+        return <DataLoading label="Loading infrastructure topology..." />;
+    if (error && resources.length === 0)
+        return (
+            <DataError
+                message={error}
+                onRetry={() => window.location.reload()}
+            />
+        );
 
     return (
         <div className="space-y-5">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                 <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-adb-cyan-400">
+                    <p className="text-adb-cyan-400 text-xs font-semibold tracking-[0.18em] uppercase">
                         Infrastructure · Relationships
                     </p>
-                    <h1 className="mt-2 text-2xl font-semibold text-white">Resource topology</h1>
+                    <h1 className="mt-2 text-2xl font-semibold text-white">
+                        Resource topology
+                    </h1>
                     <p className="mt-1 max-w-3xl text-sm text-slate-400">
-                        Explore typed resource relationships without crossing your current Client or infrastructure
-                        scope. The view is intentionally bounded to two hops.
+                        Explore typed resource relationships without crossing
+                        your current Client or infrastructure scope. The view is
+                        intentionally bounded to two hops.
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                    <Input
+                        aria-label="Search topology resources"
+                        placeholder="Find a resource..."
+                        value={resourceSearch}
+                        onChange={(event) =>
+                            setResourceSearch(event.target.value)
+                        }
+                    />
                     <select
                         value={resourceId ?? ""}
-                        onChange={(event) => setResourceId(Number(event.target.value))}
+                        onChange={(event) =>
+                            setResourceId(Number(event.target.value))
+                        }
                         className="min-w-72 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200"
                     >
                         {resources.map((resource) => (
                             <option key={resource.id} value={resource.id}>
-                                {resource.name} · {resource.client_name || "Internal"}
+                                {resource.name} ·{" "}
+                                {resource.client_name || "Internal"}
                             </option>
                         ))}
                     </select>
@@ -146,7 +194,10 @@ export function TopologyWorkspace() {
                             {value} hop{value === 1 ? "" : "s"}
                         </button>
                     ))}
-                    <Button variant="outline" onClick={() => void loadTopology()}>
+                    <Button
+                        variant="outline"
+                        onClick={() => void loadTopology()}
+                    >
                         Refresh
                     </Button>
                 </div>
@@ -162,12 +213,19 @@ export function TopologyWorkspace() {
                 <Card className="p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                            <p className="text-xs font-semibold uppercase tracking-wide text-adb-cyan-400">Root resource</p>
-                            <Link href={root.href} className="mt-2 block text-xl font-semibold text-white hover:text-adb-cyan-300">
+                            <p className="text-adb-cyan-400 text-xs font-semibold tracking-wide uppercase">
+                                Root resource
+                            </p>
+                            <Link
+                                href={root.href}
+                                className="hover:text-adb-cyan-300 mt-2 block text-xl font-semibold text-white"
+                            >
                                 {root.name}
                             </Link>
                             <p className="mt-1 text-sm text-slate-500">
-                                {root.resource_type_label} · {root.environment.replaceAll("_", " ")} · {root.client_name || "ADB Internal"}
+                                {root.resource_type_label} ·{" "}
+                                {root.environment.replaceAll("_", " ")} ·{" "}
+                                {root.client_name || "ADB Internal"}
                             </p>
                         </div>
                         <div className="flex gap-2">
@@ -186,19 +244,35 @@ export function TopologyWorkspace() {
                     return (
                         <Card key={edge.id} className="p-4">
                             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                                <Link href={source.href} className="min-w-0 rounded-lg border border-slate-800 bg-slate-950 p-3 hover:border-slate-700">
-                                    <p className="truncate text-sm font-semibold text-slate-200">{source.name}</p>
-                                    <p className="mt-1 truncate text-xs text-slate-600">{source.resource_type_label}</p>
+                                <Link
+                                    href={source.href}
+                                    className="min-w-0 rounded-lg border border-slate-800 bg-slate-950 p-3 hover:border-slate-700"
+                                >
+                                    <p className="truncate text-sm font-semibold text-slate-200">
+                                        {source.name}
+                                    </p>
+                                    <p className="mt-1 truncate text-xs text-slate-600">
+                                        {source.resource_type_label}
+                                    </p>
                                 </Link>
                                 <div className="text-center">
-                                    <p className="text-lg text-adb-cyan-400">→</p>
-                                    <p className="max-w-28 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                                    <p className="text-adb-cyan-400 text-lg">
+                                        →
+                                    </p>
+                                    <p className="max-w-28 text-[10px] font-semibold tracking-wide text-slate-500 uppercase">
                                         {edge.label || edge.relationship_label}
                                     </p>
                                 </div>
-                                <Link href={target.href} className="min-w-0 rounded-lg border border-slate-800 bg-slate-950 p-3 hover:border-slate-700">
-                                    <p className="truncate text-sm font-semibold text-slate-200">{target.name}</p>
-                                    <p className="mt-1 truncate text-xs text-slate-600">{target.resource_type_label}</p>
+                                <Link
+                                    href={target.href}
+                                    className="min-w-0 rounded-lg border border-slate-800 bg-slate-950 p-3 hover:border-slate-700"
+                                >
+                                    <p className="truncate text-sm font-semibold text-slate-200">
+                                        {target.name}
+                                    </p>
+                                    <p className="mt-1 truncate text-xs text-slate-600">
+                                        {target.resource_type_label}
+                                    </p>
                                 </Link>
                             </div>
                         </Card>
@@ -215,7 +289,8 @@ export function TopologyWorkspace() {
 
             {data?.truncated ? (
                 <div className="rounded-lg border border-amber-900/60 bg-amber-950/20 px-4 py-3 text-sm text-amber-200">
-                    This topology reached the bounded node or edge limit. Open a neighbouring resource to continue exploring.
+                    This topology reached the bounded node or edge limit. Open a
+                    neighbouring resource to continue exploring.
                 </div>
             ) : null}
         </div>

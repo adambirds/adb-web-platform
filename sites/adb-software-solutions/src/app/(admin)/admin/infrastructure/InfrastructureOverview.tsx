@@ -25,7 +25,6 @@ interface InfrastructureSummary {
     ssl_certificate_count: number;
     expiring_certificate_count: number;
     licence_count: number;
-    renewing_licence_count: number;
     application_count: number;
     mobile_app_count: number;
     api_count: number;
@@ -35,7 +34,17 @@ interface InfrastructureSummary {
 
 const inventoryLinks = [
     [
-        "Structured resources",
+        "Provider accounts",
+        "/admin/infrastructure/provider-accounts",
+        "Cloud, hosting, registrar and vendor accounts.",
+    ],
+    [
+        "Service providers",
+        "/admin/infrastructure/service-providers",
+        "Vendor catalogue used by provider accounts.",
+    ],
+    [
+        "Resources",
         "/admin/infrastructure/resources",
         "Shared Client/Internal resource graph with relationships, credentials, monitoring and documentation.",
     ],
@@ -72,7 +81,7 @@ const inventoryLinks = [
     [
         "Licences",
         "/admin/infrastructure/licences",
-        "Subscriptions, renewals and software licences.",
+        "Software licences and subscription resources.",
     ],
     [
         "Applications",
@@ -82,7 +91,7 @@ const inventoryLinks = [
     [
         "Technology stack",
         "/admin/infrastructure/tech-stack",
-        "Technology and version inventory by website.",
+        "Technology and version inventory across resources.",
     ],
 ] as const;
 
@@ -192,11 +201,9 @@ export function InfrastructureOverview() {
                 <StatCard
                     label="Licences"
                     value={String(summary.licence_count)}
-                    helper={`${summary.renewing_licence_count} renew within 45 days`}
+                    helper="Tracked software and subscriptions"
                     icon={<KeyIcon className="h-5 w-5" />}
-                    accent={
-                        summary.renewing_licence_count > 0 ? "amber" : "cyan"
-                    }
+                    accent="cyan"
                 />
                 <StatCard
                     label="APIs & bots"

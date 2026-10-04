@@ -1,9 +1,4 @@
-"""Infrastructure model exports.
-
-The original flat infrastructure records remain available while the structured
-resource layer is introduced alongside them. They will be migrated onto the new
-resource identities incrementally rather than rewritten in place.
-"""
+"""Current infrastructure resource and specialist model exports."""
 
 from .data_application_models import (
     ApplicationEnvironment,
@@ -12,33 +7,6 @@ from .data_application_models import (
     DatabaseInstance,
     LogicalDatabase,
     SourceRepository,
-)
-from .legacy_models import (
-    API,
-    Application,
-    Bot,
-    Database,
-    Domain,
-    EmailSystem,
-    Licence,
-    MobileApp,
-    Server,
-    SSLCertificate,
-    Website,
-    WebsiteTechStack,
-)
-from .legacy_resource_links import (
-    APIResourceIdentity,
-    ApplicationResourceIdentity,
-    BotResourceIdentity,
-    DatabaseResourceIdentity,
-    DomainResourceIdentity,
-    EmailSystemResourceIdentity,
-    LicenceResourceIdentity,
-    MobileAppResourceIdentity,
-    ServerResourceIdentity,
-    SSLCertificateResourceIdentity,
-    WebsiteResourceIdentity,
 )
 from .operational_models import (
     BackupPlanProfile,
@@ -75,29 +43,17 @@ from .web_domain_models import (
 )
 
 __all__ = [
-    "API",
-    "APIResourceIdentity",
-    "Application",
     "ApplicationEnvironment",
     "ApplicationProfile",
     "ApplicationRepositoryLink",
-    "ApplicationResourceIdentity",
     "BackupPlanProfile",
     "BackupSource",
-    "Bot",
-    "BotResourceIdentity",
     "ContainerService",
     "ContainerStackProfile",
     "DNSRecord",
     "DNSZone",
-    "Database",
     "DatabaseInstance",
-    "DatabaseResourceIdentity",
-    "Domain",
     "DomainProfile",
-    "DomainResourceIdentity",
-    "EmailSystem",
-    "EmailSystemResourceIdentity",
     "HelmRelease",
     "IPAddress",
     "InfrastructureResource",
@@ -108,21 +64,13 @@ __all__ = [
     "KubernetesPersistentStorage",
     "KubernetesService",
     "KubernetesWorkloadProfile",
-    "Licence",
-    "LicenceResourceIdentity",
     "LogicalDatabase",
-    "MobileApp",
-    "MobileAppResourceIdentity",
     "Network",
     "NetworkInterface",
     "ProviderAccount",
     "ResourceRelationship",
-    "SSLCertificate",
-    "SSLCertificateResourceIdentity",
     "ScheduledJobProfile",
-    "Server",
     "ServerProfile",
-    "ServerResourceIdentity",
     "ServiceProvider",
     "SourceRepository",
     "StorageProfile",
@@ -130,9 +78,6 @@ __all__ = [
     "SystemServiceProfile",
     "TLSCertificate",
     "TLSCertificateDomain",
-    "Website",
     "WebsiteEndpoint",
     "WebsiteProfile",
-    "WebsiteResourceIdentity",
-    "WebsiteTechStack",
 ]

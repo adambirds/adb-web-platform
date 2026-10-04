@@ -79,6 +79,9 @@ export interface KnowledgeDocumentDetail extends KnowledgeDocumentSummary {
 }
 
 export interface KnowledgeWorkspaceResponse {
+    ownership_type: "internal" | "client";
+    client_id: number | null;
+    client_name: string | null;
     sections: KnowledgeSection[];
     documents: KnowledgeDocumentSummary[];
     total_documents: number;

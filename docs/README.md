@@ -66,9 +66,11 @@ decision says otherwise:
   templates, secret-action permissions, auditing, resource links, browser
   handling, key rotation and legacy-secret reconciliation.
 - `INFRASTRUCTURE_ARCHITECTURE.md` — structured technical-resource graph,
-  specialist reconciliation, Credentials, Knowledge and Monitoring direction.
+  native specialists, Credentials, Knowledge and Monitoring direction.
 - `INFRASTRUCTURE_EXPIRY_TRACKING.md` — Domain/TLS discovery, renewal detection,
   automatic expiry checks and Celery operating guidance.
+- [INFRASTRUCTURE_CREATION.md](./INFRASTRUCTURE_CREATION.md) — resource/vendor
+  creation and nested creation locations.
 - `TICKETING_ARCHITECTURE.md` — unified communications and operational Ticket
   workflow.
 - `MICROSOFT_GRAPH_TICKETING_SETUP.md` — Microsoft 365 Shared Mailbox app-only
