@@ -5,8 +5,7 @@ from apps.clients.models import Client
 from apps.core.ownership import OwnershipType
 from apps.credentials.models import StoredCredential
 from apps.infrastructure.models import InfrastructureResource
-
-from .models import MonitorCheck
+from apps.monitoring.models import MonitorCheck
 
 
 class MonitorCheckModelTests(TestCase):

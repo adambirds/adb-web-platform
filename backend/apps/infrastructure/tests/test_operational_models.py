@@ -3,8 +3,7 @@ from django.test import TestCase
 
 from apps.clients.models import Client
 from apps.core.ownership import OwnershipType
-
-from .models import (
+from apps.infrastructure.models import (
     BackupPlanProfile,
     BackupSource,
     ContainerService,

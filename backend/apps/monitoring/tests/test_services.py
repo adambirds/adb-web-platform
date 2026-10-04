@@ -5,9 +5,8 @@ from django.utils import timezone
 
 from apps.core.ownership import OwnershipType
 from apps.infrastructure.models import InfrastructureResource
-
-from .models import MonitorCheck, MonitorIncident
-from .services import CheckObservation, record_observation
+from apps.monitoring.models import MonitorCheck, MonitorIncident
+from apps.monitoring.services import CheckObservation, record_observation
 
 
 class MonitorIncidentLifecycleTests(TestCase):

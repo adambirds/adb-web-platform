@@ -3,10 +3,13 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
 from apps.core.ownership import OwnershipType
+from apps.knowledge_base.models import (
+    KnowledgeBaseAttachment,
+    KnowledgeBaseDocument,
+    KnowledgeBaseSection,
+)
+from apps.knowledge_base.services import archive_document
 from authentication.models import User
-
-from .models import KnowledgeBaseAttachment, KnowledgeBaseDocument, KnowledgeBaseSection
-from .services import archive_document
 
 
 class ArchivedKnowledgeBaseAttachmentTests(TestCase):

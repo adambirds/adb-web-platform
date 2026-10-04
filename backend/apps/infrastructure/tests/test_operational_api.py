@@ -3,9 +3,7 @@ from django.test import TestCase
 
 from apps.clients.models import Client
 from apps.core.ownership import OwnershipType
-from authentication.models import User
-
-from .models import (
+from apps.infrastructure.models import (
     InfrastructureResource,
     KubernetesClusterProfile,
     KubernetesNamespaceProfile,
@@ -14,6 +12,7 @@ from .models import (
     ProviderAccount,
     ServiceProvider,
 )
+from authentication.models import User
 
 
 class OperationalSpecialistAPITests(TestCase):

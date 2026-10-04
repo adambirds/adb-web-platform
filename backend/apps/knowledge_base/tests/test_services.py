@@ -3,16 +3,15 @@ from django.test import TestCase
 
 from apps.clients.models import Client
 from apps.core.ownership import OwnershipType
-from authentication.models import User
-
-from .models import DocumentVersion, KnowledgeBaseDocument, KnowledgeBaseSection
-from .services import (
+from apps.knowledge_base.models import DocumentVersion, KnowledgeBaseDocument, KnowledgeBaseSection
+from apps.knowledge_base.services import (
     DocumentWrite,
     archive_document,
     create_document,
     restore_document,
     update_document,
 )
+from authentication.models import User
 
 
 class KnowledgeBaseDocumentServiceTests(TestCase):

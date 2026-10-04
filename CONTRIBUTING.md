@@ -1,6 +1,6 @@
 # Contributing
 
-This repository contains the shared ADB backend, authentication and administration applications, plus the public ADB Software Solutions and ADB Web Designs websites.
+This repository contains the shared ADB backend, a dedicated authentication application, and three public brand applications. ADB Software Solutions also serves the internal operations workspace under `/admin`.
 
 Prefer straightforward implementations and measurable benefits over infrastructure or abstractions added pre-emptively.
 
@@ -18,11 +18,11 @@ Then choose **Dev Containers: Reopen in Container**.
 
 ## Repository layout
 
-- `backend/` — Django backend and shared business platform.
-- `auth-frontend/` — authentication/account frontend.
-- `admin-website/` — internal Next.js administration frontend.
-- `sites/adb-software-solutions/` — public ADB Software Solutions site.
+- `backend/` — [Django backend and domain guides](backend/README.md).
+- `sites/auth-adb-software-solutions/` — authentication/account frontend.
+- `sites/adb-software-solutions/` — public site and internal `/admin` workspace.
 - `sites/adb-web-designs/` — public ADB Web Designs site.
+- `sites/adb-technology/` — public ADB Technology site.
 - `packages/` — shared TypeScript packages.
 - `tools/` — development, linting and test scripts.
 

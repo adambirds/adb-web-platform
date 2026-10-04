@@ -10,12 +10,15 @@ from django.test import TestCase, override_settings
 from apps.access_control.models import ClientAccessGrant, StaffAccessProfile
 from apps.clients.models import Client
 from apps.core.ownership import OwnershipType
+from apps.knowledge_base.attachment_security import quarantine_attachment
+from apps.knowledge_base.models import (
+    KnowledgeBaseAttachment,
+    KnowledgeBaseDocument,
+    KnowledgeBaseSection,
+)
+from apps.knowledge_base.tasks import scan_knowledge_base_attachment
 from apps.ticketing.services.scanning import AttachmentScanResult
 from authentication.models import User
-
-from .attachment_security import quarantine_attachment
-from .models import KnowledgeBaseAttachment, KnowledgeBaseDocument, KnowledgeBaseSection
-from .tasks import scan_knowledge_base_attachment
 
 
 class KnowledgeBaseAttachmentApiTests(TestCase):

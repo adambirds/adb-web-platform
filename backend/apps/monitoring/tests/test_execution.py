@@ -11,9 +11,8 @@ from django.utils import timezone
 from apps.core.ownership import OwnershipType
 from apps.infrastructure.models import InfrastructureResource
 from apps.infrastructure.web_domain_models import DomainProfile
-
-from .execution import execute_check
-from .models import MonitorCheck
+from apps.monitoring.execution import execute_check
+from apps.monitoring.models import MonitorCheck
 
 
 class MonitorExecutionTests(TestCase):

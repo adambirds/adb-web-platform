@@ -6,9 +6,8 @@ from django.utils import timezone
 
 from apps.core.ownership import OwnershipType
 from apps.infrastructure.models import InfrastructureResource
-
-from .models import MonitorCheck
-from .tasks import run_monitor_check
+from apps.monitoring.models import MonitorCheck
+from apps.monitoring.tasks import run_monitor_check
 
 
 class MonitorTaskTests(TestCase):

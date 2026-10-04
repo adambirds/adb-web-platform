@@ -6,10 +6,9 @@ from apps.clients.models import Client
 from apps.core.ownership import OwnershipType
 from apps.credentials.models import StoredCredential
 from apps.infrastructure.models import InfrastructureResource
+from apps.knowledge_base.models import KnowledgeBaseDocument, KnowledgeBaseSection
+from apps.knowledge_base.services import DocumentWrite, create_document
 from authentication.models import User
-
-from .models import KnowledgeBaseDocument, KnowledgeBaseSection
-from .services import DocumentWrite, create_document
 
 
 class KnowledgeBaseAPITests(TestCase):

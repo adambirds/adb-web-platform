@@ -119,3 +119,12 @@ Read `AGENTS.md` and `CONTRIBUTING.md` before making changes. Scoped `AGENTS.md`
 The repository intentionally does not use Turborepo or another monorepo orchestration framework. pnpm workspaces provide shared-package resolution while CI/CD and container images remain application-focused.
 
 Each deployable application has its own Docker image. Published images in the shared DigitalOcean Container Registry are prefixed with `adb-web-platform-` so they cannot collide with unrelated ADB projects.
+
+## Finding code and tests
+
+Start with the [backend navigation guide](backend/README.md) and
+[business-domain index](backend/apps/README.md). Every Django business app has a
+README linking its models, services, API modules and tests. Backend tests live
+in local `tests/` packages; authentication frontend tests live in
+`sites/auth-adb-software-solutions/tests/`. See
+[CONTRIBUTING.md](./CONTRIBUTING.md) for verification and repository conventions.

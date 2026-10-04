@@ -7,10 +7,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 
 from apps.core.ownership import OwnershipType
+from apps.knowledge_base.attachment_security import quarantine_attachment
+from apps.knowledge_base.models import KnowledgeBaseDocument, KnowledgeBaseSection
 from authentication.models import User
-
-from .attachment_security import quarantine_attachment
-from .models import KnowledgeBaseDocument, KnowledgeBaseSection
 
 
 class KnowledgeBaseAttachmentProjectionTests(TestCase):

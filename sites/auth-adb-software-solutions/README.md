@@ -80,3 +80,22 @@ Only the known ADB application origins and safe relative paths are accepted as r
 ## Migration and security guidance
 
 See `../../docs/AUTH_FRONTEND_NEXTJS_MIGRATION.md` for the migration contract and regression checklist. Authentication changes are security-sensitive: preserve backend contracts and add or update tests whenever behaviour changes.
+
+## Code and test navigation
+
+| Location                                                            | Responsibility                                        |
+| ------------------------------------------------------------------- | ----------------------------------------------------- |
+| [src/app](./src/app/)                                               | App Router pages and layouts                          |
+| [src/screens](./src/screens/)                                       | Authentication and account workflow screens           |
+| [src/components](./src/components/)                                 | Local UI components                                   |
+| [src/contexts](./src/contexts/) / [src/providers](./src/providers/) | Shared browser state and providers                    |
+| [src/utils](./src/utils/)                                           | Browser/API helpers                                   |
+| [src/types](./src/types/)                                           | Local TypeScript contracts                            |
+| [tests](./tests/)                                                   | Vitest tests grouped by component or utility          |
+| [tests/setup.ts](./tests/setup.ts)                                  | Shared browser test setup                             |
+| [vitest.config.ts](./vitest.config.ts)                              | Test environment, source alias and setup registration |
+
+Keep new tests in `tests/` and use the configured `@/` alias to import source
+modules. Run `pnpm --dir sites/auth-adb-software-solutions exec vitest run` from
+the repository root. The corresponding backend code map is
+[authentication/README.md](../../backend/authentication/README.md).

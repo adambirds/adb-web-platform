@@ -26,7 +26,7 @@ class RedisSettingsTests(SimpleTestCase):
             "SESSION_BACKEND_URL": "redis://session-test:6379/6",
         }
         with patch.dict("os.environ", urls):
-            config = runpy.run_path(str(Path(__file__).with_name("settings.py")))
+            config = runpy.run_path(str(Path(__file__).resolve().parents[1] / "settings.py"))
 
         self.assertEqual(config["CELERY_BROKER_URL"], urls["CELERY_BROKER_URL"])
         self.assertEqual(config["CELERY_RESULT_BACKEND"], urls["CELERY_RESULT_BACKEND"])
