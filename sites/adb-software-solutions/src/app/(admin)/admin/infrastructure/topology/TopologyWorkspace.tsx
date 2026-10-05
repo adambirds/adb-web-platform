@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import {
     Badge,
     Button,
@@ -124,6 +126,7 @@ export function TopologyWorkspace() {
     useEffect(() => {
         void loadTopology();
     }, [loadTopology]);
+    useLiveRefresh(["infrastructure", "credentials", "monitoring"], loadTopology);
 
     const nodesById = useMemo(
         () => new Map((data?.nodes ?? []).map((node) => [node.id, node])),

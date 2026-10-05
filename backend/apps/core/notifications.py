@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from apps.access_control.policies import scope_clients_for_user, scope_ticket_queues_for_user
+from apps.core.live.events import LiveChange, publish_change
 from apps.core.models import Notification
 from apps.core.ownership import OwnershipType
 from apps.credentials.health import evaluate_credential_health
@@ -109,7 +110,8 @@ def resolve_missing_notifications(user: User, prefix: str, active_keys: Iterable
     )
     if active:
         unresolved = unresolved.exclude(source_key__in=active)
-    unresolved.update(resolved_at=timezone.now())
+    if unresolved.update(resolved_at=timezone.now()):
+        publish_change(LiveChange("notifications", user_id=str(user.pk)))
 
 
 def _task_notifications(user: User) -> list[NotificationSpec]:

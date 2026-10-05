@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import {
     ArrowUpIcon,
     Bars3Icon,
@@ -182,6 +184,8 @@ function ScopedKnowledgeBaseWorkspace({
             requestRef.current += 1;
         };
     }, [load]);
+
+    useLiveRefresh(["knowledge"], load);
 
     const sections = useMemo(
         () =>

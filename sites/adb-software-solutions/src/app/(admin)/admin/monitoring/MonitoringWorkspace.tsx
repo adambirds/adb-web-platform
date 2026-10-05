@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import {
     Badge,
     Button,
@@ -106,6 +108,8 @@ export function MonitoringWorkspace() {
             setLoading(false);
         }
     }, []);
+
+    useLiveRefresh(["monitoring"], loadOverview);
 
     useEffect(() => {
         void loadOverview();

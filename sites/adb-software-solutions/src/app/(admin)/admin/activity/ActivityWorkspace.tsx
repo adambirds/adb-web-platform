@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import {
     Button,
     Card,
@@ -120,6 +122,8 @@ export function ActivityWorkspace() {
             setLoading(false);
         }
     }, [clientId, page, resourceId]);
+
+    useLiveRefresh(["activity"], load);
 
     useEffect(() => {
         void load();

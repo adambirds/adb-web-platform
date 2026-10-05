@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import { RecordDrawer } from "@/components/admin/RecordDrawer";
 import {
     Badge,
@@ -265,6 +267,8 @@ export function LeadList() {
         const timeout = window.setTimeout(() => void loadLeads(), 180);
         return () => window.clearTimeout(timeout);
     }, [loadLeads]);
+
+    useLiveRefresh(["leads"], loadLeads);
 
     useEffect(() => {
         setPage(1);

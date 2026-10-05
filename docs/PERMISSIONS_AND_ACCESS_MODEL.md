@@ -563,3 +563,14 @@ Direct Lead sales-stage updates require `crm.change_lead`. Lead conversion keeps
 its existing `crm.convert_lead`, Client creation and Contact creation capability
 checks; setting the Won outcome is an intrinsic part of that atomic operation
 and does not require a separate general Lead edit permission.
+
+## Live update hints
+
+The `/api/admin/events` SSE endpoint requires an active staff session and an
+approved origin. Each event is checked against fresh user capabilities and
+Client/Ticket Queue scopes before delivery. Personal notifications and access
+hints target the owning user; group permission changes send only an instruction
+to refresh the recipient’s own access. Events contain topics only. Session
+revocation and password changes terminate streams. Read APIs still enforce their
+full permissions; stream subscription grants no extra access. See
+[the live updates architecture](LIVE_UPDATES_ARCHITECTURE.md).

@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import { RecordDrawer } from "@/components/admin/RecordDrawer";
 import {
     Badge,
@@ -122,6 +124,7 @@ export function CredentialVault({
     useEffect(() => {
         void load();
     }, [load]);
+    useLiveRefresh(["credentials"], load);
 
     useEffect(() => {
         setPage(1);

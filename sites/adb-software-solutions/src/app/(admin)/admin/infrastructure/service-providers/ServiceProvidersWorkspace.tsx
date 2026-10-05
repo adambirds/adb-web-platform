@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import { RecordDrawer } from "@/components/admin/RecordDrawer";
 import {
     Button,
@@ -60,6 +62,7 @@ export function ServiceProvidersWorkspace() {
     useEffect(() => {
         void load();
     }, [load]);
+    useLiveRefresh(["infrastructure"], load);
     return (
         <div className="space-y-5">
             <PageHeader

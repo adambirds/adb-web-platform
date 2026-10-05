@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import {
     Badge,
     DataError,
@@ -97,6 +99,8 @@ export function ProjectList() {
             setIsLoading(false);
         }
     }, []);
+
+    useLiveRefresh(["projects"], loadProjects);
 
     useEffect(() => {
         void loadProjects();

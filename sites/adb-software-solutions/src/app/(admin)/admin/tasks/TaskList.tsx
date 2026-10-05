@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import { TaskCompletionToggle } from "@/components/admin/TaskCompletionToggle";
 import {
     Badge,
@@ -163,6 +165,7 @@ export function TaskList() {
     useEffect(() => {
         void loadTasks();
     }, [loadTasks]);
+    useLiveRefresh(["tasks"], loadTasks);
 
     const activeOption = focusOptions.find((option) => option.value === focus);
     const heading = focus === "all" ? "All tasks" : activeOption?.label || "My tasks";

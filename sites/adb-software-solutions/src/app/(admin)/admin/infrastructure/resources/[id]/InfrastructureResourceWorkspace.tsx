@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import {
     Button,
     ButtonLink,
@@ -322,6 +324,7 @@ export function InfrastructureResourceWorkspace({
     useEffect(() => {
         void load();
     }, [load]);
+    useLiveRefresh(["infrastructure"], async () => { if (!isEditing) await load(); });
 
     useEffect(() => {
         setIsEditing(false);

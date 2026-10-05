@@ -1,5 +1,9 @@
 "use client";
 
+import { API_URL } from "@/lib/config";
+
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import { fetchAPI } from "@/lib/api/fetch";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import {
@@ -11,8 +15,7 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const API_BASE_URL = `${API_URL}/api`;
 
 interface NotificationItem {
     id: number;
@@ -60,10 +63,11 @@ export function NotificationBell() {
         }
     }, []);
 
+    useLiveRefresh(["notifications"], refresh);
+
     useEffect(() => {
         void refresh();
-        const interval = window.setInterval(() => void refresh(), 60_000);
-        return () => window.clearInterval(interval);
+
     }, [refresh]);
 
     async function markRead(id: number) {

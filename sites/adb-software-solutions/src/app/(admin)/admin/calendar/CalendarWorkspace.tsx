@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import { Badge, Button, Card, DataError, DataLoading, EmptyState } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchAPI } from "@/lib/api/fetch";
@@ -126,6 +128,8 @@ export function CalendarWorkspace() {
             setLoading(false);
         }
     }, [dateFrom, dateTo]);
+
+    useLiveRefresh(["calendar"], load);
 
     useEffect(() => {
         void load();

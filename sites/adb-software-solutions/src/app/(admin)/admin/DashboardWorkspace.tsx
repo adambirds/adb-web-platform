@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { AdminAPI } from "@/lib/api/endpoints";
 import { fetchAPI } from "@/lib/api/fetch";
@@ -253,7 +255,7 @@ export function DashboardWorkspace() {
                 AdminAPI.dashboard.summary(),
             )) as DashboardWorkspaceData;
             setData(workspace);
-            setDraft(workspace.layout);
+            if (!customising) setDraft(workspace.layout);
         } catch (reason) {
             setError(reason instanceof Error ? reason.message : "Unable to load your dashboard.");
         }
@@ -262,6 +264,8 @@ export function DashboardWorkspace() {
     useEffect(() => {
         void load();
     }, []);
+
+    useLiveRefresh(["dashboard"], load);
 
     function toggleWidget(option: WidgetOption) {
         setDraft((current) =>
@@ -296,7 +300,7 @@ export function DashboardWorkspace() {
                 body: JSON.stringify({ layout: draft }),
             })) as DashboardWorkspaceData;
             setData(workspace);
-            setDraft(workspace.layout);
+            if (!customising) setDraft(workspace.layout);
             setCustomising(false);
         } catch (reason) {
             setError(reason instanceof Error ? reason.message : "Unable to save dashboard layout.");

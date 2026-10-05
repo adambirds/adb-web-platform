@@ -1045,3 +1045,11 @@ use the standard Edit resource action in full pages and drawers. Server
 interfaces/IPs, repository links and TLS domain coverage can be edited in place;
 outgoing resource relationships retain editable notes and scoped targets.
 See `INFRASTRUCTURE_CREATION.md` for entry points and API boundaries.
+
+## Shared operational live updates
+
+The admin workspace shares an authenticated, scoped SSE connection for GitHub,
+monitoring, notifications and operational screens. Redis publishes after-commit
+invalidation hints; existing Django APIs remain authoritative. See
+[the live updates architecture](LIVE_UPDATES_ARCHITECTURE.md) for coverage, recovery
+and ASGI/proxy deployment requirements.

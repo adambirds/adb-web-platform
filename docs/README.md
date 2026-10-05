@@ -103,3 +103,5 @@ must distinguish clearly between:
 Do not turn a long-term possibility into a present architectural requirement,
 and do not let domain docs drift away from the implementation state on the
 branch that will introduce them.
+
+- [Shared live updates](LIVE_UPDATES_ARCHITECTURE.md) — SSE topics, scope checks, recovery and deployment.

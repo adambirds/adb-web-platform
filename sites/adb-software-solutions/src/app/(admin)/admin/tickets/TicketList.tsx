@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import { RecordDrawer } from "@/components/admin/RecordDrawer";
 import {
     Badge,
@@ -379,6 +381,7 @@ function ScopedTicketList({ clientId, contactId }: { clientId: string | null; co
         const timeout = window.setTimeout(() => void load(), 150);
         return () => window.clearTimeout(timeout);
     }, [load]);
+    useLiveRefresh(["tickets"], load);
 
     useEffect(() => setPage(1), [priority, search, status]);
 
@@ -493,6 +496,7 @@ export function TicketList() {
         const timeout = window.setTimeout(() => void loadTickets(), 150);
         return () => window.clearTimeout(timeout);
     }, [clientId, contactId, loadTickets]);
+    useLiveRefresh(["tickets"], async () => { if (!clientId && !contactId) await loadTickets(); });
 
     useEffect(() => setPage(1), [priority, search, selectedQueueId, sort, view]);
 

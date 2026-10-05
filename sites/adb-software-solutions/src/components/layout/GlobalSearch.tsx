@@ -1,5 +1,7 @@
 "use client";
 
+import { API_URL } from "@/lib/config";
+
 import { fetchAPI } from "@/lib/api/fetch";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
@@ -7,7 +9,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const API_BASE_URL = `${API_URL}/api`;
 
 interface SearchResult {
     kind: string;

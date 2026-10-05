@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import {
     Badge,
     Button,
@@ -81,6 +83,8 @@ export function CredentialWorkspace({
             setIsLoading(false);
         }
     }, [credentialId]);
+
+    useLiveRefresh(["credentials"], async () => { if (!isEditing) await load(); });
 
     useEffect(() => {
         void load();

@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import {
     Badge,
     Button,
@@ -416,6 +418,11 @@ export function TimeTrackingWorkspace() {
     const [timerContext, setTimerContext] = useState<ContextSelection>(initialContext);
     const [timerDescription, setTimerDescription] = useState("");
     const [timerBillable, setTimerBillable] = useState(false);
+
+    useLiveRefresh(["time"], async () => {
+        setTimer((await fetchAPI(AdminAPI.timeEntries.timer.current())) as RunningTimer | null);
+        setRefreshVersion((version) => version + 1);
+    });
 
     const loadBootstrap = useCallback(async () => {
         try {

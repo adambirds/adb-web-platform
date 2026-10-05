@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import {
     Badge,
     Button,
@@ -168,6 +170,8 @@ export function MonitoringCheckWorkspace({ checkId }: { checkId: number }) {
             if (version === requestVersion.current) setLoading(false);
         }
     }, [checkId, page]);
+
+    useLiveRefresh(["monitoring"], loadCheck);
 
     useEffect(() => {
         void loadCheck();

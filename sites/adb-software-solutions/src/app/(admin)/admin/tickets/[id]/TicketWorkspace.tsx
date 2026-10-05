@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import { Badge, Button, Card, DataError, DataLoading, Input, Textarea } from "@/components/ui";
 import { AdminAPI } from "@/lib/api/endpoints";
 import { fetchAPI } from "@/lib/api/fetch";
@@ -150,6 +152,7 @@ export function TicketWorkspace({
     useEffect(() => {
         void loadTicket();
     }, [loadTicket]);
+    useLiveRefresh(["tickets"], loadTicket);
 
     useEffect(() => {
         const handleTicketUpdated = () => {

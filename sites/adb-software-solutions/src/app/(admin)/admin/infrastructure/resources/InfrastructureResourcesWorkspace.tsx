@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import { RecordDrawer } from "@/components/admin/RecordDrawer";
 import {
     Button,
@@ -174,6 +176,8 @@ export function InfrastructureResourcesWorkspace({
             setIsLoading(false);
         }
     }, [url]);
+
+    useLiveRefresh(["infrastructure"], load);
 
     useEffect(() => {
         void load();

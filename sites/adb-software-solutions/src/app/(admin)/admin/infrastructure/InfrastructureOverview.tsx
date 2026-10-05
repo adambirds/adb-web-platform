@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import { Card, DataError, DataLoading, StatCard } from "@/components/ui";
 import { AdminAPI } from "@/lib/api/endpoints";
 import { fetchAPI } from "@/lib/api/fetch";
@@ -139,6 +141,7 @@ export function InfrastructureOverview() {
     useEffect(() => {
         void loadSummary();
     }, [loadSummary]);
+    useLiveRefresh(["infrastructure"], loadSummary);
 
     if (isLoading)
         return <DataLoading label="Loading infrastructure inventory..." />;

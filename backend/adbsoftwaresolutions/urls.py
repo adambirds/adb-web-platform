@@ -23,12 +23,14 @@ from django.contrib import admin
 from django.urls import include, path
 
 from adbsoftwaresolutions.ninja.routers import api
+from apps.core.live.views import live_events
 
 logger = logging.getLogger(__name__)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
+    path("api/admin/events", live_events),
     path("api/", api.urls),
 ]
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import {
     Badge,
     ButtonLink,
@@ -110,6 +112,8 @@ export function MonitoringHealthPanel({
             setIsLoading(false);
         }
     }, [canView, endpoint]);
+
+    useLiveRefresh(["monitoring"], load);
 
     useEffect(() => {
         void load();

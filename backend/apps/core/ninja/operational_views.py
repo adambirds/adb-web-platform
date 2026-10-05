@@ -8,6 +8,7 @@ from ninja import Router
 
 from apps.access_control.policies import scope_clients_for_user
 from apps.clients.models import Client
+from apps.core.live.events import LiveChange, publish_change
 from apps.core.models import AuditEvent, Notification
 from apps.core.notifications import refresh_notifications
 from apps.core.operational_activity import ActivityContext, activity_page, scoped_audit_events
@@ -236,6 +237,7 @@ def read_all_notifications(request: HttpRequest) -> NotificationCountOut | Staff
         dismissed_at__isnull=True,
         read_at__isnull=True,
     ).update(read_at=timezone.now())
+    publish_change(LiveChange("notifications", user_id=str(user.pk)))
     return NotificationCountOut(unread_count=0)
 
 

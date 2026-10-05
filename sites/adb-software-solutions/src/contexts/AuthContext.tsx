@@ -57,7 +57,7 @@ interface AuthContextType {
     isAuthenticated: boolean;
     login: () => void;
     logout: () => Promise<void>;
-    refreshUser: () => Promise<void>;
+    refreshUser: (silent?: boolean) => Promise<void>;
     hasPermission: (permission: string) => boolean;
 }
 
@@ -83,9 +83,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const refreshUser = useCallback(async () => {
+    const refreshUser = useCallback(async (silent = false) => {
         try {
-            setIsLoading(true);
+            if (!silent) setIsLoading(true);
             const response = await fetch(`${API_URL}/api/auth/me`, {
                 credentials: "include",
             });
@@ -104,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch {
             setUser(null);
         } finally {
-            setIsLoading(false);
+            if (!silent) setIsLoading(false);
         }
     }, []);
 
