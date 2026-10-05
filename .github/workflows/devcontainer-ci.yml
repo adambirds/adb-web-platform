@@ -35,7 +35,25 @@ jobs:
             - uses: actions/checkout@v4
 
             - name: Prepare development environment
-              run: cp .devcontainer/.env.example .devcontainer/.env
+              run: |
+                  cp .devcontainer/.env.example .devcontainer/.env
+                  python3 - <<'PY'
+                  import base64
+                  import secrets
+                  from pathlib import Path
+
+                  path = Path(".devcontainer/.env")
+                  values = {
+                      "SECRET_KEY": secrets.token_urlsafe(64),
+                      "CREDENTIAL_ENCRYPTION_KEYS": base64.urlsafe_b64encode(secrets.token_bytes(32)).decode(),
+                  }
+                  lines = path.read_text().splitlines()
+                  for index, line in enumerate(lines):
+                      name = line.split("=", 1)[0]
+                      if name in values:
+                          lines[index] = f"{name}={values[name]}"
+                  path.write_text("\n".join(lines) + "\n")
+                  PY
 
             - name: Validate Compose configuration
               run: docker compose -f .devcontainer/docker-compose.yml config >/dev/null

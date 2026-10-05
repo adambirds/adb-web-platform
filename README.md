@@ -41,7 +41,7 @@ The internal platform covers or is being developed to cover:
 - Client-context search and cross-domain workspaces;
 - later client portals, quotes, contracts, invoicing and payments.
 
-The ticketing/communications foundation is implemented, including Graph mailbox sync/replies, website contact-form ingestion, vendor routing and governed attachments. Several other operational modules currently have register/list foundations but still require full create/edit/detail/workflow UX before the internal platform is considered operationally complete.
+The ticketing/communications foundation is implemented, including Graph mailbox sync/replies, website contact-form ingestion, vendor routing and governed attachments. The operations workspace includes create/edit/detail workflows across its major domains, plus monitoring and the GitHub dashboard. The canonical implementation checklist records completed work and remaining gaps.
 
 Permissions are backend-authoritative. Django permissions describe capabilities while explicit scopes restrict which Clients and Ticket Queues a staff user can access. Sensitive operations such as credential reveal/copy are separate capabilities and must be audit logged.
 
@@ -77,42 +77,489 @@ See `docs/CURRENT_STATE_AND_FOUNDATION_CHECKLIST.md` for the detailed implementa
 - `packages/eslint-config/` — shared ESLint configuration.
 - `packages/typescript-config/` — shared TypeScript configuration.
 
-## Development
+## Setup and configuration
 
-The recommended development environment is VS Code Dev Containers.
+This is the single starting point for development and production setup. The
+[environment template](.devcontainer/.env.example) lists every application
+runtime variable, including optional integrations. Detailed domain runbooks
+remain linked below for troubleshooting and rotation.
 
-Primary local services:
+### 1. Prepare the development environment
 
-```text
-Django backend             http://localhost:8000
-ADB Software Solutions     http://localhost:3000
-  Internal admin           http://localhost:3000/admin
-ADB Web Designs            http://localhost:3002
-ADB Technology             http://localhost:3003
-Authentication frontend    http://localhost:3004
-Flower                      http://localhost:5555
-```
-
-Useful root commands:
+Install Docker with Compose and the VS Code Dev Containers extension. Before
+opening the container, copy the template on your host:
 
 ```bash
-pnpm dev:auth
+cp .devcontainer/.env.example .devcontainer/.env
+```
+
+Generate two **different** secrets with host Python 3 (no packages required):
+
+```bash
+# Paste this output into SECRET_KEY.
+python3 -c 'import secrets; print(secrets.token_urlsafe(64))'
+
+# Paste this output into CREDENTIAL_ENCRYPTION_KEYS.
+python3 -c 'import base64, secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())'
+```
+
+Keep these values outside Git. `SECRET_KEY` is required to start Django.
+`CREDENTIAL_ENCRYPTION_KEYS` is required to create/read Vault secrets. GitHub and
+Graph use Infisical-injected signing material directly. This encryption key is not the Django secret and must stay
+stable across restarts. Existing encrypted credentials need the original keys;
+back them up with the database. To rotate, configure `new-key,old-key` and keep
+old keys until all affected secrets have been re-encrypted and verified.
+
+Leave the local PostgreSQL and Redis URLs as supplied. Open the folder in VS Code
+and choose **Dev Containers: Reopen in Container**. The post-create script installs
+pnpm dependencies and runs migrations. Inside the container:
+
+```bash
+python backend/manage.py createsuperuser
+```
+
+Run the following in separate terminals:
+
+```bash
+# ASGI is required for the live events stream; this helper uses Uvicorn.
+.devcontainer/scripts/start-backend
 pnpm dev:software-solutions
+pnpm dev:auth
+.devcontainer/scripts/start-celery-general
+.devcontainer/scripts/start-celery-beat
+```
+
+The worker and Beat are needed for monitoring, expiry/metadata refreshes,
+GitHub webhook processing/recovery, mailbox sync and attachment scanning.
+Monitor workers, queue depths, task history, per-task logs and scheduled jobs at
+<http://localhost:3000/admin/celery>. Access requires an active staff superuser.
+The dashboard is part of the existing backend and operations frontend; no extra
+service, OAuth registration or forwarded port is required. See
+[Celery operations](docs/CELERY_DASHBOARD.md).
+
+Optional processes:
+
+```bash
 pnpm dev:web-designs
 pnpm dev:technology
+```
+
+| Service                         | Local URL                                               |
+| ------------------------------- | ------------------------------------------------------- |
+| Backend/API                     | <http://localhost:8000>                                 |
+| Django bootstrap admin          | <http://localhost:8000/admin/>                          |
+| Software Solutions + operations | <http://localhost:3000> / <http://localhost:3000/admin> |
+| Authentication/account frontend | <http://localhost:3004>                                 |
+| Web Designs                     | <http://localhost:3002>                                 |
+| Technology                      | <http://localhost:3003>                                 |
+
+Compose injects `.devcontainer/.env` into the `app` container. Django does **not**
+automatically read that file when run outside Compose. After changing it, use
+**Dev Containers: Rebuild Container**, then restart backend, worker, Beat and
+frontend processes. Merely restarting Python in the old container retains the
+old injected environment. Frontend `.env.local` files can also configure local
+Next.js apps; already-injected process variables take precedence.
+
+### 2. Backend variable reference
+
+Set these in the environment of the API, Celery worker and Beat.
+Production values come from your deployment
+secret manager rather than the development `.env` file.
+
+| Variable                                | Development value / how to obtain it                               | Production requirement                                                                       |
+| --------------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `SECRET_KEY`                            | Generate with the command above                                    | Unique secret, stable across API/worker replicas                                             |
+| `CREDENTIAL_ENCRYPTION_KEYS`            | Generate a Fernet key above; comma-separated key ring for rotation | Same usable key ring wherever Vault secrets are decrypted                                    |
+| `DEBUG`                                 | `1`                                                                | `0`                                                                                          |
+| `DEBUG_TOOLBAR_ENABLED`                 | `0`; optionally `1` for local debugging                            | `0`                                                                                          |
+| `SITE_DOMAIN`                           | `localhost`                                                        | Parent domain, e.g. `adbsoftwaresolutions.co.uk`; no scheme/path/subdomain prefix            |
+| `ADMIN_FRONTEND_URL`                    | `http://localhost:3000`                                            | Combined Software Solutions origin; admin lives under `/admin`                               |
+| `AUTH_FRONTEND_URL`                     | `http://localhost:3004`                                            | Auth origin, e.g. `https://auth.adbsoftwaresolutions.co.uk`; used in account emails          |
+| `SOFTWARE_SOLUTIONS_FRONTEND_URL`       | `http://localhost:3000`                                            | Software Solutions public origin                                                             |
+| `WEB_DESIGNS_FRONTEND_URL`              | `http://localhost:3002`                                            | `https://adbwebdesigns.co.uk` or the configured brand origin                                 |
+| `TECHNOLOGY_FRONTEND_URL`               | `http://localhost:3003`                                            | `https://adbtechnology.co.uk` or the configured brand origin                                 |
+| `FRONTEND_URL`                          | `http://localhost:3000`; compatibility alias                       | Same Software Solutions origin                                                               |
+| `SQL_ENGINE`                            | `django.db.backends.postgresql`                                    | Keep PostgreSQL                                                                              |
+| `SQL_DATABASE`                          | `adbsoftwaresolutions_dev`                                         | Database name from your PostgreSQL provisioning output                                       |
+| `SQL_USER`                              | `adbsoftwaresolutions`                                             | Database user from your provider                                                             |
+| `SQL_PASSWORD`                          | Local Compose password in the template                             | Database password from your provider/secret manager                                          |
+| `SQL_HOST`                              | `db` inside Compose                                                | Private database hostname supplied by your provider                                          |
+| `SQL_PORT`                              | `5432`                                                             | Provider's PostgreSQL port                                                                   |
+| `SQL_SSL`                               | `disable`                                                          | Provider-required libpq SSL mode, usually `require` or `verify-full` with its CA provisioned |
+| `CACHE_BACKEND_URL`                     | `redis://redis-cache:6379/0`                                       | Shared default cache, locks, rate limits, GitHub token cache and SSE Pub/Sub                 |
+| `SESSION_BACKEND_URL`                   | `redis://redis-session:6379/0`                                     | Dedicated session cache; URL from your Redis provider                                        |
+| `CELERY_BROKER_URL`                     | `redis://redis-celery:6379/0`                                      | Task broker URL from your Redis provider                                                     |
+| `CELERY_RESULT_BACKEND`                 | `redis://redis-celery:6379/1`                                      | Result backend URL; separate from broker/cache/sessions                                      |
+| `CELERY_QUEUE`                          | `general`                                                          | Production worker entrypoint consumes this queue; keep `general` for current tasks           |
+| `CELERY_CONCURRENCY`                    | `2`                                                                | Worker process count, sized for available memory/CPU                                         |
+| `TICKETING_GRAPH_SYNC_INTERVAL_SECONDS` | `60`                                                               | Mailbox dispatch interval; integer >= 30; restart Beat after changing                        |
+| `TICKETING_GRAPH_SYNC_LOCK_SECONDS`     | `900`                                                              | Per-mailbox lock lifetime; integer >= 60; size above a normal sync run                       |
+| `TICKETING_MALWARE_SCANNING_ENABLED`    | `0`                                                                | `1` when a scanner is provisioned and attachments must pass scanning                         |
+| `TICKETING_CLAMAV_HOST`                 | `clamav`                                                           | Private clamd hostname reachable from scanning workers                                       |
+| `TICKETING_CLAMAV_PORT`                 | `3310`                                                             | clamd TCP port                                                                               |
+| `TICKETING_CLAMAV_TIMEOUT_SECONDS`      | `30`                                                               | Positive scanner timeout in seconds                                                          |
+
+Redis credentials belong in the URL, for example
+`rediss://username:password@private-host:port/0` for TLS; URL-encode special
+characters in credentials. Redis Pub/Sub uses the default cache connection, so
+**SSE requires no additional Redis service or logical database**. Development
+already has three Redis services: cache, sessions and Celery, with Celery results
+on database 1. All API replicas and workers must share the same default cache
+endpoint/channel namespace. Do not flush the session or broker stores as a cache
+maintenance operation.
+
+### 3. Account verification and password-reset email
+
+Django application mail (account verification, password resets and staff
+invitations) uses Microsoft Graph with the same Infisical tenant/client/certificate
+configuration as Ticketing. SMTP host, port, login, TLS and backend variables are
+no longer needed. Set only the sending address:
+
+```dotenv
+DEFAULT_FROM_EMAIL=no-reply@adbsoftwaresolutions.co.uk
+```
+
+Create this address as a Microsoft 365 **Shared Mailbox**, and ensure it is covered
+by the Entra application's existing scoped Exchange `Application Mail.Send`
+assignment. With the documented dynamic SharedMailbox scope, it enters scope
+automatically. It does **not** need adding to ADB's Ticketing mailbox list unless
+its incoming messages should also become Tickets. Configure the Graph variables
+in [the Microsoft 365 setup section](#5-microsoft-365--graph-shared-mailboxes).
+
+Local development sends through Graph too. No certificate material or mail bodies
+are copied into application mail settings, Tickets or the audit trail. Production
+may set another authorised Shared Mailbox as `DEFAULT_FROM_EMAIL`; individual
+application emails cannot select an arbitrary sending mailbox. Django's server
+error sender uses the same address. Graph's 202 response means accepted for
+processing, rather than proof of final delivery. See
+[Microsoft's sendMail reference](https://learn.microsoft.com/en-us/graph/api/user-sendmail?view=graph-rest-1.0).
+
+### 4. GitHub App: repositories, issues, PRs and Actions
+
+Configure the Vault first (step 1), then register **one GitHub App** for all
+organisations and your personal account:
+
+1. Open [new organisation App](https://github.com/organizations/adb-software-solutions/settings/apps/new)
+   or [new personal App](https://github.com/settings/apps/new). Choose a name,
+   your platform homepage and installation on **any account**. An App private to
+   its owning account cannot serve the other organisations.
+2. Enable webhooks. Set the URL to
+   `https://api.<SITE_DOMAIN>/api/integrations/github/webhook`. Local testing needs
+   a public HTTPS tunnel forwarding to backend port 8000. Generate a separate
+   random webhook secret (the `secrets.token_urlsafe(64)` command above works)
+   and enter the same value in GitHub and `GITHUB_WEBHOOK_SECRET`.
+3. Set repository permissions: **Metadata: Read**, **Contents: Read**,
+   **Issues: Read**, **Pull requests: Read**, **Actions: Read and write**.
+   Actions write permits dispatch/rerun; the platform separately controls who
+   can use those actions.
+4. Subscribe to `repository`, `issues`, `pull_request`, `push`, `workflow_run`
+   and `workflow_job`. Installation lifecycle/access events are also delivered.
+5. In the App's General settings, copy the numeric **App ID** and the slug from
+   its public URL `https://github.com/apps/<slug>`. Generate/download a private
+   key under **Private keys**. Store the complete unencrypted GitHub-generated
+   RSA PEM in Infisical as `GITHUB_APP_PRIVATE_KEY`. Inject it into the API,
+   worker and Beat environments; no application Vault credential is needed.
+   Multiline PEM and literal `\n` escapes are supported. For rotation, update
+   the key in Infisical and redeploy all backend processes before revoking the
+   old key in GitHub. Keep the private key out of Git and frontend variables.
+6. Set the following on the API and Celery processes, then recreate/restart:
+
+    | Variable                 | Source                                                                       |
+    | ------------------------ | ---------------------------------------------------------------------------- |
+    | `GITHUB_APP_ID`          | Numeric App ID from General settings; not OAuth Client ID or installation ID |
+    | `GITHUB_APP_SLUG`        | `<slug>` from the App's public GitHub URL                                    |
+    | `GITHUB_APP_PRIVATE_KEY` | Complete signing RSA PEM from Private keys, injected directly by Infisical   |
+    | `GITHUB_WEBHOOK_SECRET`  | Secret you generated and entered in the App webhook settings                 |
+
+7. From **Install App**, install the same App on each required account. Select
+   **All repositories** if newly created repositories should join automatically.
+   Direct installation-management links:
+
+    | Account                | Installed Apps / repository access                                                         |
+    | ---------------------- | ------------------------------------------------------------------------------------------ |
+    | adb-software-solutions | [Settings](https://github.com/organizations/adb-software-solutions/settings/installations) |
+    | adb-web-designs        | [Settings](https://github.com/organizations/adb-web-designs/settings/installations)        |
+    | VastDesk               | [Settings](https://github.com/organizations/VastDesk/settings/installations)               |
+    | vanderheim-village     | [Settings](https://github.com/organizations/vanderheim-village/settings/installations)     |
+    | adambirds              | [Personal settings](https://github.com/settings/installations)                             |
+    | adb-technology         | [Settings](https://github.com/organizations/adb-technology/settings/installations)         |
+    | switchonyourcode       | [Settings](https://github.com/organizations/switchonyourcode/settings/installations)       |
+
+8. In `/admin/github` → **Connections**, choose ownership and approve each
+   pending installation as Internal or the correct Client, then connect and
+   synchronise. For manual connection, the installation settings **Configure**
+   URL contains the installation ID. It is separate from the App ID.
+9. Save your GitHub username in the dashboard for My work filters. Verify
+   repository import, a signed webhook delivery, PR updates and an Actions run.
+   Run the `general` worker and Beat; live UI updates also need the shared SSE
+   deployment settings below.
+
+Leave all four GitHub variables empty if you are not enabling this integration.
+No personal access token, GitHub OAuth client secret or per-organisation
+environment variable is required for the dashboard.
+[GitHub registration documentation](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app)
+and the [GitHub integration runbook](docs/GITHUB_APP_SETUP.md) cover changes,
+permissions, rotation and troubleshooting.
+
+### 5. Microsoft 365 / Graph Shared Mailboxes
+
+Graph configuration is injected from **Infisical** into API and Celery worker
+runtime environments. Tenant/client IDs, certificate and private key are not
+copied into the database or application credential Vault. Settings manages
+mailboxes and automatically recognises the configured environment connection.
+
+| Variable                                 | Where to get it                                                    |
+| ---------------------------------------- | ------------------------------------------------------------------ |
+| `MICROSOFT_GRAPH_TENANT_ID`              | Entra App registration Overview: Directory (tenant) ID             |
+| `MICROSOFT_GRAPH_CLIENT_ID`              | Same Overview: Application (client) ID                             |
+| `MICROSOFT_GRAPH_PRIVATE_KEY`            | Entire RSA PEM private-key contents, stored as an Infisical secret |
+| `MICROSOFT_GRAPH_CERTIFICATE`            | Entire matching public PEM certificate, also uploaded to Entra     |
+| `MICROSOFT_GRAPH_PRIVATE_KEY_PASSPHRASE` | Private-key passphrase if encrypted; otherwise empty               |
+
+Keep these in the backend runtime secret scope in Infisical and ensure its
+runtime identities inject them into the API and workers. They must
+not enter frontend `.ci.env` files or `NEXT_PUBLIC_*` variables. For local testing,
+set them in the untracked `.devcontainer/.env`. PEM values accept actual newlines
+or literal `\n` sequences inside a quoted dotenv value. Leave the four required
+values empty when Graph is disabled.
+
+Graph also needs database/Redis/Celery configuration. Optional scheduling settings
+are `TICKETING_GRAPH_SYNC_INTERVAL_SECONDS` (60) and
+`TICKETING_GRAPH_SYNC_LOCK_SECONDS` (900). This environment-backed connection does
+**not** require `CREDENTIAL_ENCRYPTION_KEYS`; the application Vault and the GitHub
+signing integration still do.
+
+The platform uses one Entra application and certificate-backed connection per
+tenant, reusable across enabled Shared Mailboxes:
+
+1. Open [Microsoft Entra](https://entra.microsoft.com/) → **Entra ID → App
+   registrations → New registration**. Choose a single-tenant application.
+   No interactive redirect URL is required for background app-only mail access.
+   Copy **Directory (tenant) ID** and **Application (client) ID** from Overview.
+2. Provision an RSA signing certificate/private key. A local/test example,
+   created **outside the repository**:
+
+    ```bash
+    mkdir -p "$HOME/.adb-secrets/graph"
+    chmod 700 "$HOME/.adb-secrets/graph"
+    openssl req -x509 -newkey rsa:3072 -sha256 -days 365 -nodes \
+      -keyout "$HOME/.adb-secrets/graph/ticketing.key.pem" \
+      -out "$HOME/.adb-secrets/graph/ticketing.cert.pem" \
+      -subj "/CN=ADB Business Platform Ticketing"
+    chmod 600 "$HOME/.adb-secrets/graph/ticketing.key.pem"
+    ```
+
+    Upload **only the public certificate** to the App's **Certificates & secrets
+    → Certificates**. Use a managed certificate/rotation process in production.
+
+3. In Entra **Enterprise applications**, find the App and copy its **Object ID**.
+   Exchange needs this **service principal** Object ID, not the Object ID of the
+   App registration. Set `$AppId` and `$ServicePrincipalObjectId` below from
+   these screens.
+4. On an administrator workstation, install/connect Exchange Online PowerShell
+   and configure RBAC for Applications:
+
+    ```powershell
+    Install-Module -Name ExchangeOnlineManagement -Scope CurrentUser
+    Import-Module ExchangeOnlineManagement
+    Connect-ExchangeOnline
+    $AppId = "<APPLICATION-CLIENT-ID>"
+    $ServicePrincipalObjectId = "<ENTERPRISE-APPLICATION-OBJECT-ID>"
+    New-ServicePrincipal -AppId $AppId -ObjectId $ServicePrincipalObjectId `
+      -DisplayName "ADB Business Platform Ticketing"
+    New-ManagementScope -Name "ADB Ticketing Shared Mailboxes" `
+      -RecipientRestrictionFilter "RecipientTypeDetails -eq 'SharedMailbox'"
+    New-ManagementRoleAssignment -Name "ADB Ticketing Mail ReadWrite" `
+      -App $ServicePrincipalObjectId -Role "Application Mail.ReadWrite" `
+      -CustomResourceScope "ADB Ticketing Shared Mailboxes"
+    New-ManagementRoleAssignment -Name "ADB Ticketing Mail Send" `
+      -App $ServicePrincipalObjectId -Role "Application Mail.Send" `
+      -CustomResourceScope "ADB Ticketing Shared Mailboxes"
+    Test-ServicePrincipalAuthorization -Identity $ServicePrincipalObjectId `
+      -Resource "<intended-shared-mailbox-address>"
+    Test-ServicePrincipalAuthorization -Identity $ServicePrincipalObjectId `
+      -Resource "<licensed-user-mailbox-address>"
+    ```
+
+    Reuse existing service principals/scopes/assignments rather than recreating
+    them. Both roles must be in scope for the intended Shared Mailbox and out of
+    scope for the licensed UserMailbox. Do not also grant broad Entra Graph Mail
+    application permissions: those grants are additive and can defeat the
+    Exchange scope. See [Microsoft's RBAC documentation](https://learn.microsoft.com/en-us/exchange/permissions-exo/application-rbac).
+
+5. Store the tenant ID, client ID, certificate PEM, private-key PEM and optional
+   passphrase under the variables above in Infisical. Upload only the public
+   certificate to Entra. Configure your deployment to inject those variables into
+   backend/worker processes; for local testing use `.devcontainer/.env` and
+   rebuild the container to load changes.
+6. Apply migrations, inject the Graph variables and deploy the API and workers.
+   The app reads them directly and automatically exposes the connection in
+   `/admin/settings`. There is no bootstrap command or application credential to
+   create. Only a stable connection routing/status record is stored, so mailbox
+   associations survive redeployments while real IDs and signing material remain
+   in Infisical. Add Shared Mailboxes with email, Brand, purpose and default Ticket
+   Queue, then verify access before enabling them. Create Microsoft-side Shared
+   Mailboxes in the [Microsoft 365 admin centre](https://admin.microsoft.com/).
+
+7. Start the `general` worker and Beat; verify inbound sync and an outbound reply.
+   Adding another Shared Mailbox normally needs only its Microsoft mailbox and
+   an enabled platform Mailbox row, not another certificate or RBAC assignment.
+
+Graph mailbox processing currently uses scheduled delta sync, not an inbound
+Microsoft webhook. Do not configure a Graph webhook/tunnel for this feature.
+Certificate updates are manual: upload the new public certificate to Entra,
+update the matching certificate/key/passphrase secrets in Infisical, and redeploy
+the API and Celery workers. New processes read the updated environment. No app
+Vault update or setup command is needed for routine certificate
+rotation; verify mailbox access before retiring the old Entra certificate.
+
+The [full Graph runbook](docs/MICROSOFT_GRAPH_TICKETING_SETUP.md) covers alternative
+scopes, propagation delays, verification and certificate rotation.
+
+### 6. Optional malware scanning
+
+To enable attachment scanning, set this value before recreating the
+devcontainer, and start the scanner service:
+
+```dotenv
+TICKETING_MALWARE_SCANNING_ENABLED=1
+```
+
+For local development, start the scanner explicitly with
+`docker compose -f .devcontainer/docker-compose.yml --profile malware-scanning up -d clamav`.
+
+The template's `TICKETING_CLAMAV_*` values already target that service. Production
+needs a clamd service reachable privately from workers, with maintained signature
+databases. Enabling scanning without a working scanner keeps governed attachments
+quarantined. Ticketing and Knowledge Base use the scanner; no extra Redis is
+needed.
+
+### 7. Frontend environment and image builds
+
+`NEXT_PUBLIC_*` variables are public browser configuration. They must contain
+URLs only, never database passwords, encryption keys or App private keys. Supply
+them **before `next build`**; changing only the production container environment
+does not change the compiled browser bundle.
+
+| Variable                      | Application / local value                            | Production source                                                                        |
+| ----------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`         | Software Solutions and auth: `http://localhost:8000` | Public backend origin, e.g. `https://api.adbsoftwaresolutions.co.uk`; **without `/api`** |
+| `NEXT_PUBLIC_AUTH_URL`        | Software Solutions and auth: `http://localhost:3004` | Public authentication origin                                                             |
+| `NEXT_PUBLIC_SITE_URL`        | Software Solutions: `http://localhost:3000`          | Software Solutions canonical public origin                                               |
+| `NEXT_PUBLIC_APP_URL`         | Auth default redirect: `http://localhost:3000`       | Software Solutions public origin                                                         |
+| `NEXT_PUBLIC_ADMIN_URL`       | Auth allowed redirect: `http://localhost:3000`       | Software Solutions origin; `/admin` is the route, not a separate application             |
+| `NEXT_PUBLIC_WEB_DESIGNS_URL` | Auth allowed redirect: `http://localhost:3002`       | Web Designs public origin                                                                |
+| `NEXT_PUBLIC_TECHNOLOGY_URL`  | Auth allowed redirect: `http://localhost:3003`       | Technology public origin                                                                 |
+
+For development outside Compose, create untracked `.env.local` files in the
+relevant `sites/<app>/` directory with that app's values. The auth app has its own
+[public-variable template](sites/auth-adb-software-solutions/.env.example).
+The Web Designs and Technology applications currently do not read application
+`NEXT_PUBLIC_*` settings; do not assume they require secrets from the backend.
+
+The existing Docker build path copies `sites/<app>/.ci.env` to `.env.production`
+before building. Supply **only that frontend's public variables** in `.ci.env`.
+The Software Solutions and auth build workflows request these public values from
+the application's Infisical project through the reusable image-build workflow.
+Verify the generated file has the correct production origins before publishing
+an image. Local `.env` / `.env.local` files are excluded from Docker contexts.
+
+### 8. Production deployment
+
+Production needs the existing deployable components, provisioned separately from
+the development Compose stack:
+
+| Component          | Requirement                                                                                                                                                          |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PostgreSQL         | Private access, provider-required TLS, backups and restore testing                                                                                                   |
+| Cache Redis        | Shared by API/worker replicas for cache, distributed locks and SSE Pub/Sub                                                                                           |
+| Session Redis      | Shared session store; avoid eviction/flushes that unexpectedly sign users out                                                                                        |
+| Celery Redis       | Broker/results isolated from cache and sessions; appropriate persistence and `noeviction` policy for queued work                                                     |
+| Backend image      | Existing `Dockerfile.backend` starts Gunicorn with an ASGI Uvicorn worker on 8000                                                                                    |
+| Worker image       | Existing `Dockerfile.celery-worker`; `CELERY_QUEUE=general`; include encryption/integration variables                                                                |
+| Beat image         | Existing `Dockerfile.celery-beat`; run exactly one scheduler; persist its schedule state if required                                                                 |
+| Frontend images    | Software Solutions (3000), auth (3004), Web Designs (3002), Technology (3003); build with production public URLs                                                     |
+| Attachment storage | Persist `backend/media` (container path `/opt/adb-software-solutions/media`), shared between API/attachment workers; keep protected attachments behind governed APIs |
+| Static assets      | Backend entrypoint runs `collectstatic`; arrange serving of its `staticfiles` output                                                                                 |
+| Optional scanner   | Private ClamAV                                                                                                                                                       |
+
+Obtain database/Redis URLs from the provisioned services and inject backend
+secrets through the existing Infisical-backed deployment. Do not build runtime
+secrets into images. Use stable key rings and back them up outside the database.
+One Redis instance can technically host separate logical databases, but they
+share persistence, memory policy and failure/flush boundaries; separate services
+match the development topology. SSE adds no separate store or worker.
+
+For the current settings, deploy the API at `api.<SITE_DOMAIN>` and auth at
+`auth.<SITE_DOMAIN>`; serve Software Solutions and its `/admin` routes together
+at `https://<SITE_DOMAIN>`. Production allowed API hosts and cookie domains derive
+from `SITE_DOMAIN`. HTTPS, credentialed CORS and CSRF trust are required. The
+current production CORS list includes the Software Solutions/auth origins and
+`adbwebdesigns.co.uk` / `adbtechnology.co.uk` (including `www`); arbitrary alternate
+brand domains need a reviewed backend configuration change. Frontend URL variables
+alone do not alter that allow-list.
+
+Before directing traffic to a new release:
+
+```bash
+# Run as a single deployment job with the backend runtime configuration.
+python manage.py migrate --noinput
+python manage.py check --deploy
+```
+
+Review every deployment-check finding against the trusted TLS proxy and current
+security settings. Point DNS to the deployed services, terminate TLS and forward
+`X-Forwarded-Proto: https` only from your trusted proxy. API access must retain
+session cookies and the CSRF token header. Keep database, Redis and ClamAV private.
+Allow outbound access needed by Microsoft Graph, GitHub, DNS/RDAP and the
+configured monitoring checks. ICMP checks require OS permission for datagram/raw
+ICMP sockets (e.g. the appropriate ping group range or `NET_RAW` capability), even
+though the check does not invoke an external `ping` command.
+
+For `/api/admin/events`, turn off reverse-proxy buffering/caching, keep an idle
+read timeout above the 15-second heartbeat, and prefer HTTP/2. Example nginx
+settings for the events location, alongside your normal backend routing:
+
+```nginx
+location = /api/admin/events {
+    proxy_pass http://backend:8000;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_read_timeout 60s;
+}
+```
+
+Responses also set `X-Accel-Buffering: no`. Validate that a signed GitHub webhook
+or completed monitoring check results in an event and a frontend API refresh
+without a page reload. See the [live updates guide](docs/LIVE_UPDATES_ARCHITECTURE.md)
+for scopes and reconnect/fallback behaviour.
+
+CI builds/publishes application images on `main`; production deployment is the
+existing `.github/workflows/deploy.yml` workflow (the `deploy` branch or manual
+image-tag dispatch). Its reusable deployment workflow/infrastructure lives in
+`adb-software-solutions/github-actions-workflows`; production manifests are not
+maintained in this repository. Supply the variables/services above there using
+the current Infisical projects. This guide documents prerequisites; it does not
+provision accounts, DNS, databases or deployments automatically.
+
+### Verification and maintenance
+
+```bash
 tools/lint
 tools/test-all
 ```
 
-Python dependency lock files are generated. Update `backend/requirements/*.in`, then run:
+Check account email delivery, sign-in/CSRF, the credential Vault, background
+monitoring, Graph inbound/outbound mail, GitHub webhook processing and SSE before
+calling a production deployment ready. Leave optional integrations disabled until
+their credentials/services exist.
 
-```bash
-tools/update-locked-requirements
-```
-
-Do not hand-edit generated requirement lock files or `pnpm-lock.yaml`.
-
-Read `AGENTS.md` and `CONTRIBUTING.md` before making changes. Scoped `AGENTS.md` files provide additional guidance inside major application areas.
+Python requirement lock files are generated: change `backend/requirements/*.in`
+and run `tools/update-locked-requirements`. Regenerate pnpm lock files using pnpm.
+Read `AGENTS.md` and `CONTRIBUTING.md` before making changes.
 
 ## Monorepo approach
 
@@ -128,3 +575,11 @@ README linking its models, services, API modules and tests. Backend tests live
 in local `tests/` packages; authentication frontend tests live in
 `sites/auth-adb-software-solutions/tests/`. See
 [CONTRIBUTING.md](./CONTRIBUTING.md) for verification and repository conventions.
+
+The internal GitHub dashboard lives at `/admin/github`. See
+[GitHub App setup](docs/GITHUB_APP_SETUP.md) for multi-account installations,
+Vault signing-key configuration, webhook subscriptions and workflow permissions.
+
+Operational screens use shared server-sent events for live updates. See
+[the live updates guide](docs/LIVE_UPDATES_ARCHITECTURE.md) for ASGI, Redis and proxy
+requirements.

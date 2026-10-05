@@ -1070,6 +1070,14 @@ invalidation hints; existing Django APIs remain authoritative. See
 [the live updates architecture](LIVE_UPDATES_ARCHITECTURE.md) for coverage, recovery
 and ASGI/proxy deployment requirements.
 
+## Configuration and deployment reference
+
+The [root setup guide](../README.md#setup-and-configuration) is the consolidated
+operator reference for all runtime/build variables, GitHub/Graph provisioning
+and production services. Account verification/reset/invitation email uses the shared Infisical Graph
+connection and the environment-configured `DEFAULT_FROM_EMAIL` Shared Mailbox. SSE shares default
+cache Redis; the production worker defaults to `general`.
+
 ## Microsoft Graph configuration authority
 
 The platform Graph connection now uses Infisical-injected environment values for

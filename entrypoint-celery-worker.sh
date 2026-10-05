@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-QUEUE_NAME=${CELERY_QUEUE:-default}
+QUEUE_NAME=${CELERY_QUEUE:-general}
 CONCURRENCY=${CELERY_CONCURRENCY:-2}
 WORKER_NAME="worker_${QUEUE_NAME}@$(hostname)"
 

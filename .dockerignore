@@ -8,3 +8,9 @@ db.sqlite3
 .mypy_cache
 .env
 node_modules/
+
+# Keep local credentials out of all image build contexts. CI .ci.env contains public build values only.
+**/.env
+**/.env.*
+!**/.env.example
+.setup-project-config.env

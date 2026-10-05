@@ -108,60 +108,14 @@ Pre-configured debug configurations:
 - **Django: Debug** - Debug Django application
 - **Django: Test** - Debug Django test
 
-## 🌐 Service URLs
+## Setup, environment and services
 
-When the devcontainer is running, access these services:
-
-| Service           | URL                          | Description                   |
-| ----------------- | ---------------------------- | ----------------------------- |
-| Django Backend    | http://localhost:8000        | Main API and admin            |
-| Django Admin      | http://localhost:8000/admin/ | Admin interface (admin/admin) |
-| Website (Next.js) | http://localhost:3000        | website / Frontend            |
-
-## 🗄️ Database
-
-- **Host**: localhost
-- **Port**: 5432
-- **Database**: app_dev
-- **Username**: app
-- **Password**: app_dev_password
-
-## 📦 Environment Variables
-
-Copy `.devcontainer/.env.example` to `.devcontainer/.env` before starting the
-container. Keep `.env` untracked. Docker Compose loads it into the app through
-`env_file`; Django reads the injected values with `os.environ`.
-
-| Variable                | Local value                    | Purpose              |
-| ----------------------- | ------------------------------ | -------------------- |
-| `CACHE_BACKEND_URL`     | `redis://redis-cache:6379/0`   | Django default cache |
-| `SESSION_BACKEND_URL`   | `redis://redis-session:6379/0` | Django session cache |
-| `CELERY_BROKER_URL`     | `redis://redis-celery:6379/0`  | Celery task broker   |
-| `CELERY_RESULT_BACKEND` | `redis://redis-celery:6379/1`  | Celery task results  |
-
-Sessions use the `session` cache alias. Celery's default queue is `general`,
-which the development worker scripts consume. Cache, sessions and Celery run
-on separate Redis services; broker and results use separate databases within
-`redis-celery`.
-
-After changing Compose or `.env`, run **Dev Containers: Rebuild Container**
-so the new service starts and the app receives the updated environment. Restart
-backend, worker, Beat and Flower processes after rebuilding.
-
-## 🛡️ Optional local ClamAV
-
-Malware scanning is disabled by default, so the normal devcontainer does not start ClamAV. The optional scanner uses the multi-architecture Debian ClamAV image so it can run on both x86-64 and ARM64 development hosts.
-
-To run ClamAV as part of the devcontainer, set these values in `.devcontainer/.env` before rebuilding or reopening the container:
-
-```env
-COMPOSE_PROFILES=malware-scanning
-TICKETING_MALWARE_SCANNING_ENABLED=1
-TICKETING_CLAMAV_HOST=clamav
-TICKETING_CLAMAV_PORT=3310
-```
-
-Leave `COMPOSE_PROFILES` empty and `TICKETING_MALWARE_SCANNING_ENABLED=0` for the normal scanner-free development environment. A remote or central ClamAV service can instead be used by enabling malware scanning and setting `TICKETING_CLAMAV_HOST` to that private service hostname.
+Use the [main setup guide](../README.md#setup-and-configuration) for the complete
+variable inventory, secret generation, local ports, GitHub/Graph provisioning,
+Redis topology, optional ClamAV and production requirements. The PostgreSQL
+service is `db` inside Compose (host port 5432); credentials match
+[the environment template](.env.example). There is no default admin password;
+run `python backend/manage.py createsuperuser` after migrations.
 
 ## 🔧 Customization
 
