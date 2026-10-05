@@ -573,3 +573,27 @@ Likely later refinements:
 
 Do not create a second communications system or a second secret store for any
 of these features.
+
+## Microsoft Graph configuration authority
+
+The platform Graph connection now uses Infisical-injected environment values for
+tenant/client IDs, certificate, private key and optional passphrase. None of
+those values are copied into application records or the credential Vault.
+An `environment_certificate` connection stores only routing identity/status;
+it is discovered automatically from runtime configuration, without a bootstrap
+command. Runtime token acquisition
+reads environment values directly. Existing certificate/client-secret Vault
+connections remain supported, but new platform setup uses Infisical. Graph secrets
+must be scoped to backend/worker runtime identities, never frontend build contexts.
+
+## Application transactional email
+
+Django account verification, password resets and staff invitations share the
+platform's Infisical Graph authentication through `MicrosoftGraphEmailBackend`.
+`DEFAULT_FROM_EMAIL` is the single authorised application sender; it must be a
+Microsoft 365 Shared Mailbox in the application's scoped Exchange send boundary.
+Application messages are sent directly through Graph MIME `sendMail`, without
+creating Tickets or requiring inbound Mailbox configuration. MIME preserves
+recipient types, attachments and plain/HTML alternatives. Bodies/account tokens
+are not persisted by the transport. SMTP/console environment configuration is
+removed; Django tests retain their isolated in-memory test backend.

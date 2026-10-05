@@ -39,3 +39,8 @@ Internal browser workflows live in
 
 Read the [backend guide](../../README.md) for shared conventions and the
 [canonical documentation map](../../../docs/README.md) before domain changes.
+
+[`email_backend.py`](email_backend.py) provides Django application email through
+the same Infisical Graph connection. It sends account/invitation messages from
+`DEFAULT_FROM_EMAIL` without adding Ticket records or requiring inbound Mailbox
+configuration. See the [Graph runbook](../../../docs/MICROSOFT_GRAPH_TICKETING_SETUP.md).

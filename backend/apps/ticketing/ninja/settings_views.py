@@ -7,6 +7,10 @@ from apps.core.models import Brand
 from apps.credentials.models import StoredCredential
 from apps.ticketing.models import Mailbox, MicrosoftGraphConnection, TicketQueue
 from apps.ticketing.services.graph import MicrosoftGraphError
+from apps.ticketing.services.graph_auth import (
+    MicrosoftGraphAuthenticationError,
+    environment_graph_connection,
+)
 from apps.ticketing.services.mailbox_access import verify_graph_mailbox_access
 from authentication.ninja.schemas import ProblemDetail
 
@@ -109,6 +113,10 @@ def _resolve_credential(
 def _resolve_graph_connection(
     graph_connection_id: int | None,
 ) -> tuple[MicrosoftGraphConnection | None, StaffProblem | None]:
+    try:
+        environment_graph_connection()
+    except MicrosoftGraphAuthenticationError as exc:
+        return None, _problem(str(exc), "invalid_graph_environment")
     if graph_connection_id is not None:
         connection = MicrosoftGraphConnection.objects.filter(id=graph_connection_id).first()
         if connection is None:
@@ -165,7 +173,12 @@ def _resolve_mailbox_relations(
 
 @ticketing_settings_router.get(
     "/settings/ticketing/graph-connections",
-    response={200: list[GraphConnectionOut], 401: ProblemDetail, 403: ProblemDetail},
+    response={
+        200: list[GraphConnectionOut],
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+    },
 )
 def list_graph_connections(request: HttpRequest) -> list[GraphConnectionOut] | StaffProblem:
     problem = _staff_problem(request)
@@ -177,7 +190,15 @@ def list_graph_connections(request: HttpRequest) -> list[GraphConnectionOut] | S
             "success": False,
             "code": "forbidden",
         }
+    try:
+        environment_connection = environment_graph_connection()
+    except MicrosoftGraphAuthenticationError as exc:
+        return _problem(str(exc), "invalid_graph_environment")
     connections = MicrosoftGraphConnection.objects.select_related("credential").order_by("name")
+    if environment_connection is None:
+        connections = connections.exclude(
+            authentication_method=MicrosoftGraphConnection.AuthenticationMethod.ENVIRONMENT_CERTIFICATE
+        )
     return [_connection_out(connection) for connection in connections]
 
 
@@ -198,6 +219,13 @@ def create_graph_connection(
             "success": False,
             "code": "forbidden",
         }
+    if (
+        data.authentication_method
+        == MicrosoftGraphConnection.AuthenticationMethod.ENVIRONMENT_CERTIFICATE
+    ):
+        return _problem(
+            "Environment-managed connections are configured through platform deployment setup."
+        )
     if data.authentication_method not in MicrosoftGraphConnection.AuthenticationMethod.values:
         return _problem("Unsupported Microsoft Graph authentication method.")
 
@@ -208,6 +236,10 @@ def create_graph_connection(
     name = data.name.strip()
     tenant_id = data.tenant_id.strip()
     client_id = data.client_id.strip()
+    if tenant_id == "environment" or client_id == "environment":
+        return _problem(
+            "The platform connection marker is reserved for environment authentication."
+        )
     if not name or not tenant_id or not client_id:
         return _problem("Name, tenant ID and client ID are required.")
     if MicrosoftGraphConnection.objects.filter(tenant_id=tenant_id, client_id=client_id).exists():

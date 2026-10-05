@@ -165,18 +165,18 @@ export function TicketingSettings() {
                 <div className="max-w-3xl">
                     <h2 className="text-base font-semibold text-white">Microsoft 365 connection</h2>
                     <p className="mt-2 text-sm leading-6 text-slate-400">
-                        Microsoft 365 application authentication is platform infrastructure and is
-                        configured once. Certificates, client IDs and authentication methods are not
-                        mailbox settings and are intentionally kept out of the normal shared-mailbox
-                        workflow.
+                        Microsoft 365 reads its tenant, application ID and signing certificate from
+                        the backend environment supplied by Infisical. Update certificates in Infisical
+                        and redeploy the backend and workers. Shared-mailbox routing is managed below.
                     </p>
                 </div>
 
                 <div className="mt-5 grid gap-3 xl:grid-cols-2">
                     {connections.length === 0 ? (
                         <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-4 text-sm text-amber-200 xl:col-span-2">
-                            No Microsoft 365 connection is configured yet. Tenant/application setup is a
-                            one-time platform configuration before shared mailboxes can be added.
+                            No Microsoft 365 connection is configured yet. Set up the platform connection
+                            through Infisical and deploy the backend and workers. The connection will appear
+                            automatically; reload this page to add shared mailboxes.
                         </div>
                     ) : (
                         connections.map((connection) => (

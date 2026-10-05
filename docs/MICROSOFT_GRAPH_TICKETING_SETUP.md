@@ -10,7 +10,7 @@ It documents the agreed ADB operating model:
 ```text
 one Microsoft 365 tenant
 + one Microsoft Entra application
-+ one certificate credential
++ one certificate/private key managed in Infisical
 + one MicrosoftGraphConnection
 + many Shared Mailboxes configured in ADB
 ```
@@ -20,8 +20,8 @@ application, another certificate, another tenant/client ID entry or a new
 Exchange RBAC assignment every time.
 
 Application/message architecture lives in `TICKETING_ARCHITECTURE.md`.
-Credential storage, reveal/copy/download permissions, key rotation and browser
-secret handling are defined in `CREDENTIAL_VAULT_ARCHITECTURE.md`.
+Graph signing configuration is supplied by Infisical to backend/worker runtime
+environments. The application Vault remains a separate credential feature.
 
 ---
 
@@ -48,13 +48,13 @@ Microsoft 365 tenant
 
 ADB Business Platform
     |
-    +-- Credential Vault
+    +-- Infisical runtime environment
     |       |
-    |       +-- certificate/private-key Credential
+    |       +-- tenant/client IDs and certificate/private key
     |
     +-- one MicrosoftGraphConnection
     |       |
-    |       +-- references the Vault Credential
+    |       +-- reads signing configuration from environment
     |
     +-- one Mailbox row per Shared Mailbox actually used by Ticketing
             |
@@ -73,8 +73,8 @@ There are two different boundaries:
    synchronises enabled Mailbox rows.
 
 The database allow-list does not replace the Microsoft-side security boundary.
-The Credential Vault does not replace either boundary; it securely stores the
-application authentication material used by the Graph connection.
+Infisical manages the application signing configuration and does not replace
+either mailbox authorisation boundary.
 
 ---
 
@@ -134,9 +134,9 @@ You need:
 - ExchangeOnlineManagement PowerShell module;
 - an RSA certificate/private key;
 - the ADB backend migrated/running;
-- valid `CREDENTIAL_ENCRYPTION_KEYS` in every process that decrypts Vault
-  Credentials, including Celery workers;
-- permission to create/update the Graph certificate Credential in the Vault;
+- Infisical runtime identities authorised to inject the Graph environment
+  variables into the backend, workers;
+- access to update certificate/key secrets in Infisical;
 - Celery worker and Beat in production.
 
 ---
@@ -181,8 +181,7 @@ Applications, not the App Registration application-object ID.
 ## 7. Create and register the certificate
 
 Production should use a securely managed/rotated RSA certificate. Only the
-public certificate is uploaded to Entra. The private key remains a Vault
-secret.
+public certificate is uploaded to Entra. The private key remains an Infisical secret.
 
 A disposable local/test self-signed example:
 
@@ -383,265 +382,73 @@ For this design:
 
 ---
 
-## 14. Configure Credential Vault encryption
+## 14. Infisical-managed runtime configuration
 
-Graph private-key material is encrypted using the Credential Vault.
+Tenant ID, application ID and certificate authentication material are managed in
+Infisical and injected into the API and worker environments:
 
-Generate a Fernet key:
-
-```bash
-python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'
+```dotenv
+MICROSOFT_GRAPH_TENANT_ID=<Directory tenant UUID>
+MICROSOFT_GRAPH_CLIENT_ID=<Application client UUID>
+MICROSOFT_GRAPH_PRIVATE_KEY=<entire RSA PEM private key>
+MICROSOFT_GRAPH_CERTIFICATE=<matching public PEM certificate>
+MICROSOFT_GRAPH_PRIVATE_KEY_PASSPHRASE=<optional passphrase>
 ```
 
-Configure the backend/worker environment:
-
-```env
-CREDENTIAL_ENCRYPTION_KEYS=<FERNET-KEY>
-```
-
-The setting accepts an ordered comma-separated key ring for rotation:
-
-```env
-CREDENTIAL_ENCRYPTION_KEYS=<NEW-PRIMARY>,<OLD-KEY>
-```
-
-New writes use the first key. Keep old keys available until affected payloads
-have been re-encrypted and verified.
-
-Every process that needs Graph credentials must receive the same usable key
-ring.
-
-Never commit encryption keys.
-
-See `CREDENTIAL_VAULT_ARCHITECTURE.md` for the full key-rotation and failure
-behaviour.
-
----
-
-## 15. Store the Graph certificate/private key in the Vault
-
-Use `/admin/credentials` and the certificate/private-key credential template for
-normal operator administration.
-
-Create an **Internal** Credential for the Graph application and populate the
-certificate/private-key fields through the typed Vault form. If the private key
-has a passphrase, store it as an encrypted secret field in the same Credential.
-
-The Vault ensures:
-
-- private-key material is written to the encrypted secret payload;
-- ordinary list/detail responses do not return it;
-- reveal, copy and download are independently permission checked/audited;
-- secret values are not persisted to browser storage/routes/normal caches;
-- missing encryption configuration fails closed.
-
-Do not populate the legacy plaintext `password`, `api_key`, `secret_key`,
-`private_key` or sensitive `notes` columns.
-
-A controlled Django shell path may still be useful for disaster recovery or
-bootstrap automation, but it must call the same encrypted credential service
-rather than writing plaintext model columns. The Vault UI is the normal
-operational path.
-
----
-
-## 16. Create/verify `MicrosoftGraphConnection`
-
-Create the connection once for the tenant/application using:
-
-- tenant ID;
-- application/client ID;
-- certificate authentication method;
-- the encrypted Vault Credential containing certificate/private key;
-- enabled state.
-
-Use the custom Settings UI where the current implementation supports the
-operation; controlled Django shell/admin bootstrap is acceptable only for
-fields not yet exposed safely.
-
-Verify the connection before relying on mailbox sync.
-
-The connection is reusable by many Mailbox records.
-
-The Graph integration's backend decryption path does not grant a human operator
-permission to reveal the same Credential in the UI. Service decryption and
-human secret actions are separate security paths.
-
----
-
-## 17. Add Shared Mailboxes to ADB
-
-For each mailbox ADB should actually ingest:
-
-1. ensure it exists as a Microsoft 365 **Shared Mailbox**;
-2. open the Ticketing/Graph settings area under `/admin/settings`;
-3. add the mailbox email/display identity;
-4. select/confirm the Graph connection if more than one is available;
-5. choose Brand;
-6. choose mailbox purpose;
-7. choose default Ticket Queue;
-8. verify Graph access;
-9. enable the Mailbox.
-
-With one enabled Graph connection, the normal UX should reuse it rather than
-asking the operator to enter connection credentials again.
-
-Under the ADB default Exchange scope, there is no new RBAC role assignment when
-a new Shared Mailbox is created.
-
-Celery only processes enabled Mailbox rows.
-
----
-
-## 18. Celery/runtime requirements
-
-Production mailbox processing requires the Celery worker and scheduled/Beat
-orchestration used by the platform.
-
-Ensure workers receive:
-
-- Django/database configuration;
-- Redis/broker configuration;
-- `CREDENTIAL_ENCRYPTION_KEYS`;
-- any attachment/malware-scanning settings;
-- network access to Microsoft Graph.
-
-Mailbox sync stores delta state/cursors in the database so restarts do not force
-unsafe unread-only polling or duplicate imports.
-
-Outbound delivery also runs through Celery with retry/duplicate-send controls.
-
----
-
-## 19. Certificate rotation
-
-A safe certificate rotation is:
-
-1. generate/provision the new RSA certificate/private key;
-2. upload the **new public certificate** to the same Entra application;
-3. update/store the new private/public material in the Vault Credential;
-4. verify app-only token acquisition and Mailbox access;
-5. confirm inbound sync and outbound send;
-6. remove the old public certificate from Entra after the new path is proven;
-7. retire old private material according to the Vault lifecycle/audit policy.
-
-Do not create a new Entra application/Exchange scope just to rotate a
-certificate.
-
-If rotating Fernet application-encryption keys as well, follow the Vault key-
-ring procedure separately. Certificate rotation and Vault encryption-key
-rotation are different operations.
-
----
-
-## 20. Adding a brand-new Shared Mailbox: normal checklist
-
-Under the agreed ADB default setup:
-
-```text
-Microsoft 365
-[ ] Create Shared Mailbox
-
-ADB
-[ ] Add Mailbox row
-[ ] Select Brand/purpose/default Queue
-[ ] Verify Graph access
-[ ] Enable
-
-Done
-```
-
-You do **not** normally need to:
-
-- create another Entra app;
-- create/upload another application certificate;
-- enter the tenant/client ID again;
-- create another Exchange service principal;
-- create another management scope;
-- create another Mail.ReadWrite role assignment;
-- create another Mail.Send role assignment;
-- create another Vault Credential for each Shared Mailbox.
-
-The Graph application Credential belongs to the connection/application and is
-reused across its configured Shared Mailboxes.
-
-If the optional tagged Exchange scope is used instead of the ADB default, tag
-the new Shared Mailbox with the reserved custom attribute before verification.
-
----
-
-## 21. Troubleshooting
-
-### A Shared Mailbox fails verification
-
-Check in order:
-
-1. it really is `RecipientTypeDetails = SharedMailbox`;
-2. `Test-ServicePrincipalAuthorization` reports the two application roles in
-   scope;
-3. no typo exists in tenant/client IDs;
-4. the certificate public key registered in Entra matches the private key
-   stored in the Vault;
-5. the ADB process can decrypt the Credential with
-   `CREDENTIAL_ENCRYPTION_KEYS`;
-6. Microsoft permission propagation has completed;
-7. the Mailbox uses the intended Graph connection.
-
-### Vault reveal fails but Graph sync still works
-
-Human reveal permission and backend service decryption are separate. Check the
-staff user's `credentials.reveal_storedcredential` capability and Client/Internal
-scope rather than assuming the Graph connection is broken.
-
-### Graph sync fails because the Credential cannot decrypt
-
-Check that the web and Celery processes have the correct ordered
-`CREDENTIAL_ENCRYPTION_KEYS` key ring. Do not re-enter the private key into a
-plaintext model field as a workaround.
-
-### A licensed user mailbox is accessible unexpectedly
-
-Audit broad Entra Graph Mail Application permissions immediately. The Exchange
-SharedMailbox scope alone should not place a normal UserMailbox in scope.
-
-### New Shared Mailbox is technically in scope but not syncing
-
-That is expected until an enabled ADB `Mailbox` record exists. Exchange scope
-and ADB operational allow-list are separate.
-
-### Celery sync fails while API verification works
-
-Confirm the worker has the same credential-encryption key ring and network
-configuration as the web/backend process.
-
-### Duplicate messages
-
-Inspect provider message IDs, internet Message-ID/thread references and stored
-delta state before changing routing. Do not “fix” duplicates by making subject
-matching looser.
-
----
-
-## 22. Security checklist
-
-Before production:
-
-- [ ] production RSA certificate is managed outside Git;
-- [ ] private key is stored only through the encrypted Credential Vault;
-- [ ] `CREDENTIAL_ENCRYPTION_KEYS` is secret-managed and available to workers;
-- [ ] human Vault reveal/copy/download permissions follow least privilege;
-- [ ] Exchange RBAC uses the intended SharedMailbox resource scope;
-- [ ] equivalent broad Entra Mail application grants are absent;
-- [ ] an intended Shared Mailbox tests in-scope;
-- [ ] a licensed UserMailbox tests out-of-scope;
-- [ ] only intended ADB Mailbox rows are enabled;
-- [ ] inbound delta sync is working;
-- [ ] outbound send works from the correct Shared Mailbox;
-- [ ] Client/Contact/routing behaviour is correct;
-- [ ] attachments follow quarantine/malware policy;
-- [ ] logs/audit events do not contain certificate/private-key/token material;
-- [ ] revealed Vault values are not stored in browser storage/routes/analytics.
-
-The deployment should preserve the distinction between **Microsoft technical
-access**, **ADB operational mailbox selection** and **Vault secret access**
-throughout its lifetime.
+Actual PEM newlines and escaped `\n` are accepted. Never place these variables in
+frontend build environments. Graph environment authentication does not depend on
+application Vault encryption. Existing Vault-backed connections remain supported
+for compatibility; the preferred platform deployment uses Infisical.
+
+Apply migrations and deploy the backend/workers with those environment values.
+The app reads them directly; no bootstrap command is required. It automatically
+creates/discovers only the stable routing record, without persisting real IDs,
+certificate or private key. Existing disabled state and mailbox associations are
+preserved. Settings displays the connection and manages Shared Mailboxes; reload
+it, add intended mailboxes with Brand/purpose/queue, verify access and enable them.
+Run the general worker and one Beat scheduler. Graph uses scheduled delta sync,
+not an inbound Microsoft webhook.
+
+## 15. Rotation and verification
+
+Upload the new public certificate to the same Entra application, update the
+matching certificate/key/passphrase manually in Infisical, then redeploy API/worker processes.
+Verify inbound sync and outbound send before removing the previous Entra
+certificate. No application Vault copy is needed. Preserve connection routing
+records and mailbox associations across deploys. Tenant/application identity
+changes retain those associations, so re-verify every mailbox's authorisation
+before resuming processing in the new tenant/application.
+
+Use Exchange's tests above to confirm a SharedMailbox is in scope and a licensed
+UserMailbox is out of scope. If API verification succeeds but worker sync fails,
+check that both received the same Infisical variables. Confirm certificate
+validity, key/certificate matching, Exchange permission propagation, and enabled
+mailbox rows. Logs and audit output must not contain PEM contents or tokens.
+
+See the [root setup guide](../README.md#setup-and-configuration) for all runtime
+variables, development setup and production injection requirements.
+
+## Application email sender
+
+Account verification, password resets and staff invitations now use the same
+Infisical-configured Graph connection through Django's
+`apps.ticketing.email_backend.MicrosoftGraphEmailBackend`. Remove obsolete
+`EMAIL_BACKEND`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`,
+`EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS`, `EMAIL_USE_SSL` and `EMAIL_TIMEOUT`
+secrets. The backend transport is selected in code; configure only
+`DEFAULT_FROM_EMAIL=no-reply@adbsoftwaresolutions.co.uk` alongside the existing
+Graph variables.
+
+Create the sender as a Microsoft 365 Shared Mailbox. The dynamic SharedMailbox
+scope above automatically includes it for the existing `Application Mail.Send`
+assignment. For a custom/tagged scope, include the sender and verify the scoped
+role assignment explicitly. The sender does not require a Ticketing `Mailbox`
+row; add one only if you intend to ingest its incoming correspondence.
+
+Application mail uses Graph's MIME `POST /users/{sender}/sendMail` endpoint and
+retains plain/HTML alternatives, recipient types, Reply-To and attachments.
+Acceptance is a 202 response, not a final delivery receipt. No automatic send
+retry is attempted after an ambiguous network failure, avoiding duplicate account
+messages. Account mail bodies and tokens are not copied into Tickets or audits.
+Local development uses Graph too; no console/SMTP fallback is selected silently.
+See [Microsoft's sendMail reference](https://learn.microsoft.com/en-us/graph/api/user-sendmail?view=graph-rest-1.0).

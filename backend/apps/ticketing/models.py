@@ -17,11 +17,13 @@ from apps.core.models import Brand
 class MicrosoftGraphConnection(models.Model):
     """Tenant/application-level Microsoft Graph configuration.
 
-    Secret material is referenced through the platform credential store rather
-    than duplicated on the Graph connection record.
+    Platform authentication reads Infisical-injected environment values directly.
+    The credential reference supports existing Vault-backed connections; neither
+    mode duplicates signing secrets on the connection record.
     """
 
     class AuthenticationMethod(models.TextChoices):
+        ENVIRONMENT_CERTIFICATE = "environment_certificate", "Certificate from environment"
         CERTIFICATE = "certificate", "Certificate"
         CLIENT_SECRET = "client_secret", "Client secret"
         DELEGATED = "delegated", "Delegated OAuth"

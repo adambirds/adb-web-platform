@@ -311,3 +311,17 @@ class TicketingSettingsTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["code"], "duplicate_mailbox")
         self.verify_graph_mailbox_access.assert_not_called()
+
+    def test_api_cannot_create_environment_managed_connection(self) -> None:
+        self._grant("configure_graph_connections")
+        response = self.client.post(
+            "/api/admin/settings/ticketing/graph-connections",
+            data=self._graph_payload(authentication_method="environment_certificate"),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(
+            MicrosoftGraphConnection.objects.filter(
+                authentication_method="environment_certificate"
+            ).exists()
+        )

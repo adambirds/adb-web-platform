@@ -624,3 +624,15 @@ App signing material lives only in Infisical-injected `GITHUB_APP_PRIVATE_KEY`
 process configuration; no Vault credential reference or database key field is
 required. Operators rotate it manually in Infisical and redeploy backend processes.
 See `GITHUB_APP_SETUP.md` for ownership and synchronisation limits.
+
+## Microsoft Graph configuration authority
+
+The platform Graph connection now uses Infisical-injected environment values for
+tenant/client IDs, certificate, private key and optional passphrase. None of
+those values are copied into application records or the credential Vault.
+An `environment_certificate` connection stores only routing identity/status;
+it is discovered automatically from runtime configuration, without a bootstrap
+command. Runtime token acquisition
+reads environment values directly. Existing certificate/client-secret Vault
+connections remain supported, but new platform setup uses Infisical. Graph secrets
+must be scoped to backend/worker runtime identities, never frontend build contexts.

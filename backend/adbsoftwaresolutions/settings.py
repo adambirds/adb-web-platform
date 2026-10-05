@@ -198,6 +198,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 
 django_stubs_ext.monkeypatch()
 
+# Account verification, password resets and invitations share the Infisical Graph setup.
+EMAIL_BACKEND = "apps.ticketing.email_backend.MicrosoftGraphEmailBackend"
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "no-reply@adbsoftwaresolutions.co.uk")
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
 SITE_ID = 1
 SITE_NAME = "ADB Business Platform"
 

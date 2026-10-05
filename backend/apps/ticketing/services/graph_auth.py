@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import time
 import uuid
 from typing import Any
@@ -11,8 +12,10 @@ import requests
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
+from django.db import transaction
 from django.utils import timezone
 
+from apps.core.models import AuditEvent
 from apps.core.ownership import OwnershipType
 from apps.credentials.secrets import CredentialEncryptionError, load_credential_secrets_for_service
 from apps.ticketing.models import MicrosoftGraphConnection
@@ -67,25 +70,31 @@ class MicrosoftGraphTokenProvider:
     def _acquire_access_token(self) -> tuple[str, int]:
         if not self.connection.enabled:
             raise MicrosoftGraphAuthenticationError("Microsoft Graph connection is disabled.")
-        if self.connection.credential is None:
-            raise MicrosoftGraphAuthenticationError(
-                "Microsoft Graph connection has no authentication credential."
-            )
-        if self.connection.credential.ownership_type != OwnershipType.INTERNAL:
-            raise MicrosoftGraphAuthenticationError(
-                "Microsoft Graph authentication requires an internal credential."
-            )
-
-        try:
-            secrets = load_credential_secrets_for_service(self.connection.credential)
-        except CredentialEncryptionError as exc:
-            raise MicrosoftGraphAuthenticationError(
-                "Microsoft Graph credential could not be decrypted."
-            ) from exc
-
-        token_url = _token_url(self.connection.tenant_id)
+        environment_managed = (
+            self.connection.authentication_method
+            == MicrosoftGraphConnection.AuthenticationMethod.ENVIRONMENT_CERTIFICATE
+        )
+        if environment_managed:
+            tenant_id, client_id, secrets = environment_certificate_configuration()
+        else:
+            if self.connection.credential is None:
+                raise MicrosoftGraphAuthenticationError(
+                    "Microsoft Graph connection has no authentication credential."
+                )
+            if self.connection.credential.ownership_type != OwnershipType.INTERNAL:
+                raise MicrosoftGraphAuthenticationError(
+                    "Microsoft Graph authentication requires an internal credential."
+                )
+            try:
+                secrets = load_credential_secrets_for_service(self.connection.credential)
+            except CredentialEncryptionError as exc:
+                raise MicrosoftGraphAuthenticationError(
+                    "Microsoft Graph credential could not be decrypted."
+                ) from exc
+            tenant_id, client_id = self.connection.tenant_id, self.connection.client_id
+        token_url = _token_url(tenant_id)
         data: dict[str, str] = {
-            "client_id": self.connection.client_id,
+            "client_id": client_id,
             "scope": GRAPH_SCOPE,
             "grant_type": "client_credentials",
         }
@@ -99,14 +108,14 @@ class MicrosoftGraphTokenProvider:
                     "Microsoft Graph client-secret credential has no client_secret value."
                 )
             data["client_secret"] = client_secret
-        elif (
-            self.connection.authentication_method
-            == MicrosoftGraphConnection.AuthenticationMethod.CERTIFICATE
+        elif self.connection.authentication_method in (
+            MicrosoftGraphConnection.AuthenticationMethod.CERTIFICATE,
+            MicrosoftGraphConnection.AuthenticationMethod.ENVIRONMENT_CERTIFICATE,
         ):
             data["client_assertion_type"] = CLIENT_ASSERTION_TYPE
             data["client_assertion"] = _build_certificate_assertion(
                 token_url=token_url,
-                client_id=self.connection.client_id,
+                client_id=client_id,
                 secrets=secrets,
             )
         else:
@@ -194,6 +203,15 @@ def _build_certificate_assertion(
             "Microsoft Graph certificate authentication requires an RSA private key."
         )
 
+    certificate_key = certificate.public_key()
+    if (
+        not isinstance(certificate_key, rsa.RSAPublicKey)
+        or certificate_key.public_numbers() != private_key.public_key().public_numbers()
+    ):
+        raise MicrosoftGraphAuthenticationError(
+            "Microsoft Graph certificate does not match its private key."
+        )
+
     now = int(time.time())
     header = {
         "alg": "PS256",
@@ -235,3 +253,64 @@ def _json_bytes(value: dict[str, Any]) -> bytes:
 
 def _base64url(value: bytes) -> str:
     return base64.urlsafe_b64encode(value).rstrip(b"=").decode("ascii")
+
+
+def environment_certificate_configuration() -> tuple[str, str, dict[str, str]]:
+    """Read Infisical-injected values at runtime; never persist them in application records."""
+    tenant_id = os.environ.get("MICROSOFT_GRAPH_TENANT_ID", "").strip()
+    client_id = os.environ.get("MICROSOFT_GRAPH_CLIENT_ID", "").strip()
+    secrets = {
+        "private_key": os.environ.get("MICROSOFT_GRAPH_PRIVATE_KEY", "").replace("\\n", "\n"),
+        "certificate": os.environ.get("MICROSOFT_GRAPH_CERTIFICATE", "").replace("\\n", "\n"),
+        "passphrase": os.environ.get("MICROSOFT_GRAPH_PRIVATE_KEY_PASSPHRASE", ""),
+    }
+    if not tenant_id or not client_id or not secrets["private_key"] or not secrets["certificate"]:
+        raise MicrosoftGraphAuthenticationError(
+            "Set MICROSOFT_GRAPH_TENANT_ID, MICROSOFT_GRAPH_CLIENT_ID, MICROSOFT_GRAPH_PRIVATE_KEY and MICROSOFT_GRAPH_CERTIFICATE in the process environment."
+        )
+    try:
+        tenant_id, client_id = str(uuid.UUID(tenant_id)), str(uuid.UUID(client_id))
+    except ValueError as exc:
+        raise MicrosoftGraphAuthenticationError(
+            "Microsoft Graph tenant/client IDs must be UUIDs."
+        ) from exc
+    return tenant_id, client_id, secrets
+
+
+@transaction.atomic
+def environment_graph_connection() -> MicrosoftGraphConnection | None:
+    """Discover runtime configuration; retain only the stable mailbox-routing identity."""
+    names = (
+        "MICROSOFT_GRAPH_TENANT_ID",
+        "MICROSOFT_GRAPH_CLIENT_ID",
+        "MICROSOFT_GRAPH_PRIVATE_KEY",
+        "MICROSOFT_GRAPH_CERTIFICATE",
+    )
+    if not any(os.environ.get(name, "").strip() for name in names):
+        return None
+    tenant_id, client_id, secrets = environment_certificate_configuration()
+    _build_certificate_assertion(
+        token_url=_token_url(tenant_id), client_id=client_id, secrets=secrets
+    )
+    connection, created = MicrosoftGraphConnection.objects.get_or_create(
+        tenant_id="environment",
+        client_id="environment",
+        defaults={
+            "name": "Microsoft 365",
+            "authentication_method": MicrosoftGraphConnection.AuthenticationMethod.ENVIRONMENT_CERTIFICATE,
+        },
+    )
+    if (
+        connection.authentication_method
+        != MicrosoftGraphConnection.AuthenticationMethod.ENVIRONMENT_CERTIFICATE
+    ):
+        raise MicrosoftGraphAuthenticationError(
+            "The platform connection marker is reserved for environment authentication."
+        )
+    if created:
+        AuditEvent.record(
+            action="ticketing.graph_connection.environment_discovered",
+            target_label="Microsoft 365 environment connection",
+            metadata={"connection_id": connection.pk},
+        )
+    return connection
