@@ -1,4 +1,9 @@
 import "@testing-library/jest-dom";
+import {
+    INFRASTRUCTURE_CATEGORIES,
+    InfrastructureCategoryPage,
+} from "@/app/(admin)/admin/infrastructure/InfrastructureCategoryPage";
+import { RESOURCE_TYPES } from "@/app/(admin)/admin/infrastructure/resources/resourceCreation";
 import ServersPage from "@/app/(admin)/admin/infrastructure/servers/page";
 import DatabasesPage from "@/app/(admin)/admin/infrastructure/databases/page";
 import WebsitesPage from "@/app/(admin)/admin/infrastructure/websites/page";
@@ -319,4 +324,28 @@ test("topology loads native resources and can search beyond the initial selectio
             expect.stringContaining("search=domain"),
         ),
     );
+});
+
+test("every creatable resource type has an inventory category", () => {
+    expect(
+        Object.values(INFRASTRUCTURE_CATEGORIES)
+            .map((category) => category.resourceType)
+            .sort(),
+    ).toEqual([...RESOURCE_TYPES].sort());
+});
+
+test.each(
+    Object.keys(
+        INFRASTRUCTURE_CATEGORIES,
+    ) as (keyof typeof INFRASTRUCTURE_CATEGORIES)[],
+)("%s inventory uses its native type filter", async (category) => {
+    const configuration = INFRASTRUCTURE_CATEGORIES[category];
+    render(<InfrastructureCategoryPage category={category} />);
+    await screen.findByRole("button", { name: "Tracked resource" });
+    expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining(`resource_type=${configuration.resourceType}`),
+    );
+    expect(
+        screen.getByRole("heading", { name: configuration.title, level: 1 }),
+    ).toBeInTheDocument();
 });

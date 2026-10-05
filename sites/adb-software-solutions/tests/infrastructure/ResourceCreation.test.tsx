@@ -661,7 +661,7 @@ test("repository links can edit role, path and notes in place", async () => {
     );
     fireEvent.click(await screen.findByRole("button", { name: "Edit" }));
     await waitFor(() =>
-        expect(screen.getByLabelText("Source repository")).not.toBeDisabled(),
+        expect(screen.getByLabelText("Repository record")).not.toBeDisabled(),
     );
     expect(screen.getByLabelText("Operational notes")).toHaveValue(
         "Keep notes",

@@ -488,6 +488,10 @@ See `INFRASTRUCTURE_CREATION.md` for entry points and API boundaries.
 
 ## GitHub and inventory navigation
 
+Implemented category pages for all 29 creatable infrastructure resource types,
+including Networks, Subnets and Source repositories. Application repository UI
+distinguishes inventory records from application links.
+
 Implemented a multi-installation GitHub App dashboard, signed durable webhooks,
 Celery updates, my-work/Dependabot filters, workflow dispatch, failed-job reruns
 and scoped log retrieval. Live account sync requires App registration, Infisical

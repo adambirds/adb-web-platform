@@ -1,5 +1,7 @@
 "use client";
 
+import { useLiveRefresh } from "@/contexts/LiveEventsContext";
+
 import { Button, Card, Input, Select, Textarea } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchAPI } from "@/lib/api/fetch";
@@ -94,6 +96,7 @@ export function ApplicationRepositoriesCard({
     useEffect(() => {
         void loadLinks();
     }, [loadLinks]);
+    useLiveRefresh(["infrastructure", "github"], loadLinks);
 
     useEffect(() => {
         setCreatingRepository(false);
@@ -231,11 +234,13 @@ export function ApplicationRepositoriesCard({
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h2 className="text-sm font-semibold text-white">
-                        Source repositories
+                        Linked repositories
                     </h2>
                     <p className="mt-1 text-xs leading-5 text-slate-500">
-                        Typed source-control links for this Application,
-                        including repository role and optional monorepo path.
+                        Choose a repository record from your infrastructure
+                        inventory. This link records how this application uses
+                        it, including its role and optional folder path within a
+                        monorepo.
                     </p>
                 </div>
                 {canAdd ? (
@@ -245,7 +250,7 @@ export function ApplicationRepositoriesCard({
                         variant="secondary"
                         onClick={() => void openForm()}
                     >
-                        Add repository
+                        Link existing repository
                     </Button>
                 ) : null}
             </div>
@@ -281,12 +286,12 @@ export function ApplicationRepositoriesCard({
                             variant="secondary"
                             onClick={() => setCreatingRepository(true)}
                         >
-                            Create source repository
+                            Create repository record
                         </Button>
                     ) : null}
                     <div className="grid gap-3 md:grid-cols-2">
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
-                            Source repository
+                            Repository record
                             <Select
                                 value={repositoryId}
                                 onChange={(event) =>

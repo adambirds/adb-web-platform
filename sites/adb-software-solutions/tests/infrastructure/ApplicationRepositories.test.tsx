@@ -48,7 +48,9 @@ it("creates a repository in context and selects it without losing the link draft
             clientId={7}
         />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Add repository" }));
+    fireEvent.click(
+        screen.getByRole("button", { name: "Link existing repository" }),
+    );
     expect(
         await screen.findByText(/No source repositories are available/),
     ).toBeInTheDocument();
@@ -59,7 +61,7 @@ it("creates a repository in context and selects it without losing the link draft
         target: { value: "sites/app" },
     });
     fireEvent.click(
-        screen.getByRole("button", { name: "Create source repository" }),
+        screen.getByRole("button", { name: "Create repository record" }),
     );
     const name = await screen.findByLabelText("Name");
     expect(screen.getByLabelText("Ownership")).toBeDisabled();
@@ -72,7 +74,7 @@ it("creates a repository in context and selects it without losing the link draft
         screen.getByRole("button", { name: "Create source repository" }),
     );
     await waitFor(() =>
-        expect(screen.getByLabelText("Source repository")).toHaveValue("20"),
+        expect(screen.getByLabelText("Repository record")).toHaveValue("20"),
     );
     expect(screen.getByLabelText("Monorepo path")).toHaveValue("sites/app");
     fireEvent.click(screen.getByRole("button", { name: "Link repository" }));

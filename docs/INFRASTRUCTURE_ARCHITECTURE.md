@@ -683,3 +683,12 @@ Resource node/edge IDs retain their positive database identities. Projected
 Credential node IDs and credential-link edge IDs use the corresponding negative
 database IDs to avoid collisions; these are graph identities, not Resource IDs.
 Their `resource_type` is `credential`, and their href points to the Vault record.
+
+## Inventory navigation and GitHub
+
+Every creatable native resource type has a category register from Infrastructure,
+using the shared paginated, scoped resource workspace. SourceRepository records
+are inventory objects; ApplicationRepositoryLink carries role/path/notes about an
+application's use of one. GitHub App imports attach to/reuse those same records,
+with account-installation scope mapped to Client/Internal ownership before import.
+See `GITHUB_APP_SETUP.md` for integration models, permissions and deployment.

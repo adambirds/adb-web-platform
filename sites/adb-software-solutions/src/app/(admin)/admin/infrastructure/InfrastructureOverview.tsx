@@ -36,6 +36,92 @@ interface InfrastructureSummary {
 
 const inventoryLinks = [
     [
+        "Networks",
+        "/admin/infrastructure/networks",
+        "Browse networks and their relationships.",
+    ],
+    [
+        "Subnets",
+        "/admin/infrastructure/subnets",
+        "Browse subnets and their relationships.",
+    ],
+    [
+        "Source repositories",
+        "/admin/infrastructure/repositories",
+        "Browse source repositories and their relationships.",
+    ],
+    [
+        "Logical databases",
+        "/admin/infrastructure/logical-databases",
+        "Browse logical databases and their relationships.",
+    ],
+    [
+        "Application environments",
+        "/admin/infrastructure/application-environments",
+        "Browse application environments and their relationships.",
+    ],
+    [
+        "Website endpoints",
+        "/admin/infrastructure/website-endpoints",
+        "Browse website endpoints and their relationships.",
+    ],
+    [
+        "DNS zones",
+        "/admin/infrastructure/dns-zones",
+        "Browse dns zones and their relationships.",
+    ],
+    [
+        "Storage",
+        "/admin/infrastructure/storage",
+        "Browse storage and their relationships.",
+    ],
+    [
+        "Backup plans",
+        "/admin/infrastructure/backup-plans",
+        "Browse backup plans and their relationships.",
+    ],
+    [
+        "Container stacks",
+        "/admin/infrastructure/container-stacks",
+        "Browse container stacks and their relationships.",
+    ],
+    [
+        "Kubernetes clusters",
+        "/admin/infrastructure/kubernetes-clusters",
+        "Browse kubernetes clusters and their relationships.",
+    ],
+    [
+        "Kubernetes namespaces",
+        "/admin/infrastructure/kubernetes-namespaces",
+        "Browse kubernetes namespaces and their relationships.",
+    ],
+    [
+        "Kubernetes workloads",
+        "/admin/infrastructure/kubernetes-workloads",
+        "Browse kubernetes workloads and their relationships.",
+    ],
+    [
+        "System services",
+        "/admin/infrastructure/system-services",
+        "Browse system services and their relationships.",
+    ],
+    [
+        "Scheduled jobs",
+        "/admin/infrastructure/scheduled-jobs",
+        "Browse scheduled jobs and their relationships.",
+    ],
+    [
+        "Network devices",
+        "/admin/infrastructure/network-devices",
+        "Browse network devices and their relationships.",
+    ],
+    [
+        "Other resources",
+        "/admin/infrastructure/other-resources",
+        "Browse other resources and their relationships.",
+    ],
+
+    [
         "Provider accounts",
         "/admin/infrastructure/provider-accounts",
         "Cloud, hosting, registrar and vendor accounts.",
