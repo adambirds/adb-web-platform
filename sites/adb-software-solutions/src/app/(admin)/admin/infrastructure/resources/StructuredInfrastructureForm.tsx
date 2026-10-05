@@ -76,6 +76,11 @@ interface SaveResult {
 
 interface StructuredInfrastructureFormProps {
     allowedTypes: SpecialistType[];
+    creationContext?: {
+        ownership_type: "internal" | "client";
+        client_id: number | null;
+        network_resource_id?: number;
+    };
     onCancel: () => void;
     onCreated?: (resourceId: number) => void;
     editResourceId?: number;
@@ -88,7 +93,8 @@ function numberOrNull(value: string): number | null {
 }
 
 function stringValue(value: SpecialistEditValue | undefined): string {
-    if (value === null || value === undefined || Array.isArray(value)) return "";
+    if (value === null || value === undefined || Array.isArray(value))
+        return "";
     return String(value);
 }
 
@@ -110,7 +116,11 @@ function dateTimeLocalValue(value: SpecialistEditValue | undefined): string {
 }
 
 function label(value: SpecialistType): string {
-    return value === "server" ? "Server" : value === "network" ? "Network" : "Subnet";
+    return value === "server"
+        ? "Server"
+        : value === "network"
+          ? "Network"
+          : "Subnet";
 }
 
 function collectionPath(type: SpecialistType): string {
@@ -123,6 +133,7 @@ export function StructuredInfrastructureForm({
     onCreated,
     editResourceId,
     onSaved,
+    creationContext,
 }: StructuredInfrastructureFormProps) {
     const isEditing = editResourceId !== undefined;
     const [options, setOptions] = useState<SpecialistOptions | null>(null);
@@ -130,9 +141,15 @@ export function StructuredInfrastructureForm({
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const [type, setType] = useState<SpecialistType>(allowedTypes[0] ?? "server");
-    const [ownership, setOwnership] = useState<"internal" | "client">("internal");
-    const [clientId, setClientId] = useState("");
+    const [type, setType] = useState<SpecialistType>(
+        allowedTypes[0] ?? "server",
+    );
+    const [ownership, setOwnership] = useState<"internal" | "client">(
+        creationContext?.ownership_type ?? "internal",
+    );
+    const [clientId, setClientId] = useState(
+        creationContext?.client_id ? String(creationContext.client_id) : "",
+    );
     const [clientName, setClientName] = useState<string | null>(null);
     const [name, setName] = useState("");
     const [lifecycle, setLifecycle] = useState("active");
@@ -175,7 +192,11 @@ export function StructuredInfrastructureForm({
     const [vlanId, setVlanId] = useState("");
     const [dnsServers, setDnsServers] = useState("");
 
-    const [networkResourceId, setNetworkResourceId] = useState("");
+    const [networkResourceId, setNetworkResourceId] = useState(
+        creationContext?.network_resource_id
+            ? String(creationContext.network_resource_id)
+            : "",
+    );
     const [availabilityZone, setAvailabilityZone] = useState("");
 
     useEffect(() => {
@@ -186,7 +207,9 @@ export function StructuredInfrastructureForm({
                 setIsLoading(true);
                 setError(null);
                 const [loadedOptions, editDetails] = await Promise.all([
-                    fetchAPI(`${API_URL}/api/admin/infrastructure/specialist-options`) as Promise<SpecialistOptions>,
+                    fetchAPI(
+                        `${API_URL}/api/admin/infrastructure/specialist-options`,
+                    ) as Promise<SpecialistOptions>,
                     editResourceId === undefined
                         ? Promise.resolve(null)
                         : (fetchAPI(
@@ -198,14 +221,18 @@ export function StructuredInfrastructureForm({
 
                 if (!editDetails) return;
                 if (!allowedTypes.includes(editDetails.resource_type)) {
-                    setError("This resource type cannot be edited from this form.");
+                    setError(
+                        "This resource type cannot be edited from this form.",
+                    );
                     return;
                 }
 
                 const values = editDetails.values;
                 setType(editDetails.resource_type);
                 setOwnership(editDetails.ownership_type);
-                setClientId(editDetails.client_id ? String(editDetails.client_id) : "");
+                setClientId(
+                    editDetails.client_id ? String(editDetails.client_id) : "",
+                );
                 setClientName(editDetails.client_name);
                 setName(editDetails.name);
                 setLifecycle(editDetails.lifecycle_status);
@@ -227,9 +254,12 @@ export function StructuredInfrastructureForm({
                 setDistribution(stringValue(values.distribution));
                 setOsVersion(stringValue(values.os_version));
                 setKernelVersion(stringValue(values.kernel_version));
-                setProviderAccountId(numberValue(values.provider_account_resource_id));
+                setProviderAccountId(
+                    numberValue(values.provider_account_resource_id),
+                );
                 setProviderResourceId(
-                    stringValue(values.provider_resource_id) || stringValue(values.provider_network_id),
+                    stringValue(values.provider_resource_id) ||
+                        stringValue(values.provider_network_id),
                 );
                 setRegion(stringValue(values.region));
                 setZone(stringValue(values.zone));
@@ -272,24 +302,22 @@ export function StructuredInfrastructureForm({
 
     const providerAccounts = useMemo(
         () =>
-            options?.provider_accounts.filter(
-                (provider) =>
-                    ownership === "internal"
-                        ? provider.ownership_type === "internal"
-                        : provider.ownership_type === "internal" ||
-                          provider.client_id === Number(clientId),
+            options?.provider_accounts.filter((provider) =>
+                ownership === "internal"
+                    ? provider.ownership_type === "internal"
+                    : provider.ownership_type === "internal" ||
+                      provider.client_id === Number(clientId),
             ) ?? [],
         [clientId, options, ownership],
     );
 
     const networks = useMemo(
         () =>
-            options?.networks.filter(
-                (network) =>
-                    ownership === "internal"
-                        ? network.ownership_type === "internal"
-                        : network.ownership_type === "internal" ||
-                          network.client_id === Number(clientId),
+            options?.networks.filter((network) =>
+                ownership === "internal"
+                    ? network.ownership_type === "internal"
+                    : network.ownership_type === "internal" ||
+                      network.client_id === Number(clientId),
             ) ?? [],
         [clientId, options, ownership],
     );
@@ -454,13 +482,17 @@ export function StructuredInfrastructureForm({
             />
 
             <Card className="space-y-4 p-5">
-                <h2 className="text-sm font-semibold text-white">Resource identity</h2>
+                <h2 className="text-sm font-semibold text-white">
+                    Resource identity
+                </h2>
                 <div className="grid gap-4 md:grid-cols-2">
                     <label className="space-y-2 text-xs text-slate-400">
                         Resource type
                         <Select
                             value={type}
-                            onChange={(event) => setType(event.target.value as SpecialistType)}
+                            onChange={(event) =>
+                                setType(event.target.value as SpecialistType)
+                            }
                             disabled={isSaving || isEditing}
                         >
                             {allowedTypes.map((value) => (
@@ -475,9 +507,13 @@ export function StructuredInfrastructureForm({
                         <Select
                             value={ownership}
                             onChange={(event) =>
-                                changeOwnership(event.target.value as "internal" | "client")
+                                changeOwnership(
+                                    event.target.value as "internal" | "client",
+                                )
                             }
-                            disabled={isSaving || isEditing}
+                            disabled={
+                                isSaving || isEditing || !!creationContext
+                            }
                         >
                             <option value="internal">ADB Internal</option>
                             <option value="client">Client-owned</option>
@@ -487,16 +523,24 @@ export function StructuredInfrastructureForm({
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
                             Client
                             {isEditing ? (
-                                <Input value={clientName ?? `Client #${clientId}`} disabled />
+                                <Input
+                                    value={clientName ?? `Client #${clientId}`}
+                                    disabled
+                                />
                             ) : (
                                 <Select
                                     value={clientId}
-                                    onChange={(event) => changeClient(event.target.value)}
-                                    disabled={isSaving}
+                                    onChange={(event) =>
+                                        changeClient(event.target.value)
+                                    }
+                                    disabled={isSaving || !!creationContext}
                                 >
                                     <option value="">Choose client</option>
                                     {options?.clients.map((client) => (
-                                        <option key={client.id} value={client.id}>
+                                        <option
+                                            key={client.id}
+                                            value={client.id}
+                                        >
                                             {client.name}
                                         </option>
                                     ))}
@@ -517,7 +561,9 @@ export function StructuredInfrastructureForm({
                         Lifecycle
                         <Select
                             value={lifecycle}
-                            onChange={(event) => setLifecycle(event.target.value)}
+                            onChange={(event) =>
+                                setLifecycle(event.target.value)
+                            }
                             disabled={isSaving}
                         >
                             <option value="planned">Planned</option>
@@ -532,7 +578,9 @@ export function StructuredInfrastructureForm({
                         Environment
                         <Select
                             value={environment}
-                            onChange={(event) => setEnvironment(event.target.value)}
+                            onChange={(event) =>
+                                setEnvironment(event.target.value)
+                            }
                             disabled={isSaving}
                         >
                             <option value="production">Production</option>
@@ -540,14 +588,18 @@ export function StructuredInfrastructureForm({
                             <option value="development">Development</option>
                             <option value="testing">Testing</option>
                             <option value="shared">Shared</option>
-                            <option value="not_applicable">Not applicable</option>
+                            <option value="not_applicable">
+                                Not applicable
+                            </option>
                         </Select>
                     </label>
                     <label className="space-y-2 text-xs text-slate-400">
                         Criticality
                         <Select
                             value={criticality}
-                            onChange={(event) => setCriticality(event.target.value)}
+                            onChange={(event) =>
+                                setCriticality(event.target.value)
+                            }
                             disabled={isSaving}
                         >
                             <option value="low">Low</option>
@@ -560,7 +612,9 @@ export function StructuredInfrastructureForm({
                         Description
                         <Textarea
                             value={description}
-                            onChange={(event) => setDescription(event.target.value)}
+                            onChange={(event) =>
+                                setDescription(event.target.value)
+                            }
                             rows={3}
                             disabled={isSaving}
                         />
@@ -570,88 +624,201 @@ export function StructuredInfrastructureForm({
 
             {type === "server" ? (
                 <Card className="space-y-4 p-5">
-                    <h2 className="text-sm font-semibold text-white">Server details</h2>
+                    <h2 className="text-sm font-semibold text-white">
+                        Server details
+                    </h2>
                     <div className="grid gap-4 md:grid-cols-2">
                         <label className="space-y-2 text-xs text-slate-400">
                             Hostname
-                            <Input value={hostname} onChange={(event) => setHostname(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={hostname}
+                                onChange={(event) =>
+                                    setHostname(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             FQDN
-                            <Input value={fqdn} onChange={(event) => setFqdn(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={fqdn}
+                                onChange={(event) =>
+                                    setFqdn(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Purpose
-                            <Input value={purpose} onChange={(event) => setPurpose(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={purpose}
+                                onChange={(event) =>
+                                    setPurpose(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Role
-                            <Input value={role} onChange={(event) => setRole(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={role}
+                                onChange={(event) =>
+                                    setRole(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Compute type
-                            <Select value={computeType} onChange={(event) => setComputeType(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={computeType}
+                                onChange={(event) =>
+                                    setComputeType(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="cloud_vm">Cloud VM</option>
                                 <option value="vps">VPS</option>
-                                <option value="virtual_machine">Virtual machine</option>
+                                <option value="virtual_machine">
+                                    Virtual machine
+                                </option>
                                 <option value="dedicated">Dedicated</option>
                                 <option value="bare_metal">Bare metal</option>
                                 <option value="hypervisor">Hypervisor</option>
-                                <option value="container_host">Container host</option>
+                                <option value="container_host">
+                                    Container host
+                                </option>
                                 <option value="nas">NAS</option>
                                 <option value="other">Other</option>
                             </Select>
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Architecture
-                            <Input value={architecture} onChange={(event) => setArchitecture(event.target.value)} placeholder="x86_64 / arm64" disabled={isSaving} />
+                            <Input
+                                value={architecture}
+                                onChange={(event) =>
+                                    setArchitecture(event.target.value)
+                                }
+                                placeholder="x86_64 / arm64"
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
                             Provider account
-                            <Select value={providerAccountId} onChange={(event) => setProviderAccountId(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={providerAccountId}
+                                onChange={(event) =>
+                                    setProviderAccountId(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="">No provider account</option>
                                 {providerAccounts.map((provider) => (
-                                    <option key={provider.resource_id} value={provider.resource_id}>
-                                        {provider.name} · {provider.provider_name}
+                                    <option
+                                        key={provider.resource_id}
+                                        value={provider.resource_id}
+                                    >
+                                        {provider.name} ·{" "}
+                                        {provider.provider_name}
                                     </option>
                                 ))}
                             </Select>
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Provider resource ID
-                            <Input value={providerResourceId} onChange={(event) => setProviderResourceId(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={providerResourceId}
+                                onChange={(event) =>
+                                    setProviderResourceId(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Region
-                            <Input value={region} onChange={(event) => setRegion(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={region}
+                                onChange={(event) =>
+                                    setRegion(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Zone
-                            <Input value={zone} onChange={(event) => setZone(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={zone}
+                                onChange={(event) =>
+                                    setZone(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Datacentre
-                            <Input value={datacenter} onChange={(event) => setDatacenter(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={datacenter}
+                                onChange={(event) =>
+                                    setDatacenter(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             CPU model
-                            <Input value={cpuModel} onChange={(event) => setCpuModel(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={cpuModel}
+                                onChange={(event) =>
+                                    setCpuModel(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             CPU cores
-                            <Input type="number" min="1" value={cpuCores} onChange={(event) => setCpuCores(event.target.value)} disabled={isSaving} />
+                            <Input
+                                type="number"
+                                min="1"
+                                value={cpuCores}
+                                onChange={(event) =>
+                                    setCpuCores(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             RAM (MB)
-                            <Input type="number" min="1" value={ramMb} onChange={(event) => setRamMb(event.target.value)} disabled={isSaving} />
+                            <Input
+                                type="number"
+                                min="1"
+                                value={ramMb}
+                                onChange={(event) =>
+                                    setRamMb(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Root disk (GB)
-                            <Input type="number" min="1" value={rootDiskGb} onChange={(event) => setRootDiskGb(event.target.value)} disabled={isSaving} />
+                            <Input
+                                type="number"
+                                min="1"
+                                value={rootDiskGb}
+                                onChange={(event) =>
+                                    setRootDiskGb(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             OS family
-                            <Select value={osFamily} onChange={(event) => setOsFamily(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={osFamily}
+                                onChange={(event) =>
+                                    setOsFamily(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="linux">Linux</option>
                                 <option value="windows">Windows</option>
                                 <option value="bsd">BSD</option>
@@ -661,35 +828,89 @@ export function StructuredInfrastructureForm({
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Distribution
-                            <Input value={distribution} onChange={(event) => setDistribution(event.target.value)} placeholder="Ubuntu" disabled={isSaving} />
+                            <Input
+                                value={distribution}
+                                onChange={(event) =>
+                                    setDistribution(event.target.value)
+                                }
+                                placeholder="Ubuntu"
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             OS version
-                            <Input value={osVersion} onChange={(event) => setOsVersion(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={osVersion}
+                                onChange={(event) =>
+                                    setOsVersion(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Kernel version
-                            <Input value={kernelVersion} onChange={(event) => setKernelVersion(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={kernelVersion}
+                                onChange={(event) =>
+                                    setKernelVersion(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Virtualisation
-                            <Input value={virtualizationType} onChange={(event) => setVirtualizationType(event.target.value)} placeholder="KVM / Hyper-V / VMware" disabled={isSaving} />
+                            <Input
+                                value={virtualizationType}
+                                onChange={(event) =>
+                                    setVirtualizationType(event.target.value)
+                                }
+                                placeholder="KVM / Hyper-V / VMware"
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Hypervisor
-                            <Input value={hypervisor} onChange={(event) => setHypervisor(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={hypervisor}
+                                onChange={(event) =>
+                                    setHypervisor(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             SSH port
-                            <Input type="number" min="1" max="65535" value={sshPort} onChange={(event) => setSshPort(event.target.value)} disabled={isSaving} />
+                            <Input
+                                type="number"
+                                min="1"
+                                max="65535"
+                                value={sshPort}
+                                onChange={(event) =>
+                                    setSshPort(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Timezone
-                            <Input value={timezone} onChange={(event) => setTimezone(event.target.value)} placeholder="Europe/London" disabled={isSaving} />
+                            <Input
+                                value={timezone}
+                                onChange={(event) =>
+                                    setTimezone(event.target.value)
+                                }
+                                placeholder="Europe/London"
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Automatic updates
-                            <Select value={automaticUpdates} onChange={(event) => setAutomaticUpdates(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={automaticUpdates}
+                                onChange={(event) =>
+                                    setAutomaticUpdates(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="">Not recorded</option>
                                 <option value="yes">Enabled</option>
                                 <option value="no">Disabled</option>
@@ -697,19 +918,47 @@ export function StructuredInfrastructureForm({
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Patch window
-                            <Input value={patchWindow} onChange={(event) => setPatchWindow(event.target.value)} placeholder="Sunday 03:00 Europe/London" disabled={isSaving} />
+                            <Input
+                                value={patchWindow}
+                                onChange={(event) =>
+                                    setPatchWindow(event.target.value)
+                                }
+                                placeholder="Sunday 03:00 Europe/London"
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Last patched
-                            <Input type="datetime-local" value={lastPatchedAt} onChange={(event) => setLastPatchedAt(event.target.value)} disabled={isSaving} />
+                            <Input
+                                type="datetime-local"
+                                value={lastPatchedAt}
+                                onChange={(event) =>
+                                    setLastPatchedAt(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Commissioned
-                            <Input type="date" value={commissionedAt} onChange={(event) => setCommissionedAt(event.target.value)} disabled={isSaving} />
+                            <Input
+                                type="date"
+                                value={commissionedAt}
+                                onChange={(event) =>
+                                    setCommissionedAt(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Decommissioned
-                            <Input type="date" value={decommissionedAt} onChange={(event) => setDecommissionedAt(event.target.value)} disabled={isSaving} />
+                            <Input
+                                type="date"
+                                value={decommissionedAt}
+                                onChange={(event) =>
+                                    setDecommissionedAt(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                     </div>
                 </Card>
@@ -717,11 +966,19 @@ export function StructuredInfrastructureForm({
 
             {type === "network" ? (
                 <Card className="space-y-4 p-5">
-                    <h2 className="text-sm font-semibold text-white">Network details</h2>
+                    <h2 className="text-sm font-semibold text-white">
+                        Network details
+                    </h2>
                     <div className="grid gap-4 md:grid-cols-2">
                         <label className="space-y-2 text-xs text-slate-400">
                             Network type
-                            <Select value={networkType} onChange={(event) => setNetworkType(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={networkType}
+                                onChange={(event) =>
+                                    setNetworkType(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="vpc">VPC</option>
                                 <option value="lan">LAN</option>
                                 <option value="vlan">VLAN</option>
@@ -733,38 +990,90 @@ export function StructuredInfrastructureForm({
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Provider account
-                            <Select value={providerAccountId} onChange={(event) => setProviderAccountId(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={providerAccountId}
+                                onChange={(event) =>
+                                    setProviderAccountId(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="">No provider account</option>
                                 {providerAccounts.map((provider) => (
-                                    <option key={provider.resource_id} value={provider.resource_id}>
-                                        {provider.name} · {provider.provider_name}
+                                    <option
+                                        key={provider.resource_id}
+                                        value={provider.resource_id}
+                                    >
+                                        {provider.name} ·{" "}
+                                        {provider.provider_name}
                                     </option>
                                 ))}
                             </Select>
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             CIDR
-                            <Input value={cidr} onChange={(event) => setCidr(event.target.value)} placeholder="10.42.0.0/16" disabled={isSaving} />
+                            <Input
+                                value={cidr}
+                                onChange={(event) =>
+                                    setCidr(event.target.value)
+                                }
+                                placeholder="10.42.0.0/16"
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Gateway
-                            <Input value={gateway} onChange={(event) => setGateway(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={gateway}
+                                onChange={(event) =>
+                                    setGateway(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Provider network ID
-                            <Input value={providerResourceId} onChange={(event) => setProviderResourceId(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={providerResourceId}
+                                onChange={(event) =>
+                                    setProviderResourceId(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Region
-                            <Input value={region} onChange={(event) => setRegion(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={region}
+                                onChange={(event) =>
+                                    setRegion(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             VLAN ID
-                            <Input type="number" min="1" max="4094" value={vlanId} onChange={(event) => setVlanId(event.target.value)} disabled={isSaving} />
+                            <Input
+                                type="number"
+                                min="1"
+                                max="4094"
+                                value={vlanId}
+                                onChange={(event) =>
+                                    setVlanId(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
                             DNS servers
-                            <Textarea value={dnsServers} onChange={(event) => setDnsServers(event.target.value)} placeholder="1.1.1.1, 1.0.0.1" rows={2} disabled={isSaving} />
+                            <Textarea
+                                value={dnsServers}
+                                onChange={(event) =>
+                                    setDnsServers(event.target.value)
+                                }
+                                placeholder="1.1.1.1, 1.0.0.1"
+                                rows={2}
+                                disabled={isSaving}
+                            />
                         </label>
                     </div>
                 </Card>
@@ -772,38 +1081,87 @@ export function StructuredInfrastructureForm({
 
             {type === "subnet" ? (
                 <Card className="space-y-4 p-5">
-                    <h2 className="text-sm font-semibold text-white">Subnet details</h2>
+                    <h2 className="text-sm font-semibold text-white">
+                        Subnet details
+                    </h2>
                     <div className="grid gap-4 md:grid-cols-2">
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
                             Parent network
-                            <Select value={networkResourceId} onChange={(event) => setNetworkResourceId(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={networkResourceId}
+                                onChange={(event) =>
+                                    setNetworkResourceId(event.target.value)
+                                }
+                                disabled={
+                                    isSaving ||
+                                    !!creationContext?.network_resource_id
+                                }
+                            >
                                 <option value="">Choose network</option>
                                 {networks.map((network) => (
-                                    <option key={network.resource_id} value={network.resource_id}>
-                                        {network.name} · {network.client_name || "ADB Internal"}
+                                    <option
+                                        key={network.resource_id}
+                                        value={network.resource_id}
+                                    >
+                                        {network.name} ·{" "}
+                                        {network.client_name || "ADB Internal"}
                                     </option>
                                 ))}
                             </Select>
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             CIDR
-                            <Input value={cidr} onChange={(event) => setCidr(event.target.value)} placeholder="10.42.10.0/24" disabled={isSaving} />
+                            <Input
+                                value={cidr}
+                                onChange={(event) =>
+                                    setCidr(event.target.value)
+                                }
+                                placeholder="10.42.10.0/24"
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Gateway
-                            <Input value={gateway} onChange={(event) => setGateway(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={gateway}
+                                onChange={(event) =>
+                                    setGateway(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             VLAN ID
-                            <Input type="number" min="1" max="4094" value={vlanId} onChange={(event) => setVlanId(event.target.value)} disabled={isSaving} />
+                            <Input
+                                type="number"
+                                min="1"
+                                max="4094"
+                                value={vlanId}
+                                onChange={(event) =>
+                                    setVlanId(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Availability zone
-                            <Input value={availabilityZone} onChange={(event) => setAvailabilityZone(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={availabilityZone}
+                                onChange={(event) =>
+                                    setAvailabilityZone(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
                             Purpose
-                            <Input value={purpose} onChange={(event) => setPurpose(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={purpose}
+                                onChange={(event) =>
+                                    setPurpose(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                     </div>
                 </Card>
@@ -811,10 +1169,18 @@ export function StructuredInfrastructureForm({
 
             {error ? <p className="text-sm text-red-300">{error}</p> : null}
             <div className="flex justify-end gap-2">
-                <Button type="button" variant="ghost" onClick={onCancel} disabled={isSaving}>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={onCancel}
+                    disabled={isSaving}
+                >
                     Cancel
                 </Button>
-                <Button type="submit" disabled={isSaving || allowedTypes.length === 0}>
+                <Button
+                    type="submit"
+                    disabled={isSaving || allowedTypes.length === 0}
+                >
                     {isSaving
                         ? isEditing
                             ? "Saving..."

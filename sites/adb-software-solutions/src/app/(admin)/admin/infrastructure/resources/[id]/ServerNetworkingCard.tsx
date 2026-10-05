@@ -13,6 +13,11 @@ import { fetchAPI } from "@/lib/api/fetch";
 import { API_URL } from "@/lib/config";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
+import { StructuredInfrastructureForm } from "../StructuredInfrastructureForm";
+
+const NETWORK_TYPES: "network"[] = ["network"];
+const SUBNET_TYPES: "subnet"[] = ["subnet"];
+
 interface IP {
     id: number;
     address: string;
@@ -34,17 +39,21 @@ interface Interface {
     subnet_name: string | null;
     ip_addresses: IP[];
 }
-interface Server {
+interface Owner {
+    ownership_type: "internal" | "client";
+    client_id: number | null;
+}
+interface Server extends Owner {
     interfaces: Interface[];
     direct_ip_addresses: IP[];
 }
 interface Options {
-    networks: { resource_id: number; name: string }[];
-    subnets: {
+    networks: (Owner & { resource_id: number; name: string })[];
+    subnets: (Owner & {
         resource_id: number;
         network_resource_id: number;
         cidr: string;
-    }[];
+    })[];
 }
 
 export function ServerNetworkingCard({
@@ -66,6 +75,7 @@ export function ServerNetworkingCard({
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const [form, setForm] = useState<"interface" | "ip" | null>(null);
+    const [creating, setCreating] = useState<"network" | "subnet" | null>(null);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [name, setName] = useState("");
     const [mac, setMac] = useState("");
@@ -103,6 +113,26 @@ export function ServerNetworkingCard({
     useEffect(() => {
         void load();
     }, [load]);
+    const compatible = (item: Owner) =>
+        item.ownership_type === "internal" ||
+        (server?.ownership_type === "client" &&
+            item.client_id === server.client_id);
+    const networks = options.networks.filter(compatible);
+    const subnets = options.subnets.filter(compatible);
+    const canCreate = (kind: "network" | "subnet") =>
+        hasPermission("infrastructure.add_infrastructureresource") &&
+        hasPermission(`infrastructure.add_${kind}`);
+    async function created(id: number) {
+        await load();
+        if (creating === "network") {
+            setNetwork(String(id));
+            setSubnet("");
+        } else {
+            setSubnet(String(id));
+        }
+        setCreating(null);
+        onChanged();
+    }
     function resetForm(kind: "interface" | "ip" | null) {
         setForm(kind);
         setEditingId(null);
@@ -308,7 +338,23 @@ export function ServerNetworkingCard({
                     ) : null}
                 </div>
             ) : null}
-            {form ? (
+            {creating && server ? (
+                <StructuredInfrastructureForm
+                    allowedTypes={
+                        creating === "network" ? NETWORK_TYPES : SUBNET_TYPES
+                    }
+                    creationContext={{
+                        ownership_type: server.ownership_type,
+                        client_id: server.client_id,
+                        ...(creating === "subnet"
+                            ? { network_resource_id: Number(network) }
+                            : {}),
+                    }}
+                    onCancel={() => setCreating(null)}
+                    onCreated={(id) => void created(id)}
+                />
+            ) : null}
+            {form && !creating ? (
                 <form
                     onSubmit={(event) => void submit(event)}
                     className="space-y-4"
@@ -336,9 +382,23 @@ export function ServerNetworkingCard({
                                         onChange={(e) => setMac(e.target.value)}
                                     />
                                 </label>
-                                <label>
-                                    Network
+                                <div>
+                                    <span className="flex items-center justify-between">
+                                        Network
+                                        {canCreate("network") ? (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                onClick={() =>
+                                                    setCreating("network")
+                                                }
+                                            >
+                                                Add network
+                                            </Button>
+                                        ) : null}
+                                    </span>
                                     <Select
+                                        aria-label="Network"
                                         value={network}
                                         onChange={(e) => {
                                             setNetwork(e.target.value);
@@ -346,7 +406,7 @@ export function ServerNetworkingCard({
                                         }}
                                     >
                                         <option value="">No network</option>
-                                        {options.networks.map((item) => (
+                                        {networks.map((item) => (
                                             <option
                                                 key={item.resource_id}
                                                 value={item.resource_id}
@@ -355,17 +415,49 @@ export function ServerNetworkingCard({
                                             </option>
                                         ))}
                                     </Select>
-                                </label>
-                                <label>
-                                    Subnet
+                                </div>
+                                <div>
+                                    <span className="flex items-center justify-between">
+                                        Subnet
+                                        {canCreate("subnet") ? (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                disabled={!network}
+                                                onClick={() =>
+                                                    setCreating("subnet")
+                                                }
+                                            >
+                                                Add subnet
+                                            </Button>
+                                        ) : null}
+                                    </span>
+                                    {!network ? (
+                                        <span className="block text-xs text-slate-400">
+                                            Choose or create a network before
+                                            adding a subnet.
+                                        </span>
+                                    ) : null}
                                     <Select
+                                        aria-label="Subnet"
                                         value={subnet}
-                                        onChange={(e) =>
-                                            setSubnet(e.target.value)
-                                        }
+                                        onChange={(e) => {
+                                            setSubnet(e.target.value);
+                                            const selected = subnets.find(
+                                                (item) =>
+                                                    item.resource_id ===
+                                                    Number(e.target.value),
+                                            );
+                                            if (selected)
+                                                setNetwork(
+                                                    String(
+                                                        selected.network_resource_id,
+                                                    ),
+                                                );
+                                        }}
                                     >
                                         <option value="">No subnet</option>
-                                        {options.subnets
+                                        {subnets
                                             .filter(
                                                 (item) =>
                                                     !network ||
@@ -381,7 +473,7 @@ export function ServerNetworkingCard({
                                                 </option>
                                             ))}
                                     </Select>
-                                </label>
+                                </div>
                                 <label>
                                     MTU
                                     <Input

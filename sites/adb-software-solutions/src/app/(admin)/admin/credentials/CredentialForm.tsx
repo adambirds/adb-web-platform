@@ -44,17 +44,24 @@ function apiDateTimeValue(value: string): string | null {
     return new Date(value).toISOString();
 }
 
-function resourceLabel(resource: CredentialOptions["resources"][number]): string {
+function resourceLabel(
+    resource: CredentialOptions["resources"][number],
+): string {
     const type = resource.resource_type.replaceAll("_", " ");
     return `${resource.name} · ${type} · ${resource.client_name || "ADB Internal"}`;
 }
 
-function initialValues(credential: CredentialDetail, fields: CredentialField[]) {
+function initialValues(
+    credential: CredentialDetail,
+    fields: CredentialField[],
+) {
     const values: Record<string, string> = {};
     for (const field of fields) {
-        if (field.storage === "username") values[field.key] = credential.username;
+        if (field.storage === "username")
+            values[field.key] = credential.username;
         else if (field.storage === "url") values[field.key] = credential.url;
-        else if (field.storage === "metadata") values[field.key] = credential.metadata[field.key] ?? "";
+        else if (field.storage === "metadata")
+            values[field.key] = credential.metadata[field.key] ?? "";
         else values[field.key] = "";
     }
     return values;
@@ -76,20 +83,35 @@ export function CredentialForm({
 
     const [name, setName] = useState(credential?.name ?? "");
     const [credentialTypeId, setCredentialTypeId] = useState(
-        credential?.credential_type_id ? String(credential.credential_type_id) : "",
+        credential?.credential_type_id
+            ? String(credential.credential_type_id)
+            : "",
     );
     const [ownershipType, setOwnershipType] = useState<CredentialOwnership>(
         credential?.ownership_type ?? (initialClientId ? "client" : "internal"),
     );
     const [clientId, setClientId] = useState(
-        credential?.client_id ? String(credential.client_id) : initialClientId ? String(initialClientId) : "",
+        credential?.client_id
+            ? String(credential.client_id)
+            : initialClientId
+              ? String(initialClientId)
+              : "",
     );
-    const [status, setStatus] = useState<CredentialStatus>(credential?.status ?? "active");
-    const [description, setDescription] = useState(credential?.description ?? "");
-    const [expiresAt, setExpiresAt] = useState(localDateTimeValue(credential?.expires_at ?? null));
+    const [status, setStatus] = useState<CredentialStatus>(
+        credential?.status ?? "active",
+    );
+    const [description, setDescription] = useState(
+        credential?.description ?? "",
+    );
+    const [expiresAt, setExpiresAt] = useState(
+        localDateTimeValue(credential?.expires_at ?? null),
+    );
     const [values, setValues] = useState<Record<string, string>>({});
     const [clearSecretFields, setClearSecretFields] = useState<string[]>([]);
-    const [resourceLinks, setResourceLinks] = useState<CredentialResourceLinkInput[]>(
+    const [resourceSearch, setResourceSearch] = useState("");
+    const [resourceLinks, setResourceLinks] = useState<
+        CredentialResourceLinkInput[]
+    >(
         credential?.resource_links.map((link) => ({
             resource_id: link.resource_id,
             purpose: link.purpose,
@@ -103,13 +125,21 @@ export function CredentialForm({
             try {
                 setIsLoading(true);
                 setLoadError(null);
-                const loaded = (await fetchAPI(CredentialVaultAPI.options())) as CredentialOptions;
+                const loaded = (await fetchAPI(
+                    CredentialVaultAPI.options(),
+                )) as CredentialOptions;
                 if (cancelled) return;
                 setOptions(loaded);
-                setCredentialTypeId((current) => current || String(loaded.types[0]?.id ?? ""));
+                setCredentialTypeId(
+                    (current) => current || String(loaded.types[0]?.id ?? ""),
+                );
             } catch (error) {
                 if (!cancelled) {
-                    setLoadError(error instanceof Error ? error.message : "Unable to load credential options.");
+                    setLoadError(
+                        error instanceof Error
+                            ? error.message
+                            : "Unable to load credential options.",
+                    );
                 }
             } finally {
                 if (!cancelled) setIsLoading(false);
@@ -123,7 +153,11 @@ export function CredentialForm({
 
     const selectedType = useMemo<CredentialType | null>(() => {
         if (!options) return null;
-        return options.types.find((type) => type.id === Number(credentialTypeId)) ?? null;
+        return (
+            options.types.find(
+                (type) => type.id === Number(credentialTypeId),
+            ) ?? null
+        );
     }, [credentialTypeId, options]);
 
     useEffect(() => {
@@ -133,7 +167,8 @@ export function CredentialForm({
         } else {
             setValues((current) => {
                 const next: Record<string, string> = {};
-                for (const field of selectedType.fields) next[field.key] = current[field.key] ?? "";
+                for (const field of selectedType.fields)
+                    next[field.key] = current[field.key] ?? "";
                 return next;
             });
         }
@@ -144,33 +179,65 @@ export function CredentialForm({
         if (!options) return [];
         if (ownershipType === "internal") return options.resources;
         const selectedClientId = Number(clientId);
-        return options.resources.filter((resource) => resource.client_id === selectedClientId);
+        return options.resources.filter(
+            (resource) => resource.client_id === selectedClientId,
+        );
     }, [clientId, options, ownershipType]);
 
     useEffect(() => {
-        const allowed = new Set(visibleResources.map((resource) => resource.id));
-        setResourceLinks((current) => current.filter((link) => allowed.has(link.resource_id)));
-    }, [visibleResources]);
+        if (!options) return;
+        const allowed = new Set(
+            visibleResources.map((resource) => resource.id),
+        );
+        setResourceLinks((current) =>
+            current.filter((link) => allowed.has(link.resource_id)),
+        );
+    }, [options, visibleResources]);
+
+    const matchingResources = useMemo(() => {
+        const query = resourceSearch.trim().toLowerCase();
+        return visibleResources.filter((resource) =>
+            resourceLabel(resource).toLowerCase().includes(query),
+        );
+    }, [resourceSearch, visibleResources]);
 
     function updateValue(fieldKey: string, value: string) {
         setValues((current) => ({ ...current, [fieldKey]: value }));
         if (value) {
-            setClearSecretFields((current) => current.filter((key) => key !== fieldKey));
+            setClearSecretFields((current) =>
+                current.filter((key) => key !== fieldKey),
+            );
         }
     }
 
     function toggleResource(resourceId: number) {
         setResourceLinks((current) => {
             if (current.some((link) => link.resource_id === resourceId)) {
-                return current.filter((link) => link.resource_id !== resourceId);
+                return current.filter(
+                    (link) => link.resource_id !== resourceId,
+                );
             }
-            return [...current, { resource_id: resourceId, purpose: "", is_primary: current.length === 0 }];
+            return [
+                ...current,
+                {
+                    resource_id: resourceId,
+                    purpose: "",
+                    is_primary: current.length === 0,
+                },
+            ];
         });
     }
 
-    function updateResourceLink(resourceId: number, changes: Partial<CredentialResourceLinkInput>) {
+    function updateResourceLink(
+        resourceId: number,
+        changes: Partial<CredentialResourceLinkInput>,
+    ) {
         setResourceLinks((current) =>
-            current.map((link) => (link.resource_id === resourceId ? { ...link, ...changes } : link)),
+            current.map((link) =>
+                link.resource_id === resourceId
+                    ? { ...link, ...changes }
+                    : link,
+            ),
         );
     }
 
@@ -201,16 +268,20 @@ export function CredentialForm({
                         ? { expires_at: apiDateTimeValue(expiresAt) }
                         : { clear_expires_at: true }),
                 };
-                saved = (await fetchAPI(CredentialVaultAPI.update(credential.id), {
-                    method: "PUT",
-                    body: JSON.stringify(payload),
-                })) as CredentialDetail;
+                saved = (await fetchAPI(
+                    CredentialVaultAPI.update(credential.id),
+                    {
+                        method: "PUT",
+                        body: JSON.stringify(payload),
+                    },
+                )) as CredentialDetail;
             } else {
                 const payload: CredentialCreatePayload = {
                     name: name.trim(),
                     credential_type_id: selectedType.id,
                     ownership_type: ownershipType,
-                    client_id: ownershipType === "client" ? Number(clientId) : null,
+                    client_id:
+                        ownershipType === "client" ? Number(clientId) : null,
                     status,
                     description: description.trim(),
                     expires_at: apiDateTimeValue(expiresAt),
@@ -224,7 +295,11 @@ export function CredentialForm({
             }
             onSaved(saved);
         } catch (error) {
-            setSaveError(error instanceof Error ? error.message : "Unable to save this credential.");
+            setSaveError(
+                error instanceof Error
+                    ? error.message
+                    : "Unable to save this credential.",
+            );
         } finally {
             setIsSaving(false);
         }
@@ -232,7 +307,11 @@ export function CredentialForm({
 
     if (isLoading) return <DataLoading label="Loading credential editor..." />;
     if (loadError || !options) {
-        return <DataError message={loadError || "Credential options are unavailable."} />;
+        return (
+            <DataError
+                message={loadError || "Credential options are unavailable."}
+            />
+        );
     }
 
     return (
@@ -240,38 +319,66 @@ export function CredentialForm({
             <Card className="p-5">
                 <div className="grid gap-4 md:grid-cols-2">
                     <div className="md:col-span-2">
-                        <label className="mb-2 block text-xs font-medium text-slate-400">Name</label>
-                        <Input value={name} onChange={(event) => setName(event.target.value)} required disabled={isSaving} />
+                        <label className="mb-2 block text-xs font-medium text-slate-400">
+                            Name
+                        </label>
+                        <Input
+                            value={name}
+                            onChange={(event) => setName(event.target.value)}
+                            required
+                            disabled={isSaving}
+                        />
                     </div>
                     <div>
-                        <label className="mb-2 block text-xs font-medium text-slate-400">Credential type</label>
+                        <label className="mb-2 block text-xs font-medium text-slate-400">
+                            Credential type
+                        </label>
                         <Select
                             value={credentialTypeId}
-                            onChange={(event) => setCredentialTypeId(event.target.value)}
+                            onChange={(event) =>
+                                setCredentialTypeId(event.target.value)
+                            }
                             disabled={isEditing || isSaving}
                         >
                             {options.types.map((type) => (
-                                <option key={type.id} value={type.id}>{type.name}</option>
+                                <option key={type.id} value={type.id}>
+                                    {type.name}
+                                </option>
                             ))}
                         </Select>
                         {selectedType?.description ? (
-                            <p className="mt-2 text-xs leading-5 text-slate-500">{selectedType.description}</p>
+                            <p className="mt-2 text-xs leading-5 text-slate-500">
+                                {selectedType.description}
+                            </p>
                         ) : null}
                     </div>
                     <div>
-                        <label className="mb-2 block text-xs font-medium text-slate-400">Status</label>
-                        <Select value={status} onChange={(event) => setStatus(event.target.value as CredentialStatus)} disabled={isSaving}>
+                        <label className="mb-2 block text-xs font-medium text-slate-400">
+                            Status
+                        </label>
+                        <Select
+                            value={status}
+                            onChange={(event) =>
+                                setStatus(
+                                    event.target.value as CredentialStatus,
+                                )
+                            }
+                            disabled={isSaving}
+                        >
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                             <option value="archived">Archived</option>
                         </Select>
                     </div>
                     <div>
-                        <label className="mb-2 block text-xs font-medium text-slate-400">Ownership</label>
+                        <label className="mb-2 block text-xs font-medium text-slate-400">
+                            Ownership
+                        </label>
                         <Select
                             value={ownershipType}
                             onChange={(event) => {
-                                const next = event.target.value as CredentialOwnership;
+                                const next = event.target
+                                    .value as CredentialOwnership;
                                 setOwnershipType(next);
                                 if (next === "internal") setClientId("");
                             }}
@@ -282,60 +389,128 @@ export function CredentialForm({
                         </Select>
                     </div>
                     <div>
-                        <label className="mb-2 block text-xs font-medium text-slate-400">Client</label>
+                        <label className="mb-2 block text-xs font-medium text-slate-400">
+                            Client
+                        </label>
                         <Select
                             value={clientId}
-                            onChange={(event) => setClientId(event.target.value)}
-                            disabled={ownershipType !== "client" || isEditing || isSaving}
+                            onChange={(event) =>
+                                setClientId(event.target.value)
+                            }
+                            disabled={
+                                ownershipType !== "client" ||
+                                isEditing ||
+                                isSaving
+                            }
                         >
                             <option value="">Choose client</option>
                             {options.clients.map((client) => (
-                                <option key={client.id} value={client.id}>{client.name}</option>
+                                <option key={client.id} value={client.id}>
+                                    {client.name}
+                                </option>
                             ))}
                         </Select>
                     </div>
                     <div>
-                        <label className="mb-2 block text-xs font-medium text-slate-400">Expires</label>
-                        <Input type="datetime-local" value={expiresAt} onChange={(event) => setExpiresAt(event.target.value)} disabled={isSaving} />
+                        <label className="mb-2 block text-xs font-medium text-slate-400">
+                            Expires
+                        </label>
+                        <Input
+                            type="datetime-local"
+                            value={expiresAt}
+                            onChange={(event) =>
+                                setExpiresAt(event.target.value)
+                            }
+                            disabled={isSaving}
+                        />
                     </div>
                     <div className="md:col-span-2">
-                        <label className="mb-2 block text-xs font-medium text-slate-400">Description</label>
-                        <Textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={3} disabled={isSaving} />
+                        <label className="mb-2 block text-xs font-medium text-slate-400">
+                            Description
+                        </label>
+                        <Textarea
+                            value={description}
+                            onChange={(event) =>
+                                setDescription(event.target.value)
+                            }
+                            rows={3}
+                            disabled={isSaving}
+                        />
                     </div>
                 </div>
             </Card>
 
             <Card className="p-5">
                 <div>
-                    <h2 className="text-sm font-semibold text-white">Credential fields</h2>
+                    <h2 className="text-sm font-semibold text-white">
+                        Credential fields
+                    </h2>
                     <p className="mt-1 text-xs leading-5 text-slate-500">
-                        Secret fields are encrypted before storage. Existing secret values are never loaded back into this form.
+                        Secret fields are encrypted before storage. Existing
+                        secret values are never loaded back into this form.
                     </p>
                 </div>
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
                     {selectedType?.fields.map((field) => {
                         const isSecret = field.storage === "secret";
-                        const existingSecret = Boolean(credential?.secret_field_keys.includes(field.key));
-                        const canClear = isEditing && isSecret && existingSecret && !field.required;
+                        const existingSecret = Boolean(
+                            credential?.secret_field_keys.includes(field.key),
+                        );
+                        const canClear =
+                            isEditing &&
+                            isSecret &&
+                            existingSecret &&
+                            !field.required;
                         const common = {
                             value: values[field.key] ?? "",
-                            onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => updateValue(field.key, event.target.value),
+                            onChange: (
+                                event: React.ChangeEvent<
+                                    HTMLInputElement | HTMLTextAreaElement
+                                >,
+                            ) => updateValue(field.key, event.target.value),
                             disabled: isSaving,
                             required: !isEditing && field.required,
-                            placeholder: isEditing && isSecret && existingSecret ? "Leave blank to keep existing encrypted value" : undefined,
+                            placeholder:
+                                isEditing && isSecret && existingSecret
+                                    ? "Leave blank to keep existing encrypted value"
+                                    : undefined,
                         };
                         return (
-                            <div key={field.key} className={field.kind === "textarea" ? "md:col-span-2" : ""}>
+                            <div
+                                key={field.key}
+                                className={
+                                    field.kind === "textarea"
+                                        ? "md:col-span-2"
+                                        : ""
+                                }
+                            >
                                 <div className="mb-2 flex items-center justify-between gap-3">
                                     <label className="text-xs font-medium text-slate-400">
-                                        {field.label}{field.required ? " *" : ""}
+                                        {field.label}
+                                        {field.required ? " *" : ""}
                                     </label>
                                     {canClear ? (
                                         <label className="flex items-center gap-2 text-[11px] text-slate-500">
                                             <input
                                                 type="checkbox"
-                                                checked={clearSecretFields.includes(field.key)}
-                                                onChange={(event) => setClearSecretFields((current) => event.target.checked ? [...current, field.key] : current.filter((key) => key !== field.key))}
+                                                checked={clearSecretFields.includes(
+                                                    field.key,
+                                                )}
+                                                onChange={(event) =>
+                                                    setClearSecretFields(
+                                                        (current) =>
+                                                            event.target.checked
+                                                                ? [
+                                                                      ...current,
+                                                                      field.key,
+                                                                  ]
+                                                                : current.filter(
+                                                                      (key) =>
+                                                                          key !==
+                                                                          field.key,
+                                                                  ),
+                                                    )
+                                                }
                                                 disabled={isSaving}
                                             />
                                             Clear stored value
@@ -343,16 +518,32 @@ export function CredentialForm({
                                     ) : null}
                                 </div>
                                 {field.kind === "textarea" ? (
-                                    <Textarea {...common} rows={field.key.includes("key") || field.key.includes("certificate") ? 8 : 4} />
+                                    <Textarea
+                                        {...common}
+                                        rows={
+                                            field.key.includes("key") ||
+                                            field.key.includes("certificate")
+                                                ? 8
+                                                : 4
+                                        }
+                                    />
                                 ) : (
                                     <Input
                                         {...common}
-                                        type={field.kind === "password" ? "password" : field.kind === "url" ? "url" : "text"}
+                                        type={
+                                            field.kind === "password"
+                                                ? "password"
+                                                : field.kind === "url"
+                                                  ? "url"
+                                                  : "text"
+                                        }
                                         autoComplete="off"
                                     />
                                 )}
                                 {isSecret && existingSecret ? (
-                                    <p className="mt-1 text-[11px] text-emerald-400/80">Encrypted value currently stored.</p>
+                                    <p className="mt-1 text-[11px] text-emerald-400/80">
+                                        Encrypted value currently stored.
+                                    </p>
                                 ) : null}
                             </div>
                         );
@@ -362,42 +553,93 @@ export function CredentialForm({
 
             <Card className="p-5">
                 <div>
-                    <h2 className="text-sm font-semibold text-white">Linked infrastructure</h2>
+                    <h2 className="text-sm font-semibold text-white">
+                        Linked infrastructure
+                    </h2>
                     <p className="mt-1 text-xs leading-5 text-slate-500">
-                        Link the credential to the servers, websites, databases, applications or other resources that use it.
+                        Link the credential to the servers, websites, databases,
+                        applications or other resources that use it.
                     </p>
                 </div>
+                <Input
+                    className="mt-4"
+                    aria-label="Search infrastructure resources"
+                    placeholder="Search by resource name, type or client…"
+                    value={resourceSearch}
+                    onChange={(event) => setResourceSearch(event.target.value)}
+                    disabled={isSaving}
+                />
+                <p className="mt-2 text-xs text-slate-400">
+                    {resourceLinks.length} linked · {matchingResources.length}{" "}
+                    matching resources
+                </p>
                 {visibleResources.length === 0 ? (
-                    <p className="mt-4 text-sm text-slate-500">No eligible infrastructure resources are available for this ownership scope.</p>
+                    <p className="mt-4 text-sm text-slate-500">
+                        No eligible infrastructure resources are available for
+                        this ownership scope.
+                    </p>
+                ) : matchingResources.length === 0 ? (
+                    <p className="mt-4 text-sm text-slate-500">
+                        No resources match your search.
+                    </p>
                 ) : (
-                    <div className="mt-4 space-y-3">
-                        {visibleResources.map((resource) => {
-                            const link = resourceLinks.find((item) => item.resource_id === resource.id);
+                    <div className="mt-4 max-h-96 space-y-3 overflow-y-auto">
+                        {matchingResources.map((resource) => {
+                            const link = resourceLinks.find(
+                                (item) => item.resource_id === resource.id,
+                            );
                             return (
-                                <div key={resource.id} className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+                                <div
+                                    key={resource.id}
+                                    className="rounded-lg border border-slate-800 bg-slate-950/40 p-3"
+                                >
                                     <label className="flex cursor-pointer items-start gap-3">
                                         <input
                                             type="checkbox"
                                             className="mt-1"
                                             checked={Boolean(link)}
-                                            onChange={() => toggleResource(resource.id)}
+                                            onChange={() =>
+                                                toggleResource(resource.id)
+                                            }
                                             disabled={isSaving}
                                         />
-                                        <span className="text-sm text-slate-300">{resourceLabel(resource)}</span>
+                                        <span className="text-sm text-slate-300">
+                                            {resourceLabel(resource)}
+                                        </span>
                                     </label>
                                     {link ? (
                                         <div className="mt-3 grid gap-3 pl-6 md:grid-cols-[minmax(0,1fr)_auto]">
                                             <Input
                                                 value={link.purpose ?? ""}
-                                                onChange={(event) => updateResourceLink(resource.id, { purpose: event.target.value })}
+                                                onChange={(event) =>
+                                                    updateResourceLink(
+                                                        resource.id,
+                                                        {
+                                                            purpose:
+                                                                event.target
+                                                                    .value,
+                                                        },
+                                                    )
+                                                }
                                                 placeholder="Purpose, e.g. Production SSH login"
                                                 disabled={isSaving}
                                             />
                                             <label className="flex items-center gap-2 text-xs text-slate-400">
                                                 <input
                                                     type="checkbox"
-                                                    checked={Boolean(link.is_primary)}
-                                                    onChange={(event) => updateResourceLink(resource.id, { is_primary: event.target.checked })}
+                                                    checked={Boolean(
+                                                        link.is_primary,
+                                                    )}
+                                                    onChange={(event) =>
+                                                        updateResourceLink(
+                                                            resource.id,
+                                                            {
+                                                                is_primary:
+                                                                    event.target
+                                                                        .checked,
+                                                            },
+                                                        )
+                                                    }
                                                     disabled={isSaving}
                                                 />
                                                 Primary
@@ -412,12 +654,28 @@ export function CredentialForm({
             </Card>
 
             {saveError ? (
-                <div className="rounded-lg border border-red-900/70 bg-red-950/40 px-4 py-3 text-sm text-red-200">{saveError}</div>
+                <div className="rounded-lg border border-red-900/70 bg-red-950/40 px-4 py-3 text-sm text-red-200">
+                    {saveError}
+                </div>
             ) : null}
             <div className="flex justify-end gap-2">
-                <Button type="button" variant="ghost" onClick={onCancel} disabled={isSaving}>Cancel</Button>
-                <Button type="submit" disabled={isSaving || !name.trim() || !selectedType}>
-                    {isSaving ? "Saving..." : isEditing ? "Save credential" : "Create credential"}
+                <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={onCancel}
+                    disabled={isSaving}
+                >
+                    Cancel
+                </Button>
+                <Button
+                    type="submit"
+                    disabled={isSaving || !name.trim() || !selectedType}
+                >
+                    {isSaving
+                        ? "Saving..."
+                        : isEditing
+                          ? "Save credential"
+                          : "Create credential"}
                 </Button>
             </div>
         </form>

@@ -136,7 +136,7 @@ def lead_overview(
                 name=lead.name,
                 company=lead.company,
                 email=lead.email,
-                status=lead.status.name if lead.status else "Unassigned",
+                status=lead.status.name if lead.status else "No sales stage",
                 outcome=lead.status.outcome if lead.status else LeadStatus.Outcome.OPEN,
                 source=lead.source.name if lead.source else "Unknown",
                 brand=lead.brand.name if lead.brand else "Unassigned",

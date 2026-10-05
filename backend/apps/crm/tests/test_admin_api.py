@@ -14,8 +14,15 @@ from apps.crm.ninja.admin_views import (
     get_lead,
     update_lead,
     update_lead_assignment,
+    update_lead_stage,
 )
-from apps.crm.ninja.schemas import LeadAssignmentIn, LeadConversionOut, LeadDetailOut, LeadIn
+from apps.crm.ninja.schemas import (
+    LeadAssignmentIn,
+    LeadConversionOut,
+    LeadDetailOut,
+    LeadIn,
+    LeadStageIn,
+)
 from apps.ticketing.models import Ticket, TicketMessage, TicketQueue
 from authentication.models import User
 
@@ -30,8 +37,8 @@ class LeadAdminApiTests(TestCase):
             last_name="User",
         )
         self.brand = Brand.objects.get(slug="adb-software-solutions")
-        self.status = LeadStatus.objects.create(name="Qualified", order=20)
-        self.source = LeadSource.objects.create(name="Referral")
+        self.status = LeadStatus.objects.get_or_create(name="Qualified", defaults={"order": 20})[0]
+        self.source = LeadSource.objects.get_or_create(name="Referral")[0]
 
     def _request(self, user: User, method: str = "post") -> HttpRequest:
         request = getattr(self.factory, method)("/api/admin/leads")
@@ -261,6 +268,8 @@ class LeadAdminApiTests(TestCase):
 
         lead.refresh_from_db()
         self.assertIsNotNone(lead.converted_at)
+        assert lead.status is not None
+        self.assertEqual(lead.status.outcome, LeadStatus.Outcome.WON)
         self.assertEqual(lead.converted_by, self.superuser)
         self.assertEqual(lead.converted_client_id, conversion.client_id)
         self.assertEqual(lead.converted_contact_id, conversion.contact_id)
@@ -300,3 +309,63 @@ class LeadAdminApiTests(TestCase):
         self.assertEqual(status_code, 403)
         self.assertEqual(problem["code"], "forbidden")
         self.assertIsNone(lead.converted_at)
+
+    def test_direct_stage_update_requires_change_permission(self) -> None:
+        lead = Lead.objects.create(
+            name="Prospect", email="prospect@example.com", status=self.status
+        )
+        won = LeadStatus.objects.get(name="Won")
+        viewer = self._staff_with_permission("view_lead")
+        denied = update_lead_stage(self._request(viewer), lead.id, LeadStageIn(status_id=won.id))
+        assert isinstance(denied, tuple)
+        self.assertEqual(denied[0], 403)
+        lead.refresh_from_db()
+        self.assertEqual(lead.status, self.status)
+        editor = self._staff_with_permission("change_lead")
+        result = update_lead_stage(self._request(editor), lead.id, LeadStageIn(status_id=won.id))
+        self.assertIsInstance(result, LeadDetailOut)
+        lead.refresh_from_db()
+        assert lead.status is not None
+        self.assertEqual(lead.status.outcome, "won")
+        self.assertEqual(lead.name, "Prospect")
+
+    def test_direct_stage_update_rejects_unknown_stage(self) -> None:
+        lead = Lead.objects.create(
+            name="Prospect", email="prospect@example.com", status=self.status
+        )
+        result = update_lead_stage(
+            self._request(self.superuser), lead.id, LeadStageIn(status_id=999999)
+        )
+        assert isinstance(result, tuple)
+        self.assertEqual(result[0], 404)
+        lead.refresh_from_db()
+        self.assertEqual(lead.status, self.status)
+
+    def test_converted_lead_cannot_be_marked_lost(self) -> None:
+        lead = Lead.objects.create(
+            name="Prospect", email="prospect@example.com", status=self.status
+        )
+        convert_lead_to_client(self._request(self.superuser), lead.id)
+        lost = LeadStatus.objects.get(name="Lost")
+        result = update_lead_stage(
+            self._request(self.superuser), lead.id, LeadStageIn(status_id=lost.id)
+        )
+        assert isinstance(result, tuple)
+        self.assertEqual(result[0], 400)
+        lead.refresh_from_db()
+        assert lead.status is not None
+        self.assertEqual(lead.status.outcome, "won")
+
+    def test_conversion_requires_won_configuration_without_partial_client_creation(self) -> None:
+        LeadStatus.objects.filter(outcome="won").delete()
+        lead = Lead.objects.create(
+            name="Prospect", email="prospect@example.com", status=self.status
+        )
+        count = Client.objects.count()
+        result = convert_lead_to_client(self._request(self.superuser), lead.id)
+        assert isinstance(result, tuple)
+        self.assertEqual(result[0], 400)
+        self.assertEqual(Client.objects.count(), count)
+        lead.refresh_from_db()
+        self.assertIsNone(lead.converted_at)
+        self.assertEqual(lead.status, self.status)

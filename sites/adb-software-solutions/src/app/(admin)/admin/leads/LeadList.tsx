@@ -79,13 +79,33 @@ interface LeadOverviewResponse {
     total_pages: number;
 }
 
-const workViews: Array<{ value: LeadView; label: string; description: string }> = [
-    { value: "my", label: "My leads", description: "Active opportunities assigned to you" },
-    { value: "unassigned", label: "Unassigned", description: "Active leads needing an owner" },
-    { value: "active", label: "All active", description: "Every open opportunity in your scope" },
+const workViews: Array<{
+    value: LeadView;
+    label: string;
+    description: string;
+}> = [
+    {
+        value: "my",
+        label: "My leads",
+        description: "Active opportunities assigned to you",
+    },
+    {
+        value: "unassigned",
+        label: "Unassigned",
+        description: "Active leads needing an owner",
+    },
+    {
+        value: "active",
+        label: "All active",
+        description: "Every open opportunity in your scope",
+    },
 ];
 
-const historyViews: Array<{ value: LeadView; label: string; description: string }> = [
+const historyViews: Array<{
+    value: LeadView;
+    label: string;
+    description: string;
+}> = [
     { value: "won", label: "Won", description: "Successful opportunities" },
     { value: "lost", label: "Lost", description: "Closed-lost opportunities" },
     { value: "all", label: "All leads", description: "Full CRM history" },
@@ -141,11 +161,17 @@ function SidebarLink({
             }`}
         >
             <div className="flex items-center justify-between gap-3">
-                <span className={active ? "text-sm font-semibold text-white" : "text-sm font-medium"}>
+                <span
+                    className={
+                        active
+                            ? "text-sm font-semibold text-white"
+                            : "text-sm font-medium"
+                    }
+                >
                     {label}
                 </span>
                 {count !== undefined ? (
-                    <span className="rounded-full bg-slate-950 px-2 py-0.5 text-xs tabular-nums text-slate-500">
+                    <span className="rounded-full bg-slate-950 px-2 py-0.5 text-xs text-slate-500 tabular-nums">
                         {count}
                     </span>
                 ) : null}
@@ -155,13 +181,23 @@ function SidebarLink({
     );
 }
 
-function StatCard({ label, value, detail }: { label: string; value: number; detail: string }) {
+function StatCard({
+    label,
+    value,
+    detail,
+}: {
+    label: string;
+    value: number;
+    detail: string;
+}) {
     return (
         <Card className="p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <div className="text-xs font-semibold tracking-[0.14em] text-slate-500 uppercase">
                 {label}
             </div>
-            <div className="mt-2 text-2xl font-semibold tabular-nums text-white">{value}</div>
+            <div className="mt-2 text-2xl font-semibold text-white tabular-nums">
+                {value}
+            </div>
             <div className="mt-1 text-xs text-slate-500">{detail}</div>
         </Card>
     );
@@ -205,7 +241,9 @@ export function LeadList() {
             setIsLoading(true);
             setError(null);
             const [overview, leadOptions, brandRows] = await Promise.all([
-                fetchAPI(OverviewAPI.leads(query)) as Promise<LeadOverviewResponse>,
+                fetchAPI(
+                    OverviewAPI.leads(query),
+                ) as Promise<LeadOverviewResponse>,
                 fetchAPI(AdminAPI.leads.options()) as Promise<LeadOptions>,
                 fetchAPI(AdminAPI.brands.list()) as Promise<Brand[]>,
             ]);
@@ -237,18 +275,22 @@ export function LeadList() {
         setAssignedToId("");
     }
 
-    if (isLoading && !data) return <DataLoading label="Loading sales pipeline..." />;
-    if (error && !data) return <DataError message={error} onRetry={() => void loadLeads()} />;
+    if (isLoading && !data)
+        return <DataLoading label="Loading sales pipeline..." />;
+    if (error && !data)
+        return <DataError message={error} onRetry={() => void loadLeads()} />;
 
     const leads = data?.items ?? [];
     const stats = data?.stats;
-    const activeView = [...workViews, ...historyViews].find((item) => item.value === view);
+    const activeView = [...workViews, ...historyViews].find(
+        (item) => item.value === view,
+    );
 
     return (
         <div className="grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
             <aside className="space-y-5 xl:sticky xl:top-6 xl:self-start">
                 <div>
-                    <div className="px-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">
+                    <div className="px-2 text-xs font-semibold tracking-[0.14em] text-slate-600 uppercase">
                         Work queue
                     </div>
                     <div className="mt-2 space-y-1">
@@ -272,7 +314,7 @@ export function LeadList() {
                 </div>
 
                 <div className="border-t border-slate-800 pt-4">
-                    <div className="px-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-700">
+                    <div className="px-2 text-xs font-semibold tracking-[0.14em] text-slate-700 uppercase">
                         History
                     </div>
                     <div className="mt-2 space-y-1">
@@ -292,18 +334,37 @@ export function LeadList() {
 
             <div className="min-w-0 space-y-5">
                 <div>
-                    <h2 className="text-xl font-semibold text-white">{activeView?.label || "My leads"}</h2>
+                    <h2 className="text-xl font-semibold text-white">
+                        {activeView?.label || "My leads"}
+                    </h2>
                     <p className="mt-1 text-sm text-slate-500">
-                        {activeView?.description || "Active opportunities assigned to you"}
+                        {activeView?.description ||
+                            "Active opportunities assigned to you"}
                     </p>
                 </div>
 
                 {stats ? (
                     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                        <StatCard label="My leads" value={stats.mine} detail="Active and assigned to you" />
-                        <StatCard label="Active pipeline" value={stats.active} detail="Not won, lost or converted" />
-                        <StatCard label="Unassigned" value={stats.unassigned} detail="Active leads needing an owner" />
-                        <StatCard label="New · 30 days" value={stats.new_last_30_days} detail="Fresh active opportunities" />
+                        <StatCard
+                            label="My leads"
+                            value={stats.mine}
+                            detail="Active and assigned to you"
+                        />
+                        <StatCard
+                            label="Active pipeline"
+                            value={stats.active}
+                            detail="Not won, lost or converted"
+                        />
+                        <StatCard
+                            label="Unassigned"
+                            value={stats.unassigned}
+                            detail="Active leads needing an owner"
+                        />
+                        <StatCard
+                            label="New · 30 days"
+                            value={stats.new_last_30_days}
+                            detail="Fresh active opportunities"
+                        />
                     </div>
                 ) : null}
 
@@ -315,7 +376,12 @@ export function LeadList() {
                             placeholder="Search name, company, email or enquiry..."
                             aria-label="Search leads"
                         />
-                        <Select value={statusId} onChange={(event) => setStatusId(event.target.value)}>
+                        <Select
+                            value={statusId}
+                            onChange={(event) =>
+                                setStatusId(event.target.value)
+                            }
+                        >
                             <option value="">All statuses in this view</option>
                             {options.statuses.map((status) => (
                                 <option key={status.id} value={status.id}>
@@ -323,7 +389,12 @@ export function LeadList() {
                                 </option>
                             ))}
                         </Select>
-                        <Select value={sourceId} onChange={(event) => setSourceId(event.target.value)}>
+                        <Select
+                            value={sourceId}
+                            onChange={(event) =>
+                                setSourceId(event.target.value)
+                            }
+                        >
                             <option value="">All sources</option>
                             {options.sources.map((source) => (
                                 <option key={source.id} value={source.id}>
@@ -331,7 +402,10 @@ export function LeadList() {
                                 </option>
                             ))}
                         </Select>
-                        <Select value={brandId} onChange={(event) => setBrandId(event.target.value)}>
+                        <Select
+                            value={brandId}
+                            onChange={(event) => setBrandId(event.target.value)}
+                        >
                             <option value="">All active brands</option>
                             {brands.map((brand) => (
                                 <option key={brand.id} value={brand.id}>
@@ -344,7 +418,8 @@ export function LeadList() {
                             onChange={(event) => {
                                 const nextOwner = event.target.value;
                                 setAssignedToId(nextOwner);
-                                if (nextOwner && view === "my") setView("active");
+                                if (nextOwner && view === "my")
+                                    setView("active");
                             }}
                         >
                             <option value="">Any owner in this view</option>
@@ -358,13 +433,17 @@ export function LeadList() {
 
                     {view === "won" || view === "lost" || view === "all" ? (
                         <div className="border-b border-slate-800 bg-slate-900/40 px-4 py-2 text-xs text-slate-500">
-                            This is a historical CRM view. Day-to-day work stays in My leads, Unassigned and All active.
+                            This is a historical CRM view. Day-to-day work stays
+                            in My leads, Unassigned and All active.
                         </div>
                     ) : null}
 
                     {error ? (
                         <div className="border-b border-slate-800 p-4">
-                            <DataError message={error} onRetry={() => void loadLeads()} />
+                            <DataError
+                                message={error}
+                                onRetry={() => void loadLeads()}
+                            />
                         </div>
                     ) : null}
 
@@ -378,7 +457,9 @@ export function LeadList() {
                             <TableHead>
                                 <tr>
                                     <TableHeaderCell>Lead</TableHeaderCell>
-                                    <TableHeaderCell>Status</TableHeaderCell>
+                                    <TableHeaderCell>
+                                        Sales stage
+                                    </TableHeaderCell>
                                     <TableHeaderCell>Owner</TableHeaderCell>
                                     <TableHeaderCell>Brand</TableHeaderCell>
                                     <TableHeaderCell>Source</TableHeaderCell>
@@ -391,7 +472,9 @@ export function LeadList() {
                                         <TableCell>
                                             <button
                                                 type="button"
-                                                onClick={() => setSelectedLeadId(lead.id)}
+                                                onClick={() =>
+                                                    setSelectedLeadId(lead.id)
+                                                }
                                                 className="text-left font-medium text-slate-100 transition hover:text-cyan-300"
                                             >
                                                 {lead.company || lead.name}
@@ -401,13 +484,22 @@ export function LeadList() {
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <Badge className={statusClasses(lead)}>{lead.status}</Badge>
+                                            <Badge
+                                                className={statusClasses(lead)}
+                                            >
+                                                {lead.status}
+                                            </Badge>
                                         </TableCell>
                                         <TableCell className="text-slate-400">
-                                            {lead.assigned_to_name || "Unassigned"}
+                                            {lead.assigned_to_name ||
+                                                "Unassigned"}
                                         </TableCell>
-                                        <TableCell className="text-slate-400">{lead.brand}</TableCell>
-                                        <TableCell className="text-slate-400">{lead.source}</TableCell>
+                                        <TableCell className="text-slate-400">
+                                            {lead.brand}
+                                        </TableCell>
+                                        <TableCell className="text-slate-400">
+                                            {lead.source}
+                                        </TableCell>
                                         <TableCell className="text-slate-400">
                                             {formatDate(lead.created_at)}
                                         </TableCell>
@@ -436,7 +528,11 @@ export function LeadList() {
                     }}
                 >
                     <div className="space-y-6">
-                        <LeadWorkspace leadId={selectedLeadId} presentation="drawer" />
+                        <LeadWorkspace
+                            leadId={selectedLeadId}
+                            presentation="drawer"
+                            onChanged={() => void loadLeads()}
+                        />
                         <LeadEmailPanel leadId={selectedLeadId} />
                     </div>
                 </RecordDrawer>

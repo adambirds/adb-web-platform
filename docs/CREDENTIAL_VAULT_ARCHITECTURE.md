@@ -329,3 +329,15 @@ After the initial vault is stable:
   relationship exists;
 - consider break-glass/step-up authentication for especially sensitive roles if
   the product threat model requires it.
+
+## Resource-context creation and link selection
+
+Creating a Credential from any Infrastructure resource workspace preselects that
+resource and submits its link atomically with the Credential. The form preserves
+initial and existing links while the scoped resource options are loading, then
+validates their eligibility against the selected Credential ownership.
+
+The create/edit form's infrastructure selector supports search by resource name,
+type and Client/Internal label. Filtering the displayed list does not remove
+selected links; the selection count remains visible and the results scroll within
+the form. Backend scope and ownership validation remain authoritative.

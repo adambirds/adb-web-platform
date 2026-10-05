@@ -155,11 +155,36 @@ def _history_metrics(check: MonitorCheck, since: datetime) -> tuple[float | None
     return uptime, round(float(average)) if average is not None else None
 
 
-def _check_detail_out(request: HttpRequest, check: MonitorCheck) -> MonitorCheckDetailOut:
+def _check_detail_out(
+    request: HttpRequest,
+    check: MonitorCheck,
+    results_page: int = 1,
+    results_page_size: int = 50,
+) -> MonitorCheckDetailOut:
     now = timezone.now()
     uptime_24h, average_24h = _history_metrics(check, now - timedelta(hours=24))
     uptime_7d, average_7d = _history_metrics(check, now - timedelta(days=7))
-    results = list(check.results.order_by("-started_at", "-id")[:50])
+    results_page_size = max(1, min(results_page_size, 100))
+    results_total = check.results.count()
+    last_page = max(1, (results_total + results_page_size - 1) // results_page_size)
+    results_page = max(1, min(results_page, last_page))
+    offset = (results_page - 1) * results_page_size
+    results = list(
+        check.results.order_by("-started_at", "-id")[offset : offset + results_page_size]
+    )
+    timing_types = {
+        MonitorCheck.CheckType.ICMP,
+        MonitorCheck.CheckType.TCP,
+        MonitorCheck.CheckType.HTTP,
+        MonitorCheck.CheckType.CONTENT,
+        MonitorCheck.CheckType.DNS,
+        MonitorCheck.CheckType.TLS,
+    }
+    trend = (
+        list(check.results.order_by("-started_at", "-id")[:200])
+        if check.check_type in timing_types
+        else []
+    )
     incidents = list(check.incidents.order_by("status", "-opened_at", "-id")[:20])
     base = _check_out(check)
     return MonitorCheckDetailOut(
@@ -181,6 +206,10 @@ def _check_detail_out(request: HttpRequest, check: MonitorCheck) -> MonitorCheck
         average_response_24h_ms=average_24h,
         average_response_7d_ms=average_7d,
         results=[_result_out(result) for result in results],
+        results_page=results_page,
+        results_page_size=results_page_size,
+        results_total=results_total,
+        trend_results=[_result_out(result) for result in reversed(trend)],
         incidents=[_incident_out(incident) for incident in incidents],
     )
 
@@ -375,6 +404,8 @@ def monitor_check_configuration(
 def monitor_check_detail(
     request: HttpRequest,
     check_id: int,
+    results_page: int = 1,
+    results_page_size: int = 50,
 ) -> MonitorCheckDetailOut | StaffProblem:
     problem = _permission_problem(
         request,
@@ -387,7 +418,7 @@ def monitor_check_detail(
     check = _visible_check(request, check_id)
     if check is None:
         return _problem(404, "Monitoring check not found.", "not_found")
-    return _check_detail_out(request, check)
+    return _check_detail_out(request, check, results_page, results_page_size)
 
 
 @monitoring_router.put(

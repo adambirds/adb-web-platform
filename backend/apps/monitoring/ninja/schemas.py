@@ -96,6 +96,10 @@ class MonitorCheckDetailOut(MonitorCheckOut):
     average_response_24h_ms: int | None
     average_response_7d_ms: int | None
     results: list[MonitorResultOut]
+    results_page: int
+    results_page_size: int
+    results_total: int
+    trend_results: list[MonitorResultOut]
     incidents: list[MonitorIncidentOut]
 
 

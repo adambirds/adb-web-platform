@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import socket
 import ssl
-import subprocess
 import time
 import urllib.error
 import urllib.request
@@ -11,6 +10,7 @@ from datetime import UTC, datetime
 from urllib.parse import urlparse
 
 from django.utils import timezone
+from icmplib import ICMPLibError, SocketPermissionError, ping
 
 from .models import MonitorCheck
 from .services import CheckObservation
@@ -51,16 +51,15 @@ def execute_check(check: MonitorCheck) -> CheckObservation:
 
         def icmp_probe() -> tuple[bool, str, int | None, str]:
             try:
-                result = subprocess.run(
-                    ["ping", "-n", "-c", "1", "-W", str(timeout), check.target],
-                    capture_output=True,
-                    text=True,
-                    timeout=timeout + 1,
-                    check=False,
-                )
-            except subprocess.TimeoutExpired as error:
-                raise OSError("ICMP probe timed out.") from error
-            successful = result.returncode == 0
+                result = ping(check.target, count=1, interval=0, timeout=timeout, privileged=False)
+            except SocketPermissionError as error:
+                raise OSError(
+                    "ICMP socket permission denied. On Linux, allow the monitoring worker's "
+                    "group in net.ipv4.ping_group_range."
+                ) from error
+            except ICMPLibError as error:
+                raise OSError(f"ICMP probe could not execute: {error}") from error
+            successful = bool(result.is_alive)
             return (
                 successful,
                 "ICMP echo reply received."

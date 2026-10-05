@@ -93,6 +93,8 @@ Credential-specific security and operational rules are defined in
 
 - [x] Lead create/edit/detail/workspace.
 - [x] Lead ownership/assignment and explicit open/won/lost outcomes.
+- [x] Starter sales-stage/source catalogues, permission-controlled inline option
+      creation, and immediate lead-list refresh after drawer mutations.
 - [x] My active/open Leads default with Unassigned/All Active alternatives.
 - [x] Won/Lost/All Leads history views.
 - [x] Server-side Lead statistics, filtering and pagination.

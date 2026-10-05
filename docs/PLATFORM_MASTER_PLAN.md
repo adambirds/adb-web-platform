@@ -429,7 +429,8 @@ Lead operations are sales-pipeline focused:
 
 - My Leads is the primary view;
 - Unassigned and All Active are operational alternatives;
-- Won/Lost are explicit history/outcomes;
+- Won/Lost are explicit history/outcomes, with direct workspace actions;
+- conversion to Client marks the Lead Won atomically;
 - editing can occur in the record drawer;
 - communication is retained through Tickets;
 - sending email from a Lead creates/continues an auditable Ticket conversation

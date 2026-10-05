@@ -1,14 +1,15 @@
 from typing import Any, cast
 
 from django.core.exceptions import ValidationError
-from django.db.models import Q, QuerySet
+from django.db import IntegrityError, transaction
+from django.db.models import Max, Q, QuerySet
 from django.http import HttpRequest
 from ninja import Router
 
 from apps.access_control.policies import scope_clients_for_user, scope_ticket_queues_for_user
 from apps.core.models import Brand
 from apps.crm.models import Lead, LeadSource, LeadStatus
-from apps.crm.services import LeadOperationError, assign_lead, convert_lead
+from apps.crm.services import LeadOperationError, assign_lead, change_lead_stage, convert_lead
 from apps.ticketing.models import Ticket
 from authentication.models import User
 from authentication.ninja.schemas import ProblemDetail
@@ -21,6 +22,10 @@ from .schemas import (
     LeadIn,
     LeadLookupOut,
     LeadOptionsOut,
+    LeadSourceIn,
+    LeadStageIn,
+    LeadStatusIn,
+    LeadStatusLookupOut,
     LeadSummaryOut,
     LeadTicketOut,
 )
@@ -223,7 +228,7 @@ def list_leads(request: HttpRequest) -> list[LeadSummaryOut] | StaffProblem:
             name=lead.name,
             company=lead.company,
             email=lead.email,
-            status=lead.status.name if lead.status else "Unassigned",
+            status=lead.status.name if lead.status else "No sales stage",
             source=lead.source.name if lead.source else "Unknown",
             brand=lead.brand.name if lead.brand else "Unassigned",
             assigned_to_name=_user_label(lead.assigned_to),
@@ -255,7 +260,7 @@ def lead_options(request: HttpRequest) -> LeadOptionsOut | StaffProblem:
 
     return LeadOptionsOut(
         statuses=[
-            LeadLookupOut(id=status.id, name=status.name)
+            LeadStatusLookupOut(id=status.id, name=status.name, outcome=status.outcome)
             for status in LeadStatus.objects.order_by("order", "name")
         ],
         sources=[
@@ -440,3 +445,85 @@ def convert_lead_to_client(
         contact_id=result.contact.id,
         linked_ticket_count=result.linked_ticket_count,
     )
+
+
+@crm_admin_router.post(
+    "/lead-sources",
+    response={201: LeadLookupOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail},
+)
+def create_lead_source(
+    request: HttpRequest, payload: LeadSourceIn
+) -> tuple[int, LeadLookupOut] | StaffProblem:
+    problem = _permission_problem(request, "crm.add_leadsource")
+    if problem:
+        return problem
+    name = payload.name.strip()
+    if not name or LeadSource.objects.filter(name__iexact=name).exists():
+        return _validation_problem(ValidationError("Enter a unique, non-empty source name."))
+    try:
+        with transaction.atomic():
+            source = LeadSource(name=name)
+            source.full_clean()
+            source.save()
+    except (ValidationError, IntegrityError):
+        return _validation_problem(ValidationError("Enter a unique, non-empty source name."))
+    return 201, LeadLookupOut(id=source.id, name=source.name)
+
+
+@crm_admin_router.post(
+    "/lead-statuses",
+    response={201: LeadLookupOut, 400: ProblemDetail, 401: ProblemDetail, 403: ProblemDetail},
+)
+def create_lead_status(
+    request: HttpRequest, payload: LeadStatusIn
+) -> tuple[int, LeadLookupOut] | StaffProblem:
+    problem = _permission_problem(request, "crm.add_leadstatus")
+    if problem:
+        return problem
+    name = payload.name.strip()
+    if not name or LeadStatus.objects.filter(name__iexact=name).exists():
+        return _validation_problem(ValidationError("Enter a unique, non-empty sales stage name."))
+    try:
+        with transaction.atomic():
+            last_open_order = (
+                LeadStatus.objects.filter(outcome="open").aggregate(value=Max("order"))["value"]
+                or 0
+            )
+            last_order = LeadStatus.objects.aggregate(value=Max("order"))["value"] or 0
+            order = last_open_order + 1 if payload.outcome == "open" else last_order + 10
+            stage = LeadStatus(name=name, order=order, outcome=payload.outcome)
+            stage.full_clean()
+            # Persist the explicit outcome without the model's historical name inference.
+            LeadStatus.objects.bulk_create([stage])
+    except (ValidationError, IntegrityError):
+        return _validation_problem(ValidationError("Enter a unique, non-empty sales stage name."))
+    return 201, LeadLookupOut(id=stage.id, name=stage.name)
+
+
+@crm_admin_router.post(
+    "/leads/{lead_id}/stage",
+    response={
+        200: LeadDetailOut,
+        400: ProblemDetail,
+        401: ProblemDetail,
+        403: ProblemDetail,
+        404: ProblemDetail,
+    },
+)
+def update_lead_stage(
+    request: HttpRequest, lead_id: int, payload: LeadStageIn
+) -> LeadDetailOut | StaffProblem:
+    problem = _permission_problem(request, "crm.change_lead")
+    if problem:
+        return problem
+    lead = _lead_queryset().filter(id=lead_id).first()
+    if lead is None:
+        return _not_found_problem("Lead")
+    stage = LeadStatus.objects.filter(pk=payload.status_id).first()
+    if stage is None:
+        return _not_found_problem("Sales stage")
+    try:
+        change_lead_stage(lead, stage)
+    except LeadOperationError as error:
+        return _validation_problem(ValidationError(str(error)))
+    return _build_lead_detail(request, lead)

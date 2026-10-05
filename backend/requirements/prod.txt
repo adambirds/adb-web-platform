@@ -44,11 +44,11 @@ cairocffi==1.7.1 \
 cairosvg==2.9.0 \
     --hash=sha256:1debb00cd2da11350d8b6f5ceb739f1b539196d71d5cf5eb7363dbd1bfbc8dc5 \
     --hash=sha256:4b82d07d145377dffdfc19d9791bd5fb65539bb4da0adecf0bdbd9cd4ffd7c68
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 celery==5.6.3 \
     --hash=sha256:0808f42f80909c4d5833202360ffafb2a4f83f4d8e23e1285d926610e9a7afa6 \
     --hash=sha256:177006bd2054b882e9f01be59abd8529e88879ef50d7918a7050c5a9f4e12912
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 certifi==2025.8.3 \
     --hash=sha256:e564105f78ded564e3ae7c923924435e1daa7463faeab5bb932bc53ffae63407 \
     --hash=sha256:f6c12493cfb1b06ba2ff328595af9350c65d6644968e5d3a2ffd78699af217a5
@@ -160,7 +160,7 @@ cffi==2.1.1 \
 channels==4.3.2 \
     --hash=sha256:f2bb6bfb73ad7fb4705041d07613c7b4e69528f01ef8cb9fb6c21d9295f15667 \
     --hash=sha256:fef47e9055a603900cf16cef85f050d522d9ac4b3daccf24835bd9580705c176
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 charset-normalizer==3.1.0 \
     --hash=sha256:04afa6387e2b282cf78ff3dbce20f0cc071c12dc8f685bd40960cc68644cfea6 \
     --hash=sha256:04eefcee095f58eaabe6dc3cc2262f3bcd776d2c67005880894f447b3f2cb9c1 \
@@ -306,7 +306,7 @@ cryptography==50.0.0 \
     --hash=sha256:f59e38625469987d7ef6d495323c55e7db6c212eaf6112267e0d3b565a2e9c9f \
     --hash=sha256:f89831ef99dd7dd169ab06d63a831adb9e20a87aac6d380266bbda5823349169 \
     --hash=sha256:fd9192b7b70c573d7f214eb1ae35e00d359f6f5e4b27c7e21e30de1fc6204645
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 cssselect2==0.7.0 \
     --hash=sha256:1ccd984dab89fc68955043aca4e1b03e0cf29cad9880f6e28e3ba7a74b14aa5a \
     --hash=sha256:fd23a65bfd444595913f02fc71f6b286c29261e354c41d722ca7a261a49b5969
@@ -319,7 +319,7 @@ django==6.0.8 \
     --hash=sha256:9b98b7e1902e0e575ea4f42c175fc9512784f7f2580898286aee3388b322219d \
     --hash=sha256:cb0bd962d27fc866f3c514b20aae6a7df56ec80b488f9899da46d675cd051526
     # via
-    #   -r requirements/common.in
+    #   -r backend/requirements/common.in
     #   channels
     #   django-cors-headers
     #   django-debug-toolbar
@@ -331,27 +331,27 @@ django==6.0.8 \
 django-cors-headers==4.9.0 \
     --hash=sha256:15c7f20727f90044dcee2216a9fd7303741a864865f0c3657e28b7056f61b449 \
     --hash=sha256:fe5d7cb59fdc2c8c646ce84b727ac2bca8912a247e6e68e1fb507372178e59e8
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 django-debug-toolbar==7.1.1 \
     --hash=sha256:2fb4093d95e6f87258606c55f4d2aa45d1847b17a415525a9dceac02e937a836 \
     --hash=sha256:e1385b22fb17bff4dc51cf782679a7926676405e8d013ada1e3d8a6bfc47fdb3
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 django-filter==26.1 \
     --hash=sha256:66ea04031b068c77c86e1ac26ced7a3f8f13ce797f5795751707e3deefc58054 \
     --hash=sha256:7d98ef2899218e6242619b532cb1b95af14e09dfcf74844aecb550ad27b59ff2
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 django-ninja==1.6.3 \
     --hash=sha256:a65a5016bbf044702fb1f1ff702f96dc3c806fbd7c918290512659531873039f \
     --hash=sha256:e83ba573e0f17b1d2fddca078613e2aaad512acb3d3c6bc9a5f1a0d9257dd70c
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 django-redis==7.0.0 \
     --hash=sha256:4b23aa6e0cd0937bb1242e9a463809e6004de3ca2150f34e986306bb6220d688 \
     --hash=sha256:e48491c862f4350b0747ceb1016700686fb93c4f4e0fb9c490fe6c6658ffd933
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 django-unfold==0.104.1 \
     --hash=sha256:13b52e8100f2d844568cf08a2057cacd3686bc1083e0e491d05fc688025c966f \
     --hash=sha256:4eece526e1e80f5133632acae260cc53ab2f52020ff9f64bb98d9c9c738d9888
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 dnspython==2.7.0 \
     --hash=sha256:b4c34b7d10b51bcc3a5071e7b8dee77939f1e878477eeecc965e9835f63c6c86 \
     --hash=sha256:ce9c432eda0dc91cf618a5cedf1a4e142651196bbcd2c80e89ed5a907e5cfaf1
@@ -371,11 +371,11 @@ graphene==3.2.2 \
 graphene-django==3.2.3 \
     --hash=sha256:0c673a4dad315b26b4d18eb379ad0c7027fd6a36d23a1848b7c7c09a14a9271e \
     --hash=sha256:d831bfe8e9a6e77e477b7854faef4addb318f386119a69ee4c57b74560f3e07d
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 graphene-file-upload==1.3.0 \
     --hash=sha256:5afe50f409f50e3d198fd92c883d98d868e6c6aaadf5df3a3f4d88ecad90ed97 \
     --hash=sha256:6898480b0556826472c80971032917c01968ade5800d84054008fe598795b063
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 graphql-core==3.2.3 \
     --hash=sha256:06d2aad0ac723e35b1cb47885d3e5c45e956a53bc1b209a9fc5369007fe46676 \
     --hash=sha256:5766780452bd5ec8ba133f8bf287dc92713e3868ddd83aee4faab9fc3e303dc3
@@ -392,7 +392,7 @@ graphql-relay==3.2.0 \
 gunicorn==26.0.0 \
     --hash=sha256:40233d26a5f0d1872916188c276e21641155111c2853f0c2cd55260aec0d24fc \
     --hash=sha256:ca9346f85e3a4aeeb64d491045c16b9a35647abd37ea15efe53080eb8b090baf
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 h11==0.14.0 \
     --hash=sha256:8f19fbbe99e72420ff35c00b27a34cb9937e902a8b810e2c88300c6f0a3b699d \
     --hash=sha256:e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761
@@ -449,6 +449,10 @@ httptools==0.8.0 \
     --hash=sha256:f256d6ce930c52ca1cb2a960b7da03548c454e7d28b06059ad41bfe789036ce0 \
     --hash=sha256:fe2a4c95aeba2209434e7b31172da572846cae8ca0bf1e7013e61b99fbbf5e72
     # via uvicorn
+icmplib==3.0.4 \
+    --hash=sha256:336b75c6c23c5ce99ddec33f718fab09661f6ad698e35b6f1fc7cc0ecf809398 \
+    --hash=sha256:57868f2cdb011418c0e1d5586b16d1fabd206569fe9652654c27b6b2d6a316de
+    # via -r backend/requirements/common.in
 idna==3.10 \
     --hash=sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9 \
     --hash=sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3
@@ -459,7 +463,7 @@ idna==3.10 \
 inquirer==3.4.1 \
     --hash=sha256:60d169fddffe297e2f8ad54ab33698249ccfc3fc377dafb1e5cf01a0efb9cbe5 \
     --hash=sha256:717bf146d547b595d2495e7285fd55545cff85e5ce01decc7487d2ec6a605412
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 kombu==5.6.2 \
     --hash=sha256:8060497058066c6f5aed7c26d7cd0d3b574990b09de842a8c5aaed0b92cc5a55 \
     --hash=sha256:efcfc559da324d41d61ca311b0c64965ea35b4c55cc04ee36e55386145dace93
@@ -559,7 +563,7 @@ pillow==12.3.0 \
     --hash=sha256:fe3cca2e4e8a592be0f269a1ca4835c25199d9f3ce815c8491048f785b0a0198 \
     --hash=sha256:ffd0c5368496f41b0944be820fcb7a838aa6e623d250b01acf2643939c3f99d7
     # via
-    #   -r requirements/common.in
+    #   -r backend/requirements/common.in
     #   cairosvg
 promise==2.3 \
     --hash=sha256:dfd18337c523ba4b6a58801c164c1904a9d4d1b1747c7d5dbf45b693a49d93d0
@@ -576,7 +580,7 @@ psycopg2==2.9.12 \
     --hash=sha256:83d48e66e18c301d832e93c984a7bcbc0f4ac3bb79e2137e3bc335978c756dc0 \
     --hash=sha256:a73d5513bfe929c56555006c7a9cc7ae6e4276aa99dd2b1e2544eb8bb54f8b23 \
     --hash=sha256:d5fbe092315fb007c03544704e6d1e678a6c0378139d01cea433dc59edf041b4
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 pycparser==2.21 \
     --hash=sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9 \
     --hash=sha256:e644fdec12f7872f86c58ff790da456218b10f863970249516d60a5eaca77206
@@ -585,7 +589,7 @@ pydantic[email]==2.13.4 \
     --hash=sha256:45a282cde31d808236fd7ea9d919b128653c8b38b393d1c4ab335c62924d9aba \
     --hash=sha256:c40756b57adaa8b1efeeced5c196f3f3b7c435f90e84ea7f443901bec8099ef6
     # via
-    #   -r requirements/common.in
+    #   -r backend/requirements/common.in
     #   django-ninja
 pydantic-core==2.46.4 \
     --hash=sha256:00c603d540afdd6b80eb39f078f33ebd46211f02f33e34a32d9f053bba711de0 \
@@ -717,7 +721,7 @@ python-dotenv==1.2.3 \
     --hash=sha256:904552145e8bfed22162c09dab1c2b9b54fefa7b23ba780f4f26ca0316b0f0d9 \
     --hash=sha256:a20a594dabeaa385725aa239d5244871c143ecb356add8a20fcf23773a6c3a35
     # via
-    #   -r requirements/common.in
+    #   -r backend/requirements/common.in
     #   uvicorn
 pyyaml==6.0.2 \
     --hash=sha256:01179a4a8559ab5de078078f37e5c1a30d76bb88519906844fd7bdea1b7729ff \
@@ -782,12 +786,12 @@ redis==8.1.0 \
     --hash=sha256:6e1a19beef9225c83efd689c7e6b7da2d5215b1f42cd13b7fc3714d0a09c7b25 \
     --hash=sha256:a4fe1aac3d3b3cc791d4b3d5931c5a956045dc951ee74d1c913ee3ac4d2ee9fb
     # via
-    #   -r requirements/common.in
+    #   -r backend/requirements/common.in
     #   django-redis
 requests==2.34.2 \
     --hash=sha256:2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0 \
     --hash=sha256:f288924cae4e29463698d6d60bc6a4da69c89185ad1e0bcc4104f584e960b9ed
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 runs==1.2.2 \
     --hash=sha256:0980dcbc25aba1505f307ac4f0e9e92cbd0be2a15a1e983ee86c24c87b839dfd \
     --hash=sha256:9dc1815e2895cfb3a48317b173b9f1eac9ba5549b36a847b5cc60c3bf82ecef1
@@ -812,15 +816,15 @@ sqlparse==0.6.0 \
 starlette==1.6.0 \
     --hash=sha256:a86dd39d14bb45f85a3d18525215a9ef0cfd1f192ac793220e72598c90335f0c \
     --hash=sha256:d4e3ac5e546444960c710297a3c9fc3f7ebae1b7e963f3d36173b49da535be9b
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 svg-py==1.10.0 \
     --hash=sha256:2e1391411a205220a0e72ca303f3c2d11dbd564cb1dbc445406c5e11421bcc4b \
     --hash=sha256:54c7470347d5d79b30d059584a4f449da08b462903e8ce262981338bab755560
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 tenacity==9.1.4 \
     --hash=sha256:6095a360c919085f28c6527de529e76a06ad89b23659fa881ae0649b867a9d55 \
     --hash=sha256:adb31d4c263f2bd041081ab33b498309a57c77f9acf2db65aadf0898179cf93a
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 text-unidecode==1.3 \
     --hash=sha256:1311f10e8b895935241623731c2ba64f4c455287888b18189350b67134a822e8 \
     --hash=sha256:bad6603bb14d279193107714b288be206cac565dfa49aa5b105294dd5c4aab93
@@ -859,7 +863,7 @@ urllib3==2.6.3 \
 uvicorn[standard]==0.52.3 \
     --hash=sha256:116af2710dbf47c80f463cd20ee4884b6662f4c9f227d797ddc7279d2fcc2c7c \
     --hash=sha256:18857b9e6579300be55c91c0a1cfd37d9a2cf0cabea33b88275f199eb73b8b58
-    # via -r requirements/common.in
+    # via -r backend/requirements/common.in
 uvloop==0.20.0 \
     --hash=sha256:265a99a2ff41a0fd56c19c3838b29bf54d1d177964c300dad388b27e84fd7847 \
     --hash=sha256:2beee18efd33fa6fdb0976e18475a4042cd31c7433c866e8a09ab604c7c22ff2 \

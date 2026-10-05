@@ -128,6 +128,23 @@ class MonitoringAdminAPITests(TestCase):
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertEqual(len(payload["results"]), 50)
+        self.assertEqual(payload["results_total"], 55)
+        self.assertEqual(len(payload["trend_results"]), 55)
+        self.assertEqual(payload["trend_results"][0]["message"], "Result 54")
+        self.assertEqual(payload["trend_results"][-1]["message"], "Result 0")
+        self.assertEqual(payload["results_page"], 1)
+        second = self.client.get(
+            f"/api/admin/monitoring/checks/{self.check.id}?results_page=2&results_page_size=50"
+        ).json()
+        self.assertEqual(len(second["results"]), 5)
+        self.assertEqual(second["results_page"], 2)
+        self.assertEqual(second["trend_results"], payload["trend_results"])
+        self.assertEqual(second["results"][0]["message"], "Result 50")
+        self.assertEqual(second["uptime_24h_percent"], payload["uptime_24h_percent"])
+        self.assertFalse(
+            {row["id"] for row in payload["results"]} & {row["id"] for row in second["results"]}
+        )
+
         self.assertEqual(len(payload["incidents"]), 20)
         self.assertEqual(payload["uptime_24h_percent"], 81.82)
         self.assertIsNotNone(payload["average_response_24h_ms"])
@@ -217,3 +234,87 @@ class MonitoringAdminAPITests(TestCase):
         self.assertEqual(response.status_code, 404)
         self.check.refresh_from_db()
         self.assertIsNone(self.check.credential_id)
+
+    def test_observation_pagination_bounds_and_empty_history(self) -> None:
+        self.grant("view_monitorcheck", "view_monitorresult", "view_monitorincident")
+        response = self.client.get(
+            f"/api/admin/monitoring/checks/{self.check.id}?results_page=999&results_page_size=999"
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["results"], [])
+        self.assertEqual(payload["results_total"], 0)
+        self.assertEqual(payload["results_page"], 1)
+        self.assertEqual(payload["results_page_size"], 100)
+
+    def test_observation_pagination_has_stable_order_for_equal_timestamps(self) -> None:
+        self.grant("view_monitorcheck", "view_monitorresult", "view_monitorincident")
+        now = timezone.now()
+        records = [
+            MonitorResult.objects.create(
+                monitor_check=self.check,
+                outcome="success",
+                started_at=now,
+                finished_at=now,
+                duration_ms=1,
+            )
+            for _ in range(3)
+        ]
+        payload = self.client.get(
+            f"/api/admin/monitoring/checks/{self.check.id}?results_page=2&results_page_size=1"
+        ).json()
+        self.assertEqual([row["id"] for row in payload["results"]], [records[1].id])
+        last = self.client.get(
+            f"/api/admin/monitoring/checks/{self.check.id}?results_page=999&results_page_size=1"
+        ).json()
+        self.assertEqual(last["results_page"], 3)
+        self.assertEqual([row["id"] for row in last["results"]], [records[0].id])
+
+    def test_paginated_observations_preserve_permission_and_client_scope(self) -> None:
+        url = f"/api/admin/monitoring/checks/{self.check.id}?results_page=2&results_page_size=10"
+        self.grant("view_monitorcheck")
+        self.assertEqual(self.client.get(url).status_code, 403)
+        self.grant("view_monitorresult", "view_monitorincident")
+        hidden_url = f"/api/admin/monitoring/checks/{self.hidden_check.id}?results_page=2&results_page_size=10"
+        self.assertEqual(self.client.get(hidden_url).status_code, 404)
+
+    def test_timing_history_is_bounded_to_latest_200_observations(self) -> None:
+        self.grant("view_monitorcheck", "view_monitorresult", "view_monitorincident")
+        now = timezone.now()
+        MonitorResult.objects.bulk_create(
+            [
+                MonitorResult(
+                    monitor_check=self.check,
+                    outcome="success",
+                    started_at=now - timedelta(minutes=index),
+                    finished_at=now - timedelta(minutes=index),
+                    duration_ms=index,
+                    message=f"Sample {index}",
+                )
+                for index in range(210)
+            ]
+        )
+        payload = self.client.get(
+            f"/api/admin/monitoring/checks/{self.check.id}?results_page_size=10"
+        ).json()
+        self.assertEqual(len(payload["results"]), 10)
+        self.assertEqual(len(payload["trend_results"]), 200)
+        self.assertEqual(payload["trend_results"][0]["message"], "Sample 199")
+        self.assertEqual(payload["trend_results"][-1]["message"], "Sample 0")
+        self.assertEqual(payload["results_total"], 210)
+
+    def test_inventory_expiry_checks_do_not_return_probe_timing_history(self) -> None:
+        self.grant("view_monitorcheck", "view_monitorresult", "view_monitorincident")
+        resource = InfrastructureResource.objects.create(
+            ownership_type=OwnershipType.INTERNAL, name="Domain", resource_type="domain"
+        )
+        check = MonitorCheck.objects.create(
+            resource=resource, name="Expiry", check_type="domain_expiry", target="example.test"
+        )
+        now = timezone.now()
+        MonitorResult.objects.create(
+            monitor_check=check, outcome="success", started_at=now, finished_at=now, duration_ms=1
+        )
+        payload = self.client.get(f"/api/admin/monitoring/checks/{check.id}").json()
+        self.assertEqual(payload["trend_results"], [])
+        self.assertEqual(len(payload["results"]), 1)

@@ -78,7 +78,7 @@ class WebsiteContactTicketIntegrationTests(TestCase):
         ingest.assert_called_once()
 
     def test_non_contact_form_lead_does_not_create_ticket(self) -> None:
-        referral = LeadSource.objects.create(name="Referral")
+        referral = LeadSource.objects.get_or_create(name="Referral")[0]
 
         Lead.objects.create(
             brand=self.brand,

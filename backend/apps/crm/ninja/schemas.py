@@ -1,7 +1,9 @@
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from ninja import Schema
+from pydantic import Field
 
 
 class LeadLookupOut(Schema):
@@ -88,7 +90,23 @@ class LeadConversionOut(Schema):
     linked_ticket_count: int
 
 
+class LeadStatusLookupOut(LeadLookupOut):
+    outcome: str
+
+
+class LeadStageIn(Schema):
+    status_id: int
+
+
 class LeadOptionsOut(Schema):
-    statuses: list[LeadLookupOut]
+    statuses: list[LeadStatusLookupOut]
     sources: list[LeadLookupOut]
     assignees: list[LeadAgentOut]
+
+
+class LeadSourceIn(Schema):
+    name: str = Field(min_length=1, max_length=100)
+
+
+class LeadStatusIn(LeadSourceIn):
+    outcome: Literal["open", "won", "lost"] = "open"

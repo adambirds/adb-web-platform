@@ -1,6 +1,14 @@
 "use client";
 
-import { Button, ButtonLink, DataLoading, Input, Select, Textarea } from "@/components/ui";
+import {
+    Button,
+    ButtonLink,
+    DataLoading,
+    Input,
+    Select,
+    Textarea,
+} from "@/components/ui";
+import { useAuth } from "@/contexts/AuthContext";
 import { AdminAPI } from "@/lib/api/endpoints";
 import { fetchAPI } from "@/lib/api/fetch";
 import { useRouter } from "next/navigation";
@@ -64,9 +72,22 @@ export function LeadForm({
     onCancel?: () => void;
 }) {
     const router = useRouter();
+    const { hasPermission } = useAuth();
     const [form, setForm] = useState<LeadFormState>(EMPTY_FORM);
     const [brands, setBrands] = useState<Brand[]>([]);
-    const [options, setOptions] = useState<LeadOptions>({ statuses: [], sources: [] });
+    const [options, setOptions] = useState<LeadOptions>({
+        statuses: [],
+        sources: [],
+    });
+    const [addingOption, setAddingOption] = useState<
+        "status" | "source" | null
+    >(null);
+    const [optionName, setOptionName] = useState("");
+    const [optionOutcome, setOptionOutcome] = useState<"open" | "won" | "lost">(
+        "open",
+    );
+    const [optionSaving, setOptionSaving] = useState(false);
+    const [optionError, setOptionError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -80,11 +101,22 @@ export function LeadForm({
                     fetchAPI(AdminAPI.brands.list()) as Promise<Brand[]>,
                     fetchAPI(AdminAPI.leads.options()) as Promise<LeadOptions>,
                     leadId
-                        ? (fetchAPI(AdminAPI.leads.get(leadId)) as Promise<LeadResponse>)
+                        ? (fetchAPI(
+                              AdminAPI.leads.get(leadId),
+                          ) as Promise<LeadResponse>)
                         : Promise.resolve(null),
                 ]);
                 setBrands(brandRows);
                 setOptions(optionRows);
+                if (!lead) {
+                    const initialStatus = optionRows.statuses.find(
+                        (status) => status.name.toLowerCase() === "new",
+                    );
+                    setForm({
+                        ...EMPTY_FORM,
+                        status_id: initialStatus?.id ?? null,
+                    });
+                }
                 if (lead) {
                     setForm({
                         name: lead.name,
@@ -100,7 +132,9 @@ export function LeadForm({
                 }
             } catch (loadError) {
                 setError(
-                    loadError instanceof Error ? loadError.message : "Unable to load lead details.",
+                    loadError instanceof Error
+                        ? loadError.message
+                        : "Unable to load lead details.",
                 );
             } finally {
                 setIsLoading(false);
@@ -111,12 +145,70 @@ export function LeadForm({
     }, [leadId]);
 
     const visibleBrands = useMemo(
-        () => brands.filter((brand) => brand.is_active || brand.id === form.brand_id),
+        () =>
+            brands.filter(
+                (brand) => brand.is_active || brand.id === form.brand_id,
+            ),
         [brands, form.brand_id],
     );
 
-    function update<K extends keyof LeadFormState>(key: K, value: LeadFormState[K]) {
+    function update<K extends keyof LeadFormState>(
+        key: K,
+        value: LeadFormState[K],
+    ) {
         setForm((current) => ({ ...current, [key]: value }));
+    }
+
+    function startOption(kind: "status" | "source") {
+        setAddingOption(kind);
+        setOptionName("");
+        setOptionOutcome("open");
+        setOptionError(null);
+    }
+
+    async function createOption() {
+        if (!addingOption || !optionName.trim()) return;
+        setOptionSaving(true);
+        setOptionError(null);
+        try {
+            const created = (await fetchAPI(
+                addingOption === "status"
+                    ? AdminAPI.leads.createStatus()
+                    : AdminAPI.leads.createSource(),
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        name: optionName.trim(),
+                        ...(addingOption === "status"
+                            ? { outcome: optionOutcome }
+                            : {}),
+                    }),
+                },
+            )) as Lookup;
+            setOptions((current) => ({
+                ...current,
+                ...(addingOption === "status"
+                    ? { statuses: [...current.statuses, created] }
+                    : {
+                          sources: [...current.sources, created].sort((a, b) =>
+                              a.name.localeCompare(b.name),
+                          ),
+                      }),
+            }));
+            update(
+                addingOption === "status" ? "status_id" : "source_id",
+                created.id,
+            );
+            setAddingOption(null);
+        } catch (failure) {
+            setOptionError(
+                failure instanceof Error
+                    ? failure.message
+                    : "Unable to add this option.",
+            );
+        } finally {
+            setOptionSaving(false);
+        }
     }
 
     async function save(event: FormEvent<HTMLFormElement>) {
@@ -126,7 +218,9 @@ export function LeadForm({
 
         try {
             const lead = (await fetchAPI(
-                leadId ? AdminAPI.leads.update(leadId) : AdminAPI.leads.create(),
+                leadId
+                    ? AdminAPI.leads.update(leadId)
+                    : AdminAPI.leads.create(),
                 {
                     method: leadId ? "PUT" : "POST",
                     body: JSON.stringify(form),
@@ -139,7 +233,11 @@ export function LeadForm({
                 router.refresh();
             }
         } catch (saveError) {
-            setError(saveError instanceof Error ? saveError.message : "Unable to save the lead.");
+            setError(
+                saveError instanceof Error
+                    ? saveError.message
+                    : "Unable to save the lead.",
+            );
         } finally {
             setIsSaving(false);
         }
@@ -173,7 +271,9 @@ export function LeadForm({
                     <span>Company</span>
                     <Input
                         value={form.company}
-                        onChange={(event) => update("company", event.target.value)}
+                        onChange={(event) =>
+                            update("company", event.target.value)
+                        }
                         autoComplete="organization"
                         maxLength={200}
                     />
@@ -183,7 +283,9 @@ export function LeadForm({
                     <Input
                         type="email"
                         value={form.email}
-                        onChange={(event) => update("email", event.target.value)}
+                        onChange={(event) =>
+                            update("email", event.target.value)
+                        }
                         autoComplete="email"
                         required
                     />
@@ -193,7 +295,9 @@ export function LeadForm({
                     <Input
                         type="tel"
                         value={form.phone}
-                        onChange={(event) => update("phone", event.target.value)}
+                        onChange={(event) =>
+                            update("phone", event.target.value)
+                        }
                         autoComplete="tel"
                         maxLength={20}
                     />
@@ -202,7 +306,9 @@ export function LeadForm({
                     <span>Brand</span>
                     <Select
                         value={form.brand_id ?? ""}
-                        onChange={(event) => update("brand_id", optionalId(event.target.value))}
+                        onChange={(event) =>
+                            update("brand_id", optionalId(event.target.value))
+                        }
                     >
                         <option value="">Unassigned</option>
                         {visibleBrands.map((brand) => (
@@ -213,25 +319,59 @@ export function LeadForm({
                         ))}
                     </Select>
                 </label>
-                <label className={labelClasses}>
-                    <span>Pipeline status</span>
+                <div className={labelClasses}>
+                    <div className="flex items-center justify-between">
+                        <label htmlFor="lead-status">Sales stage</label>
+                        {hasPermission("crm.add_leadstatus") ? (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                disabled={isSaving || optionSaving}
+                                onClick={() => startOption("status")}
+                            >
+                                Add stage
+                            </Button>
+                        ) : null}
+                    </div>
                     <Select
+                        id="lead-status"
                         value={form.status_id ?? ""}
-                        onChange={(event) => update("status_id", optionalId(event.target.value))}
+                        onChange={(event) =>
+                            update("status_id", optionalId(event.target.value))
+                        }
                     >
-                        <option value="">Unassigned</option>
+                        <option value="">No sales stage</option>
                         {options.statuses.map((status) => (
                             <option key={status.id} value={status.id}>
                                 {status.name}
                             </option>
                         ))}
                     </Select>
-                </label>
-                <label className={labelClasses}>
-                    <span>Source</span>
+                    <p className="text-xs font-normal text-slate-400">
+                        Where this lead is in your sales process, from New to
+                        Won or Lost.
+                    </p>
+                </div>
+                <div className={labelClasses}>
+                    <div className="flex items-center justify-between">
+                        <label htmlFor="lead-source">Source</label>
+                        {hasPermission("crm.add_leadsource") ? (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                disabled={isSaving || optionSaving}
+                                onClick={() => startOption("source")}
+                            >
+                                Add source
+                            </Button>
+                        ) : null}
+                    </div>
                     <Select
+                        id="lead-source"
                         value={form.source_id ?? ""}
-                        onChange={(event) => update("source_id", optionalId(event.target.value))}
+                        onChange={(event) =>
+                            update("source_id", optionalId(event.target.value))
+                        }
                     >
                         <option value="">Unknown</option>
                         {options.sources.map((source) => (
@@ -240,15 +380,95 @@ export function LeadForm({
                             </option>
                         ))}
                     </Select>
-                </label>
+                    <p className="text-xs font-normal text-slate-400">
+                        How the lead found or contacted you.
+                    </p>
+                </div>
             </div>
+
+            {addingOption ? (
+                <fieldset
+                    disabled={optionSaving || isSaving}
+                    className="space-y-4 rounded-lg border border-slate-800 bg-slate-900 p-4"
+                >
+                    <legend className="px-2 text-sm text-white">
+                        {addingOption === "status"
+                            ? "Add sales stage"
+                            : "Add lead source"}
+                    </legend>
+                    <label className={labelClasses}>
+                        <span>
+                            {addingOption === "status"
+                                ? "Stage name"
+                                : "Source name"}
+                        </span>
+                        <Input
+                            value={optionName}
+                            onChange={(event) =>
+                                setOptionName(event.target.value)
+                            }
+                            maxLength={100}
+                        />
+                    </label>
+                    {addingOption === "status" ? (
+                        <label className={labelClasses}>
+                            <span>Outcome</span>
+                            <Select
+                                value={optionOutcome}
+                                onChange={(event) =>
+                                    setOptionOutcome(
+                                        event.target.value as
+                                            "open" | "won" | "lost",
+                                    )
+                                }
+                            >
+                                <option value="open">
+                                    Open — still pursuing
+                                </option>
+                                <option value="won">
+                                    Won — successful sale
+                                </option>
+                                <option value="lost">
+                                    Lost — no longer pursuing
+                                </option>
+                            </Select>
+                        </label>
+                    ) : null}
+                    <p className="text-xs text-slate-400">
+                        This option will be available to everyone using Leads.
+                    </p>
+                    {optionError ? (
+                        <p role="alert" className="text-sm text-red-300">
+                            {optionError}
+                        </p>
+                    ) : null}
+                    <div className="flex gap-2">
+                        <Button
+                            type="button"
+                            disabled={!optionName.trim() || optionSaving}
+                            onClick={() => void createOption()}
+                        >
+                            {optionSaving ? "Adding…" : "Add and select"}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => setAddingOption(null)}
+                        >
+                            Cancel option
+                        </Button>
+                    </div>
+                </fieldset>
+            ) : null}
 
             <div className="border-t border-slate-800 pt-6">
                 <label className={labelClasses}>
                     <span>Original enquiry / opportunity</span>
                     <Textarea
                         value={form.message}
-                        onChange={(event) => update("message", event.target.value)}
+                        onChange={(event) =>
+                            update("message", event.target.value)
+                        }
                         rows={6}
                         placeholder="What is the prospect asking for?"
                     />
@@ -260,7 +480,9 @@ export function LeadForm({
                     <span>Internal notes</span>
                     <Textarea
                         value={form.notes}
-                        onChange={(event) => update("notes", event.target.value)}
+                        onChange={(event) =>
+                            update("notes", event.target.value)
+                        }
                         rows={6}
                         placeholder="Follow-ups, qualification notes, commercial context and next steps."
                     />
@@ -268,16 +490,30 @@ export function LeadForm({
             </div>
 
             <div className="flex flex-wrap gap-3 border-t border-slate-800 pt-6">
-                <Button type="submit" disabled={isSaving}>
-                    {isSaving ? "Saving..." : leadId ? "Save changes" : "Create lead"}
+                <Button
+                    type="submit"
+                    disabled={isSaving || optionSaving || addingOption !== null}
+                >
+                    {isSaving
+                        ? "Saving..."
+                        : leadId
+                          ? "Save changes"
+                          : "Create lead"}
                 </Button>
                 {onCancel ? (
-                    <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={onCancel}
+                        disabled={isSaving}
+                    >
                         Cancel
                     </Button>
                 ) : (
                     <ButtonLink
-                        href={leadId ? `/admin/leads/${leadId}` : "/admin/leads"}
+                        href={
+                            leadId ? `/admin/leads/${leadId}` : "/admin/leads"
+                        }
                         variant="outline"
                     >
                         Cancel

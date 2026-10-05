@@ -2,11 +2,11 @@ import urllib.error
 from datetime import timedelta
 from email.message import Message
 from io import BytesIO
-from subprocess import CompletedProcess
 from unittest.mock import patch
 
 from django.test import TestCase
 from django.utils import timezone
+from icmplib import Host, NameLookupError, SocketPermissionError
 
 from apps.core.ownership import OwnershipType
 from apps.infrastructure.models import InfrastructureResource
@@ -16,7 +16,7 @@ from apps.monitoring.models import MonitorCheck
 
 
 class MonitorExecutionTests(TestCase):
-    def test_icmp_probe_uses_bounded_non_shell_ping_command(self) -> None:
+    def test_icmp_probe_uses_one_bounded_unprivileged_python_ping(self) -> None:
         resource = InfrastructureResource.objects.create(
             ownership_type=OwnershipType.INTERNAL,
             name="Ping target",
@@ -30,19 +30,19 @@ class MonitorExecutionTests(TestCase):
             timeout_seconds=4,
         )
 
-        with patch("apps.monitoring.execution.subprocess.run") as run:
-            run.return_value = CompletedProcess(args=["ping"], returncode=0)
+        with patch("apps.monitoring.execution.ping") as run:
+            run.return_value = Host("192.0.2.10", 1, [2.0])
             observation = execute_check(check)
 
         self.assertTrue(observation.successful)
         self.assertFalse(observation.execution_error)
         self.assertEqual(observation.observed_value, "192.0.2.10")
         run.assert_called_once_with(
-            ["ping", "-n", "-c", "1", "-W", "4", "192.0.2.10"],
-            capture_output=True,
-            text=True,
-            timeout=5,
-            check=False,
+            "192.0.2.10",
+            count=1,
+            interval=0,
+            timeout=4,
+            privileged=False,
         )
 
     def test_icmp_probe_records_no_reply_as_check_failure(self) -> None:
@@ -58,13 +58,56 @@ class MonitorExecutionTests(TestCase):
             target="198.51.100.10",
         )
 
-        with patch("apps.monitoring.execution.subprocess.run") as run:
-            run.return_value = CompletedProcess(args=["ping"], returncode=1)
+        with patch("apps.monitoring.execution.ping") as run:
+            run.return_value = Host("198.51.100.10", 1, [])
             observation = execute_check(check)
 
         self.assertFalse(observation.successful)
         self.assertFalse(observation.execution_error)
         self.assertEqual(observation.message, "ICMP echo request did not receive a reply.")
+
+    def test_icmp_socket_permissions_are_execution_errors(self) -> None:
+        check = MonitorCheck(
+            name="ICMP reachability",
+            check_type=MonitorCheck.CheckType.ICMP,
+            target="::1",
+        )
+        with patch(
+            "apps.monitoring.execution.ping",
+            side_effect=SocketPermissionError(privileged=False),
+        ):
+            observation = execute_check(check)
+        self.assertFalse(observation.successful)
+        self.assertTrue(observation.execution_error)
+        self.assertIn("net.ipv4.ping_group_range", observation.message)
+
+    def test_icmp_name_lookup_failure_is_an_execution_error(self) -> None:
+        check = MonitorCheck(
+            name="ICMP reachability",
+            check_type=MonitorCheck.CheckType.ICMP,
+            target="missing.example.test",
+        )
+        with patch(
+            "apps.monitoring.execution.ping",
+            side_effect=NameLookupError(check.target),
+        ):
+            observation = execute_check(check)
+        self.assertFalse(observation.successful)
+        self.assertTrue(observation.execution_error)
+        self.assertIn("cannot be resolved", observation.message)
+
+    def test_icmp_probe_accepts_ipv6_targets(self) -> None:
+        check = MonitorCheck(
+            name="IPv6 reachability",
+            check_type=MonitorCheck.CheckType.ICMP,
+            target="::1",
+            timeout_seconds=3,
+        )
+        with patch("apps.monitoring.execution.ping", return_value=Host("::1", 1, [1.0])) as run:
+            observation = execute_check(check)
+        self.assertTrue(observation.successful)
+        self.assertFalse(observation.execution_error)
+        run.assert_called_once_with("::1", count=1, interval=0, timeout=3, privileged=False)
 
     def test_http_error_status_is_a_failed_check_not_execution_error(self) -> None:
         resource = InfrastructureResource.objects.create(

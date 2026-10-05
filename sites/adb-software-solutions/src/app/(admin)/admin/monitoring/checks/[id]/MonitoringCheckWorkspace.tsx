@@ -9,6 +9,7 @@ import {
     DataLoading,
     EmptyState,
     PageHeader,
+    Pagination,
     StatCard,
 } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,7 +22,9 @@ import {
     PauseIcon,
     PlayIcon,
 } from "@heroicons/react/24/outline";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { MonitoringHistoryChart } from "./MonitoringHistoryChart";
 
 interface MonitorResult {
     id: number;
@@ -77,6 +80,10 @@ interface MonitorCheckDetail {
     average_response_24h_ms: number | null;
     average_response_7d_ms: number | null;
     results: MonitorResult[];
+    results_page: number;
+    results_page_size: number;
+    results_total: number;
+    trend_results: MonitorResult[];
     incidents: MonitorIncident[];
 }
 
@@ -120,37 +127,47 @@ function DetailRow({ label, value }: { label: string; value: string }) {
     return (
         <div>
             <dt className="text-xs font-medium text-slate-500">{label}</dt>
-            <dd className="mt-1 break-words text-sm text-slate-200">{value}</dd>
+            <dd className="mt-1 text-sm break-words text-slate-200">{value}</dd>
         </div>
     );
 }
 
 export function MonitoringCheckWorkspace({ checkId }: { checkId: number }) {
     const { hasPermission } = useAuth();
+    const [historyPage, setHistoryPage] = useState({ checkId, page: 1 });
+    const page = historyPage.checkId === checkId ? historyPage.page : 1;
+    const requestVersion = useRef(0);
     const [check, setCheck] = useState<MonitorCheckDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [changingLifecycle, setChangingLifecycle] = useState(false);
 
     const loadCheck = useCallback(async () => {
+        const version = ++requestVersion.current;
         try {
             setLoading(true);
             setError(null);
-            setCheck(
-                (await fetchAPI(
-                    AdminAPI.monitoring.get(checkId),
-                )) as MonitorCheckDetail,
-            );
+            const detail = (await fetchAPI(
+                AdminAPI.monitoring.get(
+                    checkId,
+                    new URLSearchParams({
+                        results_page: String(page),
+                        results_page_size: "10",
+                    }).toString(),
+                ),
+            )) as MonitorCheckDetail;
+            if (version === requestVersion.current) setCheck(detail);
         } catch (loadError) {
+            if (version !== requestVersion.current) return;
             setError(
                 loadError instanceof Error
                     ? loadError.message
                     : "Monitoring check details are unavailable.",
             );
         } finally {
-            setLoading(false);
+            if (version === requestVersion.current) setLoading(false);
         }
-    }, [checkId]);
+    }, [checkId, page]);
 
     useEffect(() => {
         void loadCheck();
@@ -235,7 +252,9 @@ export function MonitoringCheckWorkspace({ checkId }: { checkId: number }) {
 
             <div className="flex flex-wrap items-center gap-2">
                 <Badge
-                    className={statusClasses[check.status] ?? statusClasses.pending}
+                    className={
+                        statusClasses[check.status] ?? statusClasses.pending
+                    }
                 >
                     {check.status}
                 </Badge>
@@ -247,7 +266,8 @@ export function MonitoringCheckWorkspace({ checkId }: { checkId: number }) {
                 </Badge>
                 {!check.enabled ? (
                     <span className="text-xs text-slate-500">
-                        Historical results and incidents are retained while paused.
+                        Historical results and incidents are retained while
+                        paused.
                     </span>
                 ) : null}
             </div>
@@ -293,6 +313,15 @@ export function MonitoringCheckWorkspace({ checkId }: { checkId: number }) {
                 />
             </div>
 
+            {["icmp", "tcp", "http", "content", "dns", "tls"].includes(
+                check.check_type,
+            ) ? (
+                <MonitoringHistoryChart
+                    results={check.trend_results ?? []}
+                    total={check.results_total}
+                />
+            ) : null}
+
             <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(22rem,1fr)]">
                 <Card className="overflow-hidden">
                     <div className="border-b border-slate-800 px-5 py-4">
@@ -300,7 +329,7 @@ export function MonitoringCheckWorkspace({ checkId }: { checkId: number }) {
                             Recent observations
                         </h2>
                         <p className="mt-1 text-xs text-slate-500">
-                            Latest 50 safe monitoring results for this check.
+                            Observations for this check, newest first.
                         </p>
                     </div>
                     {check.results.length === 0 ? (
@@ -321,8 +350,9 @@ export function MonitoringCheckWorkspace({ checkId }: { checkId: number }) {
                                         <div className="flex flex-wrap items-center gap-2">
                                             <Badge
                                                 className={
-                                                    statusClasses[result.outcome] ??
-                                                    statusClasses.pending
+                                                    statusClasses[
+                                                        result.outcome
+                                                    ] ?? statusClasses.pending
                                                 }
                                             >
                                                 {result.outcome}
@@ -342,7 +372,7 @@ export function MonitoringCheckWorkspace({ checkId }: { checkId: number }) {
                                             </p>
                                         ) : null}
                                         {result.observed_value ? (
-                                            <p className="mt-1 break-all text-xs text-slate-600">
+                                            <p className="mt-1 text-xs break-all text-slate-600">
                                                 {result.observed_value}
                                             </p>
                                         ) : null}
@@ -354,6 +384,15 @@ export function MonitoringCheckWorkspace({ checkId }: { checkId: number }) {
                             ))}
                         </div>
                     )}
+                    <Pagination
+                        page={check.results_page}
+                        pageSize={check.results_page_size}
+                        totalItems={check.results_total}
+                        disabled={loading}
+                        onPageChange={(nextPage) =>
+                            setHistoryPage({ checkId, page: nextPage })
+                        }
+                    />
                 </Card>
 
                 <div className="space-y-6">
@@ -363,7 +402,10 @@ export function MonitoringCheckWorkspace({ checkId }: { checkId: number }) {
                         </h2>
                         <dl className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
                             <DetailRow label="Type" value={check.check_type} />
-                            <DetailRow label="Severity" value={check.severity} />
+                            <DetailRow
+                                label="Severity"
+                                value={check.severity}
+                            />
                             <DetailRow
                                 label="Interval"
                                 value={formatInterval(check.interval_seconds)}
@@ -438,21 +480,24 @@ export function MonitoringCheckWorkspace({ checkId }: { checkId: number }) {
                                         <div className="flex items-start justify-between gap-3">
                                             <Badge
                                                 className={
-                                                    statusClasses[incident.status] ??
-                                                    statusClasses.pending
+                                                    statusClasses[
+                                                        incident.status
+                                                    ] ?? statusClasses.pending
                                                 }
                                             >
                                                 {incident.status}
                                             </Badge>
                                             <span className="text-xs text-slate-600">
-                                                {incident.failure_count} failures
+                                                {incident.failure_count}{" "}
+                                                failures
                                             </span>
                                         </div>
                                         <p className="mt-3 text-sm text-slate-300">
                                             {incident.summary}
                                         </p>
                                         <p className="mt-2 text-xs text-slate-600">
-                                            Opened {formatDate(incident.opened_at)}
+                                            Opened{" "}
+                                            {formatDate(incident.opened_at)}
                                             {incident.resolved_at
                                                 ? ` · Resolved ${formatDate(incident.resolved_at)}`
                                                 : ""}

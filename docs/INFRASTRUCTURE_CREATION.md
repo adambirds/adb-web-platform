@@ -111,3 +111,18 @@ a shared catalogue: renaming a tag updates every resource using it. Assignment
 and removal remain separate resource-scoped actions. Tag metadata updates use
 `PATCH /tags/{id}`. Vendor, tag, repository-link, TLS-coverage and relationship
 updates validate before saving and append audit events.
+
+### Networks while adding a server interface
+
+The Server resource's **Interfaces and IP addresses** card supports **Add network**
+and **Add subnet** directly in the interface form. Choose a network before adding
+its subnet. These actions use the existing native resource APIs, inherit the
+Server's Client/Internal ownership, and require the corresponding resource and
+specialist creation capabilities. Saving refreshes the choices and selects the
+new record; cancelling or saving preserves the pending interface draft.
+The dropdowns show compatible Internal or same-Client records. Selecting a
+subnet also selects its parent network.
+
+A Network describes a LAN/VPC/VLAN or other network context; a Subnet describes
+an address range within it. An interface is the Server's network adapter, and IP
+addresses can attach to that interface or directly to the Server.

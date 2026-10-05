@@ -404,9 +404,18 @@ Initial target check types:
 
 Checks carry scheduling, timeout, failure/recovery thresholds and severity.
 Historical results record observations; Incidents represent meaningful
-failure-to-recovery periods.
+failure-to-recovery periods. Timing-based checks expose a bounded chronological
+series of the latest 200 observations for an interactive probe-duration graph,
+independent of observation-list pagination. Failure/error markers are separate
+from successful timings. Stored expiry checks do not graph metadata lookup time.
 
 Celery Beat/workers execute due checks through reusable monitoring services.
+ICMP checks send one IPv4/IPv6 echo request through the Python `icmplib`
+library using unprivileged sockets and the check's configured reply timeout;
+they do not invoke a system `ping` executable. A missing reply is a failed check,
+while DNS/socket setup failures are execution errors. On Linux, the runtime must
+allow the worker's group in `net.ipv4.ping_group_range`; see the Monitoring app
+README for deployment guidance.
 
 Domain and TLS inventory now receives daily public metadata discovery and
 automatic stored-expiry checks. Renewals update observed inventory dates; lookup

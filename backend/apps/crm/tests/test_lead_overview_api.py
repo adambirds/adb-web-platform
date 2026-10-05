@@ -26,11 +26,13 @@ class LeadOverviewApiTests(TestCase):
             last_name="Owner",
             is_staff=True,
         )
-        self.status_new = LeadStatus.objects.create(name="New", order=10)
-        self.status_qualified = LeadStatus.objects.create(name="Qualified", order=20)
-        self.status_won = LeadStatus.objects.create(name="Won", order=50)
-        self.status_lost = LeadStatus.objects.create(name="Lost", order=60)
-        self.source = LeadSource.objects.create(name="Referral")
+        self.status_new = LeadStatus.objects.get_or_create(name="New", defaults={"order": 10})[0]
+        self.status_qualified = LeadStatus.objects.get_or_create(
+            name="Qualified", defaults={"order": 20}
+        )[0]
+        self.status_won = LeadStatus.objects.get_or_create(name="Won", defaults={"order": 50})[0]
+        self.status_lost = LeadStatus.objects.get_or_create(name="Lost", defaults={"order": 60})[0]
+        self.source = LeadSource.objects.get_or_create(name="Referral")[0]
 
     def _request(self) -> HttpRequest:
         request = self.factory.get("/api/admin/lead-overview")

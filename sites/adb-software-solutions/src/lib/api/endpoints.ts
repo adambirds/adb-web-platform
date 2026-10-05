@@ -83,6 +83,9 @@ export const AdminAPI = {
         create: () => `${API_BASE_URL}/admin/leads`,
         update: (id: number) => `${API_BASE_URL}/admin/leads/${id}`,
         options: () => `${API_BASE_URL}/admin/lead-options`,
+        stage: (id: number) => `${API_BASE_URL}/admin/leads/${id}/stage`,
+        createSource: () => `${API_BASE_URL}/admin/lead-sources`,
+        createStatus: () => `${API_BASE_URL}/admin/lead-statuses`,
         assignment: (id: number) =>
             `${API_BASE_URL}/admin/leads/${id}/assignment`,
         convert: (id: number) => `${API_BASE_URL}/admin/leads/${id}/convert`,
@@ -135,8 +138,8 @@ export const AdminAPI = {
     },
     monitoring: {
         overview: () => `${API_BASE_URL}/admin/monitoring/overview`,
-        get: (checkId: number) =>
-            `${API_BASE_URL}/admin/monitoring/checks/${checkId}`,
+        get: (checkId: number, query = "") =>
+            `${API_BASE_URL}/admin/monitoring/checks/${checkId}${query ? `?${query}` : ""}`,
         update: (checkId: number) =>
             `${API_BASE_URL}/admin/monitoring/checks/${checkId}`,
         pause: (checkId: number) =>

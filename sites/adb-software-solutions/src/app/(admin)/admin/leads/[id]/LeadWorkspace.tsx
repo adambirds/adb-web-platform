@@ -24,6 +24,7 @@ interface LeadAgent {
 
 interface LeadOptions {
     assignees: LeadAgent[];
+    statuses?: { id: number; name: string; outcome: string }[];
 }
 
 interface LeadDetail {
@@ -73,14 +74,17 @@ function formatDate(value: string | null) {
 export function LeadWorkspace({
     leadId,
     presentation = "page",
+    onChanged,
 }: {
     leadId: number;
     presentation?: "page" | "drawer";
+    onChanged?: () => void;
 }) {
-    const { hasPermission } = useAuth();
+    const { hasPermission, user } = useAuth();
     const [lead, setLead] = useState<LeadDetail | null>(null);
     const [options, setOptions] = useState<LeadOptions>({ assignees: [] });
     const [isLoading, setIsLoading] = useState(true);
+    const [isUpdatingStage, setIsUpdatingStage] = useState(false);
     const [isAssigning, setIsAssigning] = useState(false);
     const [isConverting, setIsConverting] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -98,7 +102,11 @@ export function LeadWorkspace({
             setLead(leadRow);
             setOptions(optionRows);
         } catch (loadError) {
-            setError(loadError instanceof Error ? loadError.message : "Unable to load lead details.");
+            setError(
+                loadError instanceof Error
+                    ? loadError.message
+                    : "Unable to load lead details.",
+            );
         } finally {
             setIsLoading(false);
         }
@@ -108,6 +116,29 @@ export function LeadWorkspace({
         void loadLead();
     }, [loadLead]);
 
+    async function updateStage(statusId: number) {
+        if (!lead) return;
+        try {
+            setIsUpdatingStage(true);
+            setError(null);
+            const updated = (await fetchAPI(AdminAPI.leads.stage(lead.id), {
+                method: "POST",
+                body: JSON.stringify({ status_id: statusId }),
+            })) as LeadDetail;
+            setLead(updated);
+            setActionMessage(`Sales stage changed to ${updated.status_name}.`);
+            onChanged?.();
+        } catch (failure) {
+            setError(
+                failure instanceof Error
+                    ? failure.message
+                    : "Unable to update sales stage.",
+            );
+        } finally {
+            setIsUpdatingStage(false);
+        }
+    }
+
     async function updateAssignment(assignedToId: string) {
         if (!lead) return;
 
@@ -115,11 +146,17 @@ export function LeadWorkspace({
             setIsAssigning(true);
             setError(null);
             setActionMessage(null);
-            const updated = (await fetchAPI(AdminAPI.leads.assignment(lead.id), {
-                method: "POST",
-                body: JSON.stringify({ assigned_to_id: assignedToId || null }),
-            })) as LeadDetail;
+            const updated = (await fetchAPI(
+                AdminAPI.leads.assignment(lead.id),
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        assigned_to_id: assignedToId || null,
+                    }),
+                },
+            )) as LeadDetail;
             setLead(updated);
+            onChanged?.();
             setActionMessage(
                 updated.assigned_to_name
                     ? `Lead assigned to ${updated.assigned_to_name}.`
@@ -140,7 +177,7 @@ export function LeadWorkspace({
         if (!lead) return;
         if (
             !window.confirm(
-                `Convert ${lead.company || lead.name} into a client account and primary contact?`,
+                `Convert ${lead.company || lead.name} into a client account and primary contact, and mark this lead as Won?`,
             )
         ) {
             return;
@@ -154,6 +191,7 @@ export function LeadWorkspace({
                 method: "POST",
             })) as LeadConversionResponse;
             setLead(result.lead);
+            onChanged?.();
             setActionMessage(
                 `Lead converted. ${result.linked_ticket_count} existing conversation${
                     result.linked_ticket_count === 1 ? " was" : "s were"
@@ -202,20 +240,27 @@ export function LeadWorkspace({
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                     {presentation === "page" ? (
-                        <Link href="/admin/leads" className="text-xs text-slate-500 hover:text-slate-300">
+                        <Link
+                            href="/admin/leads"
+                            className="text-xs text-slate-500 hover:text-slate-300"
+                        >
                             ← Leads
                         </Link>
                     ) : null}
                     <div
-                        className={`${presentation === "page" ? "mt-2 " : ""}flex flex-wrap items-center gap-3`}
+                        className={`${presentation === "page" ? "mt-2" : ""}flex flex-wrap items-center gap-3`}
                     >
                         <h1 className="text-2xl font-semibold text-white">
                             {lead.company || lead.name}
                         </h1>
-                        <Badge>{lead.status_name || "Unassigned"}</Badge>
+                        <Badge>{lead.status_name || "No sales stage"}</Badge>
                         {lead.converted_at ? <Badge>Converted</Badge> : null}
                     </div>
-                    {lead.company ? <p className="mt-1 text-sm text-slate-400">{lead.name}</p> : null}
+                    {lead.company ? (
+                        <p className="mt-1 text-sm text-slate-400">
+                            {lead.name}
+                        </p>
+                    ) : null}
                 </div>
                 <div className="flex flex-wrap gap-2">
                     {!lead.converted_at ? (
@@ -232,7 +277,9 @@ export function LeadWorkspace({
                         </a>
                     ) : null}
                     {lead.converted_client_id ? (
-                        <ButtonLink href={`/admin/clients/${lead.converted_client_id}`}>
+                        <ButtonLink
+                            href={`/admin/clients/${lead.converted_client_id}`}
+                        >
                             View client
                         </ButtonLink>
                     ) : null}
@@ -248,12 +295,76 @@ export function LeadWorkspace({
                 </div>
             </div>
 
+            {hasPermission("crm.change_lead") ? (
+                <Card className="space-y-3 p-5">
+                    <h2 className="text-sm font-semibold text-white">
+                        Sales stage
+                    </h2>
+                    <div className="flex flex-wrap items-center gap-3">
+                        <Select
+                            aria-label="Sales stage"
+                            className="max-w-sm"
+                            value={lead.status_id ?? ""}
+                            disabled={isUpdatingStage || isConverting}
+                            onChange={(event) => {
+                                if (event.target.value)
+                                    void updateStage(
+                                        Number(event.target.value),
+                                    );
+                            }}
+                        >
+                            <option value="" disabled>
+                                No sales stage
+                            </option>
+                            {(options.statuses ?? [])
+                                .filter(
+                                    (stage) =>
+                                        !lead.converted_at ||
+                                        stage.outcome === "won",
+                                )
+                                .map((stage) => (
+                                    <option key={stage.id} value={stage.id}>
+                                        {stage.name}
+                                    </option>
+                                ))}
+                        </Select>
+                        {(["won", "lost"] as const).map((outcome) => {
+                            const stage = options.statuses?.find(
+                                (item) => item.outcome === outcome,
+                            );
+                            return stage && !lead.converted_at ? (
+                                <Button
+                                    key={outcome}
+                                    type="button"
+                                    variant="secondary"
+                                    disabled={
+                                        isUpdatingStage ||
+                                        isConverting ||
+                                        options.statuses?.some(
+                                            (item) =>
+                                                item.id === lead.status_id &&
+                                                item.outcome === outcome,
+                                        )
+                                    }
+                                    onClick={() => void updateStage(stage.id)}
+                                >
+                                    Mark as {outcome}
+                                </Button>
+                            ) : null;
+                        })}
+                    </div>
+                </Card>
+            ) : null}
+
             {isEditing ? (
                 <Card className="border-cyan-900/40 p-5">
                     <div className="mb-5">
-                        <h2 className="text-sm font-semibold text-white">Edit lead</h2>
+                        <h2 className="text-sm font-semibold text-white">
+                            Edit lead
+                        </h2>
                         <p className="mt-1 text-xs text-slate-500">
-                            Update the opportunity without leaving this workspace.
+                            Update the opportunity without leaving this
+                            workspace.
                         </p>
                     </div>
                     <LeadForm
@@ -262,6 +373,7 @@ export function LeadWorkspace({
                             setIsEditing(false);
                             setActionMessage("Lead details updated.");
                             void loadLead();
+                            onChanged?.();
                         }}
                         onCancel={() => setIsEditing(false)}
                     />
@@ -270,49 +382,87 @@ export function LeadWorkspace({
 
             <div className="grid gap-4 lg:grid-cols-3">
                 <Card className="p-5 lg:col-span-2">
-                    <h2 className="text-sm font-semibold text-white">Opportunity</h2>
+                    <h2 className="text-sm font-semibold text-white">
+                        Opportunity
+                    </h2>
                     <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
                         <div>
                             <dt className="text-xs text-slate-500">Email</dt>
-                            <dd className="mt-1 text-slate-300">{lead.email}</dd>
+                            <dd className="mt-1 text-slate-300">
+                                {lead.email}
+                            </dd>
                         </div>
                         <div>
                             <dt className="text-xs text-slate-500">Phone</dt>
-                            <dd className="mt-1 text-slate-300">{lead.phone || "—"}</dd>
+                            <dd className="mt-1 text-slate-300">
+                                {lead.phone || "—"}
+                            </dd>
                         </div>
                         <div>
                             <dt className="text-xs text-slate-500">Brand</dt>
-                            <dd className="mt-1 text-slate-300">{lead.brand_name || "Unassigned"}</dd>
+                            <dd className="mt-1 text-slate-300">
+                                {lead.brand_name || "Unassigned"}
+                            </dd>
                         </div>
                         <div>
                             <dt className="text-xs text-slate-500">Source</dt>
-                            <dd className="mt-1 text-slate-300">{lead.source_name || "Unknown"}</dd>
+                            <dd className="mt-1 text-slate-300">
+                                {lead.source_name || "Unknown"}
+                            </dd>
                         </div>
                         <div>
                             <dt className="text-xs text-slate-500">Created</dt>
-                            <dd className="mt-1 text-slate-300">{formatDate(lead.created_at)}</dd>
+                            <dd className="mt-1 text-slate-300">
+                                {formatDate(lead.created_at)}
+                            </dd>
                         </div>
                         <div>
-                            <dt className="text-xs text-slate-500">Last updated</dt>
-                            <dd className="mt-1 text-slate-300">{formatDate(lead.updated_at)}</dd>
+                            <dt className="text-xs text-slate-500">
+                                Last updated
+                            </dt>
+                            <dd className="mt-1 text-slate-300">
+                                {formatDate(lead.updated_at)}
+                            </dd>
                         </div>
                     </dl>
                 </Card>
 
                 <div className="space-y-4">
                     <Card className="p-5">
-                        <h2 className="text-sm font-semibold text-white">Ownership</h2>
+                        <h2 className="text-sm font-semibold text-white">
+                            Ownership
+                        </h2>
+                        {lead.can_assign &&
+                        user &&
+                        lead.assigned_to_id !== user.id ? (
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                className="mt-3"
+                                disabled={isAssigning}
+                                onClick={() => void updateAssignment(user.id)}
+                            >
+                                Assign to me
+                            </Button>
+                        ) : null}
                         {lead.can_assign ? (
                             <label className="mt-4 block space-y-1.5 text-sm font-medium text-slate-300">
                                 <span>Assigned to</span>
                                 <Select
                                     value={lead.assigned_to_id ?? ""}
                                     disabled={isAssigning}
-                                    onChange={(event) => void updateAssignment(event.target.value)}
+                                    onChange={(event) =>
+                                        void updateAssignment(
+                                            event.target.value,
+                                        )
+                                    }
                                 >
                                     <option value="">Unassigned</option>
                                     {options.assignees.map((assignee) => (
-                                        <option key={assignee.id} value={assignee.id}>
+                                        <option
+                                            key={assignee.id}
+                                            value={assignee.id}
+                                        >
                                             {assignee.name}
                                         </option>
                                     ))}
@@ -326,11 +476,17 @@ export function LeadWorkspace({
                     </Card>
 
                     <Card className="p-5">
-                        <h2 className="text-sm font-semibold text-white">Conversion</h2>
+                        <h2 className="text-sm font-semibold text-white">
+                            Conversion
+                        </h2>
                         {lead.converted_at ? (
                             <div className="mt-3 space-y-3 text-sm text-slate-400">
-                                <p>Converted {formatDate(lead.converted_at)}.</p>
-                                {lead.converted_by_name ? <p>By {lead.converted_by_name}.</p> : null}
+                                <p>
+                                    Converted {formatDate(lead.converted_at)}.
+                                </p>
+                                {lead.converted_by_name ? (
+                                    <p>By {lead.converted_by_name}.</p>
+                                ) : null}
                                 {lead.converted_client_id ? (
                                     <ButtonLink
                                         href={`/admin/clients/${lead.converted_client_id}`}
@@ -344,15 +500,18 @@ export function LeadWorkspace({
                         ) : lead.can_convert ? (
                             <div className="mt-3 space-y-3">
                                 <p className="text-sm leading-6 text-slate-400">
-                                    Create the client account and primary contact, then attach unmatched
-                                    conversations from this email address.
+                                    Create the client account and primary
+                                    contact, then attach unmatched conversations
+                                    from this email address.
                                 </p>
                                 <Button
                                     type="button"
                                     onClick={() => void convertToClient()}
-                                    disabled={isConverting}
+                                    disabled={isConverting || isUpdatingStage}
                                 >
-                                    {isConverting ? "Converting..." : "Convert to client"}
+                                    {isConverting
+                                        ? "Converting..."
+                                        : "Convert to client"}
                                 </Button>
                             </div>
                         ) : (
@@ -363,8 +522,10 @@ export function LeadWorkspace({
                     </Card>
 
                     <Card className="p-5">
-                        <h2 className="text-sm font-semibold text-white">Internal notes</h2>
-                        <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-400">
+                        <h2 className="text-sm font-semibold text-white">
+                            Internal notes
+                        </h2>
+                        <p className="mt-3 text-sm leading-6 whitespace-pre-wrap text-slate-400">
                             {lead.notes || "No internal notes recorded."}
                         </p>
                     </Card>
@@ -372,9 +533,12 @@ export function LeadWorkspace({
             </div>
 
             <Card className="p-5">
-                <h2 className="text-sm font-semibold text-white">Original enquiry</h2>
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-300">
-                    {lead.message || "No enquiry text was recorded for this lead."}
+                <h2 className="text-sm font-semibold text-white">
+                    Original enquiry
+                </h2>
+                <p className="mt-3 text-sm leading-6 whitespace-pre-wrap text-slate-300">
+                    {lead.message ||
+                        "No enquiry text was recorded for this lead."}
                 </p>
             </Card>
         </div>

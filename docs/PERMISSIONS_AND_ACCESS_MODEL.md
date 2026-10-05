@@ -550,3 +550,16 @@ ownership validation still applies. Outgoing relationship editing requires
 resource view and `change_resourcerelationship`, visible source/old target/new
 target, and normal relationship validation. These updates append scoped audit
 events. Deactivating a Service Provider never deletes its Provider Accounts.
+
+### Lead catalogue configuration
+
+Lead sources and sales stages are shared platform configuration. Staff need
+`crm.add_leadsource` or `crm.add_leadstatus` respectively to add dropdown options
+from the lead create/edit form. `crm.add_lead` and `crm.change_lead` do not imply
+these catalogue capabilities. Both write APIs enforce the corresponding Django
+permission. Sales-stage outcomes are explicitly Open/Won/Lost.
+
+Direct Lead sales-stage updates require `crm.change_lead`. Lead conversion keeps
+its existing `crm.convert_lead`, Client creation and Contact creation capability
+checks; setting the Won outcome is an intrinsic part of that atomic operation
+and does not require a separate general Lead edit permission.
