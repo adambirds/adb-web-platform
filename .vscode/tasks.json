@@ -92,14 +92,6 @@
             "group": "build",
             "isBackground": true,
             "problemMatcher": []
-        },
-        {
-            "label": "Start Flower",
-            "type": "shell",
-            "command": "start-flower",
-            "group": "build",
-            "isBackground": true,
-            "problemMatcher": []
         }
     ]
 }

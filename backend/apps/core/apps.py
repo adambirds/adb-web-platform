@@ -10,3 +10,7 @@ class CoreConfig(AppConfig):
         from .live.signals import register
 
         register()
+
+        from .celery_dashboard.signals import register as register_celery_telemetry
+
+        register_celery_telemetry()

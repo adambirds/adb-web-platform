@@ -13,6 +13,7 @@ from apps.clients.ninja.command_centre_views import client_command_centre_router
 from apps.clients.ninja.overview_views import client_overview_router
 from apps.clients.ninja.time_report_views import time_report_router
 from apps.clients.ninja.time_views import time_tracking_router
+from apps.core.celery_dashboard.views import celery_dashboard_router
 from apps.core.ninja.admin_views import core_admin_router
 from apps.core.ninja.dashboard_views import dashboard_router
 from apps.core.ninja.operational_views import operational_polish_router
@@ -135,6 +136,7 @@ admin_router.add_router("", knowledge_attachment_router)
 admin_router.add_router("", resource_admin_router)
 admin_router.add_router("/website", website_admin_router)
 admin_router.add_router("", github_router)
+admin_router.add_router("", celery_dashboard_router)
 api.add_router("/admin", admin_router)
 
 

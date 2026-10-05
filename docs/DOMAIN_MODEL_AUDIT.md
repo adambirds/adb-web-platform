@@ -636,3 +636,26 @@ command. Runtime token acquisition
 reads environment values directly. Existing certificate/client-secret Vault
 connections remain supported, but new platform setup uses Infisical. Graph secrets
 must be scoped to backend/worker runtime identities, never frontend build contexts.
+
+## CeleryTaskExecution — Keep safe operational metadata
+
+CeleryTaskExecution is a platform-wide task-history projection, not a business
+job identity or replacement scheduler. Store only task ID/name, state, queue,
+worker, retries, timestamps, duration, exception class and revoke-request time.
+Never retain task args/kwargs, results, tracebacks or exception text. Lifecycle
+signals populate it automatically. Daily retention purges completed metadata
+older than 14 days while preserving unfinished executions. Restrict all access
+to active staff superusers. See [Celery operations](CELERY_DASHBOARD.md).
+
+## Per-task Celery diagnostics
+
+The full-administrator Celery dashboard now includes a per-task log viewer.
+`CeleryTaskLog` stores redacted messages/severity/logger/attempt/timestamp linked
+to an execution. Workers capture task-context Python logging, redirected stdout/
+stderr, lifecycle and failure tracebacks without local-variable dumps. Known
+secrets and credential-shaped fields are scrubbed before persistence; task
+argument/result dumps and SQL logs are excluded. Capture is bounded (2,000 rows
+per execution, 8,000 characters per message) and retained for 14 days. The API
+rechecks active staff superuser access; SSE transports only refresh hints. Existing
+execution summary fields remain metadata-only. See
+[Celery operations](CELERY_DASHBOARD.md) for scope and capture limits.

@@ -33,6 +33,7 @@ interface NavigationItem {
     href: string;
     icon: ComponentType<SVGProps<SVGSVGElement>>;
     permissions?: string[];
+    superuserOnly?: boolean;
 }
 
 interface NavigationGroup {
@@ -193,6 +194,7 @@ const navigation: NavigationGroup[] = [
     {
         label: "Administration",
         items: [
+            { label: "Celery operations", href: "/admin/celery", icon: ServerStackIcon, superuserOnly: true },
             {
                 label: "Activity & security",
                 href: "/admin/activity",
@@ -230,7 +232,7 @@ function SidebarContent({
     showCloseButton?: boolean;
 }) {
     const pathname = usePathname();
-    const { hasPermission } = useAuth();
+    const { hasPermission, user } = useAuth();
 
     return (
         <>
@@ -270,10 +272,11 @@ function SidebarContent({
                 {navigation.map((group) => {
                     const items = group.items.filter(
                         (item) =>
-                            !item.permissions ||
+                            (!item.superuserOnly || user?.isSuperuser === true) &&
+                            (!item.permissions ||
                             item.permissions.some((permission) =>
                                 hasPermission(permission),
-                            ),
+                            )),
                     );
                     if (items.length === 0) return null;
 

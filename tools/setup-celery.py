@@ -98,7 +98,7 @@ class LivenessProbe(bootsteps.StartStopStep):
 
 
 def create_devcontainer_scripts(scripts_dir: Path, python_name: str, queues: list[str]) -> None:
-    """Create devcontainer scripts for Celery workers, beat, and flower."""
+    """Create devcontainer scripts for Celery workers and beat."""
     # Celery beat script
     beat_script = scripts_dir / "start-celery-beat"
     beat_content = f"""#!/bin/bash
@@ -161,22 +161,6 @@ wait
     multi_script.chmod(0o755)
     print(f"  ✓ Created {multi_script.relative_to(scripts_dir.parent.parent)}")
 
-    # Flower script
-    flower_script = scripts_dir / "start-flower"
-    flower_content = f"""#!/bin/bash
-# Start Flower (Celery monitoring)
-set -e
-
-cd /workspace/backend
-source /opt/venv/bin/activate
-
-echo "🌸 Starting Flower..."
-celery -A {python_name} flower --port=5555 --address=0.0.0.0
-"""
-    flower_script.write_text(flower_content)
-    flower_script.chmod(0o755)
-    print(f"  ✓ Created {flower_script.relative_to(scripts_dir.parent.parent)}")
-
 
 def create_entrypoint_scripts(project_root: Path, python_name: str) -> None:
     """Create entrypoint scripts for Docker containers."""
@@ -198,26 +182,6 @@ exec celery -A {python_name} worker \\
     worker_entrypoint.write_text(worker_content)
     worker_entrypoint.chmod(0o755)
     print(f"  ✓ Created {worker_entrypoint.name}")
-
-    # Flower entrypoint
-    flower_entrypoint = project_root / "entrypoint-flower.sh"
-    flower_content = f"""#!/bin/sh
-exec celery -A {python_name} \\
-\t--broker="$CELERY_BROKER" \\
-\tflower \\
-\t--loglevel=info \\
-\t--address=0.0.0.0 \\
-\t--port=5555 \\
-\t--broker_use_ssl=true \\
-\t--auth_provider="flower.views.auth.GithubLoginHandler" \\
-\t--auth="$FLOWER_AUTH" \\
-\t--oauth2_key="$FLOWER_OAUTH2_KEY" \\
-\t--oauth2_secret="$FLOWER_OAUTH2_SECRET" \\
-\t--oauth2_redirect_uri="$FLOWER_OAUTH2_REDIRECT_URI"
-"""
-    flower_entrypoint.write_text(flower_content)
-    flower_entrypoint.chmod(0o755)
-    print(f"  ✓ Created {flower_entrypoint.name}")
 
 
 def create_dockerfiles(project_root: Path, python_name: str, slug_name: str) -> None:
@@ -325,61 +289,6 @@ CMD ["celery", "-A", "{python_name}", "beat", "-l", "INFO"]
     beat_dockerfile.write_text(beat_content)
     print(f"  ✓ Created {beat_dockerfile.name}")
 
-    # Dockerfile.flower
-    flower_dockerfile = project_root / "Dockerfile.flower"
-    flower_content = f"""# Use official Python base image with slimmed down Debian base
-FROM python:3.12-slim
-
-# Environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \\
-    PYTHONUNBUFFERED=1 \\
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \\
-    LANG=C.UTF-8
-
-# System dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \\
-    build-essential \\
-    libpq-dev \\
-    gcc \\
-    curl \\
-    libffi-dev \\
-    libxml2-dev \\
-    libxslt1-dev \\
-    libjpeg-dev \\
-    zlib1g-dev \\
-    libcairo2 \\
-    libcairo2-dev \\
-    fontconfig \\
-    procps \\
-    # WeasyPrint dependencies for PDF generation
-    libpango-1.0-0 \\
-    libpangocairo-1.0-0 \\
-    libgdk-pixbuf-2.0-0 \\
-    shared-mime-info \\
-    && apt-get clean \\
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Python dependencies
-COPY backend/requirements/prod.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
-
-# Set working directory
-WORKDIR /opt/{slug_name}
-
-# Copy project code (backend directory contents)
-COPY ./backend/ .
-
-# Expose port for Flower
-EXPOSE 5555
-
-COPY ./entrypoint-flower.sh /entrypoint-flower.sh
-RUN chmod +x /entrypoint-flower.sh
-
-ENTRYPOINT ["/entrypoint-flower.sh"]
-"""
-    flower_dockerfile.write_text(flower_content)
-    print(f"  ✓ Created {flower_dockerfile.name}")
-
 
 def update_backend_ci(workflows_dir: Path) -> None:
     """Update backend-ci.yml to include Celery services."""
@@ -392,31 +301,28 @@ def update_backend_ci(workflows_dir: Path) -> None:
     content = backend_ci.read_text()
 
     # Add to matrix images
-    if "- flower" not in content:
+    if "- celery-worker" not in content:
         # Find the backend line and add celery services after it
         matrix_section = """                image:
                     - backend"""
 
         new_matrix = """                image:
                     - backend
-                    - flower
                     - celery-worker
                     - celery-beat"""
 
         content = content.replace(matrix_section, new_matrix)
 
     # Add Dockerfiles and entrypoints to paths
-    if "Dockerfile.flower" not in content:
+    if "Dockerfile.celery-worker" not in content:
         # Find the paths section and add new files
         paths_section = '''            - "backend/**"
             - "Dockerfile.backend"'''
 
         new_paths = '''            - "backend/**"
             - "Dockerfile.backend"
-            - "Dockerfile.flower"
             - "Dockerfile.celery-worker"
             - "Dockerfile.celery-beat"
-            - "entrypoint-flower.sh"
             - "entrypoint-celery-worker.sh"'''
 
         content = content.replace(paths_section, new_paths)
@@ -481,10 +387,6 @@ def update_tasks_json(project_root: Path, queues: list[str]) -> None:
     if "start-celery-beat" not in existing_commands:
         new_tasks.append(create_task("Start Celery Beat", "start-celery-beat"))
 
-    # Add flower task
-    if "start-flower" not in existing_commands:
-        new_tasks.append(create_task("Start Flower", "start-flower"))
-
     if new_tasks:
         # Insert after "Start Backend" task if it exists
         backend_idx = None
@@ -508,22 +410,6 @@ def update_tasks_json(project_root: Path, queues: list[str]) -> None:
         print("  ✓ Celery tasks already exist in tasks.json")
 
 
-def update_devcontainer_json(project_root: Path, flower_port: str) -> None:
-    """Update devcontainer.json to add Flower port by calling update-devcontainer-ports.py."""
-
-    devcontainer_json = project_root / ".devcontainer" / "devcontainer.json"
-
-    if not devcontainer_json.exists():
-        print(f"  ⚠ {devcontainer_json.relative_to(project_root)} not found, skipping")
-        return
-
-    # We need to re-run the devcontainer ports script with the flower port
-    # The script should be called from setup-project after Celery setup,
-    # so we'll just note that it needs to be called with --flower-port
-    print(f"  ℹ Flower port {flower_port} will be added by setup-project")
-    print(f"    (Re-run update-devcontainer-ports.py with --flower-port {flower_port} if needed)")
-
-
 def main():
     parser = argparse.ArgumentParser(description="Configure Celery for the project template")
     parser.add_argument("--project-root", required=True, help="Path to project root directory")
@@ -538,9 +424,6 @@ def main():
         "--queues",
         required=True,
         help="Comma-separated list of Celery queue names (e.g., 'general,email,ebay')",
-    )
-    parser.add_argument(
-        "--flower-port", default="5555", help="Port for Flower monitoring (default: 5555)"
     )
 
     args = parser.parse_args()
@@ -584,13 +467,8 @@ def main():
     print("\nUpdating tasks.json...")
     update_tasks_json(project_root, queues)
 
-    # Update devcontainer.json
-    print("\nUpdating devcontainer.json...")
-    update_devcontainer_json(project_root, args.flower_port)
-
     print("\n✅ Celery configuration complete!")
     print(f"   Queues: {', '.join(queues)}")
-    print(f"   Flower port: {args.flower_port}")
 
 
 if __name__ == "__main__":

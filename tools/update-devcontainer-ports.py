@@ -53,7 +53,6 @@ def update_devcontainer_json(
     auth_frontend_port: int,
     extra_frontends: list[dict],
     postgres_port: int,
-    flower_port: int = None,
 ) -> None:
     """Update devcontainer.json with ports."""
 
@@ -73,10 +72,6 @@ def update_devcontainer_json(
     # Add extra frontends
     for frontend in extra_frontends:
         ports_config.append((frontend["port"], frontend["label"], True))
-
-    # Add Flower if provided
-    if flower_port:
-        ports_config.append((flower_port, "Flower (Celery Monitor)", True))
 
     # Add postgres last (silent notification)
     ports_config.append((postgres_port, "PostgreSQL", False))
@@ -151,7 +146,6 @@ def main():
         help="Comma-separated list of name:port:label (e.g., 'admin-frontend:5174:Admin Frontend,docs:5175:Documentation')",
     )
     parser.add_argument("--postgres-port", required=True, type=int, help="PostgreSQL port")
-    parser.add_argument("--flower-port", type=int, help="Flower monitoring port (optional)")
 
     args = parser.parse_args()
 
@@ -170,7 +164,6 @@ def main():
         args.auth_frontend_port,
         extra_frontends,
         args.postgres_port,
-        args.flower_port,
     )
 
 

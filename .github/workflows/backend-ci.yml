@@ -6,10 +6,8 @@ on:
         paths:
             - "backend/**"
             - "Dockerfile.backend"
-            - "Dockerfile.flower"
             - "Dockerfile.celery-worker"
             - "Dockerfile.celery-beat"
-            - "entrypoint-flower.sh"
             - "entrypoint-celery-worker.sh"
             - "entrypoint.sh"
             - ".github/workflows/backend-ci.yml"
@@ -18,10 +16,8 @@ on:
         paths:
             - "backend/**"
             - "Dockerfile.backend"
-            - "Dockerfile.flower"
             - "Dockerfile.celery-worker"
             - "Dockerfile.celery-beat"
-            - "entrypoint-flower.sh"
             - "entrypoint-celery-worker.sh"
             - "entrypoint.sh"
             - ".github/workflows/backend-ci.yml"
@@ -59,6 +55,6 @@ jobs:
         uses: adb-software-solutions/github-actions-workflows/.github/workflows/docker-build-push.yml@v1
         with:
             application: adb-web-platform
-            images: '["backend","flower","celery-worker","celery-beat"]'
+            images: '["backend","celery-worker","celery-beat"]'
             infisical-identity-id: 199f317a-d030-4f03-bbd7-ebf986030b09
             infisical-registry-project-id: 848009f4-aa7d-45e2-8fb6-404bd8f25115

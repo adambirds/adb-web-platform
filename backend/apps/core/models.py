@@ -4,6 +4,7 @@ from typing import Any
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class Brand(models.Model):
@@ -188,3 +189,55 @@ class Notification(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user}: {self.title}"
+
+
+class CeleryTaskExecution(models.Model):
+    """Safe execution metadata only; never arguments, results or exception messages."""
+
+    class State(models.TextChoices):
+        QUEUED = "QUEUED", "Queued"
+        STARTED = "STARTED", "Running"
+        RETRY = "RETRY", "Retrying"
+        SUCCESS = "SUCCESS", "Succeeded"
+        FAILURE = "FAILURE", "Failed"
+        REVOKED = "REVOKED", "Revoked"
+        IGNORED = "IGNORED", "Ignored"
+
+    id = models.CharField(primary_key=True, max_length=255)
+    task_name = models.CharField(max_length=255, db_index=True)
+    state = models.CharField(
+        max_length=16, choices=State.choices, default=State.QUEUED, db_index=True
+    )
+    queue = models.CharField(max_length=255, blank=True)
+    worker = models.CharField(max_length=255, blank=True)
+    retries = models.PositiveIntegerField(default=0)
+    error_type = models.CharField(max_length=150, blank=True)
+    published_at = models.DateTimeField(null=True, blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    runtime_seconds = models.FloatField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    revoke_requested_at = models.DateTimeField(null=True, blank=True)
+    log_count = models.PositiveIntegerField(default=0)
+    logs_truncated = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+
+class CeleryTaskLog(models.Model):
+    """Redacted task diagnostics, visible only through administrator-only APIs."""
+
+    execution = models.ForeignKey(
+        CeleryTaskExecution, on_delete=models.CASCADE, related_name="logs"
+    )
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+    level = models.PositiveSmallIntegerField(default=20)
+    logger_name = models.CharField(max_length=150)
+    message = models.TextField()
+    attempt = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["id"]
+        indexes = [models.Index(fields=["execution", "id"])]

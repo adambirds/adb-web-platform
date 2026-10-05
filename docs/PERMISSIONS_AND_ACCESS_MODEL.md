@@ -600,3 +600,26 @@ command. Runtime token acquisition
 reads environment values directly. Existing certificate/client-secret Vault
 connections remain supported, but new platform setup uses Infisical. Graph secrets
 must be scoped to backend/worker runtime identities, never frontend build contexts.
+
+## Celery platform administration
+
+The native `/admin/celery` dashboard and every API/control endpoint require an
+active staff Django superuser. Ordinary staff, Administrator group membership,
+and direct model permissions do not grant this platform-wide operational access.
+Celery SSE hints are also restricted to current superusers. Task payloads/results
+and exception messages are excluded. Dispatch/revoke controls are audited and
+never expose arbitrary task invocation or worker termination. See
+[Celery operations](CELERY_DASHBOARD.md).
+
+## Per-task Celery diagnostics
+
+The full-administrator Celery dashboard now includes a per-task log viewer.
+`CeleryTaskLog` stores redacted messages/severity/logger/attempt/timestamp linked
+to an execution. Workers capture task-context Python logging, redirected stdout/
+stderr, lifecycle and failure tracebacks without local-variable dumps. Known
+secrets and credential-shaped fields are scrubbed before persistence; task
+argument/result dumps and SQL logs are excluded. Capture is bounded (2,000 rows
+per execution, 8,000 characters per message) and retained for 14 days. The API
+rechecks active staff superuser access; SSE transports only refresh hints. Existing
+execution summary fields remain metadata-only. See
+[Celery operations](CELERY_DASHBOARD.md) for scope and capture limits.

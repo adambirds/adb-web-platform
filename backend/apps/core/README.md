@@ -32,3 +32,14 @@ Internal browser workflows live in
 
 Read the [backend guide](../../README.md) for shared conventions and the
 [canonical documentation map](../../../docs/README.md) before domain changes.
+
+## Celery operations
+
+[`celery_dashboard/`](celery_dashboard/) contains administrator-only worker
+inspection, safe task metadata signals and APIs. `CeleryTaskExecution` in
+`models.py` is the history projection; `tasks.py` purges terminal history.
+See [the deployment and access guide](../../../docs/CELERY_DASHBOARD.md).
+
+`celery_dashboard/logs.py` captures and redacts task-context worker logs.
+`CeleryTaskLog` is the retained diagnostic projection; APIs and UI require
+active staff superuser access.

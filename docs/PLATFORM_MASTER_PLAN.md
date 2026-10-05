@@ -1081,3 +1081,27 @@ command. Runtime token acquisition
 reads environment values directly. Existing certificate/client-secret Vault
 connections remain supported, but new platform setup uses Infisical. Graph secrets
 must be scoped to backend/worker runtime identities, never frontend build contexts.
+
+## Native Celery operations
+
+Platform background-task operations live at `/admin/celery` in the combined
+operations application. The shared Django backend tracks safe task lifecycle
+metadata automatically and exposes bounded worker/queue inspection. Existing
+Redis SSE transports task and worker invalidations. Access is limited to active
+staff superusers; confirmed, audited controls dispatch existing parameter-free
+Beat jobs and request cooperative revocation without terminating workers.
+No separate monitoring application/image, OAuth registration or Redis database
+is required. See [Celery operations](CELERY_DASHBOARD.md).
+
+## Per-task Celery diagnostics
+
+The full-administrator Celery dashboard now includes a per-task log viewer.
+`CeleryTaskLog` stores redacted messages/severity/logger/attempt/timestamp linked
+to an execution. Workers capture task-context Python logging, redirected stdout/
+stderr, lifecycle and failure tracebacks without local-variable dumps. Known
+secrets and credential-shaped fields are scrubbed before persistence; task
+argument/result dumps and SQL logs are excluded. Capture is bounded (2,000 rows
+per execution, 8,000 characters per message) and retained for 14 days. The API
+rechecks active staff superuser access; SSE transports only refresh hints. Existing
+execution summary fields remain metadata-only. See
+[Celery operations](CELERY_DASHBOARD.md) for scope and capture limits.
