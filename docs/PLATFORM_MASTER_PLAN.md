@@ -1046,6 +1046,22 @@ interfaces/IPs, repository links and TLS domain coverage can be edited in place;
 outgoing resource relationships retain editable notes and scoped targets.
 See `INFRASTRUCTURE_CREATION.md` for entry points and API boundaries.
 
+## GitHub operations dashboard
+
+GitHub is a shared backend integration at `/admin/github`, implemented by
+`apps.github_integration`. One GitHub App supports multiple organisation/personal
+installations. Each installation is approved into one Client/Internal context;
+repository inventory uses the native InfrastructureResource + SourceRepository
+records. ApplicationRepositoryLink remains a relationship to that same record.
+Signed webhooks and Celery update issue/PR/workflow/run projections automatically.
+My-work filters exclude bots and keep Dependabot separately visible. Workflow
+dispatch, failed-job reruns and log access have independent capabilities and audits.
+Django remains the identity and permission authority; there is no separate GitHub
+login or frontend token store. GitHub signing reads `GITHUB_APP_PRIVATE_KEY`
+directly from Infisical-injected backend environments, with no Internal Vault
+copy or bootstrap step. Operators rotate the PEM in Infisical and redeploy.
+See `GITHUB_APP_SETUP.md` for deployment and limits.
+
 ## Shared operational live updates
 
 The admin workspace shares an authenticated, scoped SSE connection for GitHub,

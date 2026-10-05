@@ -610,3 +610,17 @@ use the standard Edit resource action in full pages and drawers. Server
 interfaces/IPs, repository links and TLS domain coverage can be edited in place;
 outgoing resource relationships retain editable notes and scoped targets.
 See `INFRASTRUCTURE_CREATION.md` for entry points and API boundaries.
+
+## GitHub integration additions
+
+Keep native SourceRepository as the inventory authority. GitHub Repository is
+a one-to-one integration attachment, not a second repository inventory. Keep
+ApplicationRepositoryLink for application role/path metadata. GitHub Installation
+defines the remote account and Client/Internal import context; Item stores safe
+issue/PR/workflow/run projections. Delivery stores only durable event routing
+metadata. Preference is a personal username filter, and WorkflowAction records
+actor/action identifiers without secrets, workflow input values or log content.
+App signing material lives only in Infisical-injected `GITHUB_APP_PRIVATE_KEY`
+process configuration; no Vault credential reference or database key field is
+required. Operators rotate it manually in Infisical and redeploy backend processes.
+See `GITHUB_APP_SETUP.md` for ownership and synchronisation limits.

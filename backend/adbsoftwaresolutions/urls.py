@@ -24,12 +24,14 @@ from django.urls import include, path
 
 from adbsoftwaresolutions.ninja.routers import api
 from apps.core.live.views import live_events
+from apps.github_integration.webhooks import webhook as github_webhook
 
 logger = logging.getLogger(__name__)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
+    path("api/integrations/github/webhook", github_webhook),
     path("api/admin/events", live_events),
     path("api/", api.urls),
 ]

@@ -140,6 +140,15 @@ const navigation: NavigationGroup[] = [
         label: "Technology",
         items: [
             {
+                label: "GitHub",
+                href: "/admin/github",
+                icon: CloudIcon,
+                permissions: [
+                    "github_integration.view_repository",
+                    "infrastructure.view_infrastructureresource",
+                ],
+            },
+            {
                 label: "Infrastructure",
                 href: "/admin/infrastructure",
                 icon: ServerStackIcon,

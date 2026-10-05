@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "apps.clients",
     "apps.infrastructure",
     "apps.monitoring",
+    "apps.github_integration",
     "apps.crm",
     "apps.credentials",
     "apps.knowledge_base",
@@ -287,3 +288,9 @@ if DEBUG:
     SESSION_COOKIE_SAMESITE = "None"
     SESSION_COOKIE_SECURE = True
     RATE_LIMIT_DISABLED = True
+
+# GitHub App signing material is injected by Infisical into backend process environments.
+GITHUB_APP_ID = os.environ.get("GITHUB_APP_ID", "")
+GITHUB_APP_SLUG = os.environ.get("GITHUB_APP_SLUG", "")
+GITHUB_APP_PRIVATE_KEY = os.environ.get("GITHUB_APP_PRIVATE_KEY", "")
+GITHUB_WEBHOOK_SECRET = os.environ.get("GITHUB_WEBHOOK_SECRET", "")

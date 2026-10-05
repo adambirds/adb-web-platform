@@ -20,6 +20,7 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 app.conf.beat_schedule = {
+    "github-delivery-recovery": {"task": "github.recover_deliveries", "schedule": 60},
     "infrastructure-metadata-refresh-dispatch": {
         "task": "infrastructure.enqueue_metadata_refreshes",
         "schedule": 300,

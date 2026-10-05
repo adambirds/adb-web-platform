@@ -30,6 +30,9 @@ EXCLUDED_PERMISSION_APP_LABELS = {
     "sessions",
 }
 SENSITIVE_PERMISSION_CODES = {
+    "github_integration.manage_github",
+    "github_integration.trigger_workflow",
+    "github_integration.view_workflow_logs",
     "access_control.manage_staff_access",
     "core.view_sensitive_audit_metadata",
     "credentials.reveal_storedcredential",

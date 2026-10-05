@@ -23,6 +23,7 @@ from apps.credentials.ninja.views import credential_router
 from apps.crm.ninja.admin_views import crm_admin_router
 from apps.crm.ninja.email_views import lead_email_router
 from apps.crm.ninja.overview_views import lead_overview_router
+from apps.github_integration.ninja.views import github_router
 from apps.infrastructure.ninja.admin_views import infrastructure_admin_router
 from apps.infrastructure.ninja.application_repository_views import application_repository_router
 from apps.infrastructure.ninja.catalogue_views import catalogue_router
@@ -133,6 +134,7 @@ admin_router.add_router("", knowledge_base_router)
 admin_router.add_router("", knowledge_attachment_router)
 admin_router.add_router("", resource_admin_router)
 admin_router.add_router("/website", website_admin_router)
+admin_router.add_router("", github_router)
 api.add_router("/admin", admin_router)
 
 

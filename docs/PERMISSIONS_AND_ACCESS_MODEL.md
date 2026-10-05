@@ -564,6 +564,20 @@ its existing `crm.convert_lead`, Client creation and Contact creation capability
 checks; setting the Won outcome is an intrinsic part of that atomic operation
 and does not require a separate general Lead edit permission.
 
+## GitHub capabilities and scope
+
+GitHub dashboard reads require `github_integration.view_repository` and
+`infrastructure.view_infrastructureresource`, with native repository resource
+Client/Internal scopes. Installation management uses `manage_github` and Client
+scope; approval also requires native resource/repository creation capabilities.
+`trigger_workflow` and `view_workflow_logs` are independent sensitive capabilities.
+Workflow inputs and log bodies never enter audit metadata. Log retrieval checks
+job membership of a visible run. GitHub App private keys are injected by
+Infisical as `GITHUB_APP_PRIVATE_KEY` into backend process environments, never
+stored in application records or exposed through APIs. Dashboard access grants
+no access to signing material. A personal GitHub username preference only filters data.
+See `GITHUB_APP_SETUP.md`.
+
 ## Live update hints
 
 The `/api/admin/events` SSE endpoint requires an active staff session and an

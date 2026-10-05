@@ -486,6 +486,14 @@ interfaces/IPs, repository links and TLS domain coverage can be edited in place;
 outgoing resource relationships retain editable notes and scoped targets.
 See `INFRASTRUCTURE_CREATION.md` for entry points and API boundaries.
 
+## GitHub and inventory navigation
+
+Implemented a multi-installation GitHub App dashboard, signed durable webhooks,
+Celery updates, my-work/Dependabot filters, workflow dispatch, failed-job reruns
+and scoped log retrieval. Live account sync requires App registration, Infisical
+`GITHUB_APP_PRIVATE_KEY` injection, subscriptions and installation approval; these external
+setup steps remain deployment work. See `GITHUB_APP_SETUP.md`.
+
 ## Shared operational live updates
 
 The admin workspace shares an authenticated, scoped SSE connection for GitHub,
