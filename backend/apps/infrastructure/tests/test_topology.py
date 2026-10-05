@@ -6,6 +6,7 @@ from django.test import TestCase
 from apps.access_control.models import StaffAccessProfile
 from apps.clients.models import Client
 from apps.core.ownership import OwnershipType
+from apps.credentials.models import CredentialResourceLink, StoredCredential
 from apps.infrastructure.models import InfrastructureResource, ResourceRelationship
 from authentication.models import User
 
@@ -115,3 +116,67 @@ class InfrastructureTopologyAPITests(TestCase):
         response = self.client.get(f"/api/admin/infrastructure/resources/{hidden.id}/topology")
 
         self.assertEqual(response.status_code, 404)
+
+    def test_credential_links_require_metadata_permission_and_never_return_secrets(self) -> None:
+        root = self._resource("Server", client=self.allowed_client)
+        credential = StoredCredential.objects.create(
+            name="SSH login",
+            ownership_type="client",
+            client=self.allowed_client,
+            encrypted_secret_payload="ciphertext-must-not-appear",
+        )
+        CredentialResourceLink.objects.create(
+            resource=root, credential=credential, purpose="SSH access"
+        )
+        url = f"/api/admin/infrastructure/resources/{root.id}/topology"
+        payload = self.client.get(url).json()
+        self.assertEqual(payload["edges"], [])
+        self.user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="credentials", codename="view_storedcredential"
+            )
+        )
+        response = self.client.get(url)
+        payload = response.json()
+        self.assertEqual(len(payload["edges"]), 1)
+        node = next(node for node in payload["nodes"] if node["resource_type"] == "credential")
+        self.assertEqual(node["href"], f"/admin/credentials/{credential.id}")
+        self.assertEqual(payload["edges"][0]["target_id"], node["id"])
+        self.assertNotContains(response, "ciphertext-must-not-appear")
+        self.assertNotIn("encrypted_secret_payload", node)
+
+    def test_topology_hides_out_of_scope_and_archived_credentials(self) -> None:
+        root = self._resource("Server", client=self.allowed_client)
+        self.user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="credentials", codename="view_storedcredential"
+            )
+        )
+        for client, status in [(self.hidden_client, "active"), (self.allowed_client, "archived")]:
+            credential = StoredCredential.objects.create(
+                name=f"Hidden {status}", ownership_type="client", client=client, status=status
+            )
+            CredentialResourceLink.objects.create(resource=root, credential=credential)
+        payload = self.client.get(f"/api/admin/infrastructure/resources/{root.id}/topology").json()
+        self.assertEqual(payload["edges"], [])
+        self.assertEqual(len(payload["nodes"]), 1)
+
+    def test_credentials_on_neighbour_resources_require_two_hops(self) -> None:
+        root = self._resource("Application", client=self.allowed_client)
+        server = self._resource("Server", client=self.allowed_client)
+        ResourceRelationship.objects.create(
+            source_resource=root, target_resource=server, relationship_type="hosted_on"
+        )
+        credential = StoredCredential.objects.create(name="SSH", ownership_type="internal")
+        CredentialResourceLink.objects.create(resource=server, credential=credential)
+        self.user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="credentials", codename="view_storedcredential"
+            )
+        )
+        url = f"/api/admin/infrastructure/resources/{root.id}/topology"
+        one = self.client.get(url, {"depth": 1}).json()
+        two = self.client.get(url, {"depth": 2}).json()
+        self.assertEqual(len(one["edges"]), 1)
+        self.assertEqual(len(two["edges"]), 2)
+        self.assertTrue(any(node["resource_type"] == "credential" for node in two["nodes"]))

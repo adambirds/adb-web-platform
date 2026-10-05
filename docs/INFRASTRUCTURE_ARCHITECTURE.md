@@ -667,3 +667,19 @@ separate paginated catalogue and can be created inline in the account form.
 Server workspaces expose interface/IP creation, and resource workspaces support
 shared tag creation and scoped assignment. See `INFRASTRUCTURE_CREATION.md` for
 the complete creation map and permission contracts.
+
+### Credential links in topology
+
+Topology projects active `CredentialResourceLink` records alongside directed
+resource relationships. Credential nodes require `credentials.view_storedcredential`
+and independent Vault Client/Internal scoping; hidden or inactive/archived
+credentials are omitted. Only name, ownership label, lifecycle and Vault detail
+URL are projected, without reading encrypted payloads or revealing secrets.
+Credential links count toward the existing node/edge limits and hop depth.
+Credentials are terminal nodes: they do not provide a traversal route into other
+resources that share the same credential.
+
+Resource node/edge IDs retain their positive database identities. Projected
+Credential node IDs and credential-link edge IDs use the corresponding negative
+database IDs to avoid collisions; these are graph identities, not Resource IDs.
+Their `resource_type` is `credential`, and their href points to the Vault record.

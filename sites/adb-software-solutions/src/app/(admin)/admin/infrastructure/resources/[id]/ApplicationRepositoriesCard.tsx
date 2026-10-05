@@ -7,6 +7,10 @@ import { API_URL } from "@/lib/config";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { DataApplicationInfrastructureForm } from "../DataApplicationInfrastructureForm";
+
+const REPOSITORY_TYPES: "source_repository"[] = ["source_repository"];
+
 interface RepositoryLink {
     id: number;
     repository_resource_id: number;
@@ -56,6 +60,7 @@ export function ApplicationRepositoriesCard({
         "infrastructure.delete_applicationrepositorylink",
     );
 
+    const [creatingRepository, setCreatingRepository] = useState(false);
     const [links, setLinks] = useState<RepositoryLink[]>([]);
     const [options, setOptions] = useState<DataApplicationOptions | null>(null);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -91,6 +96,7 @@ export function ApplicationRepositoriesCard({
     }, [loadLinks]);
 
     useEffect(() => {
+        setCreatingRepository(false);
         setShowForm(false);
         setOptions(null);
         setRepositoryId("");
@@ -134,6 +140,23 @@ export function ApplicationRepositoriesCard({
                 loadError instanceof Error
                     ? loadError.message
                     : "Unable to load source repository options.",
+            );
+        }
+    }
+
+    async function repositoryCreated(id: number) {
+        try {
+            const choices = (await fetchAPI(
+                `${API_URL}/api/admin/infrastructure/data-application-options`,
+            )) as DataApplicationOptions;
+            setOptions(choices);
+            setRepositoryId(String(id));
+            setCreatingRepository(false);
+        } catch (failure) {
+            setError(
+                failure instanceof Error
+                    ? failure.message
+                    : "Unable to refresh repositories.",
             );
         }
     }
@@ -227,8 +250,40 @@ export function ApplicationRepositoriesCard({
                 ) : null}
             </div>
 
-            {showForm ? (
+            {creatingRepository ? (
+                <div className="mt-5">
+                    <DataApplicationInfrastructureForm
+                        allowedTypes={REPOSITORY_TYPES}
+                        creationContext={{
+                            ownership_type: ownershipType,
+                            client_id: clientId,
+                        }}
+                        onCancel={() => setCreatingRepository(false)}
+                        onCreated={(id) => void repositoryCreated(id)}
+                    />
+                </div>
+            ) : null}
+            {showForm && !creatingRepository ? (
                 <div className="mt-5 space-y-4 rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+                    {options && repositoryOptions.length === 0 ? (
+                        <p className="text-sm text-slate-400">
+                            No source repositories are available for this
+                            application. Create a repository record first, then
+                            link it.
+                        </p>
+                    ) : null}
+                    {hasPermission("infrastructure.add_sourcerepository") &&
+                    hasPermission(
+                        "infrastructure.add_infrastructureresource",
+                    ) ? (
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => setCreatingRepository(true)}
+                        >
+                            Create source repository
+                        </Button>
+                    ) : null}
                     <div className="grid gap-3 md:grid-cols-2">
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
                             Source repository

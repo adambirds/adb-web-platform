@@ -6,6 +6,8 @@ from django.db.models import Q
 from django.http import HttpRequest
 from ninja import Router
 
+from apps.credentials.models import CredentialResourceLink
+from apps.credentials.policies import scope_credentials_for_user
 from apps.infrastructure.models import InfrastructureResource, ResourceRelationship
 from apps.infrastructure.policies import scope_infrastructure_resources_for_user
 from authentication.ninja.schemas import ProblemDetail
@@ -79,12 +81,14 @@ def resource_topology(
     visible_ids = visible.values("id")
     node_ids = {root.id}
     frontier = {root.id}
+    credential_sources: set[int] = set()
     edge_rows: dict[int, ResourceRelationship] = {}
     truncated = False
 
     for _ in range(depth):
         if not frontier:
             break
+        credential_sources.update(frontier)
         relationships = (
             ResourceRelationship.objects.select_related(
                 "source_resource__client",
@@ -133,10 +137,67 @@ def resource_topology(
         if relationship.source_resource_id in resources
         and relationship.target_resource_id in resources
     ]
+    nodes = [_node(resource, root.id) for resource in resources.values()]
+    if request.user.has_perm("credentials.view_storedcredential"):
+        links = (
+            CredentialResourceLink.objects.filter(
+                resource_id__in=credential_sources & resources.keys(),
+                credential__in=scope_credentials_for_user(request.user).filter(status="active"),
+            )
+            .select_related("credential__client")
+            .only(
+                "id",
+                "resource_id",
+                "purpose",
+                "credential__id",
+                "credential__name",
+                "credential__status",
+                "credential__client_id",
+                "credential__client__id",
+                "credential__client__name",
+                "credential__client__company",
+            )
+            .order_by("id")[: MAX_TOPOLOGY_EDGES + 1]
+        )
+        credential_ids: set[int] = set()
+        for link in links:
+            credential = link.credential
+            if len(edges) >= MAX_TOPOLOGY_EDGES or (
+                credential.id not in credential_ids and len(nodes) >= MAX_TOPOLOGY_NODES
+            ):
+                truncated = True
+                break
+            if credential.id not in credential_ids:
+                credential_ids.add(credential.id)
+                nodes.append(
+                    TopologyNodeOut(
+                        id=-credential.id,
+                        name=credential.name,
+                        resource_type="credential",
+                        resource_type_label="Credential",
+                        lifecycle_status=credential.status,
+                        environment="not_applicable",
+                        criticality="normal",
+                        client_id=credential.client_id,
+                        client_name=str(credential.client) if credential.client else None,
+                        href=f"/admin/credentials/{credential.id}",
+                        is_root=False,
+                    )
+                )
+            edges.append(
+                TopologyEdgeOut(
+                    id=-link.id,
+                    source_id=link.resource_id,
+                    target_id=-credential.id,
+                    relationship_type="uses_credential",
+                    relationship_label="Uses credential",
+                    label=link.purpose,
+                )
+            )
     return ResourceTopologyOut(
         root_id=root.id,
         depth=depth,
-        nodes=[_node(resource, root.id) for resource in resources.values()],
+        nodes=nodes,
         edges=edges,
         truncated=truncated,
     )

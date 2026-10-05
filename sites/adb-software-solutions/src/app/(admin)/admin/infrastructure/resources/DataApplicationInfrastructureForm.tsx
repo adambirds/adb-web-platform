@@ -79,6 +79,7 @@ interface SpecialistEditDetail {
 
 interface DataApplicationInfrastructureFormProps {
     allowedTypes: DataApplicationType[];
+    creationContext?: { ownership_type: string; client_id: number | null };
     editResourceId?: number;
     onCancel: () => void;
     onCreated?: (resourceId: number) => void;
@@ -127,7 +128,10 @@ function optionAllowed(
     clientId: string,
 ): boolean {
     if (ownership === "internal") return option.ownership_type === "internal";
-    return option.ownership_type === "internal" || option.client_id === Number(clientId);
+    return (
+        option.ownership_type === "internal" ||
+        option.client_id === Number(clientId)
+    );
 }
 
 export function DataApplicationInfrastructureForm({
@@ -136,6 +140,7 @@ export function DataApplicationInfrastructureForm({
     onCancel,
     onCreated,
     onSaved,
+    creationContext,
 }: DataApplicationInfrastructureFormProps) {
     const isEditing = editResourceId !== undefined;
     const [options, setOptions] = useState<DataApplicationOptions | null>(null);
@@ -143,9 +148,15 @@ export function DataApplicationInfrastructureForm({
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const [type, setType] = useState<DataApplicationType>(allowedTypes[0] ?? "database_instance");
-    const [ownership, setOwnership] = useState("internal");
-    const [clientId, setClientId] = useState("");
+    const [type, setType] = useState<DataApplicationType>(
+        allowedTypes[0] ?? "database_instance",
+    );
+    const [ownership, setOwnership] = useState(
+        creationContext?.ownership_type ?? "internal",
+    );
+    const [clientId, setClientId] = useState(
+        creationContext?.client_id ? String(creationContext.client_id) : "",
+    );
     const [name, setName] = useState("");
     const [lifecycle, setLifecycle] = useState("active");
     const [environment, setEnvironment] = useState("not_applicable");
@@ -215,14 +226,19 @@ export function DataApplicationInfrastructureForm({
                     `${API_URL}/api/admin/infrastructure/resources/${editResourceId}/specialist-edit`,
                 )) as SpecialistEditDetail;
                 if (!active) return;
-                const resourceType = detail.resource_type as DataApplicationType;
+                const resourceType =
+                    detail.resource_type as DataApplicationType;
                 if (!allowedTypes.includes(resourceType)) {
-                    throw new Error("This resource type cannot be edited with this form.");
+                    throw new Error(
+                        "This resource type cannot be edited with this form.",
+                    );
                 }
 
                 setType(resourceType);
                 setOwnership(detail.ownership_type);
-                setClientId(detail.client_id === null ? "" : String(detail.client_id));
+                setClientId(
+                    detail.client_id === null ? "" : String(detail.client_id),
+                );
                 setName(detail.name);
                 setLifecycle(detail.lifecycle_status);
                 setEnvironment(detail.environment);
@@ -234,7 +250,9 @@ export function DataApplicationInfrastructureForm({
                 setEngineVersion(textValue(values.engine_version));
                 setHostingType(textValue(values.hosting_type) || "managed");
                 setServerResourceId(textValue(values.server_resource_id));
-                setProviderAccountId(textValue(values.provider_account_resource_id));
+                setProviderAccountId(
+                    textValue(values.provider_account_resource_id),
+                );
                 setProviderResourceId(textValue(values.provider_resource_id));
                 setEndpoint(textValue(values.endpoint));
                 setPort(textValue(values.port));
@@ -253,22 +271,32 @@ export function DataApplicationInfrastructureForm({
                 setCharset(textValue(values.charset));
                 setCollation(textValue(values.collation));
 
-                setApplicationType(textValue(values.application_type) || "web_app");
+                setApplicationType(
+                    textValue(values.application_type) || "web_app",
+                );
                 setOwnerTeam(textValue(values.owner_team));
                 setPrimaryLanguage(textValue(values.primary_language));
                 setFramework(textValue(values.framework));
 
-                setApplicationResourceId(textValue(values.application_resource_id));
-                setDeploymentType(textValue(values.deployment_type) || "server");
+                setApplicationResourceId(
+                    textValue(values.application_resource_id),
+                );
+                setDeploymentType(
+                    textValue(values.deployment_type) || "server",
+                );
                 setRuntime(textValue(values.runtime));
                 setRuntimeVersion(textValue(values.runtime_version));
                 setReleaseVersion(textValue(values.release_version));
                 setBranchOrRef(textValue(values.branch_or_ref));
-                setAutomaticDeployments(triStateValue(values.automatic_deployments));
+                setAutomaticDeployments(
+                    triStateValue(values.automatic_deployments),
+                );
 
                 setWebUrl(textValue(values.web_url));
                 setCloneUrl(textValue(values.clone_url));
-                setProviderRepositoryId(textValue(values.provider_repository_id));
+                setProviderRepositoryId(
+                    textValue(values.provider_repository_id),
+                );
                 setOwnerName(textValue(values.owner_name));
                 setRepositoryName(textValue(values.repository_name));
                 setDefaultBranch(textValue(values.default_branch));
@@ -312,7 +340,9 @@ export function DataApplicationInfrastructureForm({
     );
     const servers = useMemo(
         () =>
-            options?.servers.filter((option) => optionAllowed(option, ownership, clientId)) ?? [],
+            options?.servers.filter((option) =>
+                optionAllowed(option, ownership, clientId),
+            ) ?? [],
         [clientId, options, ownership],
     );
     const databaseInstances = useMemo(
@@ -340,8 +370,13 @@ export function DataApplicationInfrastructureForm({
             setError("Choose the Client that owns this resource.");
             return;
         }
-        if (type === "logical_database" && (!instanceResourceId || !databaseName.trim())) {
-            setError("Choose a Database Instance and enter the logical database name.");
+        if (
+            type === "logical_database" &&
+            (!instanceResourceId || !databaseName.trim())
+        ) {
+            setError(
+                "Choose a Database Instance and enter the logical database name.",
+            );
             return;
         }
         if (type === "application_environment" && !applicationResourceId) {
@@ -373,7 +408,9 @@ export function DataApplicationInfrastructureForm({
                 engine_version: engineVersion.trim(),
                 hosting_type: hostingType,
                 server_resource_id:
-                    hostingType === "managed" ? null : numberOrNull(serverResourceId),
+                    hostingType === "managed"
+                        ? null
+                        : numberOrNull(serverResourceId),
                 provider_account_resource_id: numberOrNull(providerAccountId),
                 provider_resource_id: providerResourceId.trim(),
                 endpoint: endpoint.trim(),
@@ -475,13 +512,19 @@ export function DataApplicationInfrastructureForm({
             />
 
             <Card className="space-y-4 p-5">
-                <h2 className="text-sm font-semibold text-white">Resource identity</h2>
+                <h2 className="text-sm font-semibold text-white">
+                    Resource identity
+                </h2>
                 <div className="grid gap-4 md:grid-cols-2">
                     <label className="space-y-2 text-xs text-slate-400">
                         Resource type
                         <Select
                             value={type}
-                            onChange={(event) => setType(event.target.value as DataApplicationType)}
+                            onChange={(event) =>
+                                setType(
+                                    event.target.value as DataApplicationType,
+                                )
+                            }
                             disabled={isSaving || isEditing}
                         >
                             {allowedTypes.map((value) => (
@@ -495,8 +538,12 @@ export function DataApplicationInfrastructureForm({
                         Ownership
                         <Select
                             value={ownership}
-                            onChange={(event) => setOwnership(event.target.value)}
-                            disabled={isSaving || isEditing}
+                            onChange={(event) =>
+                                setOwnership(event.target.value)
+                            }
+                            disabled={
+                                isSaving || isEditing || !!creationContext
+                            }
                         >
                             <option value="internal">ADB Internal</option>
                             <option value="client">Client-owned</option>
@@ -507,8 +554,12 @@ export function DataApplicationInfrastructureForm({
                             Client
                             <Select
                                 value={clientId}
-                                onChange={(event) => setClientId(event.target.value)}
-                                disabled={isSaving || isEditing}
+                                onChange={(event) =>
+                                    setClientId(event.target.value)
+                                }
+                                disabled={
+                                    isSaving || isEditing || !!creationContext
+                                }
                             >
                                 <option value="">Choose client</option>
                                 {options?.clients.map((client) => (
@@ -532,7 +583,9 @@ export function DataApplicationInfrastructureForm({
                             Lifecycle
                             <Select
                                 value={lifecycle}
-                                onChange={(event) => setLifecycle(event.target.value)}
+                                onChange={(event) =>
+                                    setLifecycle(event.target.value)
+                                }
                                 disabled={isSaving}
                             >
                                 <option value="planned">Planned</option>
@@ -548,7 +601,9 @@ export function DataApplicationInfrastructureForm({
                         Environment
                         <Select
                             value={environment}
-                            onChange={(event) => setEnvironment(event.target.value)}
+                            onChange={(event) =>
+                                setEnvironment(event.target.value)
+                            }
                             disabled={isSaving}
                         >
                             <option value="production">Production</option>
@@ -556,14 +611,18 @@ export function DataApplicationInfrastructureForm({
                             <option value="development">Development</option>
                             <option value="testing">Testing</option>
                             <option value="shared">Shared</option>
-                            <option value="not_applicable">Not applicable</option>
+                            <option value="not_applicable">
+                                Not applicable
+                            </option>
                         </Select>
                     </label>
                     <label className="space-y-2 text-xs text-slate-400">
                         Criticality
                         <Select
                             value={criticality}
-                            onChange={(event) => setCriticality(event.target.value)}
+                            onChange={(event) =>
+                                setCriticality(event.target.value)
+                            }
                             disabled={isSaving}
                         >
                             <option value="low">Low</option>
@@ -576,7 +635,9 @@ export function DataApplicationInfrastructureForm({
                         Description
                         <Textarea
                             value={description}
-                            onChange={(event) => setDescription(event.target.value)}
+                            onChange={(event) =>
+                                setDescription(event.target.value)
+                            }
                             rows={3}
                             disabled={isSaving}
                         />
@@ -586,11 +647,19 @@ export function DataApplicationInfrastructureForm({
 
             {type === "database_instance" ? (
                 <Card className="space-y-4 p-5">
-                    <h2 className="text-sm font-semibold text-white">Database instance</h2>
+                    <h2 className="text-sm font-semibold text-white">
+                        Database instance
+                    </h2>
                     <div className="grid gap-4 md:grid-cols-2">
                         <label className="space-y-2 text-xs text-slate-400">
                             Engine
-                            <Select value={engine} onChange={(event) => setEngine(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={engine}
+                                onChange={(event) =>
+                                    setEngine(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="postgresql">PostgreSQL</option>
                                 <option value="mysql">MySQL</option>
                                 <option value="mariadb">MariaDB</option>
@@ -603,7 +672,13 @@ export function DataApplicationInfrastructureForm({
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Engine version
-                            <Input value={engineVersion} onChange={(event) => setEngineVersion(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={engineVersion}
+                                onChange={(event) =>
+                                    setEngineVersion(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Hosting
@@ -611,7 +686,8 @@ export function DataApplicationInfrastructureForm({
                                 value={hostingType}
                                 onChange={(event) => {
                                     setHostingType(event.target.value);
-                                    if (event.target.value === "managed") setServerResourceId("");
+                                    if (event.target.value === "managed")
+                                        setServerResourceId("");
                                 }}
                                 disabled={isSaving}
                             >
@@ -625,10 +701,19 @@ export function DataApplicationInfrastructureForm({
                         {hostingType !== "managed" ? (
                             <label className="space-y-2 text-xs text-slate-400">
                                 Hosting server
-                                <Select value={serverResourceId} onChange={(event) => setServerResourceId(event.target.value)} disabled={isSaving}>
+                                <Select
+                                    value={serverResourceId}
+                                    onChange={(event) =>
+                                        setServerResourceId(event.target.value)
+                                    }
+                                    disabled={isSaving}
+                                >
                                     <option value="">No server selected</option>
                                     {servers.map((server) => (
-                                        <option key={server.resource_id} value={server.resource_id}>
+                                        <option
+                                            key={server.resource_id}
+                                            value={server.resource_id}
+                                        >
                                             {server.name} · {server.hostname}
                                         </option>
                                     ))}
@@ -637,30 +722,67 @@ export function DataApplicationInfrastructureForm({
                         ) : null}
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
                             Provider account
-                            <Select value={providerAccountId} onChange={(event) => setProviderAccountId(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={providerAccountId}
+                                onChange={(event) =>
+                                    setProviderAccountId(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="">No provider account</option>
                                 {providerAccounts.map((provider) => (
-                                    <option key={provider.resource_id} value={provider.resource_id}>
-                                        {provider.name} · {provider.provider_name}
+                                    <option
+                                        key={provider.resource_id}
+                                        value={provider.resource_id}
+                                    >
+                                        {provider.name} ·{" "}
+                                        {provider.provider_name}
                                     </option>
                                 ))}
                             </Select>
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Endpoint
-                            <Input value={endpoint} onChange={(event) => setEndpoint(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={endpoint}
+                                onChange={(event) =>
+                                    setEndpoint(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Port
-                            <Input type="number" min="1" max="65535" value={port} onChange={(event) => setPort(event.target.value)} disabled={isSaving} />
+                            <Input
+                                type="number"
+                                min="1"
+                                max="65535"
+                                value={port}
+                                onChange={(event) =>
+                                    setPort(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Provider resource ID
-                            <Input value={providerResourceId} onChange={(event) => setProviderResourceId(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={providerResourceId}
+                                onChange={(event) =>
+                                    setProviderResourceId(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             TLS
-                            <Select value={tlsMode} onChange={(event) => setTlsMode(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={tlsMode}
+                                onChange={(event) =>
+                                    setTlsMode(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="required">Required</option>
                                 <option value="preferred">Preferred</option>
                                 <option value="disabled">Disabled</option>
@@ -669,15 +791,33 @@ export function DataApplicationInfrastructureForm({
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Region
-                            <Input value={region} onChange={(event) => setRegion(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={region}
+                                onChange={(event) =>
+                                    setRegion(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Zone
-                            <Input value={zone} onChange={(event) => setZone(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={zone}
+                                onChange={(event) =>
+                                    setZone(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             High availability
-                            <Select value={highAvailability} onChange={(event) => setHighAvailability(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={highAvailability}
+                                onChange={(event) =>
+                                    setHighAvailability(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="">Unknown</option>
                                 <option value="true">Enabled</option>
                                 <option value="false">Disabled</option>
@@ -685,11 +825,25 @@ export function DataApplicationInfrastructureForm({
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Replica count
-                            <Input type="number" min="0" value={replicaCount} onChange={(event) => setReplicaCount(event.target.value)} disabled={isSaving} />
+                            <Input
+                                type="number"
+                                min="0"
+                                value={replicaCount}
+                                onChange={(event) =>
+                                    setReplicaCount(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Backups
-                            <Select value={backupEnabled} onChange={(event) => setBackupEnabled(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={backupEnabled}
+                                onChange={(event) =>
+                                    setBackupEnabled(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="">Unknown</option>
                                 <option value="true">Enabled</option>
                                 <option value="false">Disabled</option>
@@ -697,7 +851,14 @@ export function DataApplicationInfrastructureForm({
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Maintenance window
-                            <Input value={maintenanceWindow} onChange={(event) => setMaintenanceWindow(event.target.value)} placeholder="Sunday 03:00 Europe/London" disabled={isSaving} />
+                            <Input
+                                value={maintenanceWindow}
+                                onChange={(event) =>
+                                    setMaintenanceWindow(event.target.value)
+                                }
+                                placeholder="Sunday 03:00 Europe/London"
+                                disabled={isSaving}
+                            />
                         </label>
                     </div>
                 </Card>
@@ -705,14 +866,27 @@ export function DataApplicationInfrastructureForm({
 
             {type === "logical_database" ? (
                 <Card className="space-y-4 p-5">
-                    <h2 className="text-sm font-semibold text-white">Logical database</h2>
+                    <h2 className="text-sm font-semibold text-white">
+                        Logical database
+                    </h2>
                     <div className="grid gap-4 md:grid-cols-2">
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
                             Database instance
-                            <Select value={instanceResourceId} onChange={(event) => setInstanceResourceId(event.target.value)} disabled={isSaving}>
-                                <option value="">Choose database instance</option>
+                            <Select
+                                value={instanceResourceId}
+                                onChange={(event) =>
+                                    setInstanceResourceId(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
+                                <option value="">
+                                    Choose database instance
+                                </option>
                                 {databaseInstances.map((database) => (
-                                    <option key={database.resource_id} value={database.resource_id}>
+                                    <option
+                                        key={database.resource_id}
+                                        value={database.resource_id}
+                                    >
                                         {database.name} · {database.engine}
                                     </option>
                                 ))}
@@ -720,23 +894,53 @@ export function DataApplicationInfrastructureForm({
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Database name
-                            <Input value={databaseName} onChange={(event) => setDatabaseName(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={databaseName}
+                                onChange={(event) =>
+                                    setDatabaseName(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Default schema
-                            <Input value={defaultSchema} onChange={(event) => setDefaultSchema(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={defaultSchema}
+                                onChange={(event) =>
+                                    setDefaultSchema(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
                             Purpose
-                            <Input value={purpose} onChange={(event) => setPurpose(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={purpose}
+                                onChange={(event) =>
+                                    setPurpose(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Character set
-                            <Input value={charset} onChange={(event) => setCharset(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={charset}
+                                onChange={(event) =>
+                                    setCharset(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Collation
-                            <Input value={collation} onChange={(event) => setCollation(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={collation}
+                                onChange={(event) =>
+                                    setCollation(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                     </div>
                 </Card>
@@ -744,11 +948,19 @@ export function DataApplicationInfrastructureForm({
 
             {type === "application" ? (
                 <Card className="space-y-4 p-5">
-                    <h2 className="text-sm font-semibold text-white">Application</h2>
+                    <h2 className="text-sm font-semibold text-white">
+                        Application
+                    </h2>
                     <div className="grid gap-4 md:grid-cols-2">
                         <label className="space-y-2 text-xs text-slate-400">
                             Application type
-                            <Select value={applicationType} onChange={(event) => setApplicationType(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={applicationType}
+                                onChange={(event) =>
+                                    setApplicationType(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="web_app">Web application</option>
                                 <option value="saas">SaaS</option>
                                 <option value="api">API</option>
@@ -763,15 +975,35 @@ export function DataApplicationInfrastructureForm({
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Owner / team
-                            <Input value={ownerTeam} onChange={(event) => setOwnerTeam(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={ownerTeam}
+                                onChange={(event) =>
+                                    setOwnerTeam(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Primary language
-                            <Input value={primaryLanguage} onChange={(event) => setPrimaryLanguage(event.target.value)} placeholder="Python" disabled={isSaving} />
+                            <Input
+                                value={primaryLanguage}
+                                onChange={(event) =>
+                                    setPrimaryLanguage(event.target.value)
+                                }
+                                placeholder="Python"
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Framework
-                            <Input value={framework} onChange={(event) => setFramework(event.target.value)} placeholder="Django / FastAPI / Next.js" disabled={isSaving} />
+                            <Input
+                                value={framework}
+                                onChange={(event) =>
+                                    setFramework(event.target.value)
+                                }
+                                placeholder="Django / FastAPI / Next.js"
+                                disabled={isSaving}
+                            />
                         </label>
                     </div>
                 </Card>
@@ -779,14 +1011,25 @@ export function DataApplicationInfrastructureForm({
 
             {type === "application_environment" ? (
                 <Card className="space-y-4 p-5">
-                    <h2 className="text-sm font-semibold text-white">Application environment</h2>
+                    <h2 className="text-sm font-semibold text-white">
+                        Application environment
+                    </h2>
                     <div className="grid gap-4 md:grid-cols-2">
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
                             Application
-                            <Select value={applicationResourceId} onChange={(event) => setApplicationResourceId(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={applicationResourceId}
+                                onChange={(event) =>
+                                    setApplicationResourceId(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="">Choose application</option>
                                 {applications.map((application) => (
-                                    <option key={application.resource_id} value={application.resource_id}>
+                                    <option
+                                        key={application.resource_id}
+                                        value={application.resource_id}
+                                    >
                                         {application.name}
                                     </option>
                                 ))}
@@ -794,7 +1037,13 @@ export function DataApplicationInfrastructureForm({
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Deployment type
-                            <Select value={deploymentType} onChange={(event) => setDeploymentType(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={deploymentType}
+                                onChange={(event) =>
+                                    setDeploymentType(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="server">Server</option>
                                 <option value="paas">PaaS</option>
                                 <option value="container">Container</option>
@@ -806,10 +1055,19 @@ export function DataApplicationInfrastructureForm({
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Server
-                            <Select value={serverResourceId} onChange={(event) => setServerResourceId(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={serverResourceId}
+                                onChange={(event) =>
+                                    setServerResourceId(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="">No server selected</option>
                                 {servers.map((server) => (
-                                    <option key={server.resource_id} value={server.resource_id}>
+                                    <option
+                                        key={server.resource_id}
+                                        value={server.resource_id}
+                                    >
                                         {server.name} · {server.hostname}
                                     </option>
                                 ))}
@@ -817,42 +1075,95 @@ export function DataApplicationInfrastructureForm({
                         </label>
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
                             Provider account
-                            <Select value={providerAccountId} onChange={(event) => setProviderAccountId(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={providerAccountId}
+                                onChange={(event) =>
+                                    setProviderAccountId(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="">No provider account</option>
                                 {providerAccounts.map((provider) => (
-                                    <option key={provider.resource_id} value={provider.resource_id}>
-                                        {provider.name} · {provider.provider_name}
+                                    <option
+                                        key={provider.resource_id}
+                                        value={provider.resource_id}
+                                    >
+                                        {provider.name} ·{" "}
+                                        {provider.provider_name}
                                     </option>
                                 ))}
                             </Select>
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Provider resource ID
-                            <Input value={providerResourceId} onChange={(event) => setProviderResourceId(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={providerResourceId}
+                                onChange={(event) =>
+                                    setProviderResourceId(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Region
-                            <Input value={region} onChange={(event) => setRegion(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={region}
+                                onChange={(event) =>
+                                    setRegion(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Runtime
-                            <Input value={runtime} onChange={(event) => setRuntime(event.target.value)} placeholder="python / node" disabled={isSaving} />
+                            <Input
+                                value={runtime}
+                                onChange={(event) =>
+                                    setRuntime(event.target.value)
+                                }
+                                placeholder="python / node"
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Runtime version
-                            <Input value={runtimeVersion} onChange={(event) => setRuntimeVersion(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={runtimeVersion}
+                                onChange={(event) =>
+                                    setRuntimeVersion(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Release version
-                            <Input value={releaseVersion} onChange={(event) => setReleaseVersion(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={releaseVersion}
+                                onChange={(event) =>
+                                    setReleaseVersion(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Branch / ref
-                            <Input value={branchOrRef} onChange={(event) => setBranchOrRef(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={branchOrRef}
+                                onChange={(event) =>
+                                    setBranchOrRef(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
                             Automatic deployments
-                            <Select value={automaticDeployments} onChange={(event) => setAutomaticDeployments(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={automaticDeployments}
+                                onChange={(event) =>
+                                    setAutomaticDeployments(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="">Unknown</option>
                                 <option value="true">Enabled</option>
                                 <option value="false">Disabled</option>
@@ -864,46 +1175,101 @@ export function DataApplicationInfrastructureForm({
 
             {type === "source_repository" ? (
                 <Card className="space-y-4 p-5">
-                    <h2 className="text-sm font-semibold text-white">Source repository</h2>
+                    <h2 className="text-sm font-semibold text-white">
+                        Source repository
+                    </h2>
                     <div className="grid gap-4 md:grid-cols-2">
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
                             Provider account
-                            <Select value={providerAccountId} onChange={(event) => setProviderAccountId(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={providerAccountId}
+                                onChange={(event) =>
+                                    setProviderAccountId(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="">No provider account</option>
                                 {providerAccounts.map((provider) => (
-                                    <option key={provider.resource_id} value={provider.resource_id}>
-                                        {provider.name} · {provider.provider_name}
+                                    <option
+                                        key={provider.resource_id}
+                                        value={provider.resource_id}
+                                    >
+                                        {provider.name} ·{" "}
+                                        {provider.provider_name}
                                     </option>
                                 ))}
                             </Select>
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Owner / namespace
-                            <Input value={ownerName} onChange={(event) => setOwnerName(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={ownerName}
+                                onChange={(event) =>
+                                    setOwnerName(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Repository name
-                            <Input value={repositoryName} onChange={(event) => setRepositoryName(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={repositoryName}
+                                onChange={(event) =>
+                                    setRepositoryName(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
                             Web URL
-                            <Input type="url" value={webUrl} onChange={(event) => setWebUrl(event.target.value)} disabled={isSaving} />
+                            <Input
+                                type="url"
+                                value={webUrl}
+                                onChange={(event) =>
+                                    setWebUrl(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400 md:col-span-2">
                             Clone URL
-                            <Input value={cloneUrl} onChange={(event) => setCloneUrl(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={cloneUrl}
+                                onChange={(event) =>
+                                    setCloneUrl(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Provider repository ID
-                            <Input value={providerRepositoryId} onChange={(event) => setProviderRepositoryId(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={providerRepositoryId}
+                                onChange={(event) =>
+                                    setProviderRepositoryId(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Default branch
-                            <Input value={defaultBranch} onChange={(event) => setDefaultBranch(event.target.value)} disabled={isSaving} />
+                            <Input
+                                value={defaultBranch}
+                                onChange={(event) =>
+                                    setDefaultBranch(event.target.value)
+                                }
+                                disabled={isSaving}
+                            />
                         </label>
                         <label className="space-y-2 text-xs text-slate-400">
                             Visibility
-                            <Select value={visibility} onChange={(event) => setVisibility(event.target.value)} disabled={isSaving}>
+                            <Select
+                                value={visibility}
+                                onChange={(event) =>
+                                    setVisibility(event.target.value)
+                                }
+                                disabled={isSaving}
+                            >
                                 <option value="private">Private</option>
                                 <option value="internal">Internal</option>
                                 <option value="public">Public</option>
@@ -913,7 +1279,9 @@ export function DataApplicationInfrastructureForm({
                             <input
                                 type="checkbox"
                                 checked={isFork}
-                                onChange={(event) => setIsFork(event.target.checked)}
+                                onChange={(event) =>
+                                    setIsFork(event.target.checked)
+                                }
                                 disabled={isSaving}
                                 className="h-4 w-4 rounded border-slate-700 bg-slate-950"
                             />
@@ -925,10 +1293,18 @@ export function DataApplicationInfrastructureForm({
 
             {error ? <p className="text-sm text-red-300">{error}</p> : null}
             <div className="flex justify-end gap-2">
-                <Button type="button" variant="ghost" onClick={onCancel} disabled={isSaving}>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={onCancel}
+                    disabled={isSaving}
+                >
                     Cancel
                 </Button>
-                <Button type="submit" disabled={isSaving || allowedTypes.length === 0}>
+                <Button
+                    type="submit"
+                    disabled={isSaving || allowedTypes.length === 0}
+                >
                     {isSaving
                         ? isEditing
                             ? "Saving..."

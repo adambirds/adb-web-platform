@@ -126,3 +126,15 @@ subnet also selects its parent network.
 A Network describes a LAN/VPC/VLAN or other network context; a Subnet describes
 an address range within it. An interface is the Server's network adapter, and IP
 addresses can attach to that interface or directly to the Server.
+
+### Repositories while linking an application
+
+Application **Source repositories → Add repository** links existing typed
+Source Repository records. If none are available in the Application's ownership
+scope, the panel explains this and offers **Create source repository** to staff
+with `infrastructure.add_sourcerepository` and
+`infrastructure.add_infrastructureresource`. The embedded native form inherits
+and locks Client/Internal ownership, then refreshes and selects the new record.
+The Application link's role, monorepo path and notes survive creation/cancellation.
+Click **Link repository** to save that relationship. A monorepo path is the
+Application folder inside the repository, for example `sites/adb-software-solutions`.
