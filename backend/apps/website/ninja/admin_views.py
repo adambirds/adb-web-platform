@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.db import transaction
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -74,15 +75,23 @@ def require_permission(request: HttpRequest, permission: str):
 
 def set_brands(item: Any, brand_ids: list[int]) -> None:
     """Replace an item's Brand assignments after validating every supplied ID."""
+    if not brand_ids:
+        raise HttpError(400, "Select at least one brand.")
     brands = list(Brand.objects.filter(id__in=brand_ids))
     if len(brands) != len(set(brand_ids)):
         raise HttpError(400, "One or more selected brands do not exist.")
+    if isinstance(item, FAQ) and not set(brand_ids).issubset(
+        set(item.category.brands.values_list("id", flat=True))
+    ):
+        raise HttpError(400, "The FAQ category must include every selected brand.")
     item.brands.set(brands)
 
 
 def build_faq_response(item: FAQ) -> FAQOut:
     return FAQOut(
         id=item.id,
+        published=item.published,
+        service_slugs=item.service_slugs,
         question=item.question,
         answer=item.answer,
         category=build_faq_category_response(item.category),
@@ -121,23 +130,29 @@ def get_portfolio(request: HttpRequest, portfolio_id: int):
     response={200: PortfolioOut, 401: ProblemDetail, 403: ProblemDetail},
 )
 def create_portfolio(request: HttpRequest, payload: PortfolioIn):
-    permission_error = require_permission(request, "website.add_portfolio")
-    if permission_error:
-        return permission_error
-    item = Portfolio.objects.create(
-        title=payload.title,
-        slug=payload.slug,
-        description=payload.description,
-        challenge=payload.challenge,
-        solution=payload.solution,
-        results=payload.results,
-        technologies=", ".join(payload.technologies),
-        project_url=payload.project_url,
-        github_url=payload.github_url,
-        featured=payload.featured,
-    )
-    set_brands(item, payload.brand_ids)
-    return build_portfolio_response(request, item)
+    with transaction.atomic():
+        permission_error = require_permission(request, "website.add_portfolio")
+        if permission_error:
+            return permission_error
+        item = Portfolio.objects.create(
+            published=payload.published,
+            image_alt=payload.image_alt,
+            featured_image_alt=payload.featured_image_alt,
+            meta_description=payload.meta_description,
+            service_slugs=payload.service_slugs,
+            title=payload.title,
+            slug=payload.slug,
+            description=payload.description,
+            challenge=payload.challenge,
+            solution=payload.solution,
+            results=payload.results,
+            technologies=", ".join(payload.technologies),
+            project_url=payload.project_url,
+            github_url=payload.github_url,
+            featured=payload.featured,
+        )
+        set_brands(item, payload.brand_ids)
+        return build_portfolio_response(request, item)
 
 
 @website_admin_router.put(
@@ -145,23 +160,29 @@ def create_portfolio(request: HttpRequest, payload: PortfolioIn):
     response={200: PortfolioOut, 401: ProblemDetail, 403: ProblemDetail},
 )
 def update_portfolio(request: HttpRequest, portfolio_id: int, payload: PortfolioIn):
-    permission_error = require_permission(request, "website.change_portfolio")
-    if permission_error:
-        return permission_error
-    item = get_object_or_404(Portfolio, id=portfolio_id)
-    item.title = payload.title
-    item.slug = payload.slug
-    item.description = payload.description
-    item.challenge = payload.challenge
-    item.solution = payload.solution
-    item.results = payload.results
-    item.technologies = ", ".join(payload.technologies)
-    item.project_url = payload.project_url
-    item.github_url = payload.github_url
-    item.featured = payload.featured
-    item.save()
-    set_brands(item, payload.brand_ids)
-    return build_portfolio_response(request, item)
+    with transaction.atomic():
+        permission_error = require_permission(request, "website.change_portfolio")
+        if permission_error:
+            return permission_error
+        item = get_object_or_404(Portfolio, id=portfolio_id)
+        item.title = payload.title
+        item.slug = payload.slug
+        item.description = payload.description
+        item.challenge = payload.challenge
+        item.solution = payload.solution
+        item.results = payload.results
+        item.technologies = ", ".join(payload.technologies)
+        item.project_url = payload.project_url
+        item.github_url = payload.github_url
+        item.featured = payload.featured
+        item.published = payload.published
+        item.image_alt = payload.image_alt
+        item.featured_image_alt = payload.featured_image_alt
+        item.meta_description = payload.meta_description
+        item.service_slugs = payload.service_slugs
+        item.save()
+        set_brands(item, payload.brand_ids)
+        return build_portfolio_response(request, item)
 
 
 @website_admin_router.delete(
@@ -205,19 +226,22 @@ def get_testimonial(request: HttpRequest, testimonial_id: int):
     response={200: TestimonialOut, 401: ProblemDetail, 403: ProblemDetail},
 )
 def create_testimonial(request: HttpRequest, payload: TestimonialIn):
-    permission_error = require_permission(request, "website.add_testimonial")
-    if permission_error:
-        return permission_error
-    item = Testimonial.objects.create(
-        quote=payload.quote,
-        client_name=payload.client_name,
-        company=payload.company or "",
-        job_title=payload.job_title or "",
-        rating=payload.rating,
-        featured=payload.featured,
-    )
-    set_brands(item, payload.brand_ids)
-    return build_testimonial_response(request, item)
+    with transaction.atomic():
+        permission_error = require_permission(request, "website.add_testimonial")
+        if permission_error:
+            return permission_error
+        item = Testimonial.objects.create(
+            published=payload.published,
+            image_alt=payload.image_alt,
+            quote=payload.quote,
+            client_name=payload.client_name,
+            company=payload.company or "",
+            job_title=payload.job_title or "",
+            rating=payload.rating,
+            featured=payload.featured,
+        )
+        set_brands(item, payload.brand_ids)
+        return build_testimonial_response(request, item)
 
 
 @website_admin_router.put(
@@ -225,19 +249,22 @@ def create_testimonial(request: HttpRequest, payload: TestimonialIn):
     response={200: TestimonialOut, 401: ProblemDetail, 403: ProblemDetail},
 )
 def update_testimonial(request: HttpRequest, testimonial_id: int, payload: TestimonialIn):
-    permission_error = require_permission(request, "website.change_testimonial")
-    if permission_error:
-        return permission_error
-    item = get_object_or_404(Testimonial, id=testimonial_id)
-    item.quote = payload.quote
-    item.client_name = payload.client_name
-    item.company = payload.company or ""
-    item.job_title = payload.job_title or ""
-    item.rating = payload.rating
-    item.featured = payload.featured
-    item.save()
-    set_brands(item, payload.brand_ids)
-    return build_testimonial_response(request, item)
+    with transaction.atomic():
+        permission_error = require_permission(request, "website.change_testimonial")
+        if permission_error:
+            return permission_error
+        item = get_object_or_404(Testimonial, id=testimonial_id)
+        item.quote = payload.quote
+        item.client_name = payload.client_name
+        item.company = payload.company or ""
+        item.job_title = payload.job_title or ""
+        item.rating = payload.rating
+        item.featured = payload.featured
+        item.published = payload.published
+        item.image_alt = payload.image_alt
+        item.save()
+        set_brands(item, payload.brand_ids)
+        return build_testimonial_response(request, item)
 
 
 @website_admin_router.delete(
@@ -281,25 +308,27 @@ def get_blog_post(request: HttpRequest, post_id: int):
     response={200: BlogPostOut, 401: ProblemDetail, 403: ProblemDetail},
 )
 def create_blog_post(request: HttpRequest, payload: BlogPostIn):
-    permission_error = require_permission(request, "website.add_blogpost")
-    if permission_error:
-        return permission_error
-    item = BlogPost.objects.create(
-        title=payload.title,
-        slug=payload.slug,
-        excerpt=payload.excerpt,
-        content=payload.content,
-        author=payload.author or "ADB Software Solutions",
-        featured=payload.featured,
-        published=payload.published,
-        meta_description=payload.meta_description or "",
-        meta_keywords=payload.meta_keywords or "",
-        published_at=(payload.published_at or timezone.now()) if payload.published else None,
-    )
-    item.categories.set(payload.category_ids)
-    item.tags.set(payload.tag_ids)
-    set_brands(item, payload.brand_ids)
-    return build_blog_post_response(request, item)
+    with transaction.atomic():
+        permission_error = require_permission(request, "website.add_blogpost")
+        if permission_error:
+            return permission_error
+        item = BlogPost.objects.create(
+            featured_image_alt=payload.featured_image_alt,
+            title=payload.title,
+            slug=payload.slug,
+            excerpt=payload.excerpt,
+            content=payload.content,
+            author=payload.author or "ADB Software Solutions",
+            featured=payload.featured,
+            published=payload.published,
+            meta_description=payload.meta_description or "",
+            meta_keywords=payload.meta_keywords or "",
+            published_at=(payload.published_at or timezone.now()) if payload.published else None,
+        )
+        item.categories.set(payload.category_ids)
+        item.tags.set(payload.tag_ids)
+        set_brands(item, payload.brand_ids)
+        return build_blog_post_response(request, item)
 
 
 @website_admin_router.put(
@@ -307,28 +336,30 @@ def create_blog_post(request: HttpRequest, payload: BlogPostIn):
     response={200: BlogPostOut, 401: ProblemDetail, 403: ProblemDetail},
 )
 def update_blog_post(request: HttpRequest, post_id: int, payload: BlogPostIn):
-    permission_error = require_permission(request, "website.change_blogpost")
-    if permission_error:
-        return permission_error
-    item = get_object_or_404(BlogPost, id=post_id)
-    item.title = payload.title
-    item.slug = payload.slug
-    item.excerpt = payload.excerpt
-    item.content = payload.content
-    item.author = payload.author or "ADB Software Solutions"
-    item.featured = payload.featured
-    item.meta_description = payload.meta_description or ""
-    item.meta_keywords = payload.meta_keywords or ""
-    if payload.published:
-        item.published_at = payload.published_at or item.published_at or timezone.now()
-    else:
-        item.published_at = None
-    item.published = payload.published
-    item.save()
-    item.categories.set(payload.category_ids)
-    item.tags.set(payload.tag_ids)
-    set_brands(item, payload.brand_ids)
-    return build_blog_post_response(request, item)
+    with transaction.atomic():
+        permission_error = require_permission(request, "website.change_blogpost")
+        if permission_error:
+            return permission_error
+        item = get_object_or_404(BlogPost, id=post_id)
+        item.title = payload.title
+        item.slug = payload.slug
+        item.excerpt = payload.excerpt
+        item.content = payload.content
+        item.author = payload.author or "ADB Software Solutions"
+        item.featured = payload.featured
+        item.meta_description = payload.meta_description or ""
+        item.meta_keywords = payload.meta_keywords or ""
+        if payload.published:
+            item.published_at = payload.published_at or item.published_at or timezone.now()
+        else:
+            item.published_at = None
+        item.published = payload.published
+        item.featured_image_alt = payload.featured_image_alt
+        item.save()
+        item.categories.set(payload.category_ids)
+        item.tags.set(payload.tag_ids)
+        set_brands(item, payload.brand_ids)
+        return build_blog_post_response(request, item)
 
 
 @website_admin_router.delete(
@@ -360,16 +391,17 @@ def list_blog_categories(request: HttpRequest):
     response={200: BlogCategoryOut, 401: ProblemDetail, 403: ProblemDetail},
 )
 def create_blog_category(request: HttpRequest, payload: BlogCategoryIn):
-    permission_error = require_permission(request, "website.add_blogcategory")
-    if permission_error:
-        return permission_error
-    item = BlogCategory.objects.create(
-        name=payload.name,
-        slug=payload.slug,
-        description=payload.description or "",
-    )
-    set_brands(item, payload.brand_ids)
-    return build_blog_category_response(item)
+    with transaction.atomic():
+        permission_error = require_permission(request, "website.add_blogcategory")
+        if permission_error:
+            return permission_error
+        item = BlogCategory.objects.create(
+            name=payload.name,
+            slug=payload.slug,
+            description=payload.description or "",
+        )
+        set_brands(item, payload.brand_ids)
+        return build_blog_category_response(item)
 
 
 @website_admin_router.put(
@@ -377,16 +409,17 @@ def create_blog_category(request: HttpRequest, payload: BlogCategoryIn):
     response={200: BlogCategoryOut, 401: ProblemDetail, 403: ProblemDetail},
 )
 def update_blog_category(request: HttpRequest, category_id: int, payload: BlogCategoryIn):
-    permission_error = require_permission(request, "website.change_blogcategory")
-    if permission_error:
-        return permission_error
-    item = get_object_or_404(BlogCategory, id=category_id)
-    item.name = payload.name
-    item.slug = payload.slug
-    item.description = payload.description or ""
-    item.save()
-    set_brands(item, payload.brand_ids)
-    return build_blog_category_response(item)
+    with transaction.atomic():
+        permission_error = require_permission(request, "website.change_blogcategory")
+        if permission_error:
+            return permission_error
+        item = get_object_or_404(BlogCategory, id=category_id)
+        item.name = payload.name
+        item.slug = payload.slug
+        item.description = payload.description or ""
+        item.save()
+        set_brands(item, payload.brand_ids)
+        return build_blog_category_response(item)
 
 
 @website_admin_router.delete(
@@ -418,12 +451,13 @@ def list_blog_tags(request: HttpRequest):
     response={200: BlogTagOut, 401: ProblemDetail, 403: ProblemDetail},
 )
 def create_blog_tag(request: HttpRequest, payload: BlogTagIn):
-    permission_error = require_permission(request, "website.add_blogtag")
-    if permission_error:
-        return permission_error
-    item = BlogTag.objects.create(name=payload.name, slug=payload.slug)
-    set_brands(item, payload.brand_ids)
-    return build_blog_tag_response(item)
+    with transaction.atomic():
+        permission_error = require_permission(request, "website.add_blogtag")
+        if permission_error:
+            return permission_error
+        item = BlogTag.objects.create(name=payload.name, slug=payload.slug)
+        set_brands(item, payload.brand_ids)
+        return build_blog_tag_response(item)
 
 
 @website_admin_router.put(
@@ -431,15 +465,16 @@ def create_blog_tag(request: HttpRequest, payload: BlogTagIn):
     response={200: BlogTagOut, 401: ProblemDetail, 403: ProblemDetail},
 )
 def update_blog_tag(request: HttpRequest, tag_id: int, payload: BlogTagIn):
-    permission_error = require_permission(request, "website.change_blogtag")
-    if permission_error:
-        return permission_error
-    item = get_object_or_404(BlogTag, id=tag_id)
-    item.name = payload.name
-    item.slug = payload.slug
-    item.save()
-    set_brands(item, payload.brand_ids)
-    return build_blog_tag_response(item)
+    with transaction.atomic():
+        permission_error = require_permission(request, "website.change_blogtag")
+        if permission_error:
+            return permission_error
+        item = get_object_or_404(BlogTag, id=tag_id)
+        item.name = payload.name
+        item.slug = payload.slug
+        item.save()
+        set_brands(item, payload.brand_ids)
+        return build_blog_tag_response(item)
 
 
 @website_admin_router.delete(
@@ -471,17 +506,20 @@ def list_faqs(request: HttpRequest):
     response={200: FAQOut, 401: ProblemDetail, 403: ProblemDetail},
 )
 def create_faq(request: HttpRequest, payload: FAQIn):
-    permission_error = require_permission(request, "website.add_faq")
-    if permission_error:
-        return permission_error
-    item = FAQ.objects.create(
-        question=payload.question,
-        answer=payload.answer,
-        category_id=payload.category_id,
-        order=payload.order,
-    )
-    set_brands(item, payload.brand_ids)
-    return build_faq_response(item)
+    with transaction.atomic():
+        permission_error = require_permission(request, "website.add_faq")
+        if permission_error:
+            return permission_error
+        item = FAQ.objects.create(
+            published=payload.published,
+            service_slugs=payload.service_slugs,
+            question=payload.question,
+            answer=payload.answer,
+            category_id=payload.category_id,
+            order=payload.order,
+        )
+        set_brands(item, payload.brand_ids)
+        return build_faq_response(item)
 
 
 @website_admin_router.put(
@@ -489,17 +527,20 @@ def create_faq(request: HttpRequest, payload: FAQIn):
     response={200: FAQOut, 401: ProblemDetail, 403: ProblemDetail},
 )
 def update_faq(request: HttpRequest, faq_id: int, payload: FAQIn):
-    permission_error = require_permission(request, "website.change_faq")
-    if permission_error:
-        return permission_error
-    item = get_object_or_404(FAQ, id=faq_id)
-    item.question = payload.question
-    item.answer = payload.answer
-    item.category_id = payload.category_id
-    item.order = payload.order
-    item.save()
-    set_brands(item, payload.brand_ids)
-    return build_faq_response(item)
+    with transaction.atomic():
+        permission_error = require_permission(request, "website.change_faq")
+        if permission_error:
+            return permission_error
+        item = get_object_or_404(FAQ, id=faq_id)
+        item.question = payload.question
+        item.answer = payload.answer
+        item.category_id = payload.category_id
+        item.order = payload.order
+        item.published = payload.published
+        item.service_slugs = payload.service_slugs
+        item.save()
+        set_brands(item, payload.brand_ids)
+        return build_faq_response(item)
 
 
 @website_admin_router.delete(
@@ -531,17 +572,18 @@ def list_faq_categories(request: HttpRequest):
     response={200: FAQCategoryOut, 401: ProblemDetail, 403: ProblemDetail},
 )
 def create_faq_category(request: HttpRequest, payload: FAQCategoryIn):
-    permission_error = require_permission(request, "website.add_faqcategory")
-    if permission_error:
-        return permission_error
-    item = FAQCategory.objects.create(
-        name=payload.name,
-        slug=payload.slug,
-        description=payload.description or "",
-        order=payload.order,
-    )
-    set_brands(item, payload.brand_ids)
-    return build_faq_category_response(item)
+    with transaction.atomic():
+        permission_error = require_permission(request, "website.add_faqcategory")
+        if permission_error:
+            return permission_error
+        item = FAQCategory.objects.create(
+            name=payload.name,
+            slug=payload.slug,
+            description=payload.description or "",
+            order=payload.order,
+        )
+        set_brands(item, payload.brand_ids)
+        return build_faq_category_response(item)
 
 
 @website_admin_router.put(
@@ -549,17 +591,18 @@ def create_faq_category(request: HttpRequest, payload: FAQCategoryIn):
     response={200: FAQCategoryOut, 401: ProblemDetail, 403: ProblemDetail},
 )
 def update_faq_category(request: HttpRequest, category_id: int, payload: FAQCategoryIn):
-    permission_error = require_permission(request, "website.change_faqcategory")
-    if permission_error:
-        return permission_error
-    item = get_object_or_404(FAQCategory, id=category_id)
-    item.name = payload.name
-    item.slug = payload.slug
-    item.description = payload.description or ""
-    item.order = payload.order
-    item.save()
-    set_brands(item, payload.brand_ids)
-    return build_faq_category_response(item)
+    with transaction.atomic():
+        permission_error = require_permission(request, "website.change_faqcategory")
+        if permission_error:
+            return permission_error
+        item = get_object_or_404(FAQCategory, id=category_id)
+        item.name = payload.name
+        item.slug = payload.slug
+        item.description = payload.description or ""
+        item.order = payload.order
+        item.save()
+        set_brands(item, payload.brand_ids)
+        return build_faq_category_response(item)
 
 
 @website_admin_router.delete(

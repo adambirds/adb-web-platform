@@ -27,6 +27,7 @@
         "@babel/eslint-parser": "^7.28.6",
         "@typescript-eslint/eslint-plugin": "^8.67.0",
         "autoprefixer": "^10.5.4",
+        "css-tree": "^3.2.1",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-formatjs": "^6.4.20",
         "eslint-plugin-import": "^2.32.0",

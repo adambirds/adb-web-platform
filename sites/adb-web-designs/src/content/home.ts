@@ -1,0 +1,31 @@
+/** Editable homepage copy. Layout and artwork live in HomePage.tsx. */
+export const homeCopy = {
+    coverToplineSpan1: "Manchester · UK & international",
+    webHeadingH11: "Web design",
+    webHeadingSpan1: "& development.",
+    webHeadingP1: "A website for your business.",
+    webHeadingP2: "A developer you can speak to.",
+    angledButtonLink1: "Discuss a project →",
+    webCoverFootP1: "Freelance design, development and ongoing website care.",
+    webCoverFootLink1: "Explore the services ↓",
+    businessLabelP1: "Services",
+    shellH21: "Your website,",
+    shellH22: "from build to upkeep.",
+    shellP1:
+        "Next.js, WordPress, Shopify or Squarespace. A new build, a shop or a website that needs recovering.",
+    textLinkLink1: "Explore →",
+    textLinkLink2: "All website services →",
+    businessLabelP2: "A freelance business",
+    homeAboutH21: "Work directly with",
+    homeAboutH22: "the developer building your site.",
+    homeAboutP1:
+        "ADB Web Designs is run by Adam Birds in Manchester. Scope, design and development stay connected, with an agreed plan for launch and ongoing care.",
+    textLinkLink3: "About the business →",
+    shellH23: "Client feedback",
+    textLinkLink4: "More client feedback →",
+    shellH24: "From the blog",
+    textLinkLink5: "All articles →",
+    shellH25: "Have a website in mind?",
+    shellP2: "A new site, an online shop or help with the one you have.",
+    angledButtonLink2: "Tell me about it →",
+};

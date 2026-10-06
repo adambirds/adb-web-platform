@@ -4,6 +4,7 @@ import base64
 import binascii
 import logging
 import os
+import re
 from pathlib import Path
 
 import django_stubs_ext
@@ -55,6 +56,16 @@ else:
     ALLOWED_HOSTS = [
         "api." + SITE_DOMAIN,
     ]
+    # Explicit private service hosts for server-rendered public CMS requests.
+    for internal_host in os.environ.get("INTERNAL_API_HOSTS", "").split(","):
+        internal_host = internal_host.strip()
+        if not internal_host:
+            continue
+        if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9.-]*", internal_host):
+            raise ValueError(
+                "INTERNAL_API_HOSTS must contain exact hostnames without schemes, ports or wildcards."
+            )
+        ALLOWED_HOSTS.append(internal_host)
 
 INSTALLED_APPS = [
     "authentication",
@@ -193,7 +204,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-MEDIA_URL = "/media/"
+MEDIA_URL = os.environ.get("PUBLIC_MEDIA_URL") or "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 
 django_stubs_ext.monkeypatch()

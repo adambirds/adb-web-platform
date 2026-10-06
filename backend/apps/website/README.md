@@ -28,3 +28,19 @@ Internal browser workflows live in
 
 Read the [backend guide](../../README.md) for shared conventions and the
 [canonical documentation map](../../../docs/README.md) before domain changes.
+
+Publication is explicit: Portfolio, Testimonial and FAQ default to drafts, and
+BlogPost respects its publish date. `/api/public/collections/{resource}` paginates
+published Brand-scoped content with search/category/service filters. The established
+array APIs remain available. Admin create/update operations are transactional;
+invalid Brand assignments roll back the record rather than leaving partial content.
+
+`ninja/media_views.py` adds capability-protected image upload/removal. It accepts
+PNG/JPEG/WebP up to 8 MB and 20 million pixels, strips metadata, resizes to 2400
+pixels maximum and saves WebP. Raw SVG/HTML uploads are rejected. Publication and
+media editing use existing `website.add_*`/`website.change_*` capabilities.
+
+`import_web_designs_content` reads the ignored WordPress JSON archive and imports
+five selected articles and the owner-confirmed recovery case study as drafts.
+It never overwrites or publishes existing content; `--dry-run` previews the scope.
+Use the admin CMS to approve copy, upload imagery and publish each record.

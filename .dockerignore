@@ -14,3 +14,7 @@ node_modules/
 **/.env.*
 !**/.env.example
 .setup-project-config.env
+
+# Local source/design assets are not deployment assets.
+website-assets/
+website-mockup/

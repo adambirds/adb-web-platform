@@ -57,6 +57,10 @@ decision says otherwise:
 
 ## Documentation map
 
+- [Public website plan](PUBLIC_WEBSITES_PLAN.md) — confirmed three-brand
+  website brief, local assets, SEO and migration sequence.
+- [Web Designs URL migration](WEB_DESIGNS_URL_MIGRATION.json) — audited
+  WordPress URLs and planned replacement paths; redirects are not active yet.
 - `PLATFORM_MASTER_PLAN.md` — complete build plan and product architecture.
 - `CURRENT_STATE_AND_FOUNDATION_CHECKLIST.md` — implementation snapshot and
   next work.

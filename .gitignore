@@ -215,3 +215,9 @@ test-svg/
 **/*.tsbuildinfo
 
 .ruff_cache/
+
+# Supplied website source assets; selected deployment files live in site public directories.
+/website-assets/
+
+# Temporary public website design prototypes.
+/website-mockup/

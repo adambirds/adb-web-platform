@@ -6,8 +6,8 @@ from .models import FAQ, BlogCategory, BlogPost, BlogTag, FAQCategory, Portfolio
 
 @admin.register(Portfolio)
 class PortfolioAdmin(ModelAdmin):
-    list_display = ("title", "slug", "featured", "created_at")
-    list_filter = ("brands", "featured", "created_at")
+    list_display = ("title", "slug", "featured", "published", "created_at")
+    list_filter = ("brands", "featured", "published", "created_at")
     search_fields = ("title", "description")
     prepopulated_fields = {"slug": ("title",)}
     filter_horizontal = ("brands",)
@@ -15,8 +15,8 @@ class PortfolioAdmin(ModelAdmin):
 
 @admin.register(Testimonial)
 class TestimonialAdmin(ModelAdmin):
-    list_display = ("client_name", "company", "rating", "featured", "created_at")
-    list_filter = ("brands", "rating", "featured", "created_at")
+    list_display = ("client_name", "company", "rating", "featured", "published", "created_at")
+    list_filter = ("brands", "rating", "featured", "published", "created_at")
     search_fields = ("client_name", "company", "quote")
     filter_horizontal = ("brands",)
 
@@ -48,8 +48,8 @@ class BlogTagAdmin(ModelAdmin):
 
 @admin.register(FAQ)
 class FAQAdmin(ModelAdmin):
-    list_display = ("question", "category", "order")
-    list_filter = ("brands", "category")
+    list_display = ("question", "category", "order", "published")
+    list_filter = ("brands", "category", "published")
     search_fields = ("question", "answer")
     filter_horizontal = ("brands",)
 

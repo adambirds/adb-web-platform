@@ -26,6 +26,7 @@ class RateLimitConfig:
 
 # Default rate limit configurations for auth endpoints
 RATE_LIMITS = {
+    "website_contact": RateLimitConfig(requests=5, window=600, block_duration=600),
     # Login: 5 attempts per minute per IP, 10 per 15 minutes per account
     "login_ip": RateLimitConfig(requests=5, window=60, block_duration=300),
     "login_account": RateLimitConfig(requests=10, window=900, block_duration=900),

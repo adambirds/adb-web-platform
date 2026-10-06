@@ -25,11 +25,16 @@ conflict with the current architecture.
 ADB operates three public Brands that share one operational platform:
 
 1. **ADB Software Solutions** — bespoke software, SaaS/application delivery,
-   APIs/integrations, automation, mobile applications and consultancy.
-2. **ADB Web Designs** — web design/development, WordPress/Next.js delivery,
-   rescue/remediation, hosting, maintenance and website support.
-3. **ADB Technology** — DevOps, cloud/infrastructure engineering, systems
-   administration, IT consultancy and technical support.
+   APIs/integrations, automation, mobile applications and AI-built project/code
+   reviews. A broader bounded software
+   consultancy offer remains under review.
+2. **ADB Web Designs** — web design/development with Next.js, WordPress, Shopify
+   and Squarespace; ecommerce; hacked/malware site recovery; hosting, maintenance,
+   technical SEO and local SEO.
+3. **ADB Technology** — cloud/DevOps and infrastructure, migrations, deployment
+   pipelines, server management, server rebuilds and app deployment/security
+   hardening; no core-hours technical
+   support commitment.
 
 The Brands have separate public positioning and visual experiences. They do
 not have separate business-data backends.
@@ -124,9 +129,11 @@ The internal operations workspace is intentionally dark-only,
 information-dense and workflow-focused. Tailwind CSS is the frontend styling
 standard.
 
-Public Brand applications remain independent visual products. Shared packages
-are for genuinely shared primitives/contracts/tooling, not for forcing every
-Brand into the same design.
+Public Brand applications share an identifiable ADB design family while retaining
+distinct page compositions, imagery and messaging. Their public pages default to
+dark mode and offer a header light/dark switch; internal operations stay dark-only.
+Shared packages contain genuinely shared primitives/contracts/tooling. See
+[the confirmed website brief](PUBLIC_WEBSITES_PLAN.md).
 
 ---
 
@@ -782,11 +789,21 @@ than new plaintext secret columns.
 
 ## 14. Public websites and CMS
 
-The three Brand sites remain important but are not the primary development
-focus while the internal platform is still being completed.
+The user has moved the three public Brand websites into the active development
+phase. The confirmed brief, asset organisation and Web Designs URL migration
+inventory are recorded in [the public website brief](PUBLIC_WEBSITES_PLAN.md).
+Commercial features remain deferred; public website work need not wait for them.
 
-Public work can continue opportunistically for security, fixes and stable
-integration needs.
+The proposed [page and service inventory](PUBLIC_WEBSITE_PAGE_INVENTORY.md)
+records the multi-page, business-first website scope for review. Adam's full-time
+platform engineer role means public copy must not advertise contracting, staff
+augmentation or full-time availability. Confirmed services and the pending software consultancy decision are recorded
+in the inventory; this does not remove operational/commercial models.
+
+Retain purposeful local service-area pages and Australia/USA market pages with
+individually written content. Manchester is the actual base; international work
+is remote and must not imply overseas offices. Generate suitable branded social
+imagery when needed, using the supplied logos and checking final image fidelity.
 
 When public-site work becomes the primary phase:
 
@@ -958,7 +975,9 @@ analytics layer.
 
 ### Stage 11 — Public websites as primary focus
 
-Complete the three Brand websites against stable platform contracts.
+Complete the three Brand websites against stable platform contracts. This stage
+is now active at the user's direction before Stage 10 commercial work, following
+the confirmed [website brief](PUBLIC_WEBSITES_PLAN.md).
 
 ### Stage 12 — Client portal
 
@@ -1113,3 +1132,29 @@ per execution, 8,000 characters per message) and retained for 14 days. The API
 rechecks active staff superuser access; SSE transports only refresh hints. Existing
 execution summary fields remain metadata-only. See
 [Celery operations](CELERY_DASHBOARD.md) for scope and capture limits.
+
+## Public website implementation
+
+All three public sites now use the approved brand-specific homepage compositions,
+individual service/area pages and a remembered dark/light public theme. Code-owned
+copy lives in each site's `src/content/site.ts` and `home.ts`; shared public
+primitives, metadata and safe Markdown rendering live under `packages/ui/src/public`.
+The Software public/admin route boundaries keep operational providers out of the
+marketing layout; authentication remains in the dedicated account app.
+
+Portfolio, Testimonials and FAQs now have explicit `published` flags, defaulting
+to drafts; BlogPost publication also respects future publication dates. Public
+collections paginate at the Django database boundary and filter Brand at query
+and nested-taxonomy boundaries. Editorial media uploads require the corresponding
+Django `website.change_*` capability, allow bounded raster images and normalize
+uploads to WebP. Public forms use fixed serving-site Brand identity and preserve
+the existing Lead/Ticket ingestion flow. Runtime `API_INTERNAL_URL` can route
+SSR and contact requests privately to the shared backend. Exact private hosts
+are admitted through `INTERNAL_API_HOSTS`; `PUBLIC_MEDIA_URL` ensures editorial
+images still resolve through a public media origin. No new data store or
+identity authority is introduced.
+
+The Web Designs WordPress migration uses relevant permanent redirects, conditional
+CMS aliases and real 404s for retired content. Imported original articles remain
+unpublished drafts pending review. See the page inventory, URL migration ledger
+and morning review document before a production cutover.

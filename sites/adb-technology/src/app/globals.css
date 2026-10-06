@@ -1,19 +1,41 @@
 @import "tailwindcss";
-
-:root {
-    color-scheme: light;
-    font-family: Arial, Helvetica, sans-serif;
-    background: #fff;
-    color: #0f172a;
+@source "../../../../packages/ui/src/public";
+@font-face {
+    font-family: InterVariable;
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("/fonts/InterVariable.woff2") format("woff2");
 }
-
+@theme {
+    --font-sans: intervariable, ui-sans-serif, system-ui, sans-serif;
+}
+html {
+    scroll-behavior: smooth;
+}
+body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: #0d1921;
+    color: #f4f6f5;
+}
 * {
     box-sizing: border-box;
 }
-
-body {
-    margin: 0;
-    min-height: 100vh;
-    background: #fff;
-    color: #0f172a;
+.standalone-not-found {
+    max-width: 800px;
+    margin: auto;
+    padding: 100px 30px;
+}
+.standalone-not-found h1 {
+    font-size: 40px;
+    margin-block: 20px;
+}
+.standalone-not-found p {
+    line-height: 1.8;
+}
+.standalone-not-found nav {
+    display: flex;
+    gap: 30px;
+    margin-top: 25px;
 }

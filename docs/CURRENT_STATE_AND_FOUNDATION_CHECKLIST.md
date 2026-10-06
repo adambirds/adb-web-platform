@@ -419,10 +419,22 @@ and should not be invented during unrelated implementation work.
 - [x] Contact-form Brand/source ingestion into Lead + Ticket pipeline.
 - [x] Separate public Next.js applications exist.
 
-### Primary build focus deferred to Stage 11
+### Public build phase now active
 
-- [ ] Complete each Brand's public experience after Stage 10 commercial
-      contracts are stable enough not to be repeatedly redesigned underneath it.
+- [x] Confirm freelance positioning, Manchester location, form-only contact,
+      related but distinct designs and dark-default public theme switching.
+- [x] Inspect/organise the supplied assets into the ignored `website-assets/`
+      library and inventory the old Web Designs sitemap URLs.
+- [x] Confirm selective retention/rewrite of local service-area pages and honest
+      Australia/USA remote-service pages, plus image generation for branded social
+      imagery where useful.
+- [x] Complete each Brand's public experience using the existing Brand-scoped
+      CMS and Lead/Ticket contracts, including SEO and verified migration redirects.
+
+The user has explicitly prioritised public websites before commercial features.
+See [the website brief](PUBLIC_WEBSITES_PLAN.md) for the current decisions and
+implementation details. Policy/trading copy and migrated CMS drafts still require
+owner review before production launch; see `PUBLIC_WEBSITES_MORNING_REVIEW.md`.
 
 Security/fix/integration work may still happen opportunistically.
 

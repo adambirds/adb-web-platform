@@ -1,0 +1,198 @@
+@import "@adb/ui/public/base.css";
+.marketing .technology-cover-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    font-size: 11px;
+    color: var(--muted);
+    padding: 20px 0;
+}
+.marketing .technology-cover-foot a {
+    color: var(--ink);
+}
+.marketing .technology-cover {
+    position: relative;
+    overflow: hidden;
+}
+.marketing .technology-layout {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 45px;
+    padding-top: 35px;
+    align-items: center;
+}
+.marketing .technology-copy {
+    padding: 20px 0;
+    position: relative;
+    z-index: 1;
+}
+.marketing .technology-kicker {
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 20px;
+}
+.marketing .technology-copy h1 {
+    font-size: clamp(38px, 4.1vw, 59px);
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+    font-weight: 500;
+}
+.marketing .technology-description {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.8;
+    margin: 28px 0;
+    max-width: 340px;
+}
+.marketing .technology-caption {
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-top: 32px;
+}
+.marketing .technology-map {
+    height: 540px;
+    position: relative;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent 0 39px,
+            var(--line) 39px 40px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 39px,
+            var(--line) 39px 40px
+        );
+}
+.marketing .technology-map > svg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+}
+.marketing .map-trace-muted {
+    stroke: var(--raised);
+    stroke-width: 18;
+}
+.marketing .map-trace {
+    stroke: var(--accent);
+    stroke-width: 2;
+}
+.marketing .technology-map circle {
+    fill: var(--page);
+    stroke: var(--accent);
+    stroke-width: 3;
+}
+.marketing .map-label {
+    position: absolute;
+    background: var(--page);
+    padding: 14px 18px;
+    border-left: 3px solid var(--accent);
+    min-width: 180px;
+}
+.marketing .map-label > span:first-child {
+    font-size: 9px;
+    color: var(--muted);
+}
+.marketing .map-label h2 {
+    font-size: 24px;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin: 10px 0;
+}
+.marketing .map-link {
+    font-size: 10px;
+    color: var(--accent);
+}
+.marketing .map-cloud {
+    top: 30px;
+    right: 12px;
+}
+.marketing .map-delivery {
+    top: 196px;
+    left: 34px;
+}
+.marketing .map-support {
+    bottom: 45px;
+    right: 24px;
+}
+.marketing .map-edge {
+    position: absolute;
+    right: 0;
+    top: 180px;
+    writing-mode: vertical-rl;
+    letter-spacing: 0.15em;
+    font-size: 8px;
+    color: var(--muted);
+}
+.marketing .map-label:hover {
+    background: var(--panel);
+}
+.marketing .technology-cover-foot {
+    padding-top: 30px;
+}
+@media (max-width: 1000px) {
+    .marketing .technology-layout {
+        gap: 15px;
+    }
+    .marketing .technology-map {
+        height: 500px;
+    }
+    .marketing .map-label {
+        min-width: 150px;
+        padding: 12px;
+    }
+    .marketing .map-label h2 {
+        font-size: 21px;
+    }
+}
+@media (max-width: 767px) {
+    .marketing .technology-cover-foot {
+        flex-direction: column;
+        align-items: start;
+        font-size: 10px;
+        gap: 10px;
+    }
+    .marketing .technology-layout {
+        grid-template-columns: 1fr;
+        padding-top: 20px;
+        gap: 10px;
+    }
+    .marketing .technology-copy h1 {
+        font-size: clamp(40px, 9vw, 65px);
+    }
+    .marketing .technology-copy {
+        padding-bottom: 0;
+    }
+    .marketing .technology-description {
+        max-width: 450px;
+        font-size: 13px;
+        margin-block: 20px;
+    }
+    .marketing .technology-caption {
+        margin-top: 20px;
+    }
+    .marketing .technology-map {
+        height: 480px;
+    }
+    .marketing .map-label h2 {
+        font-size: 22px;
+    }
+    .marketing .map-cloud {
+        top: 10px;
+        right: 5px;
+    }
+    .marketing .map-delivery {
+        top: 165px;
+        left: 5px;
+    }
+    .marketing .map-support {
+        right: 10px;
+        bottom: 20px;
+    }
+    .marketing .map-edge {
+        top: 180px;
+    }
+}

@@ -1,6 +1,10 @@
 "use client";
 
-import { BrandSelector, type BrandOption } from "@/components/content/BrandSelector";
+import { ContentImageEditor } from "@/components/content/ContentImageEditor";
+import {
+    BrandSelector,
+    type BrandOption,
+} from "@/components/content/BrandSelector";
 import {
     Button,
     ButtonLink,
@@ -24,6 +28,13 @@ import { fetchAPI } from "@/lib/api/fetch";
 import { useEffect, useMemo, useState } from "react";
 
 interface PortfolioItem {
+    published: boolean;
+    image_alt: string;
+    featured_image_alt: string;
+    meta_description: string;
+    service_slugs: string[];
+    image_url: string | null;
+    featured_image_url: string | null;
     id: number;
     title: string;
     slug: string;
@@ -39,6 +50,11 @@ interface PortfolioItem {
 }
 
 interface PortfolioForm {
+    published: boolean;
+    image_alt: string;
+    featured_image_alt: string;
+    meta_description: string;
+    service_slugs: string;
     title: string;
     slug: string;
     description: string;
@@ -53,6 +69,11 @@ interface PortfolioForm {
 }
 
 const EMPTY_FORM: PortfolioForm = {
+    published: false,
+    image_alt: "",
+    featured_image_alt: "",
+    meta_description: "",
+    service_slugs: "",
     title: "",
     slug: "",
     description: "",
@@ -71,6 +92,7 @@ export default function AdminPortfolioPage() {
     const [brands, setBrands] = useState<BrandOption[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
     const [editing, setEditing] = useState<PortfolioItem | null>(null);
     const [createForm, setCreateForm] = useState<PortfolioForm>(EMPTY_FORM);
     const [editForm, setEditForm] = useState<PortfolioForm>(EMPTY_FORM);
@@ -80,13 +102,21 @@ export default function AdminPortfolioPage() {
         async function load() {
             try {
                 const [portfolioData, brandData] = await Promise.all([
-                    fetchAPI(AdminAPI.website.portfolio.list(), { credentials: "include" }),
-                    fetchAPI(AdminAPI.brands.list(), { credentials: "include" }),
+                    fetchAPI(AdminAPI.website.portfolio.list(), {
+                        credentials: "include",
+                    }),
+                    fetchAPI(AdminAPI.brands.list(), {
+                        credentials: "include",
+                    }),
                 ]);
                 setItems(portfolioData as PortfolioItem[]);
                 setBrands(brandData as BrandOption[]);
             } catch (error) {
-                console.error(error);
+                setErrorMessage(
+                    error instanceof Error
+                        ? error.message
+                        : "Unable to update content.",
+                );
             } finally {
                 setLoading(false);
             }
@@ -103,27 +133,42 @@ export default function AdminPortfolioPage() {
         () =>
             brandFilter === "all"
                 ? items
-                : items.filter((item) => item.brand_slugs.includes(brandFilter)),
+                : items.filter((item) =>
+                      item.brand_slugs.includes(brandFilter),
+                  ),
         [brandFilter, items],
     );
 
     function payload(form: PortfolioForm) {
         return {
             ...form,
-            technologies: form.technologies.split(",").map((item) => item.trim()).filter(Boolean),
+            service_slugs: form.service_slugs
+                .split(",")
+                .map((value) => value.trim())
+                .filter(Boolean),
+            technologies: form.technologies
+                .split(",")
+                .map((item) => item.trim())
+                .filter(Boolean),
             project_url: form.project_url || null,
             github_url: form.github_url || null,
         };
     }
 
-    async function save(event: React.FormEvent<HTMLFormElement>, isEditing = false) {
+    async function save(
+        event: React.FormEvent<HTMLFormElement>,
+        isEditing = false,
+    ) {
         event.preventDefault();
         const form = isEditing ? editForm : createForm;
         if (form.brand_ids.length === 0 || (isEditing && !editing)) return;
         setSaving(true);
+        setErrorMessage("");
         try {
             const item = (await fetchAPI(
-                isEditing ? AdminAPI.website.portfolio.update(editing!.id) : AdminAPI.website.portfolio.create(),
+                isEditing
+                    ? AdminAPI.website.portfolio.update(editing!.id)
+                    : AdminAPI.website.portfolio.create(),
                 {
                     method: isEditing ? "PUT" : "POST",
                     credentials: "include",
@@ -132,13 +177,19 @@ export default function AdminPortfolioPage() {
             )) as PortfolioItem;
             setItems((current) =>
                 isEditing
-                    ? current.map((existing) => (existing.id === item.id ? item : existing))
+                    ? current.map((existing) =>
+                          existing.id === item.id ? item : existing,
+                      )
                     : [item, ...current],
             );
             if (isEditing) setEditing(null);
             else setCreateForm(EMPTY_FORM);
         } catch (error) {
-            console.error(error);
+            setErrorMessage(
+                error instanceof Error
+                    ? error.message
+                    : "Unable to update content.",
+            );
         } finally {
             setSaving(false);
         }
@@ -146,16 +197,28 @@ export default function AdminPortfolioPage() {
 
     async function remove(id: number) {
         try {
-            await fetchAPI(AdminAPI.website.portfolio.delete(id), { method: "DELETE", credentials: "include" });
+            await fetchAPI(AdminAPI.website.portfolio.delete(id), {
+                method: "DELETE",
+                credentials: "include",
+            });
             setItems((current) => current.filter((item) => item.id !== id));
         } catch (error) {
-            console.error(error);
+            setErrorMessage(
+                error instanceof Error
+                    ? error.message
+                    : "Unable to update content.",
+            );
         }
     }
 
     function beginEdit(item: PortfolioItem) {
         setEditing(item);
         setEditForm({
+            published: item.published,
+            image_alt: item.image_alt,
+            featured_image_alt: item.featured_image_alt,
+            meta_description: item.meta_description,
+            service_slugs: item.service_slugs.join(", "),
             title: item.title,
             slug: item.slug,
             description: item.description,
@@ -172,25 +235,196 @@ export default function AdminPortfolioPage() {
         });
     }
 
-    function fields(form: PortfolioForm, setForm: React.Dispatch<React.SetStateAction<PortfolioForm>>) {
+    function fields(
+        form: PortfolioForm,
+        setForm: React.Dispatch<React.SetStateAction<PortfolioForm>>,
+    ) {
         return (
             <>
                 <div className="grid gap-4 md:grid-cols-2">
-                    <Input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Title" required />
-                    <Input value={form.slug} onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))} placeholder="Slug" required />
+                    <Input
+                        value={form.title}
+                        onChange={(event) =>
+                            setForm((current) => ({
+                                ...current,
+                                title: event.target.value,
+                            }))
+                        }
+                        placeholder="Title"
+                        required
+                    />
+                    <Input
+                        value={form.slug}
+                        onChange={(event) =>
+                            setForm((current) => ({
+                                ...current,
+                                slug: event.target.value,
+                            }))
+                        }
+                        placeholder="Slug"
+                        required
+                    />
                 </div>
-                <Textarea value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} rows={3} placeholder="Short description" required />
-                <Textarea value={form.challenge} onChange={(event) => setForm((current) => ({ ...current, challenge: event.target.value }))} rows={3} placeholder="Challenge" required />
-                <Textarea value={form.solution} onChange={(event) => setForm((current) => ({ ...current, solution: event.target.value }))} rows={3} placeholder="Solution" required />
-                <Textarea value={form.results} onChange={(event) => setForm((current) => ({ ...current, results: event.target.value }))} rows={3} placeholder="Results" required />
-                <Input value={form.technologies} onChange={(event) => setForm((current) => ({ ...current, technologies: event.target.value }))} placeholder="Technologies (comma separated)" required />
+                <Textarea
+                    value={form.description}
+                    onChange={(event) =>
+                        setForm((current) => ({
+                            ...current,
+                            description: event.target.value,
+                        }))
+                    }
+                    rows={3}
+                    placeholder="Short description"
+                    required
+                />
+                <Textarea
+                    value={form.challenge}
+                    onChange={(event) =>
+                        setForm((current) => ({
+                            ...current,
+                            challenge: event.target.value,
+                        }))
+                    }
+                    rows={3}
+                    placeholder="Challenge"
+                    required
+                />
+                <Textarea
+                    value={form.solution}
+                    onChange={(event) =>
+                        setForm((current) => ({
+                            ...current,
+                            solution: event.target.value,
+                        }))
+                    }
+                    rows={3}
+                    placeholder="Solution"
+                    required
+                />
+                <Textarea
+                    value={form.results}
+                    onChange={(event) =>
+                        setForm((current) => ({
+                            ...current,
+                            results: event.target.value,
+                        }))
+                    }
+                    rows={3}
+                    placeholder="Results"
+                    required
+                />
+                <Input
+                    value={form.technologies}
+                    onChange={(event) =>
+                        setForm((current) => ({
+                            ...current,
+                            technologies: event.target.value,
+                        }))
+                    }
+                    placeholder="Technologies (comma separated)"
+                    required
+                />
                 <div className="grid gap-4 md:grid-cols-2">
-                    <Input value={form.project_url} onChange={(event) => setForm((current) => ({ ...current, project_url: event.target.value }))} placeholder="Project URL" />
-                    <Input value={form.github_url} onChange={(event) => setForm((current) => ({ ...current, github_url: event.target.value }))} placeholder="GitHub URL" />
+                    <Input
+                        value={form.project_url}
+                        onChange={(event) =>
+                            setForm((current) => ({
+                                ...current,
+                                project_url: event.target.value,
+                            }))
+                        }
+                        placeholder="Project URL"
+                    />
+                    <Input
+                        value={form.github_url}
+                        onChange={(event) =>
+                            setForm((current) => ({
+                                ...current,
+                                github_url: event.target.value,
+                            }))
+                        }
+                        placeholder="GitHub URL"
+                    />
                 </div>
-                <BrandSelector selectedIds={form.brand_ids} onChange={(brand_ids) => setForm((current) => ({ ...current, brand_ids }))} disabled={saving} />
+                <Input
+                    value={form.meta_description}
+                    maxLength={160}
+                    aria-label="Search description"
+                    onChange={(event) =>
+                        setForm((current) => ({
+                            ...current,
+                            meta_description: event.target.value,
+                        }))
+                    }
+                    placeholder="Search description (up to 160 characters)"
+                />
+                <Input
+                    value={form.service_slugs}
+                    aria-label="Service slugs"
+                    onChange={(event) =>
+                        setForm((current) => ({
+                            ...current,
+                            service_slugs: event.target.value,
+                        }))
+                    }
+                    placeholder="Related service slugs, comma separated (e.g. website-rescue, web-design)"
+                />
+                <Input
+                    value={form.image_alt}
+                    maxLength={300}
+                    aria-label="Project image alternative text"
+                    onChange={(event) =>
+                        setForm((current) => ({
+                            ...current,
+                            image_alt: event.target.value,
+                        }))
+                    }
+                    placeholder="Project image alternative text"
+                />
+                <Input
+                    value={form.featured_image_alt}
+                    maxLength={300}
+                    aria-label="Featured image alternative text"
+                    onChange={(event) =>
+                        setForm((current) => ({
+                            ...current,
+                            featured_image_alt: event.target.value,
+                        }))
+                    }
+                    placeholder="Featured image alternative text"
+                />
+                <label className="flex items-center gap-2 text-sm">
+                    <input
+                        type="checkbox"
+                        checked={form.published}
+                        onChange={(event) =>
+                            setForm((current) => ({
+                                ...current,
+                                published: event.target.checked,
+                            }))
+                        }
+                    />{" "}
+                    Published on selected websites
+                </label>
+                <BrandSelector
+                    selectedIds={form.brand_ids}
+                    onChange={(brand_ids) =>
+                        setForm((current) => ({ ...current, brand_ids }))
+                    }
+                    disabled={saving}
+                />
                 <label className="text-adb-navy-600 dark:text-adb-navy-300 flex items-center gap-2 text-sm">
-                    <input type="checkbox" checked={form.featured} onChange={(event) => setForm((current) => ({ ...current, featured: event.target.checked }))} /> Featured
+                    <input
+                        type="checkbox"
+                        checked={form.featured}
+                        onChange={(event) =>
+                            setForm((current) => ({
+                                ...current,
+                                featured: event.target.checked,
+                            }))
+                        }
+                    />{" "}
+                    Featured
                 </label>
             </>
         );
@@ -198,46 +432,180 @@ export default function AdminPortfolioPage() {
 
     return (
         <Container className="py-10">
-            <PageHeader title="Portfolio" description="Manage brand-aware public case studies and featured work." actions={<ButtonLink href="/admin/content">Back to content</ButtonLink>} />
+            {errorMessage ? (
+                <p
+                    role="alert"
+                    className="mb-6 border-l-4 border-red-500 p-4 text-sm"
+                >
+                    {errorMessage}
+                </p>
+            ) : null}
+            <PageHeader
+                title="Portfolio"
+                description="Manage brand-aware public case studies and featured work."
+                actions={
+                    <ButtonLink href="/admin/content">
+                        Back to content
+                    </ButtonLink>
+                }
+            />
             <div className="mt-8 space-y-6">
                 <Card>
-                    <CardHeader><CardTitle>Create portfolio item</CardTitle></CardHeader>
+                    <CardHeader>
+                        <CardTitle>Create portfolio item</CardTitle>
+                    </CardHeader>
                     <CardContent>
-                        <form onSubmit={(event) => void save(event)} className="space-y-4">
+                        <form
+                            onSubmit={(event) => void save(event)}
+                            className="space-y-4"
+                        >
                             {fields(createForm, setCreateForm)}
-                            <Button type="submit" disabled={saving || createForm.brand_ids.length === 0}>Create item</Button>
+                            <Button
+                                type="submit"
+                                disabled={
+                                    saving || createForm.brand_ids.length === 0
+                                }
+                            >
+                                Create item
+                            </Button>
                         </form>
                     </CardContent>
                 </Card>
 
                 {editing ? (
                     <Card>
-                        <CardHeader><CardTitle>Edit portfolio item</CardTitle></CardHeader>
+                        <CardHeader>
+                            <CardTitle>Edit portfolio item</CardTitle>
+                        </CardHeader>
                         <CardContent>
-                            <form onSubmit={(event) => void save(event, true)} className="space-y-4">
+                            <form
+                                onSubmit={(event) => void save(event, true)}
+                                className="space-y-4"
+                            >
+                                <ContentImageEditor
+                                    key={`${editing.id}-image`}
+                                    kind="portfolio"
+                                    itemId={editing.id}
+                                    field="image"
+                                    label="Project image"
+                                    initialUrl={editing.image_url}
+                                />
+                                <ContentImageEditor
+                                    key={`${editing.id}-featured`}
+                                    kind="portfolio"
+                                    itemId={editing.id}
+                                    field="featured_image"
+                                    label="Featured image"
+                                    initialUrl={editing.featured_image_url}
+                                />
                                 {fields(editForm, setEditForm)}
-                                <div className="flex gap-3"><Button type="submit" disabled={saving || editForm.brand_ids.length === 0}>Update item</Button><Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancel</Button></div>
+                                <div className="flex gap-3">
+                                    <Button
+                                        type="submit"
+                                        disabled={
+                                            saving ||
+                                            editForm.brand_ids.length === 0
+                                        }
+                                    >
+                                        Update item
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setEditing(null)}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </div>
                             </form>
                         </CardContent>
                     </Card>
                 ) : null}
 
                 <div className="flex items-center gap-3">
-                    <label htmlFor="portfolio-brand-filter" className="text-sm font-medium">Brand</label>
-                    <select id="portfolio-brand-filter" value={brandFilter} onChange={(event) => setBrandFilter(event.target.value)} className="border-adb-navy-200 dark:border-adb-navy-700 rounded-md border bg-transparent px-3 py-2 text-sm">
+                    <label
+                        htmlFor="portfolio-brand-filter"
+                        className="text-sm font-medium"
+                    >
+                        Brand
+                    </label>
+                    <select
+                        id="portfolio-brand-filter"
+                        value={brandFilter}
+                        onChange={(event) => setBrandFilter(event.target.value)}
+                        className="border-adb-navy-200 dark:border-adb-navy-700 rounded-md border bg-transparent px-3 py-2 text-sm"
+                    >
                         <option value="all">All brands</option>
-                        {brands.filter((brand) => brand.is_active).map((brand) => <option key={brand.id} value={brand.slug}>{brand.name}</option>)}
+                        {brands
+                            .filter((brand) => brand.is_active)
+                            .map((brand) => (
+                                <option key={brand.id} value={brand.slug}>
+                                    {brand.name}
+                                </option>
+                            ))}
                     </select>
                 </div>
 
-                {loading ? <p className="text-adb-navy-600 dark:text-adb-navy-300 text-sm">Loading...</p> : visibleItems.length === 0 ? (
-                    <EmptyState title="No portfolio items found" description="Create a case study or change the selected brand filter." />
+                {loading ? (
+                    <p className="text-adb-navy-600 dark:text-adb-navy-300 text-sm">
+                        Loading...
+                    </p>
+                ) : visibleItems.length === 0 ? (
+                    <EmptyState
+                        title="No portfolio items found"
+                        description="Create a case study or change the selected brand filter."
+                    />
                 ) : (
                     <Table>
-                        <TableHead><TableRow><TableHeaderCell>Title</TableHeaderCell><TableHeaderCell>Slug</TableHeaderCell><TableHeaderCell>Brands</TableHeaderCell><TableHeaderCell>Featured</TableHeaderCell><TableHeaderCell>Actions</TableHeaderCell></TableRow></TableHead>
-                        <tbody>{visibleItems.map((item) => (
-                            <TableRow key={item.id}><TableCell>{item.title}</TableCell><TableCell>{item.slug}</TableCell><TableCell>{item.brand_slugs.join(", ") || "—"}</TableCell><TableCell>{item.featured ? "Yes" : "No"}</TableCell><TableCell><div className="flex gap-2"><Button type="button" variant="outline" size="sm" onClick={() => beginEdit(item)}>Edit</Button><Button type="button" variant="destructive" size="sm" onClick={() => void remove(item.id)}>Delete</Button></div></TableCell></TableRow>
-                        ))}</tbody>
+                        <TableHead>
+                            <TableRow>
+                                <TableHeaderCell>Title</TableHeaderCell>
+                                <TableHeaderCell>Slug</TableHeaderCell>
+                                <TableHeaderCell>Brands</TableHeaderCell>
+                                <TableHeaderCell>Published</TableHeaderCell>
+                                <TableHeaderCell>Featured</TableHeaderCell>
+                                <TableHeaderCell>Actions</TableHeaderCell>
+                            </TableRow>
+                        </TableHead>
+                        <tbody>
+                            {visibleItems.map((item) => (
+                                <TableRow key={item.id}>
+                                    <TableCell>{item.title}</TableCell>
+                                    <TableCell>{item.slug}</TableCell>
+                                    <TableCell>
+                                        {item.brand_slugs.join(", ") || "—"}
+                                    </TableCell>
+                                    <TableCell>
+                                        {item.published ? "Yes" : "Draft"}
+                                    </TableCell>
+                                    <TableCell>
+                                        {item.featured ? "Yes" : "No"}
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => beginEdit(item)}
+                                            >
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="destructive"
+                                                size="sm"
+                                                onClick={() =>
+                                                    void remove(item.id)
+                                                }
+                                            >
+                                                Delete
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </tbody>
                     </Table>
                 )}
             </div>

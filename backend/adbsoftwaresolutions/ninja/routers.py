@@ -59,6 +59,7 @@ from apps.ticketing.ninja.settings_views import ticketing_settings_router
 from apps.ticketing.ninja.sla_views import sla_router
 from apps.ticketing.ninja.vendor_settings_views import vendor_settings_router
 from apps.website.ninja.admin_views import website_admin_router
+from apps.website.ninja.media_views import website_media_router
 from apps.website.ninja.views import website_misc_router, website_public_router
 from authentication.auth_service.views import auth_service_router
 from authentication.ninja.views import auth_router
@@ -85,6 +86,7 @@ website_router.add_router("", website_misc_router)
 api.add_router("/website", website_router)
 
 admin_router = Router(tags=["admin"])
+admin_router.add_router("", website_media_router)
 admin_router.add_router("", staff_access_router)
 admin_router.add_router("", dashboard_router)
 admin_router.add_router("", operational_search_router)

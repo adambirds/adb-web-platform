@@ -623,3 +623,12 @@ per execution, 8,000 characters per message) and retained for 14 days. The API
 rechecks active staff superuser access; SSE transports only refresh hints. Existing
 execution summary fields remain metadata-only. See
 [Celery operations](CELERY_DASHBOARD.md) for scope and capture limits.
+
+### Public editorial media and publication
+
+CMS publication uses existing model add/change capabilities and staff authentication;
+public visitors only receive published records assigned to the requested active
+Brand. Editorial image upload/removal rechecks `website.change_portfolio`,
+`website.change_blogpost` or `website.change_testimonial` in Django. Metadata view
+alone never authorises a media write. Brand scoping is enforced in public querysets
+and nested taxonomy output, not by frontend navigation visibility.

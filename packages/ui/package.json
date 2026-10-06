@@ -4,10 +4,26 @@
     "private": true,
     "type": "module",
     "exports": {
-        ".": "./src/index.ts"
+        ".": "./src/index.ts",
+        "./public/*": "./src/public/*.tsx",
+        "./public/types": "./src/public/types.ts",
+        "./public/server": "./src/public/server.ts",
+        "./public/contact": "./src/public/contact.ts",
+        "./public/base.css": "./src/public/base.css"
     },
     "peerDependencies": {
+        "next": "^16.3.1",
         "react": ">=18",
         "react-dom": ">=18"
+    },
+    "dependencies": {
+        "@adb/api-client": "workspace:*",
+        "react-markdown": "^10.1.0",
+        "remark-gfm": "^4.0.1"
+    },
+    "devDependencies": {
+        "@types/react": "^19.2.18",
+        "@types/react-dom": "^19.2.4",
+        "next": "^16.3.1"
     }
 }

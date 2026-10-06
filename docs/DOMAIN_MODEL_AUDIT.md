@@ -659,3 +659,13 @@ per execution, 8,000 characters per message) and retained for 14 days. The API
 rechecks active staff superuser access; SSE transports only refresh hints. Existing
 execution summary fields remain metadata-only. See
 [Celery operations](CELERY_DASHBOARD.md) for scope and capture limits.
+
+### Public editorial publishing and media (6 October 2026)
+
+Keep public Portfolio separate from operational Project. Amend Portfolio,
+Testimonial and FAQ with explicit publication state, defaulting to unpublished;
+existing records require a publication review. Portfolio carries editable search
+copy and service slugs; FAQs carry service slugs to join code-owned service pages.
+Image alternative text is stored with editorial images. BlogPost retains its
+existing publication fields and respects a future publication timestamp. No
+marketing pages or operational models are moved into the CMS.

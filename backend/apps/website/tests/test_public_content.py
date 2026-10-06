@@ -12,6 +12,7 @@ class BrandAwarePublicContentTests(TestCase):
         self.web = Brand.objects.get(slug="adb-web-designs")
 
         software_testimonial = Testimonial.objects.create(
+            published=True,
             quote="Software testimonial",
             client_name="Software Client",
             company="Software Co",
@@ -19,6 +20,7 @@ class BrandAwarePublicContentTests(TestCase):
         software_testimonial.brands.add(self.software)
 
         web_testimonial = Testimonial.objects.create(
+            published=True,
             quote="Web testimonial",
             client_name="Web Client",
             company="Web Co",
@@ -49,6 +51,7 @@ class BrandAwarePublicContentTests(TestCase):
         )
         software_category.brands.add(self.software)
         software_faq = FAQ.objects.create(
+            published=True,
             question="Software question?",
             answer="Software answer",
             category=software_category,
@@ -61,6 +64,7 @@ class BrandAwarePublicContentTests(TestCase):
         )
         web_category.brands.add(self.web)
         web_faq = FAQ.objects.create(
+            published=True,
             question="Web question?",
             answer="Web answer",
             category=web_category,
@@ -68,6 +72,7 @@ class BrandAwarePublicContentTests(TestCase):
         web_faq.brands.add(self.web)
 
         software_portfolio = Portfolio.objects.create(
+            published=True,
             title="Software case study",
             slug="software-case-study",
             description="Software project",
@@ -78,6 +83,7 @@ class BrandAwarePublicContentTests(TestCase):
         software_portfolio.brands.add(self.software)
 
         web_portfolio = Portfolio.objects.create(
+            published=True,
             title="Web case study",
             slug="web-case-study",
             description="Web project",

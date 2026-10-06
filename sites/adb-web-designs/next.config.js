@@ -1,7 +1,13 @@
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
-    reactStrictMode: false,
+    reactStrictMode: true,
+    trailingSlash: true,
+    skipTrailingSlashRedirect: true,
+    async redirects() {
+        return require("./redirects.json");
+    },
+    transpilePackages: ["@adb/ui", "@adb/api-client"],
     images: {
         remotePatterns: [
             {

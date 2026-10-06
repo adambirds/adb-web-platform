@@ -10,7 +10,7 @@ All browser-facing applications live under `sites/`:
 
 - `sites/adb-software-solutions/` — combined ADB Software Solutions Next.js application. Public marketing routes live alongside the authenticated internal operations workspace under `/admin`.
 - `sites/adb-web-designs/` — public ADB Web Designs website.
-- `sites/adb-technology/` — public ADB Technology website for DevOps, IT consultancy, infrastructure and support services.
+- `sites/adb-technology/` — public ADB Technology website for cloud/DevOps, infrastructure, migrations, deployment pipelines and server work.
 - `sites/auth-adb-software-solutions/` — shared authentication/account-security application for login, password/account flows, passkeys, TOTP and session management.
 
 The shared Django backend lives at `backend/`; reusable frontend/tooling packages live under `packages/`.
@@ -583,3 +583,93 @@ Vault signing-key configuration, webhook subscriptions and workflow permissions.
 Operational screens use shared server-sent events for live updates. See
 [the live updates guide](docs/LIVE_UPDATES_ARCHITECTURE.md) for ASGI, Redis and proxy
 requirements.
+
+## Public websites: run, edit and publish
+
+The three public websites are implemented as multi-page Next.js applications.
+Their approved compositions are separate; common navigation, forms, editorial
+rendering and SEO helpers live in `packages/ui/src/public/`. Marketing copy is
+owned locally, while published editorial content comes from Django.
+
+Run the shared backend and start any site from the repository root:
+
+```bash
+pnpm --dir sites/adb-software-solutions dev  # http://localhost:3000
+pnpm --dir sites/adb-web-designs dev        # http://localhost:3002
+pnpm --dir sites/adb-technology dev         # http://localhost:3003
+```
+
+Each site's `src/content/site.ts` contains its services, individual area pages,
+About, working arrangements, policies and contact introduction.
+`src/content/home.ts` contains homepage copy. Its `HomePage.tsx` owns the brand's
+composition and artwork; `src/styles/public.css` owns brand-specific styling.
+The shared public stylesheet is scoped under `.marketing` and does not change
+admin styling. All sites default to dark; the visitor's theme choice is stored
+locally, without a tracking cookie. The authentication app and `/admin` retain
+Django-backed sessions and permissions.
+
+Use `/admin/content` to create blog posts, public portfolio/case studies,
+testimonials and FAQs. Select the correct Brand, save a draft, upload images from
+its edit form, add descriptive alternative text and explicitly publish it.
+Article and case-study bodies support Markdown; raw HTML and embedded scripts
+are not rendered. Portfolio and FAQ service slugs connect editorial content to
+matching service pages. Copy the slug from that site's service URL. FAQs also
+need a category assigned to the same Brand. A future blog publication date keeps
+an otherwise published post hidden until the date arrives. Empty editorial
+collections are excluded from navigation and sitemaps and marked `noindex`.
+
+Public SSR and the same-origin contact proxy read `API_INTERNAL_URL` at runtime;
+if absent, they use `NEXT_PUBLIC_API_URL`, then the normal development/production
+backend origin. In production, set `API_INTERNAL_URL` to an origin reachable
+from each Next.js container, such as your private backend service URL. If using
+a private hostname, add that exact name to the backend runtime `INTERNAL_API_HOSTS`
+(comma separated, no scheme, port or wildcard). Set backend `PUBLIC_MEDIA_URL`
+to a publicly reachable absolute media base such as
+`https://api.adbsoftwaresolutions.co.uk/media/`, with its trailing slash, so CMS
+images do not point browsers at the private service. The default `/media/` is
+suitable for ordinary local/public-origin requests. `API_INTERNAL_URL` must
+not include `/api`. It is not a browser variable. Continue setting the existing
+`NEXT_PUBLIC_API_URL` at build time for the Software operations frontend. Brand
+identity and canonical public URLs belong to the individual content files,
+independently of the localhost preview URLs. Do not expose Graph, GitHub or
+credential encryption secrets to frontend builds.
+
+Contact forms submit through `/api/contact` to the shared Lead/Ticket ingestion
+endpoint, with Brand fixed by the serving site. Ensure each Brand has an enabled
+Ticket Queue (preferably Sales), and configure its sales Shared Mailbox if replies
+should use Graph email. The existing ingestion preserves a Lead if ticket routing
+is unavailable, so queue setup is a launch check. Forms validate email and length,
+reject the honeypot, and limit submissions to five per IP per ten minutes using
+existing cache Redis. Production ingress must overwrite `X-Forwarded-For` rather
+than trusting a visitor-supplied value, as required by existing authentication
+throttling. Backend failure shows a retry message; no successful submission is
+claimed unless the backend acknowledges it. No new Redis service is needed.
+
+Before production rollout, apply Django migrations, keep the shared packages in
+the frontend builds, serve backend `/media/` publicly with persistent storage,
+and verify HTTPS ingress routing for `/social`, `/api/contact`, icons, robots and
+sitemaps. Social cards are rendered at 1200×630 using the supplied logo and brand
+artwork, with a page-specific title; no third-party image service is required.
+Set `NODE_ENV=production` for production builds/runs and `development` for dev;
+arbitrary environment names are not valid Node modes.
+
+The old Web Designs URL decisions are recorded in
+[the migration ledger](docs/WEB_DESIGNS_URL_MIGRATION.json). Relevant static
+redirects live in `sites/adb-web-designs/redirects.json`; editorial aliases activate
+only after the matching replacement CMS content is published. Dated/out-of-scope
+articles return an actual 404. A safe importer creates selected original articles
+and the confirmed recovery case study as **drafts**, skips existing records and
+never publishes or overwrites them:
+
+```bash
+python backend/manage.py import_web_designs_content \
+  --source website-assets/web-designs/wordpress-snapshot/wp-json-wp-v2-posts.txt \
+  --dry-run
+# Remove --dry-run to import drafts into the configured database.
+```
+
+The raw asset library and temporary mockup stay ignored. Only selected original
+logos, the portrait and local font are shipped in the sites. No fabricated CMS
+projects, ratings or testimonials are published. Review
+[the morning notes](docs/PUBLIC_WEBSITES_MORNING_REVIEW.md) before launch,
+especially policy/trading details, old article accuracy and case-study approval.

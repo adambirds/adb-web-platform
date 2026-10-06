@@ -1,0 +1,595 @@
+{
+    "source": "https://adbwebdesigns.co.uk/sitemap_index.xml",
+    "audited_on": "2026-10-06",
+    "status": "Implemented: retained/rebuilt pages, permanent relevant redirects, CMS-gated editorial aliases and real 404s for retired content. Review before production cutover.",
+    "routes": [
+        {
+            "source": "/author/adam-birds/",
+            "action": "permanent_redirect",
+            "destination": "/about/",
+            "status": "implemented",
+            "note": "Retire old taxonomy/author routes; verify destination provides the matching content/filter."
+        },
+        {
+            "source": "/category/business/",
+            "action": "conditional_redirect",
+            "destination": "/blog/category/business/",
+            "status": "implemented",
+            "note": "Redirect only if the corresponding CMS category has published articles; otherwise return 404."
+        },
+        {
+            "source": "/category/digital-marketing/",
+            "action": "conditional_redirect",
+            "destination": "/blog/category/digital-marketing/",
+            "status": "implemented",
+            "note": "Redirect only if the corresponding CMS category has published articles; otherwise return 404."
+        },
+        {
+            "source": "/category/e-commerce/",
+            "action": "conditional_redirect",
+            "destination": "/blog/category/e-commerce/",
+            "status": "implemented",
+            "note": "Redirect only if the corresponding CMS category has published articles; otherwise return 404."
+        },
+        {
+            "source": "/category/security/",
+            "action": "conditional_redirect",
+            "destination": "/blog/category/security/",
+            "status": "implemented",
+            "note": "Redirect only if the corresponding CMS category has published articles; otherwise return 404."
+        },
+        {
+            "source": "/category/wordpress/",
+            "action": "conditional_redirect",
+            "destination": "/blog/category/wordpress/",
+            "status": "implemented",
+            "note": "Redirect only if the corresponding CMS category has published articles; otherwise return 404."
+        },
+        {
+            "source": "/",
+            "action": "retain",
+            "destination": "/",
+            "status": "implemented",
+            "note": "Rebuild the matching public page."
+        },
+        {
+            "source": "/about/",
+            "action": "retain",
+            "destination": "/about/",
+            "status": "implemented",
+            "note": "Rebuild the matching public page."
+        },
+        {
+            "source": "/testimonials/",
+            "action": "retain",
+            "destination": "/testimonials/",
+            "status": "implemented",
+            "note": "Rebuild the matching public page."
+        },
+        {
+            "source": "/projects/",
+            "action": "permanent_redirect",
+            "destination": "/portfolio/",
+            "status": "implemented",
+            "note": "Consolidate the old project indexes into the portfolio."
+        },
+        {
+            "source": "/web-design-faq/",
+            "action": "permanent_redirect",
+            "destination": "/faqs/",
+            "status": "implemented",
+            "note": "Brand-scoped FAQ content from the CMS."
+        },
+        {
+            "source": "/contact/",
+            "action": "retain",
+            "destination": "/contact/",
+            "status": "implemented",
+            "note": "Rebuild the matching public page."
+        },
+        {
+            "source": "/accrington-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/lancashire-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/birmingham-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/blackburn-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/lancashire-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/blackpool-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/lancashire-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/bolton-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/greater-manchester-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/bromsgrove-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/burnley-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/lancashire-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/bury-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/greater-manchester-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/cheshire-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/chorley-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/lancashire-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/coventry-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/greater-manchester-website-design/",
+            "action": "retain",
+            "destination": "/greater-manchester-website-design/",
+            "status": "implemented",
+            "note": "Retain this URL with individually rewritten, useful service-area content. Manchester is the actual base; nearby areas are served without invented offices."
+        },
+        {
+            "source": "/huddersfield-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/kidderminster-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/lancashire-website-design/",
+            "action": "retain",
+            "destination": "/lancashire-website-design/",
+            "status": "implemented",
+            "note": "Retain this URL with individually rewritten, useful service-area content. Manchester is the actual base; nearby areas are served without invented offices."
+        },
+        {
+            "source": "/leeds-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/liverpool-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/london-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/manchester-website-design/",
+            "action": "retain",
+            "destination": "/manchester-website-design/",
+            "status": "implemented",
+            "note": "Retain this URL with individually rewritten, useful service-area content. Manchester is the actual base; nearby areas are served without invented offices."
+        },
+        {
+            "source": "/newcastle-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/oldham-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/greater-manchester-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/preston-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/lancashire-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/rochdale-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/greater-manchester-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/runcorn-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/salford-website-design/",
+            "action": "retain",
+            "destination": "/salford-website-design/",
+            "status": "implemented",
+            "note": "Retain this URL with individually rewritten, useful service-area content. Manchester is the actual base; nearby areas are served without invented offices."
+        },
+        {
+            "source": "/st-helens-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/stockport-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/greater-manchester-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/tameside-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/greater-manchester-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/trafford-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/greater-manchester-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/tyne-and-wear-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/warrington-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/west-midlands-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/west-yorkshire-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/wigan-website-design/",
+            "action": "retain",
+            "destination": "/wigan-website-design/",
+            "status": "implemented",
+            "note": "Retain this URL with individually rewritten, useful service-area content. Manchester is the actual base; nearby areas are served without invented offices."
+        },
+        {
+            "source": "/wirral-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/worcestershire-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/yorkshire-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/sydney-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/australia-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/new-south-wales-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/australia-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/australia-website-design/",
+            "action": "retain",
+            "destination": "/australia-website-design/",
+            "status": "implemented",
+            "note": "Retain this URL with distinct international-market content about working remotely with a Manchester-based freelancer. No local office/residency claims or unconfirmed hours/currency promises."
+        },
+        {
+            "source": "/melbourne-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/australia-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/victoria-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/australia-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/services/",
+            "action": "retain",
+            "destination": "/services/",
+            "status": "implemented",
+            "note": "Rebuild the matching public page."
+        },
+        {
+            "source": "/texas-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/usa-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/new-york-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/usa-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/usa-website-design/",
+            "action": "retain",
+            "destination": "/usa-website-design/",
+            "status": "implemented",
+            "note": "Retain this URL with distinct international-market content about working remotely with a Manchester-based freelancer. No local office/residency claims or unconfirmed hours/currency promises."
+        },
+        {
+            "source": "/sefton-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/merseyside-website-design/",
+            "action": "permanent_redirect",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Consolidate the old location-name template into a relevant retained area/country page. Rewrite the destination to cover the audience before activation; keep redirects to one hop."
+        },
+        {
+            "source": "/uk-website-design/",
+            "action": "retain",
+            "destination": "/uk-website-design/",
+            "status": "implemented",
+            "note": "Retain this URL with individually rewritten, useful service-area content. Manchester is the actual base; nearby areas are served without invented offices."
+        },
+        {
+            "source": "/uk-search-engine-optimisation/",
+            "action": "permanent_redirect",
+            "destination": "/services/search-engine-optimisation/",
+            "status": "implemented",
+            "note": "Consolidate location SEO pages into the relevant service."
+        },
+        {
+            "source": "/salford-search-engine-optimisation/",
+            "action": "permanent_redirect",
+            "destination": "/services/search-engine-optimisation/",
+            "status": "implemented",
+            "note": "Consolidate location SEO pages into the relevant service."
+        },
+        {
+            "source": "/greater-manchester-search-engine-optimisation/",
+            "action": "permanent_redirect",
+            "destination": "/services/search-engine-optimisation/",
+            "status": "implemented",
+            "note": "Consolidate location SEO pages into the relevant service."
+        },
+        {
+            "source": "/privacy-policy/",
+            "action": "retain",
+            "destination": "/privacy-policy/",
+            "status": "implemented",
+            "note": "Rebuild the matching public page."
+        },
+        {
+            "source": "/blog/",
+            "action": "retain",
+            "destination": "/blog/",
+            "status": "implemented",
+            "note": "Rebuild the matching public page."
+        },
+        {
+            "source": "/is-woocommerce-better-than-shopify/",
+            "action": "retire",
+            "destination": null,
+            "status": "implemented",
+            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+        },
+        {
+            "source": "/need-a-website-5-reasons-that-say-you-should/",
+            "action": "retire",
+            "destination": null,
+            "status": "implemented",
+            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+        },
+        {
+            "source": "/has-lockdown-changed-the-way-we-will-work/",
+            "action": "retire",
+            "destination": null,
+            "status": "implemented",
+            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+        },
+        {
+            "source": "/email-marketing-5-psychological-tricks-to-use/",
+            "action": "retire",
+            "destination": null,
+            "status": "implemented",
+            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+        },
+        {
+            "source": "/what-software-do-i-use-when-designing-websites/",
+            "action": "retire",
+            "destination": null,
+            "status": "implemented",
+            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+        },
+        {
+            "source": "/is-wordpress-a-great-cms-for-seo/",
+            "action": "conditional_redirect",
+            "destination": "/blog/is-wordpress-a-great-cms-for-seo/",
+            "status": "implemented",
+            "note": "Redirect only after the matching migrated CMS article is published; draft or retired content returns 404."
+        },
+        {
+            "source": "/wordpress-what-are-the-benefits/",
+            "action": "conditional_redirect",
+            "destination": "/blog/wordpress-what-are-the-benefits/",
+            "status": "implemented",
+            "note": "Redirect only after the matching migrated CMS article is published; draft or retired content returns 404."
+        },
+        {
+            "source": "/coronavirus-emphasized-need-for-a-great-website/",
+            "action": "retire",
+            "destination": null,
+            "status": "implemented",
+            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+        },
+        {
+            "source": "/why-does-your-business-need-a-website/",
+            "action": "retire",
+            "destination": null,
+            "status": "implemented",
+            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+        },
+        {
+            "source": "/wordpress-how-to-secure-your-website/",
+            "action": "conditional_redirect",
+            "destination": "/blog/wordpress-how-to-secure-your-website/",
+            "status": "implemented",
+            "note": "Redirect only after the matching migrated CMS article is published; draft or retired content returns 404."
+        },
+        {
+            "source": "/godaddy-wordpress-data-breach/",
+            "action": "retire",
+            "destination": null,
+            "status": "implemented",
+            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+        },
+        {
+            "source": "/freelancer-vs-agency-who-will-design-your-website/",
+            "action": "conditional_redirect",
+            "destination": "/blog/freelancer-vs-agency-who-will-design-your-website/",
+            "status": "implemented",
+            "note": "Redirect only after the matching migrated CMS article is published; draft or retired content returns 404."
+        },
+        {
+            "source": "/how-to-prevent-spam-comments-on-wordpress/",
+            "action": "conditional_redirect",
+            "destination": "/blog/how-to-prevent-spam-comments-on-wordpress/",
+            "status": "implemented",
+            "note": "Redirect only after the matching migrated CMS article is published; draft or retired content returns 404."
+        },
+        {
+            "source": "/textzformatter-review/",
+            "action": "retire",
+            "destination": null,
+            "status": "implemented",
+            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+        },
+        {
+            "source": "/project/",
+            "action": "permanent_redirect",
+            "destination": "/portfolio/",
+            "status": "implemented",
+            "note": "Consolidate the old project indexes into the portfolio."
+        },
+        {
+            "source": "/project/welcome-to-travel/",
+            "action": "conditional_redirect",
+            "destination": "/portfolio/welcome-to-travel/",
+            "status": "implemented",
+            "note": "Redirect only after the matching case study is published; otherwise return 404."
+        },
+        {
+            "source": "/project/budget-girl/",
+            "action": "conditional_redirect",
+            "destination": "/portfolio/budget-girl/",
+            "status": "implemented",
+            "note": "Redirect only after the matching case study is published; otherwise return 404."
+        },
+        {
+            "source": "/project_category/website-design/",
+            "action": "permanent_redirect",
+            "destination": "/services/web-design/",
+            "status": "implemented",
+            "note": "Consolidate old location pages into Manchester-based freelance website services; no invented local offices."
+        }
+    ]
+}

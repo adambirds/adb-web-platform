@@ -1,30 +1,13 @@
-import { Providers } from "@/providers";
-import type { Metadata } from "next";
-
+import type { ReactNode } from "react";
+import { siteMetadata } from "@adb/ui/public/server";
+import { site } from "@/content/site";
 import "./globals.css";
-
-export const metadata: Metadata = {
-    title: {
-        default: "ADB Business Platform",
-        template: "%s | ADB Business Platform",
-    },
-    description: "Internal administration platform for the ADB businesses.",
-    robots: {
-        index: false,
-        follow: false,
-        nocache: true,
-    },
-};
-
-export default function RootLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
+export const metadata = siteMetadata(site);
+export default function RootLayout({ children }: { children: ReactNode }) {
     return (
         <html lang="en" className="dark" suppressHydrationWarning>
             <body className="min-h-screen bg-slate-950 text-slate-200 antialiased">
-                <Providers>{children}</Providers>
+                {children}
             </body>
         </html>
     );

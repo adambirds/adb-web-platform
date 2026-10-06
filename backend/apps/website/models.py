@@ -11,6 +11,10 @@ class Portfolio(models.Model):
     solution = models.TextField(help_text="How we solved it")
     results = models.TextField(help_text="Outcome and results")
     image = models.ImageField(upload_to="portfolio/", blank=True)
+    image_alt = models.CharField(max_length=300, blank=True)
+    meta_description = models.CharField(max_length=160, blank=True)
+    service_slugs = models.JSONField(default=list, blank=True)
+    featured_image_alt = models.CharField(max_length=300, blank=True)
     featured = models.BooleanField(default=False)
     featured_image = models.ImageField(upload_to="portfolio/featured/", blank=True)
     brands = models.ManyToManyField("core.Brand", related_name="portfolio_entries")
@@ -19,6 +23,8 @@ class Portfolio(models.Model):
 
     project_url = models.URLField(blank=True, null=True)
     github_url = models.URLField(blank=True, null=True)
+
+    published = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -47,8 +53,11 @@ class Testimonial(models.Model):
     job_title = models.CharField(max_length=150, blank=True)
     rating = models.IntegerField(choices=RATING_CHOICES, default=5)
     image = models.ImageField(upload_to="testimonials/", blank=True)
+    image_alt = models.CharField(max_length=300, blank=True)
     featured = models.BooleanField(default=False)
     brands = models.ManyToManyField("core.Brand", related_name="testimonials")
+
+    published = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -95,6 +104,8 @@ class BlogPost(models.Model):
     content = models.TextField(help_text="Markdown content")
     featured_image = models.ImageField(upload_to="blog/", blank=True)
 
+    featured_image_alt = models.CharField(max_length=300, blank=True)
+
     author = models.CharField(max_length=100, default="ADB Software Solutions")
 
     published = models.BooleanField(default=False)
@@ -125,7 +136,10 @@ class FAQ(models.Model):
     answer = models.TextField(help_text="Markdown content")
     category = models.ForeignKey("FAQCategory", on_delete=models.CASCADE, related_name="faqs")
     brands = models.ManyToManyField("core.Brand", related_name="faqs")
+    service_slugs = models.JSONField(default=list, blank=True)
     order = models.IntegerField(default=0)
+
+    published = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

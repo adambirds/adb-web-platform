@@ -1,0 +1,242 @@
+[
+    {
+        "source": "/author/adam-birds",
+        "destination": "/about/",
+        "permanent": true
+    },
+    {
+        "source": "/projects",
+        "destination": "/portfolio/",
+        "permanent": true
+    },
+    {
+        "source": "/web-design-faq",
+        "destination": "/faqs/",
+        "permanent": true
+    },
+    {
+        "source": "/accrington-website-design",
+        "destination": "/lancashire-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/birmingham-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/blackburn-website-design",
+        "destination": "/lancashire-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/blackpool-website-design",
+        "destination": "/lancashire-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/bolton-website-design",
+        "destination": "/greater-manchester-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/bromsgrove-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/burnley-website-design",
+        "destination": "/lancashire-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/bury-website-design",
+        "destination": "/greater-manchester-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/cheshire-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/chorley-website-design",
+        "destination": "/lancashire-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/coventry-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/huddersfield-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/kidderminster-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/leeds-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/liverpool-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/london-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/newcastle-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/oldham-website-design",
+        "destination": "/greater-manchester-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/preston-website-design",
+        "destination": "/lancashire-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/rochdale-website-design",
+        "destination": "/greater-manchester-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/runcorn-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/st-helens-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/stockport-website-design",
+        "destination": "/greater-manchester-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/tameside-website-design",
+        "destination": "/greater-manchester-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/trafford-website-design",
+        "destination": "/greater-manchester-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/tyne-and-wear-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/warrington-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/west-midlands-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/west-yorkshire-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/wirral-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/worcestershire-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/yorkshire-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/sydney-website-design",
+        "destination": "/australia-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/new-south-wales-website-design",
+        "destination": "/australia-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/melbourne-website-design",
+        "destination": "/australia-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/victoria-website-design",
+        "destination": "/australia-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/texas-website-design",
+        "destination": "/usa-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/new-york-website-design",
+        "destination": "/usa-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/sefton-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/merseyside-website-design",
+        "destination": "/uk-website-design/",
+        "permanent": true
+    },
+    {
+        "source": "/uk-search-engine-optimisation",
+        "destination": "/services/search-engine-optimisation/",
+        "permanent": true
+    },
+    {
+        "source": "/salford-search-engine-optimisation",
+        "destination": "/services/search-engine-optimisation/",
+        "permanent": true
+    },
+    {
+        "source": "/greater-manchester-search-engine-optimisation",
+        "destination": "/services/search-engine-optimisation/",
+        "permanent": true
+    },
+    {
+        "source": "/project",
+        "destination": "/portfolio/",
+        "permanent": true
+    },
+    {
+        "source": "/project_category/website-design",
+        "destination": "/services/web-design/",
+        "permanent": true
+    }
+]
