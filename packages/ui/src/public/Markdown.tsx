@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- CMS Markdown images use the configured public media origin. */
 import type {ComponentProps} from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -21,8 +22,8 @@ export function Markdown({children}: {children: string}) {
                             {children}
                         </a>
                     ),
-                    img: ({alt}: ComponentProps<"img">) => (
-                        <span className="muted">{alt}</span>
+                    img: ({src, alt}: ComponentProps<"img">) => (
+                        <img src={src} alt={alt || ""} loading="lazy" />
                     ),
                 }}
             >

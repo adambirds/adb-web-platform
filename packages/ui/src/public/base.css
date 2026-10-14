@@ -570,6 +570,13 @@
     margin-block: 35px 20px;
 }
 
+.marketing .markdown img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-block: 24px;
+}
+
 .marketing .markdown p {
     margin-bottom: 20px;
 }
