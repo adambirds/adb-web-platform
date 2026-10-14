@@ -1,309 +1,329 @@
 @import "@adb/ui/public/base.css";
+
+@font-face {
+    font-family: DMSans;
+    font-style: normal;
+    font-weight: 100 1000;
+    font-display: swap;
+    src: url("/fonts/DMSans.ttf") format("truetype");
+}
+
+.marketing.brand-software {
+    --page: #1b211f;
+    --panel: #252e2a;
+    --raised: #334038;
+    --ink: #f1f2e8;
+    --muted: #b7c1b7;
+    --heading-font: dmsans, arial, sans-serif;
+    font-family: dmsans, Arial, sans-serif;
+}
+
+.marketing.brand-software[data-theme="light"] {
+    --page: #f1f2e8;
+    --panel: #e1e6db;
+    --raised: #d6dfd0;
+    --ink: #1b3028;
+    --muted: #526359;
+}
+
 .marketing .software-cover {
-    padding-bottom: 24px;
-}
-.marketing .software-heading {
     display: grid;
-    grid-template-columns: 90px 1fr 290px;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 65px;
     align-items: center;
-    gap: 35px;
-    padding: 58px 0 50px;
+    padding-block: 70px 85px;
 }
-.marketing .software-side-label {
-    font-size: 11px;
-    line-height: 1.7;
-    color: var(--muted);
-    align-self: start;
-    margin-top: 8px;
-}
-.marketing .software-heading h1 {
-    font-size: clamp(45px, 4.8vw, 69px);
+
+.marketing .software-hero-copy h1 {
+    font-size: clamp(52px, 5.8vw, 86px);
     line-height: 1.08;
-    font-weight: 550;
-    letter-spacing: -0.05em;
+    font-weight: 500;
+    letter-spacing: -0.045em;
+    margin-block: 30px;
 }
-.marketing .software-heading h1 span {
+
+.marketing .software-hero-copy h1 em {
+    font-family: Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.055em;
     color: var(--accent);
 }
-.marketing .software-intro > p {
-    font-size: 14px;
-    line-height: 1.8;
+
+.marketing .software-introduction {
+    font-size: 20px;
+    max-width: 460px;
+    margin-bottom: 30px;
+}
+
+.marketing .software-location {
+    margin-top: 40px;
+    max-width: 400px;
+    font-size: 12px;
     color: var(--muted);
-    margin-bottom: 23px;
 }
-.marketing .software-assembly {
-    display: grid;
-    grid-template-columns: 1.05fr 1.15fr 1fr;
-    height: 320px;
-    position: relative;
+
+.marketing .software-product-study {
+    min-width: 0;
 }
-.marketing .assembly-part {
-    position: relative;
-    padding: 30px 24px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-.marketing .assembly-app {
-    background: var(--brand-fill);
-    color: var(--brand-fill-ink);
-    clip-path: polygon(
-        0 0,
-        100% 0,
-        100% 31%,
-        calc(100% - 28px) 31%,
-        calc(100% - 28px) 63%,
-        100% 63%,
-        100% 100%,
-        0 100%
-    );
-}
-.marketing .assembly-connect {
-    background: var(--raised);
-    margin-left: -28px;
-    padding-left: 52px;
-    clip-path: polygon(
-        28px 0,
-        100% 0,
-        100% 31%,
-        calc(100% - 28px) 31%,
-        calc(100% - 28px) 63%,
-        100% 63%,
-        100% 100%,
-        28px 100%,
-        28px 63%,
-        0 63%,
-        0 31%,
-        28px 31%
-    );
-}
-.marketing .assembly-auto {
-    background: var(--panel);
-    margin-left: -28px;
-    padding-left: 52px;
-    clip-path: polygon(
-        28px 0,
-        100% 0,
-        100% 100%,
-        28px 100%,
-        28px 63%,
-        0 63%,
-        0 31%,
-        28px 31%
-    );
-}
-.marketing .assembly-caption {
-    font-size: 10px;
-    opacity: 0.7;
-    margin-bottom: 16px;
-}
-.marketing .assembly-part h2 {
-    font-size: clamp(23px, 2.1vw, 30px);
-    font-weight: 550;
-    letter-spacing: -0.035em;
-}
-.marketing .assembly-symbol {
-    font-size: 105px;
-    line-height: 1.35;
-    letter-spacing: 0.15em;
-    font-weight: 300;
-    transform: skewX(-10deg);
-    padding-left: 20px;
-}
-.marketing .integration-art {
-    width: 100%;
-    height: 130px;
-    margin: 10px 0;
-    color: var(--accent);
-}
-.marketing .automation-art {
-    display: flex;
-    gap: 12px;
-    height: 145px;
-    align-items: center;
-    padding-block: 20px;
-}
-.marketing .automation-art i {
-    display: block;
-    width: 35px;
-    height: 60px;
-    background: var(--accent);
-    transform: skewY(-30deg);
-}
-.marketing .automation-art i:nth-child(2) {
-    height: 85px;
-    opacity: 0.8;
-}
-.marketing .automation-art i:nth-child(3) {
-    height: 110px;
-    opacity: 0.6;
-}
-.marketing .automation-art i:nth-child(4) {
-    height: 135px;
-    opacity: 0.4;
-}
-.marketing .assembly-tail {
-    margin-top: auto;
-    font-size: 10px;
-}
-.marketing .assembly-part:hover h2 {
-    text-decoration: underline;
-    text-underline-offset: 5px;
-}
-.marketing .assembly-part:focus-visible {
-    outline: none;
-    box-shadow: inset 0 0 0 3px var(--accent);
-}
-.marketing .assembly-app:focus-visible {
-    box-shadow: inset 0 0 0 3px var(--ink);
-}
-.marketing .software-cover-foot {
+
+.marketing .software-product-study > figcaption {
     display: flex;
     justify-content: space-between;
-    gap: 30px;
-    padding-top: 24px;
+    gap: 20px;
+    padding-bottom: 15px;
     font-size: 11px;
-    line-height: 1.7;
     color: var(--muted);
 }
-.marketing .software-cover-foot a {
-    color: var(--ink);
+
+.marketing .product-paper {
+    background: #e4e9db;
+    color: #1d392f;
+    padding: 32px;
+    border-radius: 4px 36px 4px 4px;
+    border: 1px solid #d0dbc9;
+    box-shadow: 14px 14px 0 var(--raised);
 }
-@media (max-width: 1000px) {
-    .marketing .software-heading {
-        grid-template-columns: 1fr 260px;
+
+.marketing .product-paper-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    border-bottom: 1px solid #1d392f44;
+    padding-bottom: 15px;
+}
+
+.marketing .product-context {
+    font-size: 13px;
+    max-width: 330px;
+    margin-top: 15px;
+}
+
+.marketing .product-stage {
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    gap: 18px;
+    padding-block: 25px;
+    border-bottom: 1px solid #1d392f33;
+}
+
+.marketing .stage-marker {
+    font-size: 11px;
+    width: 34px;
+    height: 34px;
+    border: 1px solid #1d392f66;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+}
+
+.marketing .product-stage h2 {
+    font-size: 22px;
+    letter-spacing: -0.04em;
+    margin-bottom: 8px;
+}
+
+.marketing .product-stage p {
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.marketing .system-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 15px;
+}
+
+.marketing .system-tags span {
+    padding: 3px 9px;
+    background: #c4d8c3;
+    border: 1px solid #1d392f33;
+    font-size: 11px;
+}
+
+.marketing .product-paper-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 12px;
+    padding-top: 20px;
+}
+
+.marketing .product-annotation {
+    margin-top: 28px;
+    font-size: 14px;
+    font-style: italic;
+    font-family: Georgia, serif;
+    text-align: right;
+    color: var(--muted);
+}
+
+.marketing .software-service-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding-block: 30px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    gap: 25px;
+}
+
+.marketing .software-service-strip a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+}
+
+.marketing .software-service-strip a span {
+    color: var(--accent);
+}
+
+.marketing.brand-software .software-review-feature {
+    padding-block: 90px;
+    gap: 90px;
+}
+
+.marketing.brand-software .software-review-feature h2 {
+    font-size: clamp(34px, 4vw, 52px);
+    font-weight: 450;
+}
+
+.marketing.brand-software .home-services {
+    padding-block: 60px 100px;
+}
+
+.marketing.brand-software .home-service-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0 80px;
+}
+
+.marketing.brand-software .home-service-list h3 {
+    font-size: 30px;
+}
+
+.marketing.brand-software .software-about {
+    background: #e4e9db;
+    color: #1d392f;
+    padding-block: 85px;
+}
+
+.marketing.brand-software .software-about h2 {
+    font-family: Georgia, serif;
+    font-size: clamp(36px, 4vw, 55px);
+    font-weight: 400;
+    font-style: italic;
+}
+
+.marketing.brand-software .software-about p {
+    color: #38534a;
+    font-size: 18px;
+}
+
+.marketing.brand-software .software-about .text-link {
+    color: #00616a;
+}
+
+.marketing.brand-software .page-heading h1 {
+    font-size: clamp(42px, 6vw, 86px);
+    font-weight: 450;
+    max-width: 1000px;
+}
+
+.marketing.brand-software .page-heading > p:not(.business-label) {
+    font-size: 22px;
+    max-width: 750px;
+}
+
+.marketing.brand-software .scope-aside {
+    background: var(--panel);
+    padding: 32px;
+    border-radius: 4px 30px 4px 4px;
+}
+
+.marketing.brand-software .enquiry-band h2 {
+    font-family: Georgia, serif;
+    font-size: clamp(42px, 5.4vw, 72px);
+    font-weight: 400;
+    font-style: italic;
+}
+
+@media (width <= 1000px) {
+    .marketing .software-cover {
+        gap: 40px;
+    }
+
+    .marketing .software-hero-copy h1 {
+        font-size: 56px;
+    }
+
+    .marketing .product-paper {
+        padding: 24px;
+    }
+
+    .marketing .software-service-strip {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (width <= 767px) {
+    .marketing .software-cover {
+        grid-template-columns: 1fr;
+        gap: 45px;
+        padding-block: 35px 55px;
+    }
+
+    .marketing .software-hero-copy h1 {
+        font-size: clamp(43px, 11vw, 68px);
+        margin-block: 24px;
+    }
+
+    .marketing .software-introduction {
+        font-size: 18px;
+    }
+
+    .marketing .software-location {
+        margin-top: 25px;
+    }
+
+    .marketing .software-product-study {
+        padding-right: 10px;
+    }
+
+    .marketing .product-paper {
+        box-shadow: 8px 8px 0 var(--raised);
+        padding: 22px;
+    }
+
+    .marketing .product-paper-header {
+        font-size: 24px;
+    }
+
+    .marketing .product-stage {
+        gap: 12px;
+    }
+
+    .marketing .product-stage h2 {
+        font-size: 20px;
+    }
+
+    .marketing.brand-software .software-review-feature {
+        padding-block: 60px;
         gap: 25px;
     }
-    .marketing .software-side-label {
-        grid-column: 1/-1;
-    }
-    .marketing .software-assembly {
-        height: 290px;
-    }
-    .marketing .assembly-part {
-        padding: 22px 18px;
-    }
-    .marketing .assembly-connect,
-    .marketing .assembly-auto {
-        padding-left: 42px;
-    }
-    .marketing .assembly-part h2 {
-        font-size: 23px;
-    }
-    .marketing .assembly-symbol {
-        font-size: 80px;
-    }
-    .marketing .automation-art {
-        gap: 8px;
-    }
-    .marketing .automation-art i {
-        width: 22px;
-    }
-}
-@media (max-width: 767px) {
-    .marketing .software-heading {
+
+    .marketing.brand-software .home-service-list {
         grid-template-columns: 1fr;
-        padding: 30px 0;
-        gap: 20px;
     }
-    .marketing .software-side-label {
-        display: none;
+
+    .marketing .software-service-strip {
+        gap: 24px;
     }
-    .marketing .software-heading h1 {
-        font-size: clamp(40px, 9vw, 66px);
-    }
-    .marketing .software-intro {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 18px;
-    }
-    .marketing .software-intro > p {
-        max-width: 360px;
-        margin: 0;
-        font-size: 13px;
-    }
-    .marketing .software-assembly {
-        grid-template-columns: 1fr;
-        height: auto;
-    }
-    .marketing .assembly-part {
-        height: 230px;
-        padding: 24px;
-        margin: 0;
-        clip-path: none;
-    }
-    .marketing .assembly-app {
-        clip-path: polygon(
-            0 0,
-            100% 0,
-            100% 100%,
-            65% 100%,
-            65% calc(100% - 20px),
-            35% calc(100% - 20px),
-            35% 100%,
-            0 100%
-        );
-    }
-    .marketing .assembly-connect {
-        margin-top: -20px;
-        padding-top: 42px;
-        height: 270px;
-        clip-path: polygon(
-            0 20px,
-            35% 20px,
-            35% 0,
-            65% 0,
-            65% 20px,
-            100% 20px,
-            100% 100%,
-            65% 100%,
-            65% calc(100% - 20px),
-            35% calc(100% - 20px),
-            35% 100%,
-            0 100%
-        );
-    }
-    .marketing .assembly-auto {
-        margin-top: -20px;
-        padding-top: 42px;
-        height: 270px;
-        clip-path: polygon(
-            0 20px,
-            35% 20px,
-            35% 0,
-            65% 0,
-            65% 20px,
-            100% 20px,
-            100% 100%,
-            0 100%
-        );
-    }
-    .marketing .assembly-part h2 {
-        font-size: 29px;
-    }
-    .marketing .assembly-caption {
-        margin-bottom: 10px;
-    }
-    .marketing .assembly-symbol {
-        position: absolute;
-        right: 25px;
-        top: 55px;
-        font-size: 100px;
-    }
-    .marketing .integration-art {
-        height: 85px;
-    }
-    .marketing .automation-art {
-        height: 100px;
-        position: absolute;
-        top: 95px;
-        right: 35px;
-    }
-    .marketing .automation-art i {
-        width: 30px;
-    }
-    .marketing .software-cover-foot {
-        font-size: 10px;
+
+    .marketing .software-service-strip a {
+        font-size: 14px;
     }
 }

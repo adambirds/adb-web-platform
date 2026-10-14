@@ -8,115 +8,82 @@ export async function HomePage() {
     const content = await homeContent(site);
     return (
         <>
-            <section className="software-cover">
-                <div className="shell">
-                    <div className="cover-topline">
-                        <p>{site.name}</p>
-                        <span>{homeCopy.coverToplineSpan1}</span>
-                    </div>
-                    <div className="software-heading">
-                        <p className="software-side-label">
-                            {homeCopy.softwareSideLabelP1}
-                            <br />
-                            {homeCopy.softwareSideLabelP2}
+            <section className="software-cover shell">
+                <div className="software-hero-copy">
+                    <p className="business-label">{homeCopy.heroLabel}</p>
+                    <h1>
+                        {homeCopy.softwareHeadingH11}
+                        <br />
+                        <em>{homeCopy.softwareHeadingSpan1}</em>
+                    </h1>
+                    <p className="software-introduction">
+                        {homeCopy.softwareIntroP1}
+                    </p>
+                    <Link href="/contact/" className="angled-button">
+                        {homeCopy.angledButtonLink1}
+                    </Link>
+                    <p className="software-location">{homeCopy.location}</p>
+                </div>
+                <figure className="software-product-study">
+                    <figcaption>
+                        <span>{homeCopy.study.label}</span>
+                        <span>{homeCopy.study.type}</span>
+                    </figcaption>
+                    <div className="product-paper">
+                        <div className="product-paper-header">
+                            <span>{homeCopy.study.title}</span>
+                            <span aria-hidden="true">↗</span>
+                        </div>
+                        <p className="product-context">
+                            {homeCopy.study.introduction}
                         </p>
-                        <h1>
-                            {homeCopy.softwareHeadingH11}
-                            <br />
-                            <span>{homeCopy.softwareHeadingSpan1}</span>
-                        </h1>
-                        <div className="software-intro">
-                            <p>{homeCopy.softwareIntroP1}</p>
-                            <Link href="/contact/" className="angled-button">
-                                {homeCopy.angledButtonLink1}
-                            </Link>
+                        {homeCopy.study.stages.map((stage, index) => (
+                            <div className="product-stage" key={stage.title}>
+                                <span className="stage-marker">
+                                    {String(index + 1).padStart(2, "0")}
+                                </span>
+                                <div>
+                                    <h2>{stage.title}</h2>
+                                    <p>{stage.description}</p>
+                                    {stage.systems.length ? (
+                                        <div className="system-tags">
+                                            {stage.systems.map((system) => (
+                                                <span key={system}>
+                                                    {system}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    ) : null}
+                                </div>
+                            </div>
+                        ))}
+                        <div className="product-paper-footer">
+                            <span>{homeCopy.study.sequence}</span>
+                            <span aria-hidden="true">[ ]</span>
                         </div>
                     </div>
-                    <div
-                        className="software-assembly"
-                        aria-label="Explore software services"
-                    >
-                        <Link
-                            href="/services/web-applications/"
-                            className="assembly-part assembly-app"
-                        >
-                            <span className="assembly-caption">
-                                {homeCopy.assemblyCaptionSpan1}
-                            </span>
-                            <h2>{homeCopy.assemblyPartH21}</h2>
-                            <span
-                                className="assembly-symbol"
-                                aria-hidden="true"
-                            >
-                                [ ]
-                            </span>
-                            <span className="assembly-tail">
-                                {homeCopy.assemblyTailSpan1}
-                            </span>
-                        </Link>
-                        <Link
-                            href="/services/api-integrations/"
-                            className="assembly-part assembly-connect"
-                        >
-                            <span className="assembly-caption">
-                                {homeCopy.assemblyCaptionSpan2}
-                            </span>
-                            <h2>{homeCopy.assemblyPartH22}</h2>
-                            <svg
-                                className="integration-art"
-                                viewBox="0 0 400 130"
-                                fill="none"
-                                aria-hidden="true"
-                            >
-                                <path
-                                    d="M0 25H130L180 75H250L300 25H400M0 105H130L180 55H250L300 105H400"
-                                    stroke="currentColor"
-                                    strokeWidth="18"
-                                />
-                                <circle
-                                    cx="215"
-                                    cy="65"
-                                    r="27"
-                                    fill="var(--page)"
-                                    stroke="currentColor"
-                                    strokeWidth="10"
-                                />
-                            </svg>
-                            <span className="assembly-tail">
-                                {homeCopy.assemblyTailSpan2}
-                            </span>
-                        </Link>
-                        <Link
-                            href="/services/automation/"
-                            className="assembly-part assembly-auto"
-                        >
-                            <span className="assembly-caption">
-                                {homeCopy.assemblyCaptionSpan3}
-                            </span>
-                            <h2>{homeCopy.assemblyPartH23}</h2>
-                            <div className="automation-art" aria-hidden="true">
-                                <i />
-                                <i />
-                                <i />
-                                <i />
-                            </div>
-                            <span className="assembly-tail">
-                                {homeCopy.assemblyTailSpan3}
-                            </span>
-                        </Link>
-                    </div>
-                    <div className="software-cover-foot">
-                        <p>
-                            {homeCopy.softwareCoverFootP1}
-                            <br />
-                            {homeCopy.softwareCoverFootP2}
-                        </p>
-                        <Link href="/working-together/">
-                            {homeCopy.softwareCoverFootLink1}
-                        </Link>
-                    </div>
-                </div>
+                    <p className="product-annotation">
+                        {homeCopy.study.caption}
+                    </p>
+                </figure>
             </section>
+            <nav
+                className="software-service-strip shell"
+                aria-label="Software services"
+            >
+                <Link href="/services/web-applications/">
+                    Web applications <span aria-hidden="true">↗</span>
+                </Link>
+                <Link href="/services/api-integrations/">
+                    Integrations <span aria-hidden="true">↗</span>
+                </Link>
+                <Link href="/services/automation/">
+                    Automation <span aria-hidden="true">↗</span>
+                </Link>
+                <Link href="/services/mobile-applications/">
+                    Mobile apps <span aria-hidden="true">↗</span>
+                </Link>
+            </nav>
             <section className="shell software-review-feature">
                 <div>
                     <p className="business-label">{homeCopy.businessLabelP1}</p>

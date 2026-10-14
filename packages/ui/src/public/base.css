@@ -39,6 +39,7 @@
 }
 
 .marketing :is(h1, h2, h3) {
+    font-family: var(--heading-font, InterVariable), Arial, sans-serif;
     font-weight: 550;
     line-height: 1.15;
     letter-spacing: -0.035em;
@@ -106,7 +107,7 @@
     display: flex;
     align-items: center;
     gap: 35px;
-    min-height: 94px;
+    min-height: 100px;
 }
 
 .marketing .logo-link {
@@ -135,7 +136,7 @@
 .marketing .desktop-navigation {
     display: flex;
     gap: 30px;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .marketing .header-controls {
@@ -344,11 +345,13 @@
 
 .marketing .about-portrait {
     float: right;
-    width: 130px;
     margin: 0 0 35px 35px;
-    height: 158px;
-    object-fit: cover;
     filter: grayscale(1);
+    width: 260px;
+    height: 340px;
+    object-fit: cover;
+    object-position: center 20%;
+    margin-bottom: 40px;
 }
 
 .marketing .area-directory,
@@ -727,7 +730,8 @@
 }
 
 .marketing .enquiry-band {
-    padding-block: 65px 80px;
+    border-top: 1px solid var(--line);
+    padding-block: 85px;
 }
 
 .marketing .enquiry-band p {
@@ -737,149 +741,6 @@
 
 .marketing .enquiry-band .angled-button {
     margin-top: 28px;
-}
-
-.marketing .web-artwork {
-    background: var(--panel);
-    min-height: 430px;
-    padding: 40px;
-    position: relative;
-    overflow: hidden;
-}
-
-.marketing .web-artwork > p {
-    position: relative;
-    margin-top: 35px;
-    font-size: 30px;
-    line-height: 1.3;
-    letter-spacing: -0.025em;
-}
-
-.marketing .web-artwork > a {
-    display: block;
-    font-size: 13px;
-    margin-top: 25px;
-    color: var(--accent);
-    position: relative;
-}
-
-.marketing .website-outline {
-    width: 58%;
-    position: absolute;
-    right: -5%;
-    top: 15px;
-    transform: rotate(-9deg);
-    border: 3px solid var(--accent);
-    padding: 22px;
-    opacity: 0.3;
-    height: 400px;
-}
-
-.marketing .outline-navigation {
-    display: flex;
-    gap: 12px;
-}
-
-.marketing .outline-navigation i {
-    width: 20px;
-    height: 7px;
-    background: var(--accent);
-}
-
-.marketing .outline-title {
-    width: 75%;
-    height: 25px;
-    background: var(--accent);
-    margin-block: 35px;
-}
-
-.marketing .outline-layout {
-    display: flex;
-    gap: 15px;
-    height: 140px;
-}
-
-.marketing .outline-layout span {
-    flex: 1;
-    border: 2px solid var(--accent);
-}
-
-.marketing .outline-lines i {
-    display: block;
-    width: 75%;
-    height: 5px;
-    background: var(--accent);
-    margin-top: 15px;
-}
-
-.marketing .web-project {
-    min-width: 0;
-}
-
-.marketing .web-project img {
-    width: 100%;
-    height: 360px;
-    object-fit: cover;
-}
-
-.marketing .web-project figcaption {
-    padding: 25px;
-    background: var(--panel);
-}
-
-.marketing .web-project figcaption h2 {
-    font-size: 24px;
-}
-
-.marketing .web-project figcaption p {
-    color: var(--muted);
-    font-size: 13px;
-    margin-top: 12px;
-}
-
-.marketing .project-without-image {
-    padding: 50px;
-    background: var(--panel);
-    min-height: 300px;
-}
-
-.marketing .web-project-controls button {
-    display: block;
-    background: transparent;
-    border: none;
-    border-top: 1px solid #12313b55;
-    padding: 12px 0;
-    width: 100%;
-    text-align: left;
-    font-size: 12px;
-}
-
-.marketing .web-project-controls button span {
-    margin-left: 10px;
-}
-
-.marketing .web-project-controls button[aria-pressed="true"] {
-    font-weight: 700;
-}
-
-.marketing .page-brand-art {
-    display: block;
-    width: 190px;
-    height: 190px;
-    position: absolute;
-    right: 55px;
-    top: 60px;
-    opacity: 0.12;
-    transform: rotate(-20deg);
-    pointer-events: none;
-}
-
-.marketing .page-brand-art i {
-    display: block;
-    width: 100%;
-    height: 30px;
-    margin-bottom: 25px;
-    background: var(--accent);
 }
 
 .marketing.brand-web .home-services {
@@ -915,14 +776,6 @@
 .marketing.brand-technology .home-service-list article {
     border-top: 2px solid var(--line);
     border-bottom: none;
-}
-
-.marketing.brand-software .page-brand-art {
-    transform: rotate(0);
-}
-
-.marketing.brand-technology .page-brand-art {
-    transform: rotate(45deg);
 }
 
 @media (width <= 900px) {
@@ -1018,26 +871,6 @@
         padding-block: 45px;
     }
 
-    .marketing .web-artwork {
-        min-height: 350px;
-        padding: 28px;
-    }
-
-    .marketing .web-artwork > p {
-        font-size: 27px;
-    }
-
-    .marketing .web-project img {
-        height: auto;
-        aspect-ratio: 4/3;
-    }
-
-    .marketing .page-brand-art {
-        right: 10px;
-        top: 50px;
-        width: 110px;
-    }
-
     .marketing .pagination {
         flex-wrap: wrap;
     }
@@ -1051,33 +884,17 @@
     }
 }
 
-.marketing .cover-topline {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    font-size: 12px;
-    padding-top: 24px;
-}
-
-.marketing .cover-topline p {
-    font-weight: 600;
-}
-
-.marketing .cover-topline > span {
-    color: var(--muted);
-    font-size: 11px;
-}
-
 .marketing .angled-button {
     background: var(--brand-fill);
     color: var(--brand-fill-ink);
     display: inline-flex;
     align-items: center;
     gap: 30px;
-    font-size: 12px;
     font-weight: 600;
-    padding: 15px 25px 15px 18px;
-    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+    clip-path: none;
+    padding: 14px 24px;
+    border-radius: 2px;
+    font-size: 14px;
 }
 
 .marketing .angled-button:hover {
@@ -1087,22 +904,6 @@
 .marketing .angled-button:focus-visible {
     outline: none;
     box-shadow: inset 0 0 0 3px var(--ink);
-}
-
-@media (width <= 767px) {
-    .marketing .cover-topline {
-        font-size: 10px;
-    }
-
-    .marketing .cover-topline > span {
-        font-size: 9px;
-        max-width: 160px;
-        text-align: right;
-    }
-
-    .marketing .services-software > header .business-label {
-        margin-bottom: 15px;
-    }
 }
 
 .marketing .business-label {
@@ -1116,4 +917,33 @@
     height: 64px;
     object-fit: cover;
     margin-bottom: 20px;
+}
+
+/* Shared navigation and reading geometry; brand composition remains local. */
+
+.marketing .service-body {
+    padding-top: 30px;
+}
+
+.marketing .work-card {
+    border: 0;
+    background: transparent;
+}
+
+.marketing .work-card h3 {
+    font-size: 28px;
+}
+
+.marketing .work-card > div {
+    padding-inline: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .marketing *,
+    .marketing *::before,
+    .marketing *::after {
+        scroll-behavior: auto;
+        transition: none;
+        animation: none;
+    }
 }

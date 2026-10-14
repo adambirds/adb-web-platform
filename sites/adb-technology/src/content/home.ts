@@ -1,10 +1,44 @@
 /** Editable homepage copy. Layout and artwork live in HomePage.tsx. */
 export const homeCopy = {
+    heroLabel: "Independent infrastructure & DevOps",
+    location: "Manchester / UK & international",
+    delivery: {
+        title: "Delivery architecture",
+        label: "Reference flow / 01",
+        note: "A reference process. The environment and release controls are agreed for your project.",
+        link: "How the work is scoped ↗",
+        stages: [
+            {
+                label: "01 / Source",
+                title: "Commit.",
+                description: "Versioned application and configuration.",
+                href: "/services/deployment-pipelines/",
+            },
+            {
+                label: "02 / Pipeline",
+                title: "Check.",
+                description: "Build and test before a release is deployed.",
+                href: "/services/deployment-pipelines/",
+            },
+            {
+                label: "03 / Environment",
+                title: "Deploy.",
+                description: "An environment designed for the application.",
+                href: "/services/cloud-infrastructure/",
+            },
+            {
+                label: "04 / Handover",
+                title: "Understand.",
+                description: "Document the setup and responsibilities.",
+                href: "/services/server-management/",
+            },
+        ],
+    },
     coverToplineSpan1: "Infrastructure / delivery / operations",
     technologyKickerP1: "Technical services",
-    technologyCopyH11: "The systems",
-    technologyCopyH12: "behind your",
-    technologyCopyH13: "business.",
+    technologyCopyH11: "Build. Deploy.",
+    technologyCopyH12: "Know what’s",
+    technologyCopyH13: "running.",
     technologyDescriptionP1:
         "Cloud infrastructure, migrations, deployment pipelines and server management, delivered by a freelance engineer in Manchester.",
     angledButtonLink1: "Discuss your setup →",

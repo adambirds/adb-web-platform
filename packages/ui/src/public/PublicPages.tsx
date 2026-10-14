@@ -185,11 +185,6 @@ async function ServicePage({
                 <Link className="angled-button" href="/contact/">
                     Discuss this service →
                 </Link>
-                <span className="page-brand-art" aria-hidden="true">
-                    <i />
-                    <i />
-                    <i />
-                </span>
             </header>
             <section className="shell service-body">
                 <ContentSections sections={service.sections} />

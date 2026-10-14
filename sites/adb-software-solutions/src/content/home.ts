@@ -1,10 +1,40 @@
 /** Editable homepage copy. Layout and artwork live in HomePage.tsx. */
 export const homeCopy = {
+    heroLabel: "Freelance software development",
+    location: "Manchester · Working remotely across the UK & internationally",
+    study: {
+        label: "From process to product",
+        type: "Illustrative workflow",
+        title: "Order workspace",
+        introduction:
+            "An example of the work software can take off your hands.",
+        stages: [
+            {
+                title: "One place to start.",
+                description:
+                    "An order arrives. The information is captured once.",
+                systems: [],
+            },
+            {
+                title: "The right systems, connected.",
+                description:
+                    "Your existing tools receive the details they need.",
+                systems: ["Orders", "Stock", "Accounts"],
+            },
+            {
+                title: "A useful next step.",
+                description: "Your team can see what needs attention.",
+                systems: [],
+            },
+        ],
+        sequence: "Capture → Connect → Act",
+        caption: "Built around the way your business works.",
+    },
     coverToplineSpan1: "Applications / integrations / automation",
     softwareSideLabelP1: "Made for",
     softwareSideLabelP2: "your business",
-    softwareHeadingH11: "Software for",
-    softwareHeadingSpan1: "how you work.",
+    softwareHeadingH11: "Your business.",
+    softwareHeadingSpan1: "Less busywork.",
     softwareIntroP1:
         "Build an application. Connect your tools. Replace the process that takes up too much of the day.",
     angledButtonLink1: "Discuss the build →",

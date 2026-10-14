@@ -8,108 +8,49 @@ export async function HomePage() {
     const content = await homeContent(site);
     return (
         <>
-            <section className="technology-cover">
-                <div className="shell">
-                    <div className="cover-topline">
-                        <p>{site.name}</p>
-                        <span>{homeCopy.coverToplineSpan1}</span>
+            <section className="technology-cover shell">
+                <div className="technology-title-row">
+                    <p className="business-label">{homeCopy.heroLabel}</p>
+                    <p className="technology-coordinate">{homeCopy.location}</p>
+                </div>
+                <div className="technology-heading">
+                    <h1>
+                        {homeCopy.technologyCopyH11}
+                        <br />
+                        <span>{homeCopy.technologyCopyH12}</span>
+                        <br />
+                        {homeCopy.technologyCopyH13}
+                    </h1>
+                    <div>
+                        <p>{homeCopy.technologyDescriptionP1}</p>
+                        <Link href="/contact/" className="angled-button">
+                            {homeCopy.angledButtonLink1}
+                        </Link>
                     </div>
-                    <div className="technology-layout">
-                        <div className="technology-copy">
-                            <p className="technology-kicker">
-                                {homeCopy.technologyKickerP1}
-                            </p>
-                            <h1>
-                                {homeCopy.technologyCopyH11}
-                                <br />
-                                {homeCopy.technologyCopyH12}
-                                <br />
-                                {homeCopy.technologyCopyH13}
-                            </h1>
-                            <p className="technology-description">
-                                {homeCopy.technologyDescriptionP1}
-                            </p>
-                            <Link href="/contact/" className="angled-button">
-                                {homeCopy.angledButtonLink1}
-                            </Link>
-                            <p className="technology-caption">
-                                {homeCopy.technologyCaptionP1}
-                                <br />
-                                {homeCopy.technologyCaptionP2}
-                            </p>
-                        </div>
-                        <div
-                            className="technology-map"
-                            aria-label="Explore technical services"
-                        >
-                            <svg
-                                viewBox="0 0 650 600"
-                                fill="none"
-                                aria-hidden="true"
-                            >
-                                <path
-                                    className="map-trace-muted"
-                                    d="M55 0V120L205 270V400L405 600M620 0L420 200V360L180 600M0 460H150L350 260H650M0 75H170L360 265V600"
-                                />
-                                <path
-                                    className="map-trace"
-                                    d="M650 55H470L290 235H0M650 550H510L200 240V0M650 345H430L305 470H0"
-                                />
-                                <circle cx="470" cy="55" r="12" />
-                                <circle cx="200" cy="240" r="12" />
-                                <circle cx="305" cy="470" r="12" />
-                            </svg>
-                            <Link
-                                href="/services/cloud-infrastructure/"
-                                className="map-label map-cloud"
-                            >
-                                <span>{homeCopy.mapLabelSpan1}</span>
-                                <h2>
-                                    {homeCopy.mapLabelH21}
-                                    <br />
-                                    {homeCopy.mapLabelH22}
-                                </h2>
-                                <span className="map-link">
-                                    {homeCopy.mapLinkSpan1}
-                                </span>
-                            </Link>
-                            <Link
-                                href="/services/deployment-pipelines/"
-                                className="map-label map-delivery"
-                            >
-                                <span>{homeCopy.mapLabelSpan2}</span>
-                                <h2>
-                                    {homeCopy.mapLabelH23}
-                                    <br />
-                                    {homeCopy.mapLabelH24}
-                                </h2>
-                                <span className="map-link">
-                                    {homeCopy.mapLinkSpan2}
-                                </span>
-                            </Link>
-                            <Link
-                                href="/services/server-management/"
-                                className="map-label map-support"
-                            >
-                                <span>{homeCopy.mapLabelSpan3}</span>
-                                <h2>
-                                    {homeCopy.mapLabelH25}
-                                    <br />
-                                    {homeCopy.mapLabelH26}
-                                </h2>
-                                <span className="map-link">
-                                    {homeCopy.mapLinkSpan3}
-                                </span>
-                            </Link>
-                            <div className="map-edge" aria-hidden="true">
-                                {homeCopy.mapEdgeDiv1}
-                            </div>
-                        </div>
+                </div>
+                <div className="delivery-sheet">
+                    <div className="delivery-sheet-title">
+                        <span>{homeCopy.delivery.title}</span>
+                        <span>{homeCopy.delivery.label}</span>
                     </div>
-                    <div className="technology-cover-foot">
-                        <p>{homeCopy.technologyCoverFootP1}</p>
-                        <Link href="/services/">
-                            {homeCopy.technologyCoverFootLink1}
+                    <ol className="delivery-flow">
+                        {homeCopy.delivery.stages.map((stage) => (
+                            <li key={stage.label}>
+                                <span className="delivery-number">
+                                    {stage.label}
+                                </span>
+                                <Link href={stage.href}>
+                                    <h2>{stage.title}</h2>
+                                    <p>{stage.description}</p>
+                                    <span aria-hidden="true">↗</span>
+                                </Link>
+                            </li>
+                        ))}
+                    </ol>
+                    <div className="delivery-sheet-footer">
+                        <p>{homeCopy.delivery.note}</p>
+                        <Link href="/working-together/">
+                            {homeCopy.delivery.link}
                         </Link>
                     </div>
                 </div>
