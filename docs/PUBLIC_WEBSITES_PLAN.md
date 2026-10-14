@@ -212,3 +212,13 @@ Web Designs now has its own inner-page compositions in `WebPages.tsx`, with
 editable labels in `page-design.ts`; its existing code-owned service/area copy
 and shared Brand-scoped CMS contracts are retained. A development-only removable
 demo seed supplies published fictional editorial content for local review.
+
+## Whole-family rollout — 14 October 2026
+
+The user requested the approved Web Designs design, policies and usage-statistics
+controls across Software Solutions and Technology. Both now use the same visual
+language across public routes, with different home compositions and Brand-owned
+copy. Existing service scope and CMS boundaries are retained. Shared family
+styles, page layouts, policy builders and privacy controls live under `packages/ui`.
+Each brand supplies its runtime GA4 ID; Software `/admin` is outside analytics.
+No backend model or CMS migration is required and no deployment is requested.

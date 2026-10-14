@@ -1,17 +1,19 @@
 # Public website pages and services
 
-Updated 6 October 2026. The agreed service and page structure is implemented.
+Updated 14 October 2026. The agreed service and page structure is implemented.
 Editorial detail routes appear when matching CMS records are published; broader
 software consultancy remains unconfirmed and is excluded from launch navigation.
 Read with [the public website brief](PUBLIC_WEBSITES_PLAN.md).
 
 ## Confirmed direction and changed availability
 
-- The third temporary design study is the preferred visual direction. Carry its
-  brand-specific compositions into proper multi-page business websites.
+- The approved Web Designs whole-site design is the shared visual direction.
+  Carry it across Software Solutions and Technology with distinct homepages and
+  Brand-owned copy.
 - These are freelance businesses, not personal portfolio sites. Adam's direct
   involvement belongs in business positioning and the About page.
-- Adam now has a full-time platform engineer role. Do not advertise contracting,
+- Adam now has a full-time platform engineer role; this is an internal planning
+  constraint, not public website copy. Do not advertise contracting,
   staff augmentation, embedded team roles or full-time availability.
 - Web hosting, maintenance, ecommerce, technical/local SEO and mobile application
   development are confirmed. Website rescue explicitly includes hacked and
@@ -264,3 +266,8 @@ service pages and the footer cross-link the businesses.
 Homepage sections are summaries that lead to these pages. Preserve the preferred
 brand artwork and composition without copying the mockup's entire one-page stack
 into production. No new backend/CMS architecture is implied by this inventory.
+
+Homepage editorial sections include published Brand-scoped Work, Blog,
+Testimonials and four FAQs. Empty collections stay hidden. Related-business
+About copy names the current Brand first. Employment/availability disclaimers
+about Adam's full-time role are excluded from public copy.

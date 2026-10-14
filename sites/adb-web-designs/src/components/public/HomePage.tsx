@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { site } from "@/content/site";
 import { homeContent } from "@adb/ui/public/server";
-import { ArticleCard, Quote } from "@adb/ui/public/Editorial";
+import { ArticleCard, Quote, Questions } from "@adb/ui/public/Editorial";
 import { FeaturedWork } from "./FeaturedWork";
 
 export async function HomePage() {
@@ -126,6 +126,17 @@ export async function HomePage() {
                             <ArticleCard key={item.id} item={item} />
                         ))}
                     </div>
+                </section>
+            ) : null}
+            {content.faqs.items.length ? (
+                <section className="shell homepage-editorial homepage-questions">
+                    <header>
+                        <h2>{homeCopy.faqs.heading}</h2>
+                        <Link href="/faqs/" className="text-link">
+                            {homeCopy.faqs.link}
+                        </Link>
+                    </header>
+                    <Questions items={content.faqs.items} />
                 </section>
             ) : null}
             <section className="shell enquiry-band">

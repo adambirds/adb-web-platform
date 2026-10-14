@@ -1,10 +1,11 @@
+import type { BusinessPageCopy } from "@adb/ui/public/page-design";
 /** Editable labels and introductions for Web Designs page layouts. */
 export const webPageCopy = {
     discussYourProject: "Discuss your project ↗",
-    haveAWebsiteInMind: "Have a website in mind?",
+    enquiryTitle: "Have a website in mind?",
     aUsefulNextStep: "A useful next step",
     tellMeAboutIt: "Tell me about it",
-    servicesWebDesigns: "Services / Web Designs",
+    servicesLabel: "Services / Web Designs",
     theScope: "The scope",
     workWeCanDiscuss: "Work we can discuss.",
     serviceScopeIntroduction:
@@ -17,22 +18,22 @@ export const webPageCopy = {
     relatedServices: "Related services.",
     whatNeedsBuildingFixingOrImproving:
         "What needs building, fixing or improving?",
-    fromBuildToUpkeep: "From build to upkeep.",
-    websiteServices: "Website services",
+    servicesHeading: "From build to upkeep.",
+    servicesKicker: "Website services",
     notSureWhereYourProjectFits: "Not sure where your project fits?",
     areasServed: "Areas served",
     theWork: "The work",
     relevantServices: "Relevant services.",
     locationBaseNote:
         "Based in Manchester. Working with businesses nearby and further afield.",
-    theBusinessBehindTheWebsite: "The business behind the website",
-    letsDiscussYourWebsite: "Let’s discuss your website ↗",
+    aboutLabel: "The business behind the website",
+    aboutLink: "Let’s discuss your website ↗",
     adamBirdsManchester: "Adam Birds / Manchester",
     localRemote: "Local & remote",
     startAConversation: "Start a conversation",
     yourStartingPoint: "Your starting point",
     tellMeWhatYouHaveInMind: "Tell me what you have in mind.",
-    tellMeAboutYourExistingSetupAndWhat:
+    contactPrompt:
         "Tell me about your existing setup and what you want to change. Include any real deadline in your message.",
     howTheWorkIsArranged: "How the work is arranged ↗",
     thankYou: "Thank you",
@@ -40,4 +41,5 @@ export const webPageCopy = {
     illReviewYourMessageAndRespondToDiscuss:
         "I’ll review your message and respond to discuss the next step.",
     backToTheHomepage: "Back to the homepage ↗",
-};
+    portraitAlt: "Adam Birds, the freelance developer behind ADB Web Designs",
+} satisfies BusinessPageCopy;

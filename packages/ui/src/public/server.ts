@@ -65,7 +65,7 @@ export const homeContent: (site: PublicSite) => Promise<HomeContent> = cache(
             ),
             optionalCollection("blog", site, {page_size: 2}),
             optionalCollection("testimonials", site, {page_size: 2}),
-            optionalCollection("faqs", site, {page_size: 1}),
+            optionalCollection("faqs", site, {page_size: 4}),
         ]);
         return {work, articles, testimonials, faqs};
     },

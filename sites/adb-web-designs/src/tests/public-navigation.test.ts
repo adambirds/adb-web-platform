@@ -83,3 +83,18 @@ it("unconfirmed consultancy and embedded contracting do not appear as software s
         software.services.some((service) => service.slug === "ai-code-review"),
     ).toBe(true);
 });
+
+for (const brand of [web, software, technology]) {
+    it(`${brand.name} leads its own About introduction without employment copy`, () => {
+        const about = brand.pages.find((page) => page.slug === "about")!;
+        expect(JSON.stringify(about)).not.toContain("full-time");
+        const familyParagraph = about.sections
+            .flatMap((section) => section.paragraphs)
+            .find((paragraph) =>
+                [web.name, software.name, technology.name].every((name) =>
+                    paragraph.includes(name),
+                ),
+            );
+        expect(familyParagraph?.startsWith(brand.name)).toBe(true);
+    });
+}

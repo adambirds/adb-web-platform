@@ -10,7 +10,10 @@
         "./public/server": "./src/public/server.ts",
         "./public/contact": "./src/public/contact.ts",
         "./public/privacy": "./src/public/privacy.ts",
-        "./public/base.css": "./src/public/base.css"
+        "./public/base.css": "./src/public/base.css",
+        "./public/policies": "./src/public/policies.ts",
+        "./public/page-design": "./src/public/page-design.ts",
+        "./public/family.css": "./src/public/family.css"
     },
     "peerDependencies": {
         "next": "^16.3.1",

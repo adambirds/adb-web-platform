@@ -1,5 +1,7 @@
-import { PublicPages } from "@adb/ui/public/PublicPages";
+import { BusinessPages } from "@adb/ui/public/BusinessPages";
 import { site } from "@/content/site";
+import { pageCopy } from "@/content/page-design";
+import { websitePolicies, policyDetails } from "@/content/policies";
 export function MarketingPage({
     path,
     search,
@@ -7,5 +9,14 @@ export function MarketingPage({
     path: string[];
     search: Record<string, string | string[] | undefined>;
 }) {
-    return <PublicPages site={site} path={path} search={search} />;
+    return (
+        <BusinessPages
+            site={site}
+            pageCopy={pageCopy}
+            policies={websitePolicies}
+            policyDetails={policyDetails}
+            path={path}
+            search={search}
+        />
+    );
 }

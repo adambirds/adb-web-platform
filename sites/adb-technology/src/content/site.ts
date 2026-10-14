@@ -1,3 +1,4 @@
+import { websitePolicies } from "./policies";
 import type { PublicSite } from "@adb/ui/public/types";
 
 /** Edit marketing copy here. Editorial content lives in the brand-scoped CMS. */
@@ -363,106 +364,106 @@ export const site: PublicSite = {
     areas: [
         {
             slug: "manchester-cloud-devops",
-            title: "Cloud & DevOps services in Manchester",
+            title: "Cloud & DevOps in Manchester",
             description:
-                "Freelance cloud, infrastructure and DevOps project work from Manchester, including migrations, pipelines and server management.",
+                "Cloud environments, migrations and deployment pipelines from a freelance engineer based in Manchester.",
             introduction:
-                "Freelance cloud, infrastructure and DevOps project work from Manchester, including migrations, pipelines and server management.",
+                "Cloud environments, migrations and deployment pipelines from a freelance engineer based in Manchester.",
             sections: [
                 {
-                    heading: "A technical project with a defined outcome",
+                    heading: "Work on the environment you actually run.",
                     paragraphs: [
-                        "A new environment, an unclear release process or a server rebuild can be scoped around the setup you actually have. We first identify the application and infrastructure dependencies.",
+                        "The work can cover a new cloud environment, a migration, a release pipeline or an existing server that needs attention. We look at the application, its dependencies and how it is managed before deciding what to change.",
                     ],
                 },
                 {
-                    heading: "Clear operational ownership",
+                    heading: "Working directly with me.",
                     paragraphs: [
-                        "The work includes agreed documentation and handover. Ongoing administration can be discussed, without assuming core-hours technical support or an embedded contractor role.",
+                        "I’m based in Manchester. You work directly with me on the application, its requirements and the technical decisions behind it.",
                     ],
                 },
             ],
             services: [
                 "cloud-infrastructure",
                 "deployment-pipelines",
-                "server-rebuilds",
+                "server-management",
             ],
         },
         {
             slug: "uk-cloud-devops",
-            title: "Cloud & DevOps services for UK businesses",
+            title: "Cloud & DevOps for UK businesses",
             description:
-                "Remote infrastructure, migrations and deployment project work for UK businesses from a freelance engineer based in Manchester.",
+                "Infrastructure and DevOps projects for UK businesses: build, migrate, deploy and manage.",
             introduction:
-                "Remote infrastructure, migrations and deployment project work for UK businesses from a freelance engineer based in Manchester.",
+                "Infrastructure and DevOps projects for UK businesses: build, migrate, deploy and manage.",
             sections: [
                 {
-                    heading: "Work through the environment remotely",
+                    heading: "Work on the environment you actually run.",
                     paragraphs: [
-                        "Infrastructure work can be planned around a review of the existing setup, agreed access and a documented change plan. The scope should explain what changes and how the result will be checked.",
+                        "The work can cover a new cloud environment, a migration, a release pipeline or an existing server that needs attention. We look at the application, its dependencies and how it is managed before deciding what to change.",
                     ],
                 },
                 {
-                    heading: "Plan the cutover and recovery",
+                    heading: "Working directly with me.",
                     paragraphs: [
-                        "Migrations and deployments may need a specific schedule. Timing constraints, verification and recovery arrangements are agreed directly rather than inferred from a service page.",
+                        "The project can be reviewed through calls, demonstrations and written notes. You can see the work as it takes shape and ask questions about the decisions behind it.",
                     ],
                 },
             ],
-            services: ["cloud-migrations", "devops", "server-management"],
+            services: ["cloud-migrations", "server-rebuilds", "app-deployment"],
         },
         {
             slug: "australia-cloud-devops",
-            title: "Cloud & DevOps work for Australian businesses",
+            title: "Cloud & DevOps for Australian businesses",
             description:
-                "Discuss remote infrastructure and deployment work for an Australian business with a freelance engineer based in Manchester, UK.",
+                "Cloud infrastructure and DevOps work for Australian projects, delivered from Manchester, UK.",
             introduction:
-                "Discuss remote infrastructure and deployment work for an Australian business with a freelance engineer based in Manchester, UK.",
+                "Cloud infrastructure and DevOps work for Australian projects, delivered from Manchester, UK.",
             sections: [
                 {
-                    heading: "Coordinate the technical work across time zones",
+                    heading: "Work on the environment you actually run.",
                     paragraphs: [
-                        "The business operates from Manchester, not an Australian office. Access, change windows and handover arrangements must be agreed for the project, particularly where a migration affects a running application.",
+                        "The work can cover a new cloud environment, a migration, a release pipeline or an existing server that needs attention. We look at the application, its dependencies and how it is managed before deciding what to change.",
                     ],
                 },
                 {
-                    heading: "Prepare an application for its environment",
+                    heading: "Working directly with me.",
                     paragraphs: [
-                        "The work can include cloud setup, deployment pipelines and agreed security hardening. Existing code issues can be reviewed through ADB Software Solutions before the deployment is carried out.",
+                        "I work from Manchester, UK. Calls are arranged around the time difference, with demonstrations and written updates so decisions do not have to wait for the next meeting.",
+                    ],
+                },
+            ],
+            services: [
+                "cloud-infrastructure",
+                "cloud-migrations",
+                "deployment-pipelines",
+            ],
+        },
+        {
+            slug: "usa-cloud-devops",
+            title: "Cloud & DevOps for US businesses",
+            description:
+                "Infrastructure, deployment and server projects for US businesses, delivered from Manchester, UK.",
+            introduction:
+                "Infrastructure, deployment and server projects for US businesses, delivered from Manchester, UK.",
+            sections: [
+                {
+                    heading: "Work on the environment you actually run.",
+                    paragraphs: [
+                        "The work can cover a new cloud environment, a migration, a release pipeline or an existing server that needs attention. We look at the application, its dependencies and how it is managed before deciding what to change.",
+                    ],
+                },
+                {
+                    heading: "Working directly with me.",
+                    paragraphs: [
+                        "I work from Manchester, UK. Calls are arranged around the time difference, with demonstrations and written updates so decisions do not have to wait for the next meeting.",
                     ],
                 },
             ],
             services: [
                 "app-deployment",
                 "deployment-pipelines",
-                "cloud-migrations",
-            ],
-        },
-        {
-            slug: "usa-cloud-devops",
-            title: "Cloud & DevOps work for US businesses",
-            description:
-                "Remote infrastructure, server and deployment projects for US businesses, delivered by a freelance engineer based in Manchester.",
-            introduction:
-                "Remote infrastructure, server and deployment projects for US businesses, delivered by a freelance engineer based in Manchester.",
-            sections: [
-                {
-                    heading: "Agree the operational boundaries",
-                    paragraphs: [
-                        "We define the environment, permissions and change responsibilities before starting work. Meeting times and any change windows are arranged around the project and time difference.",
-                    ],
-                },
-                {
-                    heading: "Leave a documented setup",
-                    paragraphs: [
-                        "The resulting environment and release process should be understandable to its owner. The scope can include migration, server rebuilding or application deployment, with ongoing responsibilities agreed separately.",
-                    ],
-                },
-            ],
-            services: [
-                "cloud-infrastructure",
-                "server-rebuilds",
-                "app-deployment",
+                "server-management",
             ],
         },
     ],
@@ -471,33 +472,38 @@ export const site: PublicSite = {
             slug: "about",
             title: "About ADB Technology",
             description:
-                "Freelance cloud, infrastructure and DevOps services from Manchester: migrations, pipelines, server management and app deployment.",
+                "Infrastructure work, with the engineer who builds it.",
             introduction:
-                "ADB Technology is a freelance business run by Adam Birds, based in Manchester.",
+                "Infrastructure work, with the engineer who builds it.",
             sections: [
                 {
-                    heading: "Work directly with me",
+                    heading: "Hello, I’m Adam.",
                     paragraphs: [
-                        "I work on cloud infrastructure, migrations, deployment pipelines, server management and rebuilds. Projects include agreed documentation and operational ownership rather than an implied core-hours helpdesk.",
-                        "The conversation, scope and technical work stay connected. You can ask questions about the decisions being made and agree what the finished work needs to include.",
+                        "I’m Adam Birds, a freelance infrastructure and DevOps engineer based in Manchester. I work on cloud environments, deployment pipelines, migrations and servers. That can mean building a new environment, moving an application or putting an existing setup into better shape.",
                     ],
                 },
                 {
-                    heading: "A freelance business, with agreed availability",
+                    heading: "The work starts with what you have.",
                     paragraphs: [
-                        "Projects and ongoing services are scoped around the work involved and an agreed schedule. Availability, delivery arrangements and response expectations are agreed before the work starts.",
+                        "An application waiting to go live. A server that needs rebuilding. A release process that still depends on someone remembering every step. We can start with the setup you have and the part you want to change.",
                     ],
                 },
                 {
-                    heading: "Manchester-based, working further afield",
+                    heading: "You work directly with me.",
                     paragraphs: [
-                        "I work remotely as well as with businesses in the surrounding area. International work remains UK-based, with meetings and review arrangements agreed around time zones.",
+                        "I handle the technical work and the conversations about it. You can ask why a decision has been made, see the work as it develops and agree what needs to happen next. There is no account manager between you and the person building it.",
                     ],
                 },
                 {
-                    heading: "Three related ADB businesses",
+                    heading: "Built to be understood.",
                     paragraphs: [
-                        "Web Designs covers websites; Software Solutions covers bespoke applications and integrations; Technology covers the infrastructure and deployment underneath. Related service pages link to the appropriate business when a project crosses those boundaries.",
+                        "You should be able to understand how an application is released, where its configuration lives and what to do when something goes wrong. Documentation, rollback and ownership are part of the work, rather than details left until after deployment.",
+                    ],
+                },
+                {
+                    heading: "Part of the ADB businesses.",
+                    paragraphs: [
+                        "ADB Technology covers infrastructure and deployment. ADB Software Solutions covers applications and integrations. ADB Web Designs covers business websites. I run all three, so a project can draw on the relevant services without losing its context.",
                     ],
                 },
             ],
@@ -506,151 +512,65 @@ export const site: PublicSite = {
             slug: "working-together",
             title: "Working together",
             description:
-                "How an enquiry becomes an agreed technical setup project: scope, delivery, reviews and handover.",
+                "From the first conversation to a useful handover. Here’s how a project takes shape.",
             introduction:
-                "Start with what you want to build, improve or fix. You do not need a finished technical specification to make an enquiry.",
+                "From the first conversation to a useful handover. Here’s how a project takes shape.",
             sections: [
                 {
-                    heading: "Describe the starting point",
+                    heading: "Tell me where you are starting.",
                     paragraphs: [
-                        "Tell me about the business, the existing setup and the outcome you need. Useful context includes what already works, what is getting in the way and any real timing constraints. Please keep passwords and private credentials out of the contact form.",
+                        "Tell me what runs today, where it runs and what you want to change. A deployment problem, a move to another host or a server rebuild are all useful starting points. Keep passwords and access tokens out of the enquiry form.",
                     ],
                 },
                 {
-                    heading: "Agree the work",
+                    heading: "Decide what the work needs to do.",
                     paragraphs: [
-                        "We discuss fit, requirements, responsibilities and the scope before implementation. Dates, costs and any ongoing arrangements are agreed for the project. No fixed price or support schedule is implied by a service description.",
+                        "We discuss the result you need, the current setup and any real deadline. I’ll put together a scope covering the work, price, responsibilities and timing. New ideas can be discussed without quietly turning the project into something else.",
                     ],
                 },
                 {
-                    heading: "Review as the work takes shape",
+                    heading: "Review the important steps.",
                     paragraphs: [
-                        "Appropriate review points give you a chance to check the direction and clarify decisions. Material changes to the scope are discussed, so the work does not quietly become a different project.",
+                        "We agree changes before they are applied, including downtime, backups and rollback where relevant. For migrations and releases, the plan includes checks before and after the change, not just the command that starts it.",
                     ],
                 },
                 {
-                    heading: "Check and hand over",
+                    heading: "Leave a setup you can use.",
                     paragraphs: [
-                        "The result is checked against the agreed scope, with useful documentation and a clear understanding of who manages it afterwards. Hosting, maintenance or further development can be discussed where those services fit.",
+                        "The handover explains the environment, the release process and who looks after each part. Server management can be agreed separately. These are scheduled freelance services, not a core-hours helpdesk or a promise of round-the-clock response.",
                     ],
                 },
             ],
         },
         {
             slug: "areas-served",
-            title: "Areas served & remote working",
+            title: "Manchester-based. Working further afield.",
             description:
-                "Manchester-based ADB Technology services, with local coverage and remote working across the UK and internationally.",
+                "Freelance infrastructure and DevOps from Manchester, for businesses across the UK and international projects.",
             introduction:
-                "Manchester is the business base. I work with people nearby, across the UK and remotely in other countries.",
+                "Freelance infrastructure and DevOps from Manchester, for businesses across the UK and international projects.",
             sections: [
                 {
-                    heading: "Local working",
+                    heading: "Manchester and the surrounding area.",
                     paragraphs: [
-                        "Area pages describe places served rather than separate offices. The project, platform and business requirements still determine the work; a location name is not a substitute for a useful brief.",
+                        "I’m based in Manchester and work with businesses nearby. If you need a cloud environment, a more dependable release process or help moving and rebuilding servers, we can discuss the setup directly.",
                     ],
                 },
                 {
-                    heading: "Working remotely",
+                    heading: "Across the UK.",
                     paragraphs: [
-                        "Written scope, shared feedback and agreed review points help remote projects stay understandable. For international work, meeting times and operational arrangements are discussed around the time difference.",
+                        "Most of the work can be delivered remotely. Planning, configuration, release checks and handover can all be organised remotely. The important part is understanding the environment and the people responsible for it.",
+                    ],
+                },
+                {
+                    heading: "Australia and the United States.",
+                    paragraphs: [
+                        "I’m happy to discuss projects with businesses in Australia and the US. I work from Manchester; we arrange calls around the time difference and keep decisions and progress easy to follow between meetings.",
                     ],
                 },
             ],
         },
-        {
-            slug: "privacy-policy",
-            title: "Privacy policy",
-            description:
-                "Information about contact enquiries and personal data handled through ADB Technology.",
-            noindex: true,
-            introduction:
-                "This page explains the information used when you contact ADB Technology through this website.",
-            sections: [
-                {
-                    heading: "Information in your enquiry",
-                    paragraphs: [
-                        "The form asks for your name, email address, optional business/project name, the service you are interested in and your message. The website page associated with the enquiry is also recorded. Avoid sending passwords or other secrets.",
-                    ],
-                },
-                {
-                    heading: "How the enquiry is used",
-                    paragraphs: [
-                        "Your enquiry is used to respond, discuss suitable work and keep a record of the conversation. The ADB businesses use a shared business platform, with the originating business identified for each enquiry.",
-                    ],
-                },
-                {
-                    heading: "Website preferences and technical information",
-                    paragraphs: [
-                        "A theme preference can be stored in your browser when you use the dark/light switch. The site does not add advertising trackers or analytics cookies. The hosting and service infrastructure may process technical request information needed to operate the site.",
-                    ],
-                },
-                {
-                    heading: "Questions about your information",
-                    paragraphs: [
-                        "Use the contact form to ask about the information you have supplied or to raise a privacy question. Further details about the operator, retention and service providers must be confirmed before this policy is approved for launch.",
-                    ],
-                },
-            ],
-        },
-        {
-            slug: "cookie-policy",
-            title: "Cookies & website storage",
-            description:
-                "Cookies and browser storage used by ADB Technology, including the optional dark/light theme preference.",
-            noindex: true,
-            introduction:
-                "The public website keeps browser storage limited to the functions it actually uses.",
-            sections: [
-                {
-                    heading: "Your display preference",
-                    paragraphs: [
-                        "Using the theme switch can save an optional local preference called adb-public-theme. It controls whether this site opens in light or dark mode on this browser. If storage is unavailable, the site still works with its default appearance.",
-                    ],
-                },
-                {
-                    heading: "No advertising or analytics added",
-                    paragraphs: [
-                        "The public pages do not add advertising trackers, third-party analytics, externally hosted fonts or embedded social widgets. Visiting a related website or signing in to the separate account/operations applications can involve those applications’ own storage.",
-                    ],
-                },
-                {
-                    heading: "Change or clear the preference",
-                    paragraphs: [
-                        "You can change the appearance using the header button or clear this website’s stored data in your browser settings. Cookies and storage must be reviewed again if new integrations are added.",
-                    ],
-                },
-            ],
-        },
-        {
-            slug: "terms",
-            title: "Website terms",
-            description:
-                "Website-use information for ADB Technology. Project and service agreements are arranged separately.",
-            noindex: true,
-            introduction:
-                "These pages describe the business and services available to discuss. They do not form a project agreement or a promise of availability.",
-            sections: [
-                {
-                    heading: "Service information",
-                    paragraphs: [
-                        "The scope, cost, delivery dates and ongoing responsibilities for any work are agreed directly. Service descriptions do not imply contracting availability, guaranteed response times or a specific support schedule.",
-                    ],
-                },
-                {
-                    heading: "Content and related links",
-                    paragraphs: [
-                        "Articles and project information explain the relevant subject or work. Links to related businesses and external sites provide further context. Individual project requirements still need their own review.",
-                    ],
-                },
-                {
-                    heading: "Separate project arrangements",
-                    paragraphs: [
-                        "Client agreements, hosting arrangements and other commercial terms are separate from these website-use pages. The full operator details and final website terms need approval before launch.",
-                    ],
-                },
-            ],
-        },
+        ...websitePolicies,
     ],
     contact: {
         title: "Discuss your technical setup",

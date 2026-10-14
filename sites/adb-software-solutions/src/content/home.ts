@@ -1,79 +1,86 @@
-/** Editable homepage copy. Layout and artwork live in HomePage.tsx. */
+/** Editable homepage and social-share copy. Editorial entries come from the Brand-scoped CMS. */
 export const homeCopy = {
-    heroLabel: "Freelance software development",
-    location: "Manchester · Working remotely across the UK & internationally",
-    study: {
-        label: "From process to product",
-        type: "Illustrative workflow",
-        title: "Order workspace",
+    hero: {
+        label: "Freelance software development",
+        location: "Manchester · UK & international",
+        headline: "Software.",
+        headlineSecondLine: "Made useful.",
         introduction:
-            "An example of the work software can take off your hands.",
-        stages: [
+            "Applications, integrations and automation that make the working day easier.",
+        description: "Work directly with a freelance developer in Manchester.",
+        contactLink: "Discuss your project →",
+    },
+    feature: {
+        label: "Built around your business",
+        heading: "One process. Fewer loose ends.",
+        introduction:
+            "A custom application can connect the tools you already use and give your team a better way to get the work done.",
+        link: "Explore applications →",
+        href: "/services/web-applications/",
+        steps: [
             {
-                title: "One place to start.",
-                description:
-                    "An order arrives. The information is captured once.",
-                systems: [],
+                title: "Build",
+                text: "An application for the work your team needs to do.",
             },
             {
-                title: "The right systems, connected.",
-                description:
-                    "Your existing tools receive the details they need.",
-                systems: ["Orders", "Stock", "Accounts"],
+                title: "Connect",
+                text: "The right information shared between your systems.",
             },
             {
-                title: "A useful next step.",
-                description: "Your team can see what needs attention.",
-                systems: [],
+                title: "Automate",
+                text: "Repetitive steps handled with clear checks and controls.",
             },
         ],
-        sequence: "Capture → Connect → Act",
-        caption: "Built around the way your business works.",
     },
-    coverToplineSpan1: "Applications / integrations / automation",
-    softwareSideLabelP1: "Made for",
-    softwareSideLabelP2: "your business",
-    softwareHeadingH11: "Your business.",
-    softwareHeadingSpan1: "Less busywork.",
-    softwareIntroP1:
-        "Build an application. Connect your tools. Replace the process that takes up too much of the day.",
-    angledButtonLink1: "Discuss the build →",
-    assemblyCaptionSpan1: "Customer-facing & internal",
-    assemblyPartH21: "Applications",
-    assemblyTailSpan1: "Web applications · SaaS · Mobile ↗",
-    assemblyCaptionSpan2: "Working with what you have",
-    assemblyPartH22: "Integrations",
-    assemblyTailSpan2: "APIs · Existing systems · Data ↗",
-    assemblyCaptionSpan3: "Fewer repetitive steps",
-    assemblyPartH23: "Automation",
-    assemblyTailSpan3: "Workflows · Bots · Business tools ↗",
-    softwareCoverFootP1: "Freelance software development.",
-    softwareCoverFootP2: "Project work with an agreed scope.",
-    softwareCoverFootLink1: "How a project works ↓",
-    businessLabelP1: "Already built something with AI?",
-    shellH21: "Get another pair of eyes",
-    shellH22: "on your application.",
-    shellP1:
-        "A scoped code review can help explain security issues, maintainability problems and deployment blockers, with prioritised findings and practical next steps.",
-    angledButtonLink2: "Explore code reviews →",
-    businessLabelP2: "Software services",
-    shellH23: "Choose the work you need.",
-    shellP2:
-        "Applications, mobile products, APIs and automation. Start with the process or product you want to improve.",
-    textLinkLink1: "Explore →",
-    shellH24: "Selected work",
-    textLinkLink2: "All projects →",
-    shellH25: "Client feedback",
-    softwareAboutH21: "One developer.",
-    softwareAboutH22: "An agreed scope.",
-    softwareAboutH23: "A usable handover.",
-    softwareAboutP1:
-        "ADB Software Solutions is a freelance business run by Adam Birds in Manchester. You work directly with the developer on the application, the decisions around it and what happens after the build.",
-    textLinkLink3: "About the business →",
-    textLinkLink4: "Working together →",
-    shellH26: "From the blog",
-    textLinkLink5: "All articles →",
-    shellH27: "What are you trying to build?",
-    shellP3: "A description of the problem is a useful starting point.",
-    angledButtonLink3: "Discuss your project →",
+    services: {
+        label: "Software services",
+        heading: "Build the thing",
+        headingSecondLine: "your business needs.",
+        introduction:
+            "Web applications, mobile products, integrations, automation and code reviews.",
+        serviceLink: "Explore →",
+        allServicesLink: "All services →",
+    },
+    focus: {
+        label: "Already built an app with AI?",
+        heading: "Another pair of eyes.",
+        introduction:
+            "Have a working prototype but questions about the code? A review can help you understand authentication, permissions, data handling and maintainability, with practical findings you can act on.",
+        href: "/services/ai-code-review/",
+        link: "Explore code reviews →",
+    },
+    about: {
+        label: "A freelance business",
+        heading: "Work directly with",
+        headingSecondLine: "the developer building it.",
+        introduction:
+            "I’m Adam Birds, the developer behind ADB Software Solutions. I build business applications, connect systems and review existing code. Based in Manchester, working locally and remotely.",
+        link: "About the business →",
+    },
+    work: {
+        heading: "Selected work",
+        link: "All projects →",
+    },
+    testimonials: {
+        heading: "Client feedback",
+        link: "More client feedback →",
+    },
+    journal: {
+        heading: "From the blog",
+        link: "All articles →",
+    },
+    faqs: {
+        heading: "A few useful answers",
+        link: "All FAQs →",
+    },
+    contact: {
+        heading: "What should your software do?",
+        introduction:
+            "A new application, an integration or a second opinion on the code you have.",
+        link: "Tell me about it →",
+    },
+    social: {
+        label: "Freelance software development / Manchester",
+        line: "Build. Connect. Automate.",
+    },
 };

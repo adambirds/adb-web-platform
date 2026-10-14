@@ -7,7 +7,7 @@ import "@/styles/public.css";
 export default function NotFound() {
     return (
         <div
-            className="marketing brand-web"
+            className="marketing brand-web brand-family"
             data-theme="dark"
             suppressHydrationWarning
         >

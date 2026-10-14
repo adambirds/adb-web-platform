@@ -1,88 +1,90 @@
-/** Editable homepage copy. Layout and artwork live in HomePage.tsx. */
+/** Editable homepage and social-share copy. Editorial entries come from the Brand-scoped CMS. */
 export const homeCopy = {
-    heroLabel: "Independent infrastructure & DevOps",
-    location: "Manchester / UK & international",
-    delivery: {
-        title: "Delivery architecture",
-        label: "Reference flow / 01",
-        note: "A reference process. The environment and release controls are agreed for your project.",
-        link: "How the work is scoped ↗",
-        stages: [
+    hero: {
+        label: "Cloud, infrastructure & DevOps",
+        location: "Manchester · UK & international",
+        headline: "Infrastructure.",
+        headlineSecondLine: "Done properly.",
+        introduction:
+            "Cloud environments, deployment pipelines, migrations and servers, built and managed with care.",
+        description: "Work directly with a freelance engineer in Manchester.",
+        contactLink: "Discuss your setup →",
+    },
+    feature: {
+        label: "From source to server",
+        heading: "A release you can follow.",
+        introduction:
+            "Versioned code, checks before release and an environment you understand. Pipelines turn deployment into a repeatable process.",
+        link: "Explore deployment pipelines →",
+        href: "/services/deployment-pipelines/",
+        steps: [
             {
-                label: "01 / Source",
-                title: "Commit.",
-                description: "Versioned application and configuration.",
-                href: "/services/deployment-pipelines/",
+                title: "Source",
+                text: "Application and configuration kept in version control.",
             },
             {
-                label: "02 / Pipeline",
-                title: "Check.",
-                description: "Build and test before a release is deployed.",
-                href: "/services/deployment-pipelines/",
+                title: "Check",
+                text: "Build and test before a release reaches production.",
             },
             {
-                label: "03 / Environment",
-                title: "Deploy.",
-                description: "An environment designed for the application.",
-                href: "/services/cloud-infrastructure/",
+                title: "Release",
+                text: "Deploy with the right access, secrets and rollback.",
             },
             {
-                label: "04 / Handover",
-                title: "Understand.",
-                description: "Document the setup and responsibilities.",
-                href: "/services/server-management/",
+                title: "Run",
+                text: "Logging, monitoring and a documented handover.",
             },
         ],
     },
-    coverToplineSpan1: "Infrastructure / delivery / operations",
-    technologyKickerP1: "Technical services",
-    technologyCopyH11: "Build. Deploy.",
-    technologyCopyH12: "Know what’s",
-    technologyCopyH13: "running.",
-    technologyDescriptionP1:
-        "Cloud infrastructure, migrations, deployment pipelines and server management, delivered by a freelance engineer in Manchester.",
-    angledButtonLink1: "Discuss your setup →",
-    technologyCaptionP1: "Explore the connections.",
-    technologyCaptionP2: "Choose an area to see the services.",
-    mapLabelSpan1: "01 / Plan & build",
-    mapLabelH21: "Cloud &",
-    mapLabelH22: "infrastructure",
-    mapLinkSpan1: "Explore ↗",
-    mapLabelSpan2: "02 / Release & improve",
-    mapLabelH23: "DevOps &",
-    mapLabelH24: "delivery",
-    mapLinkSpan2: "Explore ↗",
-    mapLabelSpan3: "03 / Understand & maintain",
-    mapLabelH25: "Server",
-    mapLabelH26: "management",
-    mapLinkSpan3: "Explore ↗",
-    mapEdgeDiv1: "ADB / TECHNICAL SERVICES",
-    technologyCoverFootP1:
-        "Manchester-based. Working remotely across the UK and internationally.",
-    technologyCoverFootLink1: "Service directory ↓",
-    businessLabelP1: "Technical services",
-    shellH21: "Work on the part",
-    shellH22: "that needs attention.",
-    shellP1:
-        "Infrastructure, migrations, delivery and servers. Scope and operational ownership are agreed for the work.",
-    textLinkLink1: "Explore →",
-    businessLabelP2: "From a working prototype to a deployment",
-    technologyLaunchH21: "Your app needs",
-    technologyLaunchH22: "an environment.",
-    technologyLaunchP1:
-        "Have an application built with AI, or a project that only runs locally? Discuss deployment preparation, infrastructure and security hardening, with a code review through ADB Software Solutions where needed.",
-    angledButtonLink2: "App deployment & hardening →",
-    shellH23: "Selected work",
-    textLinkLink2: "All projects →",
-    shellH24: "Client feedback",
-    shellH25: "Defined work.",
-    shellH26: "Documented results.",
-    shellP2:
-        "ADB Technology is run by Adam Birds, a freelance engineer in Manchester. Projects include agreed review, changes and handover. Server management can be discussed with clear responsibilities, with response arrangements agreed for the service.",
-    textLinkLink3: "About the business →",
-    shellH27: "From the blog",
-    textLinkLink4: "All articles →",
-    shellH28: "Tell me about your setup.",
-    shellP3: "What is running today, and what would you like to change?",
-    angledButtonLink3: "Make an enquiry →",
+    services: {
+        label: "Technical services",
+        heading: "Underneath every",
+        headingSecondLine: "working application.",
+        introduction:
+            "Infrastructure, pipelines, migrations, server management and rebuilds. Choose the part that needs attention.",
+        serviceLink: "Explore →",
+        allServicesLink: "All services →",
+    },
+    focus: {
+        label: "Your application, beyond localhost",
+        heading: "Ready for an environment.",
+        introduction:
+            "Have an application that works on your laptop? Plan its hosting, secrets, database, releases and backups. Application code review is available through ADB Software Solutions when needed.",
+        href: "/services/app-deployment/",
+        link: "App deployment & hardening →",
+    },
+    about: {
+        label: "A freelance business",
+        heading: "Work directly with",
+        headingSecondLine: "the engineer setting it up.",
+        introduction:
+            "I’m Adam Birds, the engineer behind ADB Technology. I work on cloud environments, deployments, migrations and servers. Based in Manchester, with freelance work arranged around an agreed scope and schedule.",
+        link: "About the business →",
+    },
+    work: {
+        heading: "Selected work",
+        link: "All projects →",
+    },
+    testimonials: {
+        heading: "Client feedback",
+        link: "More client feedback →",
+    },
+    journal: {
+        heading: "From the blog",
+        link: "All articles →",
+    },
+    faqs: {
+        heading: "A few useful answers",
+        link: "All FAQs →",
+    },
+    contact: {
+        heading: "Tell me about your setup.",
+        introduction:
+            "A new environment, a migration or a release process that needs attention.",
+        link: "Tell me about it →",
+    },
+    social: {
+        label: "Freelance infrastructure & DevOps / Manchester",
+        line: "Build. Deploy. Look after.",
+    },
 };

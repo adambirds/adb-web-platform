@@ -1,3 +1,4 @@
+import { websitePolicies } from "./policies";
 import type { PublicSite } from "@adb/ui/public/types";
 
 /** Edit marketing copy here. Editorial content lives in the brand-scoped CMS. */
@@ -267,20 +268,20 @@ export const site: PublicSite = {
             slug: "manchester-software-development",
             title: "Software development in Manchester",
             description:
-                "Freelance software development from Manchester: business applications, integrations, automation, mobile apps and AI-built project reviews.",
+                "Business applications, integrations and code reviews from a freelance developer based in Manchester.",
             introduction:
-                "Freelance software development from Manchester: business applications, integrations, automation, mobile apps and AI-built project reviews.",
+                "Business applications, integrations and code reviews from a freelance developer based in Manchester.",
             sections: [
                 {
-                    heading: "Start with the business process",
+                    heading: "Software that supports your team.",
                     paragraphs: [
-                        "A useful software project starts with who needs it and what is happening today. We can discuss an internal tool, an integration or a mobile product and agree a scope for development.",
+                        "An internal application, a mobile product or an integration between existing tools can remove the work your team keeps repeating. I can help build it, or review an application you have already started.",
                     ],
                 },
                 {
-                    heading: "Work directly with the developer",
+                    heading: "Working directly with me.",
                     paragraphs: [
-                        "The work is delivered as a freelance project, with agreed responsibilities and dates. Delivery is arranged around the agreed project rather than an embedded team role.",
+                        "I’m based in Manchester. You work directly with me on the application, its requirements and the technical decisions behind it.",
                     ],
                 },
             ],
@@ -294,21 +295,20 @@ export const site: PublicSite = {
             slug: "uk-software-development",
             title: "Software development for UK businesses",
             description:
-                "Remote, scoped software projects for UK businesses, delivered by a freelance developer based in Manchester.",
+                "Software for the way your business works, delivered remotely across the UK.",
             introduction:
-                "Remote, scoped software projects for UK businesses, delivered by a freelance developer based in Manchester.",
+                "Software for the way your business works, delivered remotely across the UK.",
             sections: [
                 {
-                    heading:
-                        "A clear project without a local office requirement",
+                    heading: "Software that supports your team.",
                     paragraphs: [
-                        "Requirements, demonstrations and reviews can be organised remotely. Written decisions and a defined scope help keep the implementation aligned with the people using it.",
+                        "An internal application, a mobile product or an integration between existing tools can remove the work your team keeps repeating. I can help build it, or review an application you have already started.",
                     ],
                 },
                 {
-                    heading: "Include the systems around the application",
+                    heading: "Working directly with me.",
                     paragraphs: [
-                        "An application may need APIs, automation and deployment work. We establish those dependencies before implementation and agree the relevant handover and ownership.",
+                        "The project can be reviewed through calls, demonstrations and written notes. You can see the work as it takes shape and ask questions about the decisions behind it.",
                     ],
                 },
             ],
@@ -318,20 +318,20 @@ export const site: PublicSite = {
             slug: "australia-software-development",
             title: "Software development for Australian businesses",
             description:
-                "Discuss remote software development for an Australian business with a freelance developer based in Manchester, UK.",
+                "Applications, integrations and code reviews for Australian projects, delivered from Manchester, UK.",
             introduction:
-                "Discuss remote software development for an Australian business with a freelance developer based in Manchester, UK.",
+                "Applications, integrations and code reviews for Australian projects, delivered from Manchester, UK.",
             sections: [
                 {
-                    heading: "Remote delivery across time zones",
+                    heading: "Software that supports your team.",
                     paragraphs: [
-                        "The business is based in Manchester. For Australian projects, meeting times, review arrangements and written handovers are agreed around the time difference; no Australian office is implied.",
+                        "An internal application, a mobile product or an integration between existing tools can remove the work your team keeps repeating. I can help build it, or review an application you have already started.",
                     ],
                 },
                 {
-                    heading: "Scope the software and its integrations",
+                    heading: "Working directly with me.",
                     paragraphs: [
-                        "Bring the process you want to improve and the systems already involved. We can assess an application, an API connection or an AI-built prototype, then agree what development or review is appropriate.",
+                        "I work from Manchester, UK. Calls are arranged around the time difference, with demonstrations and written updates so decisions do not have to wait for the next meeting.",
                     ],
                 },
             ],
@@ -345,20 +345,20 @@ export const site: PublicSite = {
             slug: "usa-software-development",
             title: "Software development for US businesses",
             description:
-                "Remote business software, integrations and code reviews for US projects, delivered by a Manchester-based freelance developer.",
+                "Business software and application development for US projects, delivered from Manchester, UK.",
             introduction:
-                "Remote business software, integrations and code reviews for US projects, delivered by a Manchester-based freelance developer.",
+                "Business software and application development for US projects, delivered from Manchester, UK.",
             sections: [
                 {
-                    heading: "Agree the working relationship first",
+                    heading: "Software that supports your team.",
                     paragraphs: [
-                        "Different US time zones need different meeting arrangements. The project can use written requirements and review notes alongside agreed calls, with availability and dates settled for the actual scope.",
+                        "An internal application, a mobile product or an integration between existing tools can remove the work your team keeps repeating. I can help build it, or review an application you have already started.",
                     ],
                 },
                 {
-                    heading: "Build and hand over a maintainable system",
+                    heading: "Working directly with me.",
                     paragraphs: [
-                        "The review includes the application’s users, data and dependencies. Hosting and deployment responsibilities need to be clear so the result is useful beyond a demonstration.",
+                        "I work from Manchester, UK. Calls are arranged around the time difference, with demonstrations and written updates so decisions do not have to wait for the next meeting.",
                     ],
                 },
             ],
@@ -374,33 +374,38 @@ export const site: PublicSite = {
             slug: "about",
             title: "About ADB Software Solutions",
             description:
-                "Freelance software development from Manchester: applications, APIs, automation, mobile apps and code reviews for AI-built projects.",
+                "Business software, built by the developer you speak to.",
             introduction:
-                "ADB Software Solutions is a freelance business run by Adam Birds, based in Manchester.",
+                "Business software, built by the developer you speak to.",
             sections: [
                 {
-                    heading: "Work directly with me",
+                    heading: "Hello, I’m Adam.",
                     paragraphs: [
-                        "I build applications, integrations, automation and mobile software, and review projects created with AI tools. The starting point is the process or product you need to improve.",
-                        "The conversation, scope and technical work stay connected. You can ask questions about the decisions being made and agree what the finished work needs to include.",
+                        "I’m Adam Birds, a freelance software developer based in Manchester. I build business applications, connect existing systems, automate repetitive work and develop mobile apps. I also review applications built with AI tools.",
                     ],
                 },
                 {
-                    heading: "A freelance business, with agreed availability",
+                    heading: "The work starts with what you have.",
                     paragraphs: [
-                        "Projects and ongoing services are scoped around the work involved and an agreed schedule. Availability, delivery arrangements and response expectations are agreed before the work starts.",
+                        "A spreadsheet that has become an application in all but name. Two systems that need the same information. A prototype that needs another pair of eyes. Bring the process or product you’re working on; I’ll help work out the next useful step.",
                     ],
                 },
                 {
-                    heading: "Manchester-based, working further afield",
+                    heading: "You work directly with me.",
                     paragraphs: [
-                        "I work remotely as well as with businesses in the surrounding area. International work remains UK-based, with meetings and review arrangements agreed around time zones.",
+                        "I handle the technical work and the conversations about it. You can ask why a decision has been made, see the work as it develops and agree what needs to happen next. There is no account manager between you and the person building it.",
                     ],
                 },
                 {
-                    heading: "Three related ADB businesses",
+                    heading: "Built to be understood.",
                     paragraphs: [
-                        "Web Designs covers websites; Software Solutions covers bespoke applications and integrations; Technology covers the infrastructure and deployment underneath. Related service pages link to the appropriate business when a project crosses those boundaries.",
+                        "Software needs to make sense to the people using it and the people looking after it. I consider permissions, data, failure handling and handover alongside the main features. Code reviews leave you with prioritised findings and practical next steps.",
+                    ],
+                },
+                {
+                    heading: "Part of the ADB businesses.",
+                    paragraphs: [
+                        "ADB Software Solutions covers applications and integrations. ADB Web Designs covers business websites. ADB Technology covers infrastructure and deployment. I run all three, so a project can draw on the relevant services without losing its context.",
                     ],
                 },
             ],
@@ -409,151 +414,65 @@ export const site: PublicSite = {
             slug: "working-together",
             title: "Working together",
             description:
-                "How an enquiry becomes an agreed software project: scope, delivery, reviews and handover.",
+                "From the first conversation to a useful handover. Here’s how a project takes shape.",
             introduction:
-                "Start with what you want to build, improve or fix. You do not need a finished technical specification to make an enquiry.",
+                "From the first conversation to a useful handover. Here’s how a project takes shape.",
             sections: [
                 {
-                    heading: "Describe the starting point",
+                    heading: "Tell me where you are starting.",
                     paragraphs: [
-                        "Tell me about the business, the existing setup and the outcome you need. Useful context includes what already works, what is getting in the way and any real timing constraints. Please keep passwords and private credentials out of the contact form.",
+                        "Describe the process, product or application you want to change. Existing screenshots, examples of the repetitive work and the systems involved are useful. You do not need to arrive with a finished specification.",
                     ],
                 },
                 {
-                    heading: "Agree the work",
+                    heading: "Decide what the work needs to do.",
                     paragraphs: [
-                        "We discuss fit, requirements, responsibilities and the scope before implementation. Dates, costs and any ongoing arrangements are agreed for the project. No fixed price or support schedule is implied by a service description.",
+                        "We discuss the result you need, the current setup and any real deadline. I’ll put together a scope covering the work, price, responsibilities and timing. New ideas can be discussed without quietly turning the project into something else.",
                     ],
                 },
                 {
-                    heading: "Review as the work takes shape",
+                    heading: "Review the important steps.",
                     paragraphs: [
-                        "Appropriate review points give you a chance to check the direction and clarify decisions. Material changes to the scope are discussed, so the work does not quietly become a different project.",
+                        "You’ll have opportunities to review the application and its workflows while there is still time to adjust them. I’ll explain decisions that affect the people using the software, its data or the systems connected to it.",
                     ],
                 },
                 {
-                    heading: "Check and hand over",
+                    heading: "Leave a setup you can use.",
                     paragraphs: [
-                        "The result is checked against the agreed scope, with useful documentation and a clear understanding of who manages it afterwards. Hosting, maintenance or further development can be discussed where those services fit.",
+                        "The handover includes the agreed checks, documentation and access arrangements. Further development or infrastructure work can be discussed through the relevant ADB business.",
                     ],
                 },
             ],
         },
         {
             slug: "areas-served",
-            title: "Areas served & remote working",
+            title: "Manchester-based. Working further afield.",
             description:
-                "Manchester-based ADB Software Solutions services, with local coverage and remote working across the UK and internationally.",
+                "Freelance software development from Manchester, for businesses across the UK and international projects.",
             introduction:
-                "Manchester is the business base. I work with people nearby, across the UK and remotely in other countries.",
+                "Freelance software development from Manchester, for businesses across the UK and international projects.",
             sections: [
                 {
-                    heading: "Local working",
+                    heading: "Manchester and the surrounding area.",
                     paragraphs: [
-                        "Area pages describe places served rather than separate offices. The project, platform and business requirements still determine the work; a location name is not a substitute for a useful brief.",
+                        "I’m based in Manchester and work with businesses nearby. If your team has outgrown its tools, needs an integration or wants to turn an idea into an application, we can discuss the work directly.",
                     ],
                 },
                 {
-                    heading: "Working remotely",
+                    heading: "Across the UK.",
                     paragraphs: [
-                        "Written scope, shared feedback and agreed review points help remote projects stay understandable. For international work, meeting times and operational arrangements are discussed around the time difference.",
+                        "Most of the work can be delivered remotely. Walkthroughs, prototypes and working software make it easy to review progress from wherever your team is based.",
+                    ],
+                },
+                {
+                    heading: "Australia and the United States.",
+                    paragraphs: [
+                        "I’m happy to discuss projects with businesses in Australia and the US. I work from Manchester; we arrange calls around the time difference and keep decisions and progress easy to follow between meetings.",
                     ],
                 },
             ],
         },
-        {
-            slug: "privacy-policy",
-            title: "Privacy policy",
-            description:
-                "Information about contact enquiries and personal data handled through ADB Software Solutions.",
-            noindex: true,
-            introduction:
-                "This page explains the information used when you contact ADB Software Solutions through this website.",
-            sections: [
-                {
-                    heading: "Information in your enquiry",
-                    paragraphs: [
-                        "The form asks for your name, email address, optional business/project name, the service you are interested in and your message. The website page associated with the enquiry is also recorded. Avoid sending passwords or other secrets.",
-                    ],
-                },
-                {
-                    heading: "How the enquiry is used",
-                    paragraphs: [
-                        "Your enquiry is used to respond, discuss suitable work and keep a record of the conversation. The ADB businesses use a shared business platform, with the originating business identified for each enquiry.",
-                    ],
-                },
-                {
-                    heading: "Website preferences and technical information",
-                    paragraphs: [
-                        "A theme preference can be stored in your browser when you use the dark/light switch. The site does not add advertising trackers or analytics cookies. The hosting and service infrastructure may process technical request information needed to operate the site.",
-                    ],
-                },
-                {
-                    heading: "Questions about your information",
-                    paragraphs: [
-                        "Use the contact form to ask about the information you have supplied or to raise a privacy question. Further details about the operator, retention and service providers must be confirmed before this policy is approved for launch.",
-                    ],
-                },
-            ],
-        },
-        {
-            slug: "cookie-policy",
-            title: "Cookies & website storage",
-            description:
-                "Cookies and browser storage used by ADB Software Solutions, including the optional dark/light theme preference.",
-            noindex: true,
-            introduction:
-                "The public website keeps browser storage limited to the functions it actually uses.",
-            sections: [
-                {
-                    heading: "Your display preference",
-                    paragraphs: [
-                        "Using the theme switch can save an optional local preference called adb-public-theme. It controls whether this site opens in light or dark mode on this browser. If storage is unavailable, the site still works with its default appearance.",
-                    ],
-                },
-                {
-                    heading: "No advertising or analytics added",
-                    paragraphs: [
-                        "The public pages do not add advertising trackers, third-party analytics, externally hosted fonts or embedded social widgets. Visiting a related website or signing in to the separate account/operations applications can involve those applications’ own storage.",
-                    ],
-                },
-                {
-                    heading: "Change or clear the preference",
-                    paragraphs: [
-                        "You can change the appearance using the header button or clear this website’s stored data in your browser settings. Cookies and storage must be reviewed again if new integrations are added.",
-                    ],
-                },
-            ],
-        },
-        {
-            slug: "terms",
-            title: "Website terms",
-            description:
-                "Website-use information for ADB Software Solutions. Project and service agreements are arranged separately.",
-            noindex: true,
-            introduction:
-                "These pages describe the business and services available to discuss. They do not form a project agreement or a promise of availability.",
-            sections: [
-                {
-                    heading: "Service information",
-                    paragraphs: [
-                        "The scope, cost, delivery dates and ongoing responsibilities for any work are agreed directly. Service descriptions do not imply contracting availability, guaranteed response times or a specific support schedule.",
-                    ],
-                },
-                {
-                    heading: "Content and related links",
-                    paragraphs: [
-                        "Articles and project information explain the relevant subject or work. Links to related businesses and external sites provide further context. Individual project requirements still need their own review.",
-                    ],
-                },
-                {
-                    heading: "Separate project arrangements",
-                    paragraphs: [
-                        "Client agreements, hosting arrangements and other commercial terms are separate from these website-use pages. The full operator details and final website terms need approval before launch.",
-                    ],
-                },
-            ],
-        },
+        ...websitePolicies,
     ],
     contact: {
         title: "Discuss your software",

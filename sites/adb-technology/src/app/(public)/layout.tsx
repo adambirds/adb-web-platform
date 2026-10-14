@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+import { Analytics } from "@adb/ui/public/Analytics";
 import { SiteHeader } from "@adb/ui/public/SiteHeader";
 import { SiteFooter } from "@adb/ui/public/SiteFooter";
 import { JsonLd } from "@adb/ui/public/JsonLd";
@@ -11,14 +13,19 @@ export default async function PublicLayout({
 }: {
     children: ReactNode;
 }) {
+    // Read runtime configuration after the request boundary, not during image builds.
+    await connection();
     const content = await homeContent(site);
     return (
         <div
-            className={`marketing brand-${site.kind}`}
+            className={`marketing brand-${site.kind} brand-family`}
             data-theme="dark"
             suppressHydrationWarning
         >
             <JsonLd data={businessSchema(site)} />
+            <Analytics
+                measurementId={process.env.GA4_TECHNOLOGY_MEASUREMENT_ID || ""}
+            />
             <SiteHeader
                 site={site}
                 hasWork={Boolean(content.work.total)}

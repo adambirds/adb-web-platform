@@ -1,69 +1,80 @@
 import { homeCopy } from "@/content/home";
 import Link from "next/link";
+import Image from "next/image";
 import { site } from "@/content/site";
 import { homeContent } from "@adb/ui/public/server";
-import { WorkCard, ArticleCard, Quote } from "@adb/ui/public/Editorial";
+import {
+    ArticleCard,
+    Quote,
+    WorkCard,
+    Questions,
+} from "@adb/ui/public/Editorial";
 
 export async function HomePage() {
     const content = await homeContent(site);
     return (
         <>
-            <section className="technology-cover shell">
-                <div className="technology-title-row">
-                    <p className="business-label">{homeCopy.heroLabel}</p>
-                    <p className="technology-coordinate">{homeCopy.location}</p>
+            <section className="web-cover shell">
+                <div className="web-intro-line">
+                    <p className="business-label">{homeCopy.hero.label}</p>
+                    <p>{homeCopy.hero.location}</p>
                 </div>
-                <div className="technology-heading">
-                    <h1>
-                        {homeCopy.technologyCopyH11}
-                        <br />
-                        <span>{homeCopy.technologyCopyH12}</span>
-                        <br />
-                        {homeCopy.technologyCopyH13}
-                    </h1>
-                    <div>
-                        <p>{homeCopy.technologyDescriptionP1}</p>
-                        <Link href="/contact/" className="angled-button">
-                            {homeCopy.angledButtonLink1}
+                <h1 className="web-display">
+                    {homeCopy.hero.headline}
+                    <span>{homeCopy.hero.headlineSecondLine}</span>
+                </h1>
+                <div className="web-introduction">
+                    <p>
+                        {homeCopy.hero.introduction} {homeCopy.hero.description}
+                    </p>
+                    <Link href="/contact/" className="angled-button">
+                        {homeCopy.hero.contactLink}
+                    </Link>
+                    <a href="#services" className="web-scroll">
+                        {homeCopy.services.allServicesLink}
+                        <span aria-hidden="true">↓</span>
+                    </a>
+                </div>
+            </section>
+            <section className="brand-feature">
+                <div className="shell">
+                    <header>
+                        <p className="business-label">
+                            {homeCopy.feature.label}
+                        </p>
+                        <h2>{homeCopy.feature.heading}</h2>
+                        <p>{homeCopy.feature.introduction}</p>
+                        <Link
+                            className="text-link"
+                            href={homeCopy.feature.href}
+                        >
+                            {homeCopy.feature.link}
                         </Link>
-                    </div>
-                </div>
-                <div className="delivery-sheet">
-                    <div className="delivery-sheet-title">
-                        <span>{homeCopy.delivery.title}</span>
-                        <span>{homeCopy.delivery.label}</span>
-                    </div>
-                    <ol className="delivery-flow">
-                        {homeCopy.delivery.stages.map((stage) => (
-                            <li key={stage.label}>
-                                <span className="delivery-number">
-                                    {stage.label}
+                    </header>
+                    <ol>
+                        {homeCopy.feature.steps.map((step, index) => (
+                            <li key={step.title}>
+                                <span aria-hidden="true">
+                                    {String(index + 1).padStart(2, "0")}
                                 </span>
-                                <Link href={stage.href}>
-                                    <h2>{stage.title}</h2>
-                                    <p>{stage.description}</p>
-                                    <span aria-hidden="true">↗</span>
-                                </Link>
+                                <div>
+                                    <h3>{step.title}</h3>
+                                    <p>{step.text}</p>
+                                </div>
                             </li>
                         ))}
                     </ol>
-                    <div className="delivery-sheet-footer">
-                        <p>{homeCopy.delivery.note}</p>
-                        <Link href="/working-together/">
-                            {homeCopy.delivery.link}
-                        </Link>
-                    </div>
                 </div>
             </section>
-            <section className="shell home-services">
+            <section id="services" className="shell home-services">
                 <header>
-                    <p className="business-label">{homeCopy.businessLabelP1}</p>
+                    <p className="business-label">{homeCopy.services.label}</p>
                     <h2>
-                        {homeCopy.shellH21}
+                        {homeCopy.services.heading}
                         <br />
-                        {homeCopy.shellH22}
+                        {homeCopy.services.headingSecondLine}
                     </h2>
-                    <p>{homeCopy.shellP1}</p>
+                    <p>{homeCopy.services.introduction}</p>
                 </header>
                 <div className="home-service-list">
                     {site.services.map((service) => (
@@ -75,30 +86,49 @@ export async function HomePage() {
                             </h3>
                             <p>{service.description}</p>
                             <Link
-                                className="text-link"
                                 href={`/services/${service.slug}/`}
+                                className="text-link"
                             >
-                                {homeCopy.textLinkLink1}
+                                {homeCopy.services.serviceLink}
                             </Link>
                         </article>
                     ))}
+                    <Link href="/services/" className="text-link">
+                        {homeCopy.services.allServicesLink}
+                    </Link>
                 </div>
             </section>
-            <section className="technology-launch">
+            <section className="shell brand-focus">
+                <div>
+                    <p className="business-label">{homeCopy.focus.label}</p>
+                    <h2>{homeCopy.focus.heading}</h2>
+                </div>
+                <div>
+                    <p>{homeCopy.focus.introduction}</p>
+                    <Link href={homeCopy.focus.href} className="angled-button">
+                        {homeCopy.focus.link}
+                    </Link>
+                </div>
+            </section>
+            <section className="home-about">
                 <div className="shell">
-                    <p className="business-label">{homeCopy.businessLabelP2}</p>
+                    <Image
+                        className="home-portrait"
+                        src="/images/adam-birds.jpg"
+                        alt={`Adam Birds, the engineer behind ${site.name}`}
+                        width={310}
+                        height={465}
+                    />
+                    <p className="business-label">{homeCopy.about.label}</p>
                     <h2>
-                        {homeCopy.technologyLaunchH21}
+                        {homeCopy.about.heading}
                         <br />
-                        {homeCopy.technologyLaunchH22}
+                        {homeCopy.about.headingSecondLine}
                     </h2>
                     <div>
-                        <p>{homeCopy.technologyLaunchP1}</p>
-                        <Link
-                            href="/services/app-deployment/"
-                            className="angled-button"
-                        >
-                            {homeCopy.angledButtonLink2}
+                        <p>{homeCopy.about.introduction}</p>
+                        <Link href="/about/" className="text-link">
+                            {homeCopy.about.link}
                         </Link>
                     </div>
                 </div>
@@ -106,9 +136,9 @@ export async function HomePage() {
             {content.work.items.length ? (
                 <section className="shell homepage-editorial">
                     <header>
-                        <h2>{homeCopy.shellH23}</h2>
+                        <h2>{homeCopy.work.heading}</h2>
                         <Link href="/portfolio/" className="text-link">
-                            {homeCopy.textLinkLink2}
+                            {homeCopy.work.link}
                         </Link>
                     </header>
                     <div className="collection-grid">
@@ -120,7 +150,12 @@ export async function HomePage() {
             ) : null}
             {content.testimonials.items.length ? (
                 <section className="shell homepage-editorial">
-                    <h2>{homeCopy.shellH24}</h2>
+                    <header>
+                        <h2>{homeCopy.testimonials.heading}</h2>
+                        <Link href="/testimonials/" className="text-link">
+                            {homeCopy.testimonials.link}
+                        </Link>
+                    </header>
                     <div className="collection-grid">
                         {content.testimonials.items.map((item) => (
                             <Quote key={item.id} item={item} />
@@ -128,25 +163,12 @@ export async function HomePage() {
                     </div>
                 </section>
             ) : null}
-            <section className="shell technology-about">
-                <h2>
-                    {homeCopy.shellH25}
-                    <br />
-                    {homeCopy.shellH26}
-                </h2>
-                <div>
-                    <p>{homeCopy.shellP2}</p>
-                    <Link href="/about/" className="text-link">
-                        {homeCopy.textLinkLink3}
-                    </Link>
-                </div>
-            </section>
             {content.articles.items.length ? (
                 <section className="shell homepage-editorial">
                     <header>
-                        <h2>{homeCopy.shellH27}</h2>
+                        <h2>{homeCopy.journal.heading}</h2>
                         <Link href="/blog/" className="text-link">
-                            {homeCopy.textLinkLink4}
+                            {homeCopy.journal.link}
                         </Link>
                     </header>
                     <div className="collection-grid">
@@ -156,11 +178,22 @@ export async function HomePage() {
                     </div>
                 </section>
             ) : null}
+            {content.faqs.items.length ? (
+                <section className="shell homepage-editorial homepage-questions">
+                    <header>
+                        <h2>{homeCopy.faqs.heading}</h2>
+                        <Link href="/faqs/" className="text-link">
+                            {homeCopy.faqs.link}
+                        </Link>
+                    </header>
+                    <Questions items={content.faqs.items} />
+                </section>
+            ) : null}
             <section className="shell enquiry-band">
-                <h2>{homeCopy.shellH28}</h2>
-                <p>{homeCopy.shellP3}</p>
+                <h2>{homeCopy.contact.heading}</h2>
+                <p>{homeCopy.contact.introduction}</p>
                 <Link href="/contact/" className="angled-button">
-                    {homeCopy.angledButtonLink3}
+                    {homeCopy.contact.link}
                 </Link>
             </section>
         </>

@@ -49,6 +49,10 @@ export const homeCopy = {
         heading: "From the blog",
         link: "All articles →",
     },
+    faqs: {
+        heading: "A few useful answers",
+        link: "All FAQs →",
+    },
     contact: {
         heading: "Have a website in mind?",
         introduction:

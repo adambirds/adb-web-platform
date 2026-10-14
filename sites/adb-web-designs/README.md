@@ -1,7 +1,7 @@
 ## Public website editing
 
 Run `pnpm --dir sites/adb-web-designs dev` from the repository root (port 3002).
-Edit `src/content/site.ts` for services, locations, About, policies and contact copy;
+Edit `src/content/site.ts` for services, locations, About and contact copy;
 edit `src/content/home.ts` for homepage text and `src/content/page-design.ts`
 for inner-page labels and introductions. Homepage copy is grouped by visible
 section (`hero`, `services`, `about`, `journal`, `testimonials`, `contact`, `work`).
@@ -57,3 +57,25 @@ cookie pages include working analytics and theme-storage controls. Set runtime
 is loaded without a valid ID. See the root README for Google account settings.
 Unsuccessful enquiries are reviewed after 36 months and require manual deletion
 approval; [the retention guide](../../docs/LEAD_RETENTION.md) explains the scope.
+
+## Shared public design, policies and analytics
+
+The approved Web Designs design is carried through public homepages, services,
+areas, About, contact, editorial collections/detail pages, thank-you and 404.
+`src/content/page-design.ts` supplies inner-page labels; `src/content/policies.ts`
+supplies operator/hosting/retention facts and Brand-specific service wording.
+Shared numbered layouts and policy renderers are in `packages/ui/src/public`;
+`family.css` supplies the common styling. Homepage copy and composition stay local.
+
+Privacy and cookie pages offer working analytics and theme-storage preferences.
+Set `GA4_WEB_DESIGNS_MEASUREMENT_ID` at runtime to enable the
+brand's statistics. Without a valid ID, no Google script loads. See the root README
+for each Google property’s statistics-only configuration and launch checks.
+The public layout reads runtime configuration after the request boundary;
+analytics is not part of authenticated operations or account/security flows.
+
+Main content is code-owned; editorial entries remain Brand-scoped in the CMS.
+The removable Web Designs demo dataset remains for local previews only. The common
+unsuccessful-enquiry policy is 36 months with manual deletion approval, documented
+in `docs/LEAD_RETENTION.md`. Review correspondence/address and external processing
+arrangements before launch; no production deployment is part of this change.

@@ -1139,8 +1139,10 @@ The initial implementation is checkpointed at `e74c153`. Its visual design is be
 revised following user feedback; see [the reference review](PUBLIC_WEBSITE_DESIGN_REFERENCES.md).
 The user has approved the current Web Designs site and requested a checkpoint.
 Its services, locations, information, contact and editorial pages use the same
-local visual language. Software Solutions and Technology whole-site redesign
-work follows separately.
+local visual language. Software Solutions and Technology now use that approved
+family design with their own content and homepage compositions. Shared public
+policy/analytics components receive Brand facts from local content files;
+analytics is confined to public layouts and reads Infisical IDs at runtime.
 The service scope, brand boundaries, CMS and communication architecture are unchanged.
 
 All three public sites implement brand-specific homepage compositions,

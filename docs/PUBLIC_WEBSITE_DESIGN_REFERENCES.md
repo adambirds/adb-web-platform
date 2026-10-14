@@ -193,3 +193,14 @@ fictional CMS preview dataset, policies and privacy controls. Earlier Software
 Solutions and Technology homepage studies are checkpointed separately; their
 whole-site redesigns remain future work. The associated manually approved Lead
 retention workflow is documented in `LEAD_RETENTION.md`. Nothing is deployed.
+
+## Software Solutions and Technology rollout — 14 October 2026
+
+The approved Web Designs visual language is now used across both other brands:
+large Archivo headings/logos, dark/light themes, cyan scope bands, numbered service
+and information pages, editorial layouts and the large footer. Software uses a
+build/connect/automate feature; Technology uses a source/check/release/run flow.
+Both keep their own services and copy. Shared policies, privacy choices and GA4
+behavior are parameterised by Brand. Public analytics does not load in `/admin`.
+This rollout was implemented locally. The user subsequently requested a commit
+checkpoint for all completed changes; no production deployment was requested.

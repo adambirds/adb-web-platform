@@ -1,12 +1,19 @@
 import Link from "next/link";
-import type { WebsitePolicy } from "@/content/policies";
-import { policyDetails } from "@/content/policies";
-import { site } from "@/content/site";
-import { JsonLd } from "@adb/ui/public/JsonLd";
-import { breadcrumbSchema } from "@adb/ui/public/server";
-import { PrivacyPreferences } from "./PrivacyPreferences";
+import type {WebsitePolicy, PolicyDetails} from "./policies";
+import type {PublicSite} from "./types";
+import {JsonLd} from "@adb/ui/public/JsonLd";
+import {breadcrumbSchema} from "@adb/ui/public/server";
+import {PrivacyPreferences} from "./PrivacyPreferences";
 
-export function PolicyPage({ policy }: { policy: WebsitePolicy }) {
+export function PolicyPage({
+    policy,
+    site,
+    policyDetails,
+}: {
+    policy: WebsitePolicy;
+    site: PublicSite;
+    policyDetails: PolicyDetails;
+}) {
     const choices = policy.slug !== "terms";
     return (
         <article className="web-policy">
@@ -14,7 +21,7 @@ export function PolicyPage({ policy }: { policy: WebsitePolicy }) {
                 data={breadcrumbSchema(site, policy.title, `/${policy.slug}/`)}
             />
             <header className="shell web-page-heading">
-                <p className="business-label">ADB Web Designs</p>
+                <p className="business-label">{site.name}</p>
                 <h1>{policy.title}</h1>
                 <p>{policy.introduction}</p>
                 <p className="policy-date">

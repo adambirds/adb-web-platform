@@ -1,0 +1,1100 @@
+.marketing.brand-family {
+    --page: #141414;
+    --panel: #202120;
+    --raised: #2a2c2b;
+    --ink: #f4f3ec;
+    --muted: #b8b9b2;
+    --heading-font: archivo, arial, sans-serif;
+}
+
+.marketing.brand-family[data-theme="light"] {
+    --page: #f4f3ec;
+    --panel: #e8e7df;
+    --raised: #deded6;
+    --ink: #171c1b;
+    --muted: #555e59;
+}
+
+.marketing.brand-family .header-inner {
+    min-height: 144px;
+}
+
+.marketing.brand-family .logo-link img {
+    width: 176px;
+    height: 110px;
+}
+
+@media (width <= 767px) {
+    .marketing.brand-family .header-inner {
+        min-height: 116px;
+    }
+
+    .marketing.brand-family .logo-link img {
+        width: 144px;
+        height: 90px;
+    }
+}
+
+.marketing .web-cover {
+    padding-top: 42px;
+    padding-bottom: 65px;
+}
+
+.marketing .web-intro-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 12px;
+}
+
+.marketing .web-intro-line .business-label {
+    margin-bottom: 0;
+}
+
+.marketing .web-display {
+    margin-block: 60px 40px;
+    font-family: var(--heading-font);
+    font-size: clamp(54px, 7.7vw, 114px);
+    font-weight: 400;
+    line-height: 1.08;
+    letter-spacing: -0.065em;
+    text-wrap: initial;
+}
+
+.marketing .web-display span {
+    display: block;
+    padding-left: 9%;
+    color: var(--accent);
+}
+
+.marketing .web-introduction {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 45px;
+}
+
+.marketing .web-introduction > p {
+    max-width: 450px;
+    font-size: 17px;
+}
+
+.marketing .web-scroll {
+    font-size: 13px;
+    display: flex;
+    gap: 28px;
+}
+
+.marketing .web-project-feature {
+    display: grid;
+    grid-template-columns: 1.65fr 1fr;
+}
+
+.marketing .web-project-image {
+    position: relative;
+    min-width: 0;
+    background: var(--panel);
+}
+
+.marketing .web-project-image img {
+    display: block;
+    width: 100%;
+    height: 600px;
+    object-fit: cover;
+    transition: transform 500ms ease;
+}
+
+.marketing .web-project-image img.cms-project-image {
+    object-fit: contain;
+    padding: 24px;
+}
+
+.marketing .web-project-image > a {
+    display: block;
+    overflow: hidden;
+}
+
+.marketing .web-project-image a:hover img {
+    transform: scale(1.035);
+}
+
+.marketing .web-project-image figcaption {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    max-width: calc(100% - 40px);
+    background: #141414;
+    color: #f4f3ec;
+    padding: 8px 14px;
+    font-size: 11px;
+}
+
+.marketing .web-project-story {
+    background: var(--brand-fill);
+    color: var(--brand-fill-ink);
+    padding: clamp(28px, 4vw, 65px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.marketing .web-project-story .business-label {
+    color: inherit;
+}
+
+.marketing .web-project-story h2 {
+    font-family: var(--heading-font);
+    font-size: clamp(30px, 3.2vw, 50px);
+    line-height: 1.15;
+    margin-bottom: 30px;
+}
+
+.marketing .web-project-story > p:not(.business-label) {
+    font-size: 15px;
+    max-width: 380px;
+}
+
+.marketing .project-feature-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid currentcolor;
+    padding-block: 20px;
+    margin-top: 30px;
+    font-size: 14px;
+}
+
+.marketing .project-feature-link span {
+    font-size: 30px;
+}
+
+.marketing .web-project-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.marketing .web-project-controls button {
+    background: transparent;
+    color: inherit;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    padding: 12px 0;
+}
+
+.marketing .web-project-controls button[aria-pressed="true"] {
+    border-color: currentcolor;
+}
+
+.marketing .web-project-controls button span {
+    display: block;
+    font-size: 11px;
+}
+
+.marketing.brand-family .home-services {
+    padding-block: 100px;
+    gap: 80px;
+}
+
+.marketing.brand-family .home-services h2 {
+    font-family: var(--heading-font);
+    font-size: clamp(28px, 3.5vw, 48px);
+}
+
+.marketing.brand-family .home-service-list h3 {
+    font-size: clamp(26px, 2.6vw, 36px);
+    font-weight: 500;
+}
+
+.marketing.brand-family .home-service-list article {
+    padding-block: 30px;
+}
+
+.marketing.brand-family .home-about {
+    background: #e7e8de;
+    color: #172320;
+    padding-block: 80px;
+}
+
+.marketing.brand-family .home-about .shell {
+    grid-template-columns: 240px 1fr 1fr;
+    gap: 24px 55px;
+}
+
+.marketing .home-portrait {
+    grid-row: 1 / 3;
+    width: 240px;
+    height: 330px;
+    object-fit: cover;
+    object-position: center 20%;
+}
+
+.marketing.brand-family .home-about .business-label {
+    grid-column: 2 / -1;
+    align-self: end;
+    color: #38524b;
+}
+
+.marketing.brand-family .home-about h2 {
+    font-size: 34px;
+}
+
+.marketing.brand-family .home-about p {
+    color: #38524b;
+}
+
+.marketing.brand-family .home-about .text-link {
+    color: #00616a;
+}
+
+.marketing.brand-family .page-heading h1 {
+    font-family: var(--heading-font);
+    font-weight: 400;
+    font-size: clamp(40px, 6.3vw, 92px);
+    max-width: 1050px;
+}
+
+.marketing.brand-family .page-heading {
+    padding-block: 85px;
+}
+
+.marketing.brand-family .service-index article {
+    border-top: 1px solid var(--line);
+    padding-block: 35px;
+}
+
+.marketing.brand-family .enquiry-band h2 {
+    font-family: var(--heading-font);
+    font-size: clamp(38px, 5.5vw, 78px);
+    max-width: 1000px;
+}
+
+@media (width <= 1000px) {
+    .marketing .web-introduction {
+        grid-template-columns: 1fr auto;
+        gap: 25px;
+    }
+
+    .marketing .web-scroll {
+        display: none;
+    }
+
+    .marketing .web-project-image img {
+        height: 540px;
+    }
+
+    .marketing.brand-family .home-about .shell {
+        grid-template-columns: 190px 1fr;
+    }
+
+    .marketing .home-portrait {
+        width: 190px;
+        grid-row: 1 / 4;
+    }
+
+    .marketing.brand-family .home-about .business-label {
+        grid-column: 2;
+    }
+}
+
+@media (width <= 767px) {
+    .marketing .web-cover {
+        padding-top: 30px;
+        padding-bottom: 40px;
+    }
+
+    .marketing .web-intro-line {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .marketing .web-display {
+        font-size: clamp(34px, 8.6vw, 64px);
+        margin-block: 36px 28px;
+    }
+
+    .marketing .web-display span {
+        padding-left: 0;
+    }
+
+    .marketing .web-introduction {
+        grid-template-columns: 1fr;
+        justify-items: start;
+    }
+
+    .marketing .web-project-feature {
+        grid-template-columns: 1fr;
+    }
+
+    .marketing .web-project-image img {
+        height: 330px;
+    }
+
+    .marketing .web-project-story {
+        padding: 36px 24px;
+    }
+
+    .marketing.brand-family .home-services {
+        padding-block: 65px;
+        gap: 24px;
+    }
+
+    .marketing.brand-family .home-about .shell {
+        grid-template-columns: 1fr;
+    }
+
+    .marketing .home-portrait {
+        grid-row: auto;
+        width: 100%;
+        height: 360px;
+        max-width: 330px;
+    }
+
+    .marketing.brand-family .home-about .business-label {
+        grid-column: 1;
+    }
+
+    .marketing.brand-family .page-heading {
+        padding-block: 45px;
+    }
+}
+
+/* Web Designs inner pages carry the homepage's display type and broad bands. */
+.marketing .web-page-heading {
+    padding-block: 65px 60px;
+}
+
+.marketing .web-page-heading h1,
+.marketing .web-about-heading h1,
+.marketing .web-thank-you h1 {
+    font-family: var(--heading-font);
+    font-weight: 400;
+    font-size: clamp(40px, 6.9vw, 96px);
+    line-height: 1.1;
+    letter-spacing: -0.055em;
+    max-width: 1150px;
+    overflow-wrap: anywhere;
+}
+
+.marketing .web-heading-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 50px;
+    margin-top: 35px;
+}
+
+.marketing .web-heading-bottom > p,
+.marketing .web-contact-heading > p:last-child {
+    max-width: 770px;
+    font-size: 19px;
+    color: var(--muted);
+    line-height: 1.8;
+}
+
+.marketing .web-heading-bottom .text-link {
+    flex-shrink: 0;
+}
+
+.marketing .web-scope {
+    background: var(--brand-fill);
+    color: var(--brand-fill-ink);
+    padding-block: 55px;
+}
+
+.marketing .web-scope > .shell {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 70px;
+}
+
+.marketing .web-scope .business-label {
+    color: inherit;
+}
+
+.marketing .web-scope header h2 {
+    font-size: 36px;
+    font-weight: 400;
+    margin-bottom: 24px;
+}
+
+.marketing .web-scope header > p:last-child {
+    max-width: 340px;
+    font-size: 14px;
+}
+
+.marketing .web-scope ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.marketing .web-scope li {
+    border-bottom: 1px solid #17333844;
+    padding-block: 14px;
+    font-size: 18px;
+}
+
+.marketing .web-scope li:first-child {
+    border-top: 1px solid #17333844;
+}
+
+.marketing .web-service-body,
+.marketing .web-information-body {
+    padding-block: 70px;
+}
+
+.marketing .web-copy > section {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 40px;
+    border-top: 1px solid var(--line);
+    padding-block: 40px;
+}
+
+.marketing .web-section-number {
+    font-size: 18px;
+    color: var(--accent);
+}
+
+.marketing .web-copy h2 {
+    font-family: var(--heading-font);
+    font-size: clamp(25px, 3vw, 40px);
+    font-weight: 400;
+    max-width: 900px;
+    margin-bottom: 25px;
+}
+
+.marketing .web-copy p,
+.marketing .web-copy ul {
+    max-width: 770px;
+    color: var(--muted);
+    font-size: 17px;
+    margin-top: 16px;
+}
+
+.marketing .web-service-directory {
+    padding-bottom: 75px;
+}
+
+.marketing .web-service-directory article {
+    display: grid;
+    grid-template-columns: 90px 1fr 65px;
+    gap: 40px;
+    padding-block: 40px;
+    border-top: 1px solid var(--line);
+    align-items: start;
+}
+
+.marketing .web-directory-number {
+    font-family: var(--heading-font);
+    font-size: 38px;
+    color: var(--accent);
+}
+
+.marketing .web-service-directory h2 {
+    font-size: clamp(28px, 3.5vw, 46px);
+    font-weight: 400;
+    margin-bottom: 24px;
+    max-width: 860px;
+}
+
+.marketing .web-service-directory article p {
+    max-width: 710px;
+    color: var(--muted);
+    font-size: 17px;
+}
+
+.marketing .web-directory-link {
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    border: 1px solid var(--line);
+    font-size: 30px;
+    color: var(--accent);
+    transition:
+        background 150ms ease,
+        color 150ms ease;
+}
+
+.marketing .web-directory-link:hover {
+    background: var(--brand-fill);
+    color: var(--brand-fill-ink);
+}
+
+.marketing .web-enquiry {
+    border-top: 1px solid var(--line);
+    padding-block: 75px 90px;
+}
+
+.marketing .web-enquiry h2 {
+    font-family: var(--heading-font);
+    font-size: clamp(35px, 5.7vw, 78px);
+    font-weight: 400;
+    max-width: 1050px;
+    margin-bottom: 30px;
+}
+
+.marketing .web-related,
+.marketing .web-questions,
+.marketing .web-related-services {
+    padding-block: 55px 75px;
+}
+
+.marketing .web-related header,
+.marketing .web-questions header {
+    margin-bottom: 35px;
+}
+
+.marketing .web-related h2,
+.marketing .web-questions h2,
+.marketing .web-related-services h2 {
+    font-size: clamp(30px, 4vw, 52px);
+    font-weight: 400;
+}
+
+.marketing .web-related-services nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 25px;
+    margin-top: 35px;
+}
+
+.marketing .web-related-services nav a {
+    border-top: 1px solid var(--line);
+    padding-block: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 20px;
+    font-size: 20px;
+}
+
+.marketing .web-related-services nav span {
+    color: var(--accent);
+}
+
+.marketing .web-about-heading {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    align-items: center;
+    gap: 70px;
+    padding-block: 70px;
+}
+
+.marketing .web-about-heading h1 {
+    font-size: clamp(40px, 6vw, 84px);
+}
+
+.marketing .web-about-heading > div > p:not(.business-label) {
+    font-size: 22px;
+    color: var(--muted);
+    margin-block: 30px;
+}
+
+.marketing .web-about-heading img {
+    width: 100%;
+    height: 550px;
+    object-fit: cover;
+    object-position: center 20%;
+}
+
+.marketing .web-about-heading figcaption {
+    background: var(--brand-fill);
+    color: var(--brand-fill-ink);
+    padding: 15px 20px;
+    font-size: 13px;
+}
+
+.marketing .web-area-content {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr;
+    gap: 60px;
+    padding-block: 30px 70px;
+    align-items: start;
+}
+
+.marketing .web-area-content .web-copy > section {
+    grid-template-columns: 35px 1fr;
+    gap: 20px;
+}
+
+.marketing .web-area-content aside {
+    padding: 35px;
+    background: var(--brand-fill);
+    color: var(--brand-fill-ink);
+}
+
+.marketing .web-area-content aside .business-label {
+    color: inherit;
+}
+
+.marketing .web-area-content aside h2 {
+    font-size: 28px;
+    font-weight: 400;
+}
+
+.marketing .web-area-content aside nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-block: 25px;
+}
+
+.marketing .web-area-content aside nav a {
+    border-bottom: 1px solid #17333844;
+    padding-block: 12px;
+    font-size: 15px;
+}
+
+.marketing .web-area-content aside p:last-child {
+    font-size: 12px;
+}
+
+.marketing .web-area-directory {
+    padding-bottom: 75px;
+}
+
+.marketing .web-area-directory nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 40px;
+}
+
+.marketing .web-area-directory nav a {
+    border-top: 1px solid var(--line);
+    padding-block: 24px;
+    display: flex;
+    justify-content: space-between;
+    gap: 25px;
+    font-size: 24px;
+}
+
+.marketing .web-contact-heading > p:last-child {
+    margin-top: 30px;
+}
+
+.marketing .web-contact {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 75px;
+    padding-bottom: 85px;
+    align-items: start;
+}
+
+.marketing .web-contact aside {
+    background: var(--brand-fill);
+    color: var(--brand-fill-ink);
+    padding: 40px;
+}
+
+.marketing .web-contact aside :is(.business-label, .text-link) {
+    color: inherit;
+}
+
+.marketing .web-contact aside h2 {
+    font-size: 32px;
+    font-weight: 400;
+    margin-bottom: 25px;
+}
+
+.marketing .web-contact aside > p:not(.business-label) {
+    margin-block: 20px;
+}
+
+.marketing .web-contact .contact-form {
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.marketing .web-contact :is(input, textarea, select) {
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 0;
+    padding: 16px;
+}
+
+.marketing .web-contact button[type="submit"] {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.marketing .web-thank-you {
+    padding-block: 90px;
+}
+
+.marketing .web-thank-you > p:not(.business-label) {
+    font-size: 20px;
+    color: var(--muted);
+    margin-block: 30px;
+}
+
+.marketing .web-policy .web-page-heading h1 {
+    font-size: clamp(35px, 4.8vw, 62px);
+}
+
+.marketing .web-policy .web-heading-bottom .text-link {
+    display: none;
+}
+
+.marketing .web-policy .web-copy h2 {
+    font-size: 26px;
+}
+
+.marketing .web-policy .web-information-body {
+    padding-top: 0;
+}
+
+.marketing .web-editorial .page-heading {
+    padding-block: 65px 50px;
+}
+
+.marketing .web-editorial .page-heading > p:not(.business-label) {
+    font-size: 19px;
+    max-width: 780px;
+}
+
+.marketing .web-editorial .collection-search {
+    max-width: none;
+    padding-block: 25px;
+    border-block: 1px solid var(--line);
+    margin-bottom: 35px;
+}
+
+.marketing .web-editorial .collection-search > div {
+    max-width: 650px;
+    margin-top: 10px;
+}
+
+.marketing .web-editorial .category-links a {
+    padding: 9px 16px;
+    border: 1px solid var(--line);
+}
+
+.marketing .web-editorial .category-links [aria-current="page"] {
+    background: var(--brand-fill);
+    color: var(--brand-fill-ink);
+}
+
+.marketing .web-editorial .collection-grid {
+    gap: 65px 40px;
+}
+
+.marketing .web-collection-portfolio .work-card:nth-child(even) {
+    margin-top: 65px;
+}
+
+.marketing.brand-family :is(.work-card, .article-card) h3 {
+    font-family: var(--heading-font);
+    font-weight: 400;
+    font-size: clamp(24px, 2.5vw, 34px);
+}
+
+.marketing.brand-family .article-card {
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+}
+
+.marketing.brand-family .client-quote {
+    background: var(--panel);
+    padding: 35px;
+    border: 0;
+}
+
+.marketing.brand-family .client-quote blockquote p {
+    font-size: clamp(22px, 2.7vw, 34px);
+    line-height: 1.5;
+    letter-spacing: -0.025em;
+}
+
+.marketing.brand-family .client-quote figcaption {
+    margin-top: 30px;
+}
+
+.marketing.brand-family .faq-row {
+    padding-block: 22px;
+}
+
+.marketing.brand-family .faq-row summary {
+    font-size: 22px;
+    padding-right: 25px;
+}
+
+.marketing .web-detail-portfolio .detail-article {
+    max-width: 1320px;
+}
+
+.marketing .web-detail-portfolio .detail-article > section {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: 55px;
+    border-top: 1px solid var(--line);
+    padding-block: 35px;
+}
+
+.marketing .web-detail-portfolio .detail-article h2 {
+    font-size: 34px;
+    font-weight: 400;
+}
+
+.marketing .web-detail-blog .page-heading h1 {
+    font-size: clamp(35px, 5.2vw, 72px);
+}
+
+.marketing .web-detail-blog .detail-article {
+    max-width: 1050px;
+}
+
+.marketing .web-detail-blog .markdown {
+    max-width: 780px;
+    margin-inline: auto;
+    font-size: 18px;
+}
+
+.marketing .web-detail-blog .markdown h2 {
+    font-size: 30px;
+    font-weight: 400;
+}
+
+.marketing .web-editorial .public-empty {
+    background: var(--panel);
+    border: 0;
+    padding: 40px;
+}
+
+.marketing .web-editorial .public-empty h2 {
+    font-size: 34px;
+    font-weight: 400;
+}
+
+.marketing.brand-family .footer-name {
+    font-family: var(--heading-font);
+    font-weight: 400;
+    font-size: clamp(26px, 3vw, 40px);
+    line-height: 1.15;
+    display: block;
+    max-width: 330px;
+}
+
+.marketing.brand-family .site-footer {
+    padding-top: 65px;
+}
+
+@media (width <= 1000px) {
+    .marketing .web-heading-bottom {
+        align-items: start;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .marketing .web-scope > .shell,
+    .marketing .web-contact,
+    .marketing .web-area-content {
+        gap: 35px;
+    }
+
+    .marketing .web-about-heading {
+        gap: 40px;
+    }
+
+    .marketing .web-about-heading img {
+        height: 440px;
+    }
+}
+
+@media (width <= 767px) {
+    .marketing .web-page-heading {
+        padding-block: 40px;
+    }
+
+    .marketing .web-page-heading h1 {
+        font-size: clamp(33px, 8.5vw, 54px);
+    }
+
+    .marketing .web-heading-bottom {
+        margin-top: 25px;
+    }
+
+    .marketing .web-heading-bottom > p,
+    .marketing .web-contact-heading > p:last-child {
+        font-size: 17px;
+    }
+
+    .marketing .web-scope > .shell,
+    .marketing .web-contact,
+    .marketing .web-area-content,
+    .marketing .web-about-heading {
+        grid-template-columns: 1fr;
+    }
+
+    .marketing .web-scope {
+        padding-block: 40px;
+    }
+
+    .marketing .web-copy > section {
+        grid-template-columns: 28px 1fr;
+        gap: 18px;
+        padding-block: 30px;
+    }
+
+    .marketing .web-copy p,
+    .marketing .web-copy ul {
+        font-size: 16px;
+    }
+
+    .marketing .web-service-body,
+    .marketing .web-information-body {
+        padding-block: 40px;
+    }
+
+    .marketing .web-service-directory article {
+        grid-template-columns: 30px 1fr;
+        gap: 15px;
+        position: relative;
+    }
+
+    .marketing .web-directory-number {
+        font-size: 22px;
+    }
+
+    .marketing .web-directory-link {
+        grid-column: 2;
+        width: 44px;
+        height: 44px;
+        font-size: 24px;
+    }
+
+    .marketing .web-service-directory h2 {
+        font-size: 26px;
+    }
+
+    .marketing .web-related-services nav,
+    .marketing .web-area-directory nav {
+        grid-template-columns: 1fr;
+    }
+
+    .marketing .web-area-directory nav a {
+        font-size: 20px;
+    }
+
+    .marketing .web-about-heading {
+        padding-block: 40px;
+    }
+
+    .marketing .web-about-heading img {
+        height: 430px;
+        max-width: 400px;
+    }
+
+    .marketing .web-contact aside {
+        padding: 28px;
+    }
+
+    .marketing .web-detail-portfolio .detail-article > section {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .marketing .web-collection-portfolio .work-card:nth-child(even) {
+        margin-top: 0;
+    }
+
+    .marketing .web-editorial .collection-grid {
+        gap: 40px;
+    }
+
+    .marketing.brand-family .client-quote {
+        padding: 26px;
+    }
+
+    .marketing.brand-family .faq-row summary {
+        font-size: 18px;
+    }
+}
+
+.marketing .web-not-found-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 25px;
+}
+
+.marketing .policy-date {
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.marketing .policy-contents {
+    display: grid;
+    gap: 12px;
+    max-width: 780px;
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+    font-size: 16px;
+}
+
+.marketing .policy-contents a,
+.marketing .policy-links a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+.marketing .privacy-preferences {
+    max-width: 780px;
+    border-top: 1px solid var(--line);
+    padding-top: 32px;
+    margin-top: 48px;
+}
+
+.marketing .privacy-preferences label {
+    display: flex;
+    align-items: start;
+    gap: 14px;
+    margin-block: 24px;
+    font-size: 16px;
+}
+
+.marketing .privacy-preferences input {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    accent-color: var(--accent);
+}
+
+.marketing .privacy-preferences [role="status"] {
+    min-height: 26px;
+    margin-top: 20px;
+}
+
+.marketing .policy-table-wrap {
+    overflow-x: auto;
+    max-width: 100%;
+    margin-top: 24px;
+}
+
+.marketing .policy-table-wrap table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+
+.marketing .policy-table-wrap caption {
+    text-align: left;
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+.marketing .policy-table-wrap :is(th, td) {
+    padding: 14px 10px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--line);
+    overflow-wrap: anywhere;
+}

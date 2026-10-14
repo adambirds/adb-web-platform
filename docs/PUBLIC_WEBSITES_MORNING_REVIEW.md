@@ -112,3 +112,56 @@ launch. No address is published, as requested; business correspondence/address
 requirements remain a launch review item. Confirm Google contractual/UK transfer
 arrangements and Microsoft 365 data locations rather than assuming all providers
 process data only in London. Mailbox copies/backups need separate retention.
+
+## Software Solutions and Technology — 14 October 2026
+
+The approved Web Designs design, full policies and statistics controls now cover
+both brands. Their content follows the agreed service inventory; no contracting,
+core-hours support or unconfirmed consultancy has been introduced. About and
+location copy are rewritten for each business.
+
+Assumptions carried from the shared platform: Adam Birds is the operator, privacy
+contact uses the form, hosting is DigitalOcean London, and unsuccessful enquiry
+retention is 36 months with manual approval. No address is published. Confirm
+correspondence/address requirements and provider processing/transfer arrangements
+before launch. Configure separate GA4 properties/IDs and statistics-only settings
+using the root README. No external Google settings or real data were changed.
+Software's additional authenticated-cookie/operations wording is included.
+No fake portfolio or client feedback has been published for either new Brand.
+
+Verification for the family rollout: all three isolated production builds,
+206 Software frontend tests, 23 Web Designs frontend tests, 8 Technology
+frontend tests and 35 backend website tests passed. A Chromium crawl checked
+231 page renders across desktop/390px/320px, with no runtime, canonical, heading
+or overflow failures. It also checked social images, dark/light persistence,
+and analytics/theme-storage opt-outs. Browser analytics used local tag stubs
+and test IDs; no statistics were sent to Google. Captures are in the ignored
+`website-mockup/brand-family-review/` directory.
+
+Final interaction checks also passed for all three mobile menus and contact-form
+failure/retry/thank-you journeys. Form responses were intercepted, so no test
+enquiries were stored in the local database. The Software production admin
+render excluded the public measurement ID. Temporary preview servers are stopped;
+the owner's existing development servers on 3000/3002/3003 are untouched.
+
+## Editorial previews and copy follow-up
+
+Removed public full-time employment wording and put the current Brand first in
+related-business About paragraphs. Homepages now include a Brand-scoped FAQ
+preview as well as portfolio, articles and testimonials. Software/Technology
+collections were empty; at the owner's request, clearly labelled fictional
+records have been added to the local CMS with a removable guarded seed command.
+Web Designs already had published previews and continues using its own records.
+The seed is documented in the website app README; remove demos before launch.
+
+Follow-up verification passed: 48 populated homepage/About/editorial/list/detail
+page checks on desktop and mobile, including all four CMS sections, links and
+project images; all three production builds; the website backend suite, guarded
+seed cleanup tests, public navigation tests, typing and repository lint. Local
+Software and Technology records remain editable through `/admin/content`.
+
+## Follow-up checkpoint
+
+The owner requested focused local commits for the completed Software/Technology
+rollout, shared design/privacy components, CMS previews and obsolete admin URL
+configuration cleanup. Production deployment remains a separate step.
