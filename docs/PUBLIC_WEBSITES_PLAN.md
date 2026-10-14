@@ -172,10 +172,13 @@ these counts.
 See [the implemented URL map](WEB_DESIGNS_URL_MIGRATION.json). Relevant static
 redirects are active in Web Designs; editorial aliases activate only once their
 replacement CMS records are published. The user permits selective retirement and does
-not require a complete blog import. Initial candidates for refreshed CMS articles
+now requires a complete, versioned offline archive and draft import of all blog
+posts/projects so publication can be selected in the CMS. Initial candidates for refreshed CMS articles
 cover WordPress security, spam prevention, CMS benefits, SEO and choosing a
 freelancer. Preserve the two real project records if their content remains useful.
-Final copy must be reviewed before publishing; do not carry old prices or stale
+Use the export/import commands in [the migration archive guide](migrations/README.md).
+Archive original media bytes before switching off WordPress. Ordinary marketing
+pages remain code-owned. Final copy must be reviewed before publishing; do not carry old prices or stale
 claims into new pages automatically.
 
 Keep the useful local/country pages above and rewrite their content. Consolidate

@@ -671,20 +671,33 @@ artwork, with a page-specific title; no third-party image service is required.
 Set `NODE_ENV=production` for production builds/runs and `development` for dev;
 arbitrary environment names are not valid Node modes.
 
+For the full crawl, file decisions and production cutover, follow the
+[Web Designs migration runbook](docs/WEB_DESIGNS_MIGRATION_RUNBOOK.md).
+
 The old Web Designs URL decisions are recorded in
-[the migration ledger](docs/WEB_DESIGNS_URL_MIGRATION.json). Relevant static
-redirects live in `sites/adb-web-designs/redirects.json`; editorial aliases activate
-only after the matching replacement CMS content is published. Dated/out-of-scope
-articles return an actual 404. A safe importer creates selected original articles
-and the confirmed recovery case study as **drafts**, skips existing records and
-never publishes or overwrites them:
+[the migration ledger](docs/WEB_DESIGNS_URL_MIGRATION.json). Static redirects live
+in `sites/adb-web-designs/redirects.json`; all exported editorial aliases activate
+only after the matching Web Designs CMS draft is published. Unpublished/retired
+entries return a real 404.
+
+Before switching off WordPress, create the version-controlled, self-contained
+JSON export with original image bytes, then use the offline draft importer:
 
 ```bash
-python backend/manage.py import_web_designs_content \
-  --source website-assets/web-designs/wordpress-snapshot/wp-json-wp-v2-posts.txt \
-  --dry-run
-# Remove --dry-run to import drafts into the configured database.
+python backend/manage.py export_wordpress_content \
+  --output backend/apps/website/fixtures/wordpress/adb-web-designs.json \
+  --routes-directory sites/adb-web-designs/src/content
+python backend/manage.py import_wordpress_content \
+  --source backend/apps/website/fixtures/wordpress/adb-web-designs.json --dry-run
+# Remove --dry-run and pass --media-base-url http://localhost:8000 locally,
+# or the public production backend/media origin when importing production data.
 ```
+
+Commit the archive and generated routing JSON files before deployment. The
+importer creates all blog/project drafts, restores images without contacting
+WordPress and preserves existing records. Review/publish individually in
+`/admin/content`. Full instructions and limits are in
+[the migration archive guide](docs/migrations/README.md).
 
 The raw asset library and temporary mockup stay ignored. Only selected original
 logos, the portrait and local font are shipped in the sites. No fabricated CMS

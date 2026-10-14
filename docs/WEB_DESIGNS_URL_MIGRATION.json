@@ -1,7 +1,7 @@
 {
     "source": "https://adbwebdesigns.co.uk/sitemap_index.xml",
-    "audited_on": "2026-10-06",
-    "status": "Implemented: retained/rebuilt pages, permanent relevant redirects, CMS-gated editorial aliases and real 404s for retired content. Review before production cutover.",
+    "audited_on": "2026-10-15",
+    "status": "Public permalink decisions, homepage/sitemap aliases and numeric ID handling implemented locally; editorial redirects require published CMS content. Archives and media require review before production cutover.",
     "routes": [
         {
             "source": "/author/adam-birds/",
@@ -15,35 +15,35 @@
             "action": "conditional_redirect",
             "destination": "/blog/category/business/",
             "status": "implemented",
-            "note": "Redirect only if the corresponding CMS category has published articles; otherwise return 404."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/category/digital-marketing/",
             "action": "conditional_redirect",
             "destination": "/blog/category/digital-marketing/",
             "status": "implemented",
-            "note": "Redirect only if the corresponding CMS category has published articles; otherwise return 404."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/category/e-commerce/",
             "action": "conditional_redirect",
             "destination": "/blog/category/e-commerce/",
             "status": "implemented",
-            "note": "Redirect only if the corresponding CMS category has published articles; otherwise return 404."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/category/security/",
             "action": "conditional_redirect",
             "destination": "/blog/category/security/",
             "status": "implemented",
-            "note": "Redirect only if the corresponding CMS category has published articles; otherwise return 404."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/category/wordpress/",
             "action": "conditional_redirect",
             "destination": "/blog/category/wordpress/",
             "status": "implemented",
-            "note": "Redirect only if the corresponding CMS category has published articles; otherwise return 404."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/",
@@ -467,101 +467,101 @@
         },
         {
             "source": "/is-woocommerce-better-than-shopify/",
-            "action": "retire",
-            "destination": null,
+            "action": "conditional_redirect",
+            "destination": "/blog/is-woocommerce-better-than-shopify/",
             "status": "implemented",
-            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/need-a-website-5-reasons-that-say-you-should/",
-            "action": "retire",
-            "destination": null,
+            "action": "conditional_redirect",
+            "destination": "/blog/need-a-website-5-reasons-that-say-you-should/",
             "status": "implemented",
-            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/has-lockdown-changed-the-way-we-will-work/",
-            "action": "retire",
-            "destination": null,
+            "action": "conditional_redirect",
+            "destination": "/blog/has-lockdown-changed-the-way-we-will-work/",
             "status": "implemented",
-            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/email-marketing-5-psychological-tricks-to-use/",
-            "action": "retire",
-            "destination": null,
+            "action": "conditional_redirect",
+            "destination": "/blog/email-marketing-5-psychological-tricks-to-use/",
             "status": "implemented",
-            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/what-software-do-i-use-when-designing-websites/",
-            "action": "retire",
-            "destination": null,
+            "action": "conditional_redirect",
+            "destination": "/blog/what-software-do-i-use-when-designing-websites/",
             "status": "implemented",
-            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/is-wordpress-a-great-cms-for-seo/",
             "action": "conditional_redirect",
             "destination": "/blog/is-wordpress-a-great-cms-for-seo/",
             "status": "implemented",
-            "note": "Redirect only after the matching migrated CMS article is published; draft or retired content returns 404."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/wordpress-what-are-the-benefits/",
             "action": "conditional_redirect",
             "destination": "/blog/wordpress-what-are-the-benefits/",
             "status": "implemented",
-            "note": "Redirect only after the matching migrated CMS article is published; draft or retired content returns 404."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/coronavirus-emphasized-need-for-a-great-website/",
-            "action": "retire",
-            "destination": null,
+            "action": "conditional_redirect",
+            "destination": "/blog/coronavirus-emphasized-need-for-a-great-website/",
             "status": "implemented",
-            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/why-does-your-business-need-a-website/",
-            "action": "retire",
-            "destination": null,
+            "action": "conditional_redirect",
+            "destination": "/blog/why-does-your-business-need-a-website/",
             "status": "implemented",
-            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/wordpress-how-to-secure-your-website/",
             "action": "conditional_redirect",
             "destination": "/blog/wordpress-how-to-secure-your-website/",
             "status": "implemented",
-            "note": "Redirect only after the matching migrated CMS article is published; draft or retired content returns 404."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/godaddy-wordpress-data-breach/",
-            "action": "retire",
-            "destination": null,
+            "action": "conditional_redirect",
+            "destination": "/blog/godaddy-wordpress-data-breach/",
             "status": "implemented",
-            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/freelancer-vs-agency-who-will-design-your-website/",
             "action": "conditional_redirect",
             "destination": "/blog/freelancer-vs-agency-who-will-design-your-website/",
             "status": "implemented",
-            "note": "Redirect only after the matching migrated CMS article is published; draft or retired content returns 404."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/how-to-prevent-spam-comments-on-wordpress/",
             "action": "conditional_redirect",
             "destination": "/blog/how-to-prevent-spam-comments-on-wordpress/",
             "status": "implemented",
-            "note": "Redirect only after the matching migrated CMS article is published; draft or retired content returns 404."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/textzformatter-review/",
-            "action": "retire",
-            "destination": null,
+            "action": "conditional_redirect",
+            "destination": "/blog/textzformatter-review/",
             "status": "implemented",
-            "note": "Retired dated or out-of-scope article. Return a real 404 instead of redirecting it to unrelated sales content."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/project/",
@@ -575,14 +575,14 @@
             "action": "conditional_redirect",
             "destination": "/portfolio/welcome-to-travel/",
             "status": "implemented",
-            "note": "Redirect only after the matching case study is published; otherwise return 404."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/project/budget-girl/",
             "action": "conditional_redirect",
             "destination": "/portfolio/budget-girl/",
             "status": "implemented",
-            "note": "Redirect only after the matching case study is published; otherwise return 404."
+            "note": "All original editorial content is available for offline draft import. Redirect only after the matching Brand-scoped CMS replacement is published; otherwise return 404."
         },
         {
             "source": "/project_category/website-design/",
@@ -590,6 +590,77 @@
             "destination": "/services/web-design/",
             "status": "implemented",
             "note": "Consolidate old location pages into Manchester-based freelance website services; no invented local offices."
+        },
+        {
+            "source": "/home",
+            "action": "permanent_redirect",
+            "destination": "/",
+            "status": "implemented",
+            "note": "Preserve the legacy homepage entry or sitemap endpoint; redirect directly to the current equivalent."
+        },
+        {
+            "source": "/index.php",
+            "action": "permanent_redirect",
+            "destination": "/",
+            "status": "implemented",
+            "note": "Preserve the legacy homepage entry or sitemap endpoint; redirect directly to the current equivalent."
+        },
+        {
+            "source": "/sitemap_index.xml",
+            "action": "permanent_redirect",
+            "destination": "/sitemap.xml",
+            "status": "implemented",
+            "note": "Preserve the legacy homepage entry or sitemap endpoint; redirect directly to the current equivalent."
+        },
+        {
+            "source": "/wp-sitemap.xml",
+            "action": "permanent_redirect",
+            "destination": "/sitemap.xml",
+            "status": "implemented",
+            "note": "Preserve the legacy homepage entry or sitemap endpoint; redirect directly to the current equivalent."
+        },
+        {
+            "source": "/post-sitemap.xml",
+            "action": "permanent_redirect",
+            "destination": "/sitemap.xml",
+            "status": "implemented",
+            "note": "Preserve the legacy homepage entry or sitemap endpoint; redirect directly to the current equivalent."
+        },
+        {
+            "source": "/page-sitemap.xml",
+            "action": "permanent_redirect",
+            "destination": "/sitemap.xml",
+            "status": "implemented",
+            "note": "Preserve the legacy homepage entry or sitemap endpoint; redirect directly to the current equivalent."
+        },
+        {
+            "source": "/project-sitemap.xml",
+            "action": "permanent_redirect",
+            "destination": "/sitemap.xml",
+            "status": "implemented",
+            "note": "Preserve the legacy homepage entry or sitemap endpoint; redirect directly to the current equivalent."
+        },
+        {
+            "source": "/category-sitemap.xml",
+            "action": "permanent_redirect",
+            "destination": "/sitemap.xml",
+            "status": "implemented",
+            "note": "Preserve the legacy homepage entry or sitemap endpoint; redirect directly to the current equivalent."
+        },
+        {
+            "source": "/project_category-sitemap.xml",
+            "action": "permanent_redirect",
+            "destination": "/sitemap.xml",
+            "status": "implemented",
+            "note": "Preserve the legacy homepage entry or sitemap endpoint; redirect directly to the current equivalent."
+        },
+        {
+            "source": "/author-sitemap.xml",
+            "action": "permanent_redirect",
+            "destination": "/sitemap.xml",
+            "status": "implemented",
+            "note": "Preserve the legacy homepage entry or sitemap endpoint; redirect directly to the current equivalent."
         }
-    ]
+    ],
+    "crawl_report": "WEB_DESIGNS_MIGRATION_RUNBOOK.md"
 }
