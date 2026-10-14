@@ -69,8 +69,7 @@ All authenticated browser requests use Django session cookies with `credentials:
 ## Environment variables
 
 - `NEXT_PUBLIC_API_URL` - Django origin, default `http://localhost:8000`.
-- `NEXT_PUBLIC_APP_URL` - ADB Software Solutions site, default `http://localhost:3001`.
-- `NEXT_PUBLIC_ADMIN_URL` - administration application, default `http://localhost:3000`.
+- `NEXT_PUBLIC_APP_URL` - ADB Software Solutions combined public/admin site, default `http://localhost:3000`.
 - `NEXT_PUBLIC_WEB_DESIGNS_URL` - ADB Web Designs site, default `http://localhost:3002`.
 - `NEXT_PUBLIC_TECHNOLOGY_URL` - ADB Technology site, default `http://localhost:3003`.
 - `NEXT_PUBLIC_AUTH_URL` - this authentication application, default `http://localhost:3004`.

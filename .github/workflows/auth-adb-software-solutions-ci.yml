@@ -56,4 +56,4 @@ jobs:
             infisical-registry-project-id: 848009f4-aa7d-45e2-8fb6-404bd8f25115
             infisical-application-project-id: 51df9308-efb3-45b0-94ed-bf641f076acf
             build-env-file: sites/auth-adb-software-solutions/.ci.env
-            optional-build-env-keys: '["NEXT_PUBLIC_API_URL","NEXT_PUBLIC_APP_URL","NEXT_PUBLIC_ADMIN_URL","NEXT_PUBLIC_AUTH_URL","NEXT_PUBLIC_WEB_DESIGNS_URL","NEXT_PUBLIC_TECHNOLOGY_URL"]'
+            optional-build-env-keys: '["NEXT_PUBLIC_API_URL","NEXT_PUBLIC_APP_URL","NEXT_PUBLIC_AUTH_URL","NEXT_PUBLIC_WEB_DESIGNS_URL","NEXT_PUBLIC_TECHNOLOGY_URL"]'

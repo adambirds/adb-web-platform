@@ -71,6 +71,10 @@ login flow and preserve validated return destinations.
 Browser-visible configuration uses `NEXT_PUBLIC_*` values where genuinely
 required. Secrets never use `NEXT_PUBLIC_*`.
 
+`NEXT_PUBLIC_APP_URL` identifies the combined Software Solutions public/admin
+origin (locally `http://localhost:3000`). Absolute `/admin` return targets use
+that same allowed origin; administration does not need a separate URL setting.
+
 The application must continue to call the shared Django authentication APIs
 using the established session-cookie/CSRF contract.
 

@@ -446,10 +446,12 @@ does not change the compiled browser bundle.
 | `NEXT_PUBLIC_API_URL`         | Software Solutions and auth: `http://localhost:8000` | Public backend origin, e.g. `https://api.adbsoftwaresolutions.co.uk`; **without `/api`** |
 | `NEXT_PUBLIC_AUTH_URL`        | Software Solutions and auth: `http://localhost:3004` | Public authentication origin                                                             |
 | `NEXT_PUBLIC_SITE_URL`        | Software Solutions: `http://localhost:3000`          | Software Solutions canonical public origin                                               |
-| `NEXT_PUBLIC_APP_URL`         | Auth default redirect: `http://localhost:3000`       | Software Solutions public origin                                                         |
-| `NEXT_PUBLIC_ADMIN_URL`       | Auth allowed redirect: `http://localhost:3000`       | Software Solutions origin; `/admin` is the route, not a separate application             |
+| `NEXT_PUBLIC_APP_URL`         | Auth default redirect: `http://localhost:3000`       | Combined Software Solutions public/admin origin                                          |
 | `NEXT_PUBLIC_WEB_DESIGNS_URL` | Auth allowed redirect: `http://localhost:3002`       | Web Designs public origin                                                                |
 | `NEXT_PUBLIC_TECHNOLOGY_URL`  | Auth allowed redirect: `http://localhost:3003`       | Technology public origin                                                                 |
+
+Authentication uses `NEXT_PUBLIC_APP_URL` for the combined Software Solutions
+origin, including `/admin` return targets; there is no separate admin origin.
 
 For development outside Compose, create untracked `.env.local` files in the
 relevant `sites/<app>/` directory with that app's values. The auth app has its own
@@ -690,15 +692,29 @@ projects, ratings or testimonials are published. Review
 [the morning notes](docs/PUBLIC_WEBSITES_MORNING_REVIEW.md) before launch,
 especially policy/trading details, old article accuracy and case-study approval.
 
-## Web Designs Google Analytics and privacy
+## Public website Google Analytics and privacy
 
-Set `GA4_WEB_DESIGNS_MEASUREMENT_ID=G-XXXXXXXXXX` in the Web Designs runtime
-environment (Infisical in production), then redeploy. This is a public measurement
-identifier. No script loads when it is blank/invalid. In [Google Analytics](https://analytics.google.com/),
-create an account/property and a Web data stream for `https://adbwebdesigns.co.uk`;
-copy its **Measurement ID** from Admin → Data streams → the Web stream.
+Configure each public brand independently in its runtime environment (Infisical
+in production), then redeploy:
 
-The website loads normal GA4 analytics by default and offers an immediate opt-out
+| Site               | Runtime measurement ID                  |
+| ------------------ | --------------------------------------- |
+| Web Designs        | `GA4_WEB_DESIGNS_MEASUREMENT_ID`        |
+| Software Solutions | `GA4_SOFTWARE_SOLUTIONS_MEASUREMENT_ID` |
+| Technology         | `GA4_TECHNOLOGY_MEASUREMENT_ID`         |
+
+These are public identifiers of the form `G-XXXXXXXXXX`. A blank or invalid ID
+loads no Google script. In [Google Analytics](https://analytics.google.com/),
+create a property and Web stream for each brand domain; copy its **Measurement
+ID** from Admin → Data streams → the Web stream. Separate properties keep brand
+reports independent. Apply the settings below to each property.
+
+The public layouts read these values after Next.js's request boundary, so runtime
+Infisical values do not have to be present when images are built. Analytics lives
+inside the public route group; Software `/admin` and account/security routes do
+not load it. No frontend build arguments or additional Redis services are needed.
+
+Each public website loads normal GA4 analytics by default and offers an immediate opt-out
 on `/privacy-policy/` and `/cookie-policy/`. Opt-out disables collection and clears
 GA cookies; its choice cookie lasts 12 months. Theme persistence can also be
 disabled. Code disables advertising consent, Google signals and advertising
@@ -736,3 +752,20 @@ protected relationships before approval. Apply CRM migration 0006 and grant the
 review capabilities through Users & Access. Existing Celery workers/Beat run the
 daily scan; no extra environment variables or Redis are needed. See
 [Lead retention](docs/LEAD_RETENTION.md) for scope, permissions and mailbox/backups.
+
+## Public brand design and editing
+
+All three brands use the approved Web Designs visual language: dark by default,
+a light/dark switch, large logos and typography, cyan sections and numbered inner
+pages. Software introduces applications/integrations/automation; Technology uses
+a source-to-server sequence. Their services, About and area copy remain separate.
+Published projects, articles, testimonials and FAQs remain Brand-scoped CMS data.
+
+Edit each site's `src/content/home.ts`, `site.ts`, `page-design.ts` and
+`policies.ts`. Shared presentation styles are in
+`packages/ui/src/public/family.css`; shared policy text is parameterised in
+`packages/ui/src/public/policies.ts`. Brand facts and service terms are passed
+from local content files. Do not put marketing styles or analytics in Software's
+root or admin layout. Software's policies additionally describe signed-in
+operations and necessary authentication storage. No contracting, core-hours
+helpdesk or unconfirmed consultancy offer has been added.
