@@ -44,3 +44,11 @@ media editing use existing `website.add_*`/`website.change_*` capabilities.
 five selected articles and the owner-confirmed recovery case study as drafts.
 It never overwrites or publishes existing content; `--dry-run` previews the scope.
 Use the admin CMS to approve copy, upload imagery and publish each record.
+
+`seed_web_designs_demo` creates a repeatable local Web Designs dataset: 12
+published portfolio entries, 12 articles, 3 explicitly fictional testimonials,
+10 FAQs and sample website-concept screenshots. It requires `DEBUG=1` and a local database host.
+Run `python backend/manage.py seed_web_designs_demo` from the repository root;
+`--clear` removes only its reserved demo records and their images, preserving
+real content and imported drafts. The entries are published to make the public
+preview complete and must be removed before production use of that database.

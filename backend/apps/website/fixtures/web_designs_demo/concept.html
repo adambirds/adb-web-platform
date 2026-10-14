@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Fictional website concept</title>
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                background: #e5e3dd;
+                color: #1c2723;
+                font:
+                    22px Arial,
+                    sans-serif;
+                width: 1800px;
+                height: 1000px;
+                overflow: hidden;
+            }
+            header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 35px 64px;
+                border-bottom: 1px solid #0002;
+                font-size: 19px;
+            }
+            header strong {
+                font-size: 29px;
+                letter-spacing: -1px;
+            }
+            nav {
+                display: flex;
+                gap: 36px;
+            }
+            nav span:last-child {
+                border-bottom: 1px solid;
+                padding-bottom: 5px;
+            }
+            .layout {
+                height: 830px;
+                position: relative;
+            }
+            .label {
+                font-size: 18px;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+            }
+            h1 {
+                font-weight: 500;
+                font-size: 112px;
+                line-height: 0.98;
+                letter-spacing: -7px;
+                margin: 24px 0 32px;
+            }
+            p {
+                font-size: 24px;
+                line-height: 1.55;
+                max-width: 580px;
+            }
+            .button {
+                display: inline-block;
+                padding: 18px 26px;
+                border: 1px solid;
+                font-size: 18px;
+                margin-top: 12px;
+            }
+            .note {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 56px;
+                padding: 18px 64px;
+                font: 16px Arial;
+                background: #17251e;
+                color: #fff;
+                display: flex;
+                justify-content: space-between;
+            }
+            .studio .layout {
+                display: grid;
+                grid-template-columns: 53% 47%;
+                padding: 78px 64px;
+                gap: 20px;
+            }
+            .studio h1 em {
+                font-family: Georgia, serif;
+                color: #657650;
+                font-weight: 400;
+            }
+            .art {
+                height: 630px;
+                position: relative;
+                background: #acbc9e;
+                overflow: hidden;
+            }
+            .art:before {
+                content: "";
+                position: absolute;
+                width: 400px;
+                height: 560px;
+                background: #eceae1;
+                border-radius: 200px 200px 0 0;
+                left: 70px;
+                top: 130px;
+                box-shadow: 25px 20px 0 #344738;
+            }
+            .art:after {
+                content: "";
+                position: absolute;
+                width: 260px;
+                height: 360px;
+                left: 350px;
+                top: 275px;
+                background: #cf5a35;
+                border-radius: 140px 140px 0 0;
+                transform: rotate(-17deg);
+            }
+            .art .circle {
+                width: 270px;
+                height: 270px;
+                border: 32px solid #253c30;
+                border-radius: 50%;
+                position: absolute;
+                right: 30px;
+                top: 40px;
+            }
+            .art small {
+                position: absolute;
+                left: 25px;
+                bottom: 25px;
+                z-index: 2;
+                background: #eceae1;
+                padding: 12px 20px;
+                font-size: 16px;
+            }
+            .goods {
+                background: #f4e4c9;
+                color: #462916;
+            }
+            .goods .layout {
+                display: grid;
+                grid-template-columns: 48% 52%;
+                padding: 60px 64px;
+            }
+            .goods h1 {
+                font-family: Georgia, serif;
+                font-size: 114px;
+                letter-spacing: -6px;
+            }
+            .goods h1 em {
+                color: #a64829;
+            }
+            .goods .art {
+                height: 650px;
+                background: #e0ae72;
+            }
+            .goods .art:before {
+                width: 330px;
+                height: 470px;
+                top: 135px;
+                left: 150px;
+                border-radius: 38px;
+                background: #f6e6c9;
+                box-shadow: 25px 20px 0 #925736;
+            }
+            .goods .art:after {
+                width: 115px;
+                height: 240px;
+                top: 60px;
+                left: 350px;
+                border-radius: 20px;
+                background: #8b4c35;
+                transform: rotate(23deg);
+            }
+            .goods .circle {
+                width: 350px;
+                height: 350px;
+                border: 80px solid #b65d35;
+                top: 280px;
+                left: 350px;
+                box-shadow: 15px 20px 0 #623d28;
+            }
+            .goods .art small {
+                bottom: 30px;
+                left: 30px;
+            }
+            .editorial {
+                background: #e9dcf0;
+                color: #3d2441;
+            }
+            .editorial .layout {
+                padding: 38px 64px;
+            }
+            .editorial .top {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .editorial h1 {
+                font-size: 145px;
+                letter-spacing: -10px;
+                margin: 15px 0 35px;
+                font-weight: 700;
+                max-width: 1150px;
+            }
+            .editorial .top p {
+                max-width: 320px;
+                font-size: 21px;
+            }
+            .tiles {
+                display: grid;
+                grid-template-columns: 1.1fr 1fr 1fr;
+                gap: 22px;
+            }
+            .tile {
+                height: 320px;
+                position: relative;
+                padding: 25px;
+                background: #e098b0;
+                overflow: hidden;
+            }
+            .tile:nth-child(2) {
+                background: #afc99d;
+            }
+            .tile:nth-child(3) {
+                background: #e9b575;
+            }
+            .tile:before {
+                content: "";
+                position: absolute;
+                border: 35px solid #523a5e;
+                width: 250px;
+                height: 280px;
+                top: 85px;
+                left: 170px;
+                border-radius: 130px 130px 0 0;
+                transform: rotate(20deg);
+            }
+            .tile:nth-child(2):before {
+                border-radius: 50%;
+                border-color: #2f684c;
+                transform: rotate(-25deg);
+                border-width: 55px;
+            }
+            .tile:nth-child(3):before {
+                background: #b45931;
+                border: 0;
+                transform: rotate(20deg);
+                border-radius: 10px;
+            }
+            .tile span {
+                position: relative;
+                z-index: 1;
+                background: #fff9;
+                padding: 8px 12px;
+                font-size: 17px;
+            }
+            .local {
+                background: #eaf1e9;
+                color: #243c37;
+            }
+            .local .layout {
+                padding: 60px 64px;
+            }
+            .local h1 {
+                font-family: Georgia, serif;
+                font-size: 125px;
+                max-width: 1000px;
+                margin-top: 0;
+            }
+            .local .split {
+                display: grid;
+                grid-template-columns: 60% 40%;
+                gap: 35px;
+            }
+            .local .art {
+                height: 700px;
+                background: #3e6e60;
+            }
+            .local .art:before {
+                width: 430px;
+                height: 530px;
+                left: 80px;
+                top: 220px;
+                background: #c5d6b9;
+                box-shadow: 35px 20px 0 #203f35;
+                transform: rotate(16deg);
+            }
+            .local .art:after {
+                width: 230px;
+                height: 340px;
+                left: 330px;
+                top: 100px;
+                background: #e9b280;
+                transform: rotate(-20deg);
+                border-radius: 120px 120px 0 0;
+            }
+            .local .art .circle {
+                border-color: #eddfba;
+            }
+            .local .sub {
+                display: flex;
+                gap: 40px;
+                border-top: 1px solid #2343;
+                margin-top: 60px;
+                padding-top: 20px;
+            }
+            .local .sub h2 {
+                font-size: 23px;
+                font-weight: 500;
+            }
+            .local .sub p {
+                font-size: 18px;
+            }
+            .blog {
+                background: #142a31;
+                color: #e7ece2;
+            }
+            .blog .layout {
+                display: grid;
+                grid-template-columns: 65% 35%;
+                padding: 75px 64px;
+                gap: 20px;
+            }
+            .blog h1 {
+                font-size: 98px;
+                letter-spacing: -5px;
+                line-height: 1.07;
+            }
+            .blog .art {
+                background: #24464b;
+                height: 650px;
+            }
+            .blog .art:before {
+                background: #a3ccbd;
+                width: 300px;
+                height: 490px;
+                left: 45px;
+                top: 170px;
+                box-shadow: 20px 20px 0 #162f34;
+                border-radius: 16px;
+                transform: rotate(-10deg);
+            }
+            .blog .art:after {
+                background: #ea986b;
+                width: 200px;
+                height: 260px;
+                left: 205px;
+                top: 70px;
+                border-radius: 120px;
+                transform: rotate(15deg);
+            }
+            .blog .art .circle {
+                border-color: #a3ccbd;
+                width: 200px;
+                height: 200px;
+                right: 10px;
+                top: 440px;
+            }
+            .blog .art small {
+                color: #17251e;
+            }
+            .blog .note {
+                background: #a3ccbd;
+                color: #142a31;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <strong id="name"></strong>
+            <nav>
+                <span id="nav-one"></span><span id="nav-two"></span
+                ><span id="nav-three"></span>
+            </nav>
+        </header>
+        <main class="layout" id="layout"></main>
+        <footer class="note">
+            <span id="caption">Fictional website concept · Local CMS demo</span
+            ><span>ADB Web Designs / Design preview</span>
+        </footer>
+        <script>
+            const params = new URLSearchParams(location.search),
+                kind = params.get("kind") || "studio",
+                name = params.get("name") || "Fieldwork Studio",
+                title = params.get("title") || "";
+            document.body.className = kind;
+            document.getElementById("name").textContent =
+                kind === "blog" ? "ADB / Website notes" : name;
+            const nav =
+                kind === "goods"
+                    ? ["Shop", "Our story", "Your basket (0)"]
+                    : kind === "editorial"
+                      ? ["Design", "Culture", "Latest stories"]
+                      : kind === "blog"
+                        ? ["Web design", "WordPress", "Read the journal"]
+                        : ["Our work", "About us", "Get in touch ↗"];
+            nav.forEach(
+                (t, i) =>
+                    (document.getElementById(
+                        ["nav-one", "nav-two", "nav-three"][i],
+                    ).textContent = t),
+            );
+            const art =
+                '<div class="art"><div class="circle"></div><small>Original illustrated concept</small></div>';
+            let content;
+            if (kind === "studio")
+                content =
+                    '<div><div class="label">Independent design studio</div><h1>Room for<br>a different<br><em>perspective.</em></h1><p>Thoughtful spaces. Considered details. Design that feels like it belongs.</p><span class="button">Explore the studio ↗</span></div>' +
+                    art;
+            if (kind === "goods")
+                content =
+                    '<div><div class="label">The everyday, made better</div><h1>Good things.<br><em>Made to<br>keep.</em></h1><p>A collection of useful objects for a slower, warmer home.</p><span class="button">Shop the collection ↗</span></div>' +
+                    art;
+            if (kind === "editorial")
+                content =
+                    '<div class="label">A journal for the curious</div><div class="top"><h1>Find your<br>next favourite.</h1><p>New ideas, interesting people and things worth a closer look.</p></div><div class="tiles"><div class="tile"><span>Spaces & places</span></div><div class="tile"><span>Making & growing</span></div><div class="tile"><span>Objects & stories</span></div></div>';
+            if (kind === "local")
+                content =
+                    '<div class="split"><div><div class="label">An independent local business</div><h1>A little more<br>good in your<br>everyday.</h1><p>Come for something useful. Stay for a conversation. We’re glad you found us.</p><span class="button">See what we do ↗</span><div class="sub"><div><h2>Made with care</h2><p>Small details make a difference.</p></div><div><h2>Here for you</h2><p>Find your next favourite.</p></div></div></div>' +
+                    art +
+                    "</div>";
+            if (kind === "blog") {
+                content =
+                    '<div><div class="label">The website journal / Demo article</div><h1 id="article-title"></h1><p>Ideas for building, improving and looking after a business website.</p><span class="button">Read the article ↗</span></div>' +
+                    art;
+                document.getElementById("caption").textContent =
+                    "Sample editorial cover · Local CMS demo";
+            }
+            document.getElementById("layout").innerHTML = content;
+            if (kind === "blog")
+                document.getElementById("article-title").textContent = title;
+        </script>
+    </body>
+</html>
