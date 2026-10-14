@@ -24,6 +24,7 @@ ROOTS = {
     "tasks.TaskComment": "tasks",
     "tasks.CalendarEvent": "calendar",
     "crm.Lead": "leads",
+    "crm.LeadRetentionReview": "retention",
     "crm.LeadSource": "leads",
     "crm.LeadStatus": "leads",
     "ticketing.Ticket": "tickets",
@@ -110,14 +111,17 @@ def change_for(instance: Model, topic: str) -> LiveChange | None:
     elif topic == "leads":
         permission = "crm.view_lead"
     permissions = [permission]
+    if topic == "retention":
+        permissions.append("crm.view_lead")
     if topic in ("github", "monitoring"):
         permissions.append("infrastructure.view_infrastructureresource")
     context: Any = instance
     client_id = None
     queue_id = None
     internal = False
-    global_scope = (
-        topic == "leads"
+    global_scope = topic in (
+        "leads",
+        "retention",
     )  # CRM leads are staff-capability scoped, independent of Clients.
     for _ in range(7):
         if context._meta.label_lower == "clients.client":

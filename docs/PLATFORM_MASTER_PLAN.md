@@ -1135,7 +1135,15 @@ execution summary fields remain metadata-only. See
 
 ## Public website implementation
 
-All three public sites now use the approved brand-specific homepage compositions,
+The initial implementation is checkpointed at `e74c153`. Its visual design is being
+revised following user feedback; see [the reference review](PUBLIC_WEBSITE_DESIGN_REFERENCES.md).
+The user has approved the current Web Designs site and requested a checkpoint.
+Its services, locations, information, contact and editorial pages use the same
+local visual language. Software Solutions and Technology whole-site redesign
+work follows separately.
+The service scope, brand boundaries, CMS and communication architecture are unchanged.
+
+All three public sites implement brand-specific homepage compositions,
 individual service/area pages and a remembered dark/light public theme. Code-owned
 copy lives in each site's `src/content/site.ts` and `home.ts`; shared public
 primitives, metadata and safe Markdown rendering live under `packages/ui/src/public`.
@@ -1158,3 +1166,10 @@ The Web Designs WordPress migration uses relevant permanent redirects, condition
 CMS aliases and real 404s for retired content. Imported original articles remain
 unpublished drafts pending review. See the page inventory, URL migration ledger
 and morning review document before a production cutover.
+
+### Enquiry retention
+
+Unsuccessful enquiry history has a 36-month inactivity review period. The
+operations workspace provides a manually approved deletion queue, with reasoned
+keep/defer decisions. Daily Celery scans must never automatically delete Leads.
+See [Lead retention](LEAD_RETENTION.md) for the authoritative workflow and scope.

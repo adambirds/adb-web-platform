@@ -7,6 +7,7 @@ from asgiref.sync import async_to_sync
 from django.contrib.auth.models import Permission
 from django.db import transaction
 from django.test import TestCase, override_settings
+from django.utils import timezone
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from apps.access_control.models import ClientAccessGrant, StaffAccessProfile, TicketQueueAccessGrant
@@ -14,6 +15,7 @@ from apps.clients.models import Client
 from apps.core.live.events import LiveChange, can_receive, publish_change
 from apps.core.live.signals import change_for
 from apps.core.live.views import stream, stream_user
+from apps.crm.models import LeadRetentionReview
 from apps.ticketing.models import TicketQueue
 from authentication.models import User
 
@@ -178,3 +180,22 @@ class LiveEventsTests(TestCase):
                 subscription.__aexit__.assert_awaited_once()
 
         async_to_sync(consume)()
+
+    def test_retention_events_require_both_review_and_lead_visibility(self) -> None:
+        review = LeadRetentionReview(last_activity_at=timezone.now(), due_at=timezone.now())
+        event = change_for(review, "retention")
+        assert event is not None
+        self.assertTrue(event.global_scope)
+        self.assertFalse(can_receive(self.user, event))
+        self.user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="crm", codename="view_leadretentionreview"
+            )
+        )
+        self.user = User.objects.get(pk=self.user.pk)
+        self.assertFalse(can_receive(self.user, event))
+        self.user.user_permissions.add(
+            Permission.objects.get(content_type__app_label="crm", codename="view_lead")
+        )
+        self.user = User.objects.get(pk=self.user.pk)
+        self.assertTrue(can_receive(self.user, event))

@@ -64,3 +64,12 @@ as Client/Contact creation and Ticket linking. An existing custom Won stage is
 preserved. If no Won stage is configured, conversion fails before creating any
 Client or Contact. Converted leads cannot use the direct stage action to reopen
 or mark the opportunity Lost.
+
+## Retention review
+
+Lost, unconverted enquiries are reviewed after 36 months of inactivity at
+`/admin/retention`. Daily scans queue reviews; deletion always requires explicit
+approval. Keep decisions require a reason and another review date. See
+[Lead retention](../../../docs/LEAD_RETENTION.md) for eligibility, conversation
+cleanup, permissions and deployment. Domain rules live in `retention.py`; the
+API lives in `ninja/retention_views.py`.

@@ -24,6 +24,7 @@ from apps.credentials.ninja.views import credential_router
 from apps.crm.ninja.admin_views import crm_admin_router
 from apps.crm.ninja.email_views import lead_email_router
 from apps.crm.ninja.overview_views import lead_overview_router
+from apps.crm.ninja.retention_views import retention_router
 from apps.github_integration.ninja.views import github_router
 from apps.infrastructure.ninja.admin_views import infrastructure_admin_router
 from apps.infrastructure.ninja.application_repository_views import application_repository_router
@@ -98,6 +99,7 @@ admin_router.add_router("", client_command_centre_router)
 admin_router.add_router("", time_tracking_router)
 admin_router.add_router("", time_report_router)
 admin_router.add_router("", crm_admin_router)
+admin_router.add_router("", retention_router)
 admin_router.add_router("", lead_email_router)
 admin_router.add_router("", lead_overview_router)
 admin_router.add_router("", tasks_admin_router)

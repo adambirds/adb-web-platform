@@ -194,7 +194,18 @@ const navigation: NavigationGroup[] = [
     {
         label: "Administration",
         items: [
-            { label: "Celery operations", href: "/admin/celery", icon: ServerStackIcon, superuserOnly: true },
+            {
+                label: "Retention review",
+                href: "/admin/retention",
+                icon: ShieldCheckIcon,
+                permissions: ["crm.view_leadretentionreview"],
+            },
+            {
+                label: "Celery operations",
+                href: "/admin/celery",
+                icon: ServerStackIcon,
+                superuserOnly: true,
+            },
             {
                 label: "Activity & security",
                 href: "/admin/activity",
@@ -272,11 +283,12 @@ function SidebarContent({
                 {navigation.map((group) => {
                     const items = group.items.filter(
                         (item) =>
-                            (!item.superuserOnly || user?.isSuperuser === true) &&
+                            (!item.superuserOnly ||
+                                user?.isSuperuser === true) &&
                             (!item.permissions ||
-                            item.permissions.some((permission) =>
-                                hasPermission(permission),
-                            )),
+                                item.permissions.some((permission) =>
+                                    hasPermission(permission),
+                                )),
                     );
                     if (items.length === 0) return null;
 

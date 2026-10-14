@@ -632,3 +632,12 @@ Brand. Editorial image upload/removal rechecks `website.change_portfolio`,
 `website.change_blogpost` or `website.change_testimonial` in Django. Metadata view
 alone never authorises a media write. Brand scoping is enforced in public querysets
 and nested taxonomy output, not by frontend navigation visibility.
+
+### Lead retention approval
+
+The retention queue requires staff status plus `crm.view_lead` and
+`crm.view_leadretentionreview`. Scan/keep actions require
+`crm.change_leadretentionreview` and Lead view. Approving requires that capability
+plus `crm.delete_lead`, and Ticket view/delete with scope to every included Queue
+when conversations are removed. Services and APIs enforce these boundaries. See
+[Lead retention](LEAD_RETENTION.md).

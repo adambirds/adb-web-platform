@@ -669,3 +669,12 @@ copy and service slugs; FAQs carry service slugs to join code-owned service page
 Image alternative text is stored with editorial images. BlogPost retains its
 existing publication fields and respects a future publication timestamp. No
 marketing pages or operational models are moved into the CMS.
+
+### Lead retention review (October 2026)
+
+Keep Lead history for repeat enquiries; review Lost, unconverted records after
+36 months without activity. `LeadRetentionReview` stores eligibility dates,
+manual decisions, next review dates and retryable attachment cleanup keys. Its
+nullable Lead link permits a non-personal decision record to survive approval.
+Do not apply this policy automatically to Clients or unrelated Tickets. See
+[Lead retention](LEAD_RETENTION.md).

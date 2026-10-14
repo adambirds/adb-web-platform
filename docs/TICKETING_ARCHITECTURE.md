@@ -597,3 +597,12 @@ creating Tickets or requiring inbound Mailbox configuration. MIME preserves
 recipient types, attachments and plain/HTML alternatives. Bodies/account tokens
 are not persisted by the transport. SMTP/console environment configuration is
 removed; Django tests retain their isolated in-memory test backend.
+
+### Approved enquiry retention
+
+Lost Lead retention may include closed eligible enquiry conversations after
+36 months without activity and explicit staff approval. Client/vendor records,
+open/unrelated Tickets and time-linked conversations remain protected. Shared
+Lead email history is preserved until the final associated Lead is approved.
+Platform deletion does not delete Microsoft 365 mailbox copies. See
+[Lead retention](LEAD_RETENTION.md) for capability/Queue checks and cleanup.

@@ -110,3 +110,11 @@ def _lead_email_delivery_lock(message_id: int) -> Iterator[bool]:
         if acquired:
             with suppress(LockError):
                 lock.release()
+
+
+@shared_task(name="crm.refresh_retention_reviews")
+def refresh_retention_reviews_task() -> dict[str, int]:
+    """Queue expired unsuccessful leads for human review; never auto-delete leads."""
+    from apps.crm.retention import refresh_retention_reviews
+
+    return refresh_retention_reviews()

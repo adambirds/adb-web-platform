@@ -112,3 +112,29 @@ class Lead(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+class LeadRetentionReview(models.Model):
+    """Human approval is required before an expired unsuccessful lead is deleted."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Awaiting review"
+        DEFERRED = "deferred", "Keep for now"
+        CANCELLED = "cancelled", "No longer eligible"
+        DELETED = "deleted", "Deleted after approval"
+
+    lead = models.OneToOneField(
+        Lead, on_delete=models.SET_NULL, null=True, related_name="retention_review"
+    )
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
+    last_activity_at = models.DateTimeField()
+    due_at = models.DateTimeField(db_index=True)
+    review_after = models.DateTimeField(null=True, blank=True)
+    decision_reason = models.TextField(blank=True)
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    decided_at = models.DateTimeField(null=True, blank=True)
+    pending_storage_keys = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

@@ -560,3 +560,11 @@ per execution, 8,000 characters per message) and retained for 14 days. The API
 rechecks active staff superuser access; SSE transports only refresh hints. Existing
 execution summary fields remain metadata-only. See
 [Celery operations](CELERY_DASHBOARD.md) for scope and capture limits.
+
+### Manual enquiry retention review
+
+Implemented: 36-month Lost/unconverted Lead review queue at `/admin/retention`,
+daily scan, permissioned approval, reasoned keep decisions and attachment cleanup
+retry. Automatic deletion is disabled by design. Deployment requires migration
+`crm.0006_lead_retention_reviews`, existing workers/Beat and permission grants.
+See [Lead retention](LEAD_RETENTION.md).
