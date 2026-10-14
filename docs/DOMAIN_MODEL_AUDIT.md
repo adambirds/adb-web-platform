@@ -678,3 +678,14 @@ manual decisions, next review dates and retryable attachment cleanup keys. Its
 nullable Lead link permits a non-personal decision record to survive approval.
 Do not apply this policy automatically to Clients or unrelated Tickets. See
 [Lead retention](LEAD_RETENTION.md).
+
+### Offline WordPress draft migration (15 October 2026)
+
+No new content models are required. A versioned JSON export retains public source
+HTML/IDs/taxonomies/authors and original media bytes. The offline importer creates
+BlogPost and Portfolio drafts scoped only to the matching Brand, preserves
+existing records/publication and validates files before writes. Portfolio body
+copy occupies `solution`; missing project claims are not invented. Original
+marketing pages are archived for reference and remain code-owned. Existing
+cross-Brand taxonomy collisions must stop import rather than extend visibility.
+See [the archive guide](migrations/README.md) for the runbook and tests.

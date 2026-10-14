@@ -26,3 +26,11 @@ Stage intended new files before linting: `tools/lint` discovers files through
 Git. Do not hand-edit generated requirement locks; see
 [backend requirements](../backend/requirements/README.md).
 See [contributing](../CONTRIBUTING.md) for the complete working conventions.
+
+## WordPress migration commands
+
+Run `python backend/manage.py export_wordpress_content` before cutover and
+`python backend/manage.py import_wordpress_content` afterwards. The complete
+[archive guide](../docs/migrations/README.md) covers the versioned JSON, embedded
+original images, offline restoration and draft review. The exporter is read-only;
+the importer never publishes or overwrites existing editorial records.

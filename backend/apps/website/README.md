@@ -40,10 +40,14 @@ PNG/JPEG/WebP up to 8 MB and 20 million pixels, strips metadata, resizes to 2400
 pixels maximum and saves WebP. Raw SVG/HTML uploads are rejected. Publication and
 media editing use existing `website.add_*`/`website.change_*` capabilities.
 
-`import_web_designs_content` reads the ignored WordPress JSON archive and imports
-five selected articles and the owner-confirmed recovery case study as drafts.
-It never overwrites or publishes existing content; `--dry-run` previews the scope.
-Use the admin CMS to approve copy, upload imagery and publish each record.
+`export_wordpress_content` creates a versioned, self-contained public WordPress
+JSON archive with original media bytes and small frontend URL manifests.
+`import_wordpress_content` restores every archived post/project as a Brand-scoped
+draft without contacting WordPress. Reruns preserve existing records and files;
+`--dry-run` validates without writes. Marketing pages are archived for reference.
+The old five-article importer has been replaced. See
+[the migration archive guide](../../../docs/migrations/README.md) for the exact
+export, Git checkpoint, offline import and review commands.
 
 `seed_web_designs_demo` creates a repeatable local Web Designs dataset: 12
 published portfolio entries, 12 articles, 3 explicitly fictional testimonials,

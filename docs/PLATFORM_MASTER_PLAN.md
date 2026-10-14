@@ -1166,8 +1166,14 @@ identity authority is introduced.
 
 The Web Designs WordPress migration uses relevant permanent redirects, conditional
 CMS aliases and real 404s for retired content. Imported original articles remain
-unpublished drafts pending review. See the page inventory, URL migration ledger
-and morning review document before a production cutover.
+unpublished drafts pending review. A version-controlled, self-contained JSON
+archive preserves all published posts/projects, page references, taxonomy, authors
+and original media bytes before WordPress is switched off. The offline importer
+creates all blog/portfolio drafts for Web Designs without overwriting records or
+publishing them; ordinary marketing pages remain code-owned. All exported
+editorial aliases remain publication-gated. See the
+[migration archive guide](migrations/README.md), page inventory and URL migration
+ledger before a production cutover.
 
 ### Enquiry retention
 
