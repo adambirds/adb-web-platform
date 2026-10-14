@@ -10,6 +10,7 @@ import type { PublicSite } from "@adb/ui/public/types";
 function routes(site: PublicSite) {
     return new Set([
         "/",
+        "/sitemap.xml",
         "/services/",
         "/contact/",
         "/contact/thank-you/",
@@ -98,3 +99,29 @@ for (const brand of [web, software, technology]) {
         expect(familyParagraph?.startsWith(brand.name)).toBe(true);
     });
 }
+
+it("legacy homepage and sitemap endpoints redirect directly to their replacements", () => {
+    for (const source of ["/home", "/index.php"]) {
+        expect(redirects).toContainEqual({
+            source,
+            destination: "/",
+            permanent: true,
+        });
+    }
+    for (const source of [
+        "/sitemap_index.xml",
+        "/wp-sitemap.xml",
+        "/post-sitemap.xml",
+        "/page-sitemap.xml",
+        "/project-sitemap.xml",
+        "/category-sitemap.xml",
+        "/project_category-sitemap.xml",
+        "/author-sitemap.xml",
+    ]) {
+        expect(redirects).toContainEqual({
+            source,
+            destination: "/sitemap.xml",
+            permanent: true,
+        });
+    }
+});

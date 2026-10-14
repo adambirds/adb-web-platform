@@ -238,5 +238,55 @@
         "source": "/project_category/website-design",
         "destination": "/services/web-design/",
         "permanent": true
+    },
+    {
+        "source": "/home",
+        "destination": "/",
+        "permanent": true
+    },
+    {
+        "source": "/index.php",
+        "destination": "/",
+        "permanent": true
+    },
+    {
+        "source": "/sitemap_index.xml",
+        "destination": "/sitemap.xml",
+        "permanent": true
+    },
+    {
+        "source": "/wp-sitemap.xml",
+        "destination": "/sitemap.xml",
+        "permanent": true
+    },
+    {
+        "source": "/post-sitemap.xml",
+        "destination": "/sitemap.xml",
+        "permanent": true
+    },
+    {
+        "source": "/page-sitemap.xml",
+        "destination": "/sitemap.xml",
+        "permanent": true
+    },
+    {
+        "source": "/project-sitemap.xml",
+        "destination": "/sitemap.xml",
+        "permanent": true
+    },
+    {
+        "source": "/category-sitemap.xml",
+        "destination": "/sitemap.xml",
+        "permanent": true
+    },
+    {
+        "source": "/project_category-sitemap.xml",
+        "destination": "/sitemap.xml",
+        "permanent": true
+    },
+    {
+        "source": "/author-sitemap.xml",
+        "destination": "/sitemap.xml",
+        "permanent": true
     }
 ]
