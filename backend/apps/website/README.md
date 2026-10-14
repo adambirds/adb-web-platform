@@ -52,3 +52,20 @@ Run `python backend/manage.py seed_web_designs_demo` from the repository root;
 `--clear` removes only its reserved demo records and their images, preserving
 real content and imported drafts. The entries are published to make the public
 preview complete and must be removed before production use of that database.
+
+`seed_public_brand_demo` supplies separate local Software Solutions and Technology
+previews: 3 projects, 3 articles, 2 fictional testimonials and 6 FAQs per Brand.
+The bundled images are original fictional application/operational workspace
+concepts, rather than Web Designs screenshots. It requires `DEBUG=1` and a local
+database host, preserves edits on repeat runs and rejects reserved-ID collisions.
+
+```bash
+DEBUG=1 python backend/manage.py seed_public_brand_demo
+DEBUG=1 python backend/manage.py seed_public_brand_demo --brand software
+DEBUG=1 python backend/manage.py seed_public_brand_demo --brand technology --clear
+DEBUG=1 python backend/manage.py seed_public_brand_demo --clear
+```
+
+Cleanup removes only the selected Brand's reserved `demo-ss-` / `demo-tech-`
+records and images. Real content and Web Designs demos are preserved. Remove
+these published preview records before using the database for production.

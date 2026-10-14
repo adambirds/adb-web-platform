@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Fictional application concepts</title>
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                background: #dddeda;
+                color: #142223;
+                font:
+                    16px Arial,
+                    sans-serif;
+                padding: 45px;
+            }
+            .frame {
+                height: 810px;
+                background: #f8f9f5;
+                display: grid;
+                grid-template-columns: 210px 1fr;
+                border: 1px solid #bfcac8;
+                box-shadow: 0 24px 50px #18332b20;
+            }
+            aside {
+                background: #18332b;
+                color: #f2f7ed;
+                padding: 35px 25px;
+            }
+            aside h1 {
+                font-size: 23px;
+                line-height: 1.15;
+                margin: 0 0 45px;
+            }
+            aside p {
+                font-size: 12px;
+                letter-spacing: 0.12em;
+                margin: 30px 0 15px;
+                color: #98b5a6;
+            }
+            aside div {
+                padding: 16px 12px;
+                border-top: 1px solid #496257;
+            }
+            aside .active {
+                background: #d5f7df;
+                color: #18332b;
+            }
+            main {
+                padding: 30px 45px;
+                min-width: 0;
+            }
+            .top {
+                display: flex;
+                justify-content: space-between;
+                border-bottom: 1px solid #cad3ce;
+                padding-bottom: 22px;
+                font-size: 12px;
+                letter-spacing: 0.08em;
+            }
+            .demo {
+                background: #eff97d;
+                color: #253019;
+                padding: 8px 12px;
+            }
+            header {
+                margin: 40px 0 30px;
+                display: flex;
+                align-items: end;
+                justify-content: space-between;
+            }
+            header h2 {
+                font-size: 38px;
+                letter-spacing: -0.035em;
+                margin: 0 0 12px;
+            }
+            header p {
+                color: #58645f;
+                margin: 0;
+            }
+            button {
+                background: #18332b;
+                color: white;
+                border: 0;
+                padding: 16px 22px;
+                font: inherit;
+            }
+            .strip {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 18px;
+                margin-bottom: 28px;
+            }
+            .strip section {
+                padding: 20px;
+                background: #e7eee7;
+                border-top: 3px solid #508570;
+            }
+            .strip strong {
+                display: block;
+                font-size: 26px;
+                margin-top: 12px;
+            }
+            .strip span {
+                font-size: 13px;
+                color: #51625c;
+            }
+            .workspace {
+                border: 1px solid #cad3ce;
+                background: white;
+            }
+            .workspace h3 {
+                font-size: 17px;
+                padding: 20px 25px;
+                border-bottom: 1px solid #cad3ce;
+                margin: 0;
+                display: flex;
+                justify-content: space-between;
+            }
+            .workspace h3 span {
+                font-size: 12px;
+                font-weight: normal;
+                color: #68766c;
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                font-size: 14px;
+            }
+            td,
+            th {
+                text-align: left;
+                padding: 21px 25px;
+                border-bottom: 1px solid #e2e8e1;
+            }
+            th {
+                font-size: 12px;
+                color: #617169;
+            }
+            .badge {
+                background: #e8f4e6;
+                color: #295438;
+                padding: 7px 10px;
+                border-radius: 3px;
+            }
+            .note {
+                font-size: 12px;
+                color: #64766d;
+                margin-top: 25px;
+                display: flex;
+                justify-content: space-between;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="frame">
+            <aside>
+                <h1 id="name">Order workspace</h1>
+                <p>WORKSPACE</p>
+                <div class="active" id="nav">Overview</div>
+                <div>Activity</div>
+                <div>Connections</div>
+                <div>Settings</div>
+                <p>DESIGN CONCEPT</p>
+                <div>Fictional preview</div>
+            </aside>
+            <main>
+                <div class="top">
+                    <span>ADB / LOCAL DESIGN STUDY</span
+                    ><span class="demo">DEMO — NOT CLIENT WORK</span>
+                </div>
+                <header>
+                    <div>
+                        <h2 id="title">Order workspace</h2>
+                        <p id="description">
+                            One place to follow an order from enquiry to
+                            handover.
+                        </p>
+                    </div>
+                    <button id="action">New order +</button>
+                </header>
+                <div class="strip">
+                    <section>
+                        <span id="stat1">New enquiries</span
+                        ><strong id="value1">12</strong>
+                    </section>
+                    <section>
+                        <span id="stat2">In progress</span
+                        ><strong id="value2">8</strong>
+                    </section>
+                    <section>
+                        <span id="stat3">Ready for review</span
+                        ><strong id="value3">4</strong>
+                    </section>
+                </div>
+                <div class="workspace">
+                    <h3>
+                        <span id="tabletitle">Recent activity</span
+                        ><span>Illustrative sample data</span>
+                    </h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th id="column1">Reference</th>
+                                <th id="column2">Work item</th>
+                                <th>Status</th>
+                                <th>Owner</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rows"></tbody>
+                    </table>
+                </div>
+                <div class="note">
+                    <span
+                        >Original HTML/CSS concept. Fictional data
+                        throughout.</span
+                    ><span>Local CMS preview / 01</span>
+                </div>
+            </main>
+        </div>
+        <script>
+            const index = Number(
+                    new URLSearchParams(location.search).get("index") || 0,
+                ),
+                tech =
+                    new URLSearchParams(location.search).get("brand") ===
+                    "technology";
+            const software = [
+                {
+                    name: "Order workspace",
+                    description:
+                        "An illustrative business application, with connected order information.",
+                    action: "New order +",
+                    stats: ["Enquiries", "In progress", "Review queue"],
+                    values: ["12", "8", "4"],
+                    rows: [
+                        "Website enquiry",
+                        "Stock reservation",
+                        "Invoice preparation",
+                        "Delivery update",
+                    ],
+                },
+                {
+                    name: "System connections",
+                    description:
+                        "A fictional integration workspace for following data between tools.",
+                    action: "View connections ↗",
+                    stats: [
+                        "Connected systems",
+                        "Queued updates",
+                        "Checks complete",
+                    ],
+                    values: ["3", "14", "6"],
+                    rows: [
+                        "Order → stock",
+                        "Stock → accounts",
+                        "Accounts → workspace",
+                        "Customer → notifications",
+                    ],
+                },
+                {
+                    name: "Field notes",
+                    description:
+                        "An illustrative mobile workflow and its supporting application.",
+                    action: "New visit +",
+                    stats: [
+                        "Visits planned",
+                        "Reports received",
+                        "Awaiting review",
+                    ],
+                    values: ["7", "11", "3"],
+                    rows: [
+                        "Site visit report",
+                        "Equipment checklist",
+                        "Photo upload",
+                        "Review notes",
+                    ],
+                },
+            ];
+            const technology = [
+                {
+                    name: "Release workspace",
+                    description:
+                        "A fictional pipeline view, from source checks to a release.",
+                    action: "View release ↗",
+                    stats: ["Environments", "Checks", "Release stage"],
+                    values: ["3", "6 / 6", "Review"],
+                    rows: [
+                        "Build application",
+                        "Run checks",
+                        "Prepare release",
+                        "Deployment review",
+                    ],
+                },
+                {
+                    name: "Migration plan",
+                    description:
+                        "An illustrative move between environments, with checks and rollback.",
+                    action: "View plan ↗",
+                    stats: ["Applications", "Checks complete", "Next step"],
+                    values: ["2", "4 / 5", "Review"],
+                    rows: [
+                        "Inventory dependencies",
+                        "Prepare target",
+                        "Restore sample data",
+                        "Check rollback plan",
+                    ],
+                },
+                {
+                    name: "Server handover",
+                    description:
+                        "A fictional server rebuild and its operational documentation.",
+                    action: "Open handover ↗",
+                    stats: ["Hosts", "Configuration", "Handover"],
+                    values: ["2", "Versioned", "Ready"],
+                    rows: [
+                        "Provision environment",
+                        "Apply configuration",
+                        "Verify services",
+                        "Review documentation",
+                    ],
+                },
+            ];
+            const d = (tech ? technology : software)[index];
+            document.getElementById("name").textContent = d.name;
+            document.getElementById("title").textContent = d.name;
+            document.getElementById("description").textContent = d.description;
+            document.getElementById("action").textContent = d.action;
+            d.stats.forEach((v, i) => {
+                document.getElementById("stat" + (i + 1)).textContent = v;
+                document.getElementById("value" + (i + 1)).textContent =
+                    d.values[i];
+            });
+            d.rows.forEach((v, i) => {
+                const tr = document.createElement("tr");
+                [
+                    "DEMO / 0" + (i + 1),
+                    v,
+                    i === 3 ? "Review" : "Complete",
+                    "Sample team",
+                ].forEach((text, j) => {
+                    const td = document.createElement("td");
+                    if (j === 2) {
+                        const span = document.createElement("span");
+                        span.className = "badge";
+                        span.textContent = text;
+                        td.append(span);
+                    } else td.textContent = text;
+                    tr.append(td);
+                });
+                document.getElementById("rows").append(tr);
+            });
+        </script>
+    </body>
+</html>
