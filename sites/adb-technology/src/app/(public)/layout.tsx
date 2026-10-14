@@ -28,6 +28,7 @@ export default async function PublicLayout({
             />
             <SiteHeader
                 site={site}
+                darkLogoSrc="/brand/logo-cyan-white.png"
                 hasWork={Boolean(content.work.total)}
                 hasBlog={Boolean(content.articles.total)}
             />

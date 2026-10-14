@@ -47,3 +47,10 @@ Run `DEBUG=1 python backend/manage.py seed_public_brand_demo --brand technology`
 from the repository root to recreate the previews. Add `--clear` to remove only
 this Brand's reserved demo entries and images. Seeding preserves existing edits
 and rejects production/non-local configuration. Remove demos before launch.
+
+## Logo assets
+
+`public/brand/logo-light.png` uses the cyan/navy artwork for light pages.
+`logo-cyan-white.png` uses cyan/white, matching the other ADB websites on dark pages
+and social cards. Its editable vector source is `public/brand/logo-cyan-white.svg`;
+retain the transparent background and export at 2400 × 1520 when updating it.

@@ -11,7 +11,7 @@ export async function GET(request: Request) {
         new URL(request.url).searchParams.get("title")?.trim().slice(0, 110) ||
         `${homeCopy.hero.headline} ${homeCopy.hero.headlineSecondLine}`;
     const [logo, font] = await Promise.all([
-        readFile(join(process.cwd(), "public/brand/logo-dark.png")),
+        readFile(join(process.cwd(), "public/brand/logo-cyan-white.png")),
         readFile(join(process.cwd(), "public/fonts/ArchivoBlack-Regular.ttf")),
     ]);
     return new ImageResponse(

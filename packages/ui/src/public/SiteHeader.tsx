@@ -8,10 +8,12 @@ export function SiteHeader({
     site,
     hasWork,
     hasBlog,
+    darkLogoSrc = "/brand/logo-dark.png",
 }: {
     site: PublicSite;
     hasWork: boolean;
     hasBlog: boolean;
+    darkLogoSrc?: string;
 }) {
     const links = [
         {title: "Services", href: "/services/"},
@@ -41,7 +43,7 @@ export function SiteHeader({
                         />
                         <Image
                             className="logo-dark"
-                            src="/brand/logo-dark.png"
+                            src={darkLogoSrc}
                             alt={site.name}
                             width={132}
                             height={62}
