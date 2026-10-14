@@ -1,12 +1,15 @@
 "use client";
 import {useEffect, useState} from "react";
+import {readPrivacyPreferences} from "./privacy";
 
 export function ThemeToggle() {
     const [theme, setTheme] = useState("dark");
     useEffect(() => {
         const shell = document.querySelector<HTMLElement>(".marketing");
         try {
-            const saved = localStorage.getItem("adb-public-theme");
+            const saved = readPrivacyPreferences().rememberTheme
+                ? localStorage.getItem("adb-public-theme")
+                : null;
             if (saved === "light") {
                 setTheme(saved);
                 if (shell) shell.dataset.theme = saved;
@@ -21,7 +24,8 @@ export function ThemeToggle() {
         const shell = document.querySelector<HTMLElement>(".marketing");
         if (shell) shell.dataset.theme = next;
         try {
-            localStorage.setItem("adb-public-theme", next);
+            if (readPrivacyPreferences().rememberTheme)
+                localStorage.setItem("adb-public-theme", next);
         } catch {
             /* Optional preference. */
         }

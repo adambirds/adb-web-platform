@@ -7,7 +7,7 @@ import {
 } from "@adb/api-client/public";
 import { apiOptions, optionalCollection } from "@adb/ui/public/server";
 import { legacyAliases } from "@/content/legacy-aliases";
-import { PublicPages } from "@adb/ui/public/PublicPages";
+import { WebPages } from "./WebPages";
 import { site } from "@/content/site";
 export async function MarketingPage({
     path,
@@ -17,7 +17,7 @@ export async function MarketingPage({
     search: Record<string, string | string[] | undefined>;
 }) {
     await legacyDestination(path);
-    return <PublicPages site={site} path={path} search={search} />;
+    return <WebPages path={path} search={search} />;
 }
 
 export async function legacyDestination(path: string[]) {

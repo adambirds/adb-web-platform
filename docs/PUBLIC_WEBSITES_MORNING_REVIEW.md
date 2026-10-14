@@ -99,3 +99,16 @@ are saved in the ignored `website-mockup/production-preview/` folder.
 Before launch, review the policy/trading information and all imported drafts,
 approve service wording and confirm whether the unadvertised broader consultancy
 service should remain excluded. The websites can be previewed and edited now.
+
+## Policy and retention decisions — 6 October 2026
+
+Web Designs policies now describe Adam Birds trading as ADB Web Designs, contact
+through a form, DigitalOcean London hosting, intended launch GA4 statistics
+enabled by default, and 36-month unsuccessful enquiry review with mandatory
+approval. Earlier notes about absent analytics or permanent enquiries are
+superseded. Cookies/preferences controls are implemented on privacy and cookie
+pages. Set the measurement ID and complete the root README Google setup before
+launch. No address is published, as requested; business correspondence/address
+requirements remain a launch review item. Confirm Google contractual/UK transfer
+arrangements and Microsoft 365 data locations rather than assuming all providers
+process data only in London. Mailbox copies/backups need separate retention.

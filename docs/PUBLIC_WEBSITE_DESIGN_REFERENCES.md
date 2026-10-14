@@ -123,3 +123,73 @@ reference-site imagery, slogans and distinctive artwork are not ADB assets.
 
 This review changes the proposed visual direction. It does not approve prices,
 availability, additional services, fabricated evidence or publication of drafts.
+
+## First implementation pass after the checkpoint
+
+The complete initial website/CMS implementation is saved in commit `e74c153`
+(`feat: Build three public brand websites and publishing workflows.`). The user
+explicitly authorised this checkpoint before beginning the redesign.
+
+The subsequent redesign runs in the three existing apps:
+
+- Web Designs uses Archivo Black display typography, offset headline alignment,
+  a full-width image/story feature and a larger introduction with Adam's portrait.
+- Software Solutions uses DM Sans, serif emphasis and an explicitly illustrative
+  business workflow. It is not presented as delivered client work.
+- Technology uses Space Grotesk, monospace labels and an explicitly labelled
+  reference release flow linking into the relevant services.
+- Typography and brand styling also carry through service, about, contact and CMS
+  pages. Dark/light themes and the existing route/SEO contracts are retained.
+- Fonts are served locally, with their upstream Open Font License files included.
+  The new homepage text remains in each brand's `src/content/home.ts`.
+
+**Image assumption for review:** when Web Designs has no published CMS projects,
+its feature uses the supplied Welcome to Travel mockup and the previously
+confirmed hacked/malware-infected starting situation. This is a code-owned service
+example linking to website rescue, not publication of the CMS draft case study.
+No draft case-study body, recovery metrics or attack details are exposed.
+Published CMS projects replace that fallback and retain selectable project controls.
+
+Desktop/mobile and light-mode captures are available locally in the ignored
+`website-mockup/redesign-preview/` directory. These are review artifacts; the
+implementation is in the actual apps. This pass is ready for visual feedback,
+not a declaration that the user has approved the new design.
+
+Validation for this pass includes all three production builds; the 18 public-site
+and featured-project tests; an actual browser crawl of 77 pages and 96 permanent
+redirect requests; populated CMS fixture checks; desktop, 390px and 320px checks
+of home/service/about/contact pages; fonts, images and theme switching; and
+explicit ESLint, Stylelint, formatting and repository lint checks. No backend
+model, migration, API or operational workflow was changed by the redesign.
+
+## Approved Web Designs direction: whole-site rollout
+
+The user approved the redesigned Web Designs homepage and asked to carry that
+look through the whole site before revisiting Software Solutions and Technology.
+Web Designs now uses local page compositions for the service directory, individual
+services, location pages, About, working arrangements, contact, policies, CMS
+collections and detail pages, thank-you and 404. The homepage remains the reference:
+Archivo display type, dark/white contrast, cyan scope bands, numbered sections,
+large imagery and a larger footer. Shared public forms, safe Markdown, pagination,
+metadata and Brand-scoped CMS APIs remain authoritative.
+
+The local CMS has 12 fictional projects, 12 articles, 3 sample testimonials and
+10 FAQs with clearly labelled original demo cover art. The development-only
+`seed_web_designs_demo` command is repeatable; `--clear` removes its reserved
+records and images while preserving real content and imported drafts. This is
+preview data, not evidence of delivered projects or genuine endorsements.
+
+Local review captures are in the ignored `website-mockup/web-designs-full-review/`
+directory. Browser checks cover 36 populated routes, 96 single-hop permanent
+redirect requests, canonical metadata/schema, images, search, pagination, theme,
+menus, project switching and 320/390px widths. Backend tests verify repeatable
+seeding, Web Designs isolation, production rejection and selective cleanup.
+
+## Whole-site approval and checkpoint — 14 October 2026
+
+The user approved the current Web Designs site and requested focused commits.
+The checkpoint includes its full page rollout, larger logo, revised copy,
+fictional CMS preview dataset, policies and privacy controls. Earlier Software
+Solutions and Technology homepage studies are checkpointed separately; their
+whole-site redesigns remain future work. The associated manually approved Lead
+retention workflow is documented in `LEAD_RETENTION.md`. Nothing is deployed.

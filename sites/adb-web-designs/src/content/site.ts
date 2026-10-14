@@ -1,3 +1,4 @@
+import { websitePolicies } from "./policies";
 import type { PublicSite } from "@adb/ui/public/types";
 
 /** Edit marketing copy here. Editorial content lives in the brand-scoped CMS. */
@@ -137,7 +138,7 @@ export const site: PublicSite = {
                 {
                     heading: "Make the next step manageable",
                     paragraphs: [
-                        "After recovery, we discuss updates, backups, access ownership and ongoing maintenance. The aim is to leave an understandable website and a practical plan for looking after it. The scope and findings determine the work; a recovery is not a blanket security guarantee.",
+                        "Once the site is recovered, I’ll help you put updates, backups and safer access in place. Ongoing maintenance is available to keep the website looked after.",
                     ],
                 },
                 {
@@ -175,7 +176,7 @@ export const site: PublicSite = {
             description:
                 "Website hosting with agreed management and a direct developer contact. Hosting for suitable business websites, discussed around the actual setup.",
             introduction:
-                "Your website needs somewhere suitable to run. I offer website hosting and help choose a setup that fits the platform, traffic, data and integrations involved. Management responsibilities are agreed clearly, rather than left implicit.",
+                "Give your website a reliable home. I offer hosting for business websites and help move existing sites, with a setup that suits the platform and the way your website is used.",
             sections: [
                 {
                     heading: "Match hosting to the website",
@@ -186,13 +187,13 @@ export const site: PublicSite = {
                 {
                     heading: "Moving an existing site",
                     paragraphs: [
-                        "A hosting move can involve website files, databases, domains, certificates and scheduled jobs. We identify the dependencies, discuss the cutover and agree checks for the new setup. Related email services need their own migration decision rather than an accidental change.",
+                        "I can move your website files and database, configure its domain and SSL certificate, and check the new hosting before switching over. I’ll also check whether the move affects your email or other connected services.",
                     ],
                 },
                 {
                     heading: "Know what is included",
                     paragraphs: [
-                        "Hosting and website maintenance are related services, but they cover different work. We agree the environment responsibilities, backup arrangements and any ongoing application maintenance. Availability and response arrangements belong in the agreed service scope.",
+                        "Hosting keeps the website running; maintenance keeps its software up to date. I can help with both, including backups and updates for your particular website.",
                     ],
                 },
             ],
@@ -284,7 +285,7 @@ export const site: PublicSite = {
                 {
                     heading: "Work through the buying journey",
                     paragraphs: [
-                        "Navigation, product pages, baskets and checkout all need attention. We agree the content you will provide and the configuration required for the shop. Shipping, tax and payment settings need business decisions from you rather than guesses in the build.",
+                        "Make it easy for customers to find a product and complete their order. I build product pages, navigation, baskets and checkout, and work with you to set up payments, shipping and tax settings for your shop.",
                     ],
                 },
                 {
@@ -328,12 +329,12 @@ export const site: PublicSite = {
             description:
                 "Technical SEO and local SEO for business websites. Site structure, indexing, performance and accurate local business information, focused on the website and its visibility.",
             introduction:
-                "A website needs a sound technical structure and clear information about the business it represents. I work on technical SEO and local SEO, addressing the site and local visibility rather than selling an unrelated marketing package.",
+                "Help customers find your business through search. I work on technical SEO and local SEO: fixing problems that hold your website back and making your services and location easier for search engines to understand.",
             sections: [
                 {
                     heading: "Review the technical foundations",
                     paragraphs: [
-                        "The review can cover crawlable pages, indexing instructions, canonical URLs, redirects, metadata, structured data and performance issues. Findings should turn into specific changes with a clear reason, rather than a list of unexplained scores.",
+                        "I check how search engines access your pages, look for indexing and redirect problems, and review page titles, descriptions, structured data and performance. You’ll get a clear explanation of what needs fixing and why.",
                     ],
                 },
                 {
@@ -351,7 +352,7 @@ export const site: PublicSite = {
                 {
                     heading: "Keep the offer clear",
                     paragraphs: [
-                        "This service does not include promised copywriting, social media management or advertising campaigns. We agree the technical and local work involved. Search positions depend on more than a website change, so rankings are not guaranteed.",
+                        "The focus is your website and local search presence. I can improve its technical foundations and help customers find accurate information about your business.",
                     ],
                 },
             ],
@@ -390,13 +391,13 @@ export const site: PublicSite = {
                 {
                     heading: "A Manchester-based developer",
                     paragraphs: [
-                        "If you want to work with someone based in the area, the project stays with the developer building the site. We can discuss your business, content and existing setup directly. Meeting arrangements are agreed rather than assumed.",
+                        "I’m Adam, a freelance web designer and developer based in Manchester. You’ll speak to me about your ideas, review the designs with me and have me build the finished website. I work on new business websites, online shops and sites that need a redesign or repair.",
                     ],
                 },
                 {
                     heading: "Local services need clear pages",
                     paragraphs: [
-                        "A website for a service business needs to explain what you do, where you work and how a customer can enquire. Local SEO work can help review the technical foundations and accurate business information supporting those pages.",
+                        "When someone searches for a business in Manchester, your website should help them understand what you offer and get in touch. I build clear service pages, make them easy to use on a phone and take care of the technical SEO that helps search engines find and understand them.",
                     ],
                 },
             ],
@@ -440,13 +441,13 @@ export const site: PublicSite = {
                 {
                     heading: "Make the next step clear",
                     paragraphs: [
-                        "A business website needs to turn a visitor’s questions into an understandable route through your services, products or enquiry form. We agree the page structure and the content needed before choosing the design.",
+                        "Your customers should be able to find what you do, see your work and contact you without hunting around. I design websites for Wigan businesses with clear navigation, readable pages and an enquiry process that’s easy to use on mobile.",
                     ],
                 },
                 {
                     heading: "Keep website ownership practical",
                     paragraphs: [
-                        "After launch, someone needs to manage content, updates and the hosting arrangement. We choose a platform you can work with and discuss maintenance where it is useful. Ecommerce and integrations can be scoped alongside the website.",
+                        "You should be able to update your own website after launch. I can build with WordPress, Shopify or Squarespace, or use Next.js for a custom build. Hosting and maintenance are available too, so there’s someone to turn to when the website needs looking after.",
                     ],
                 },
             ],
@@ -463,13 +464,13 @@ export const site: PublicSite = {
                 {
                     heading: "Working across the county",
                     paragraphs: [
-                        "You do not need to be in the same town to work through a website project. Content, design reviews and development can be organised remotely, with a clear scope and agreed review points.",
+                        "I work with Lancashire businesses from my base in Manchester. We can get started with a video call and review the website online, so you can see the design develop without travelling for every conversation.",
                     ],
                 },
                 {
                     heading: "Choose what the website needs to support",
                     paragraphs: [
-                        "A catalogue, an online shop and a service business website have different requirements. We look at the customer journey, editing tasks and integrations, then choose between supported platforms such as WordPress, Shopify, Squarespace or Next.js.",
+                        "A service business needs to explain its work and bring in enquiries. An online shop needs to make browsing and buying easy. I’ll help you choose the right platform for your business and build the pages, forms and features your customers need.",
                     ],
                 },
             ],
@@ -486,13 +487,13 @@ export const site: PublicSite = {
                 {
                     heading: "Coverage beyond the city centre",
                     paragraphs: [
-                        "I work with businesses across the region. The website still starts with your specific customers and services rather than a regional template. Manchester is the business base; areas served are not additional offices.",
+                        "From Salford and Wigan to the wider Greater Manchester area, I help businesses launch new websites and improve existing ones. Your website will be designed around your business: the work you do, the customers you want to reach and the way you want it to look.",
                     ],
                 },
                 {
                     heading: "One project, related technical work",
                     paragraphs: [
-                        "A website can depend on more than page design. Hosting, shop integrations or an application behind a form may need separate work. The related ADB businesses provide routes to discuss the appropriate software or infrastructure scope.",
+                        "I can look after the website build, hosting and maintenance. If you also need custom software or more involved infrastructure work, my related businesses, ADB Software Solutions and ADB Technology, cover those services.",
                     ],
                 },
             ],
@@ -509,7 +510,7 @@ export const site: PublicSite = {
                 {
                     heading: "A remote website project",
                     paragraphs: [
-                        "The project can be organised around a written brief, shared content and agreed design reviews. You work directly with me on scope and delivery. There is no requirement to be near Manchester to discuss a build or existing-site problem.",
+                        "I work with businesses throughout the UK. We’ll talk through what you need, review the designs together and keep in touch during the build. You’ll deal directly with the person designing and developing your website.",
                     ],
                 },
                 {
@@ -532,19 +533,19 @@ export const site: PublicSite = {
                 {
                     heading: "A UK developer, working with Australian clients",
                     paragraphs: [
-                        "I have Australian clients and deliver work remotely from Manchester. This page describes that working relationship; it does not imply an Australian office or local residency. Meeting times and review arrangements are agreed around the time difference.",
+                        "I’m based in Manchester, UK, and already work with Australian clients. You can work with me on a new website, an online shop or an existing site that needs attention, with video calls and online design reviews that fit both our time zones.",
                     ],
                 },
                 {
-                    heading: "Keep the brief and handover usable",
+                    heading: "Keep in touch throughout the build",
                     paragraphs: [
-                        "Clear written feedback and shared project information help work move between time zones. We agree who supplies content, who manages the platform and what needs documenting. Any support or meeting schedule is discussed for the actual project.",
+                        "You can look through designs and leave feedback when it suits you. I’ll keep you updated on the build and explain how to manage the finished website, so the time difference doesn’t mean losing track of your project.",
                     ],
                 },
                 {
                     heading: "Websites, shops and rescue work",
                     paragraphs: [
-                        "The scope can include a new business website, an ecommerce build or help with an existing site. Appropriate hosting, maintenance and integration arrangements are considered alongside the platform rather than assumed from the location.",
+                        "I build business websites and online shops, and recover sites affected by hacks or malware. That recovery work is how I first worked with Australian travel business Welcome to Travel. Hosting and maintenance are also available for the website after launch.",
                     ],
                 },
             ],
@@ -561,13 +562,13 @@ export const site: PublicSite = {
                 {
                     heading: "Working remotely from Manchester",
                     paragraphs: [
-                        "I work with American clients while remaining based in the UK. We agree a practical way to share content, review changes and meet when needed. US time zones differ, so meeting and response arrangements belong in the project discussion.",
+                        "I’m a UK-based freelance developer working with clients in the US as well as at home. We can discuss your website on a video call and review the design online, with calls planned around the time difference.",
                     ],
                 },
                 {
                     heading: "Build around your business requirements",
                     paragraphs: [
-                        "The platform and content should reflect how the business operates. Product structure, integrations and local business information need your input. There is no assumption of a US office, local working hours or a particular pricing currency.",
+                        "Whether you sell products, offer services or need to replace an outdated website, I’ll help you choose a platform that fits. I build with Next.js, WordPress, Shopify and Squarespace, and can connect your website to the tools your business uses.",
                     ],
                 },
                 {
@@ -585,33 +586,45 @@ export const site: PublicSite = {
             slug: "about",
             title: "About ADB Web Designs",
             description:
-                "Freelance website design, development, ecommerce, recovery, hosting, maintenance and technical/local SEO from Manchester.",
+                "Meet Adam Birds, the Manchester-based freelance designer and developer behind ADB Web Designs. Business websites, ecommerce, website rescue and ongoing care.",
             introduction:
-                "ADB Web Designs is a freelance business run by Adam Birds, based in Manchester.",
+                "I’m Adam Birds. I design, build and look after business websites from my base in Manchester, working with clients across the UK and overseas.",
             sections: [
                 {
-                    heading: "Work directly with me",
+                    heading:
+                        "One person, from the first conversation to launch",
                     paragraphs: [
-                        "I design and develop business websites, help recover compromised sites and offer hosting and ongoing maintenance. Work can use Next.js, WordPress, Shopify or Squarespace, depending on the requirements.",
-                        "The conversation, scope and technical work stay connected. You can ask questions about the decisions being made and agree what the finished work needs to include.",
+                        "ADB Web Designs is my freelance web design and development business. When you get in touch, you’ll speak to me. I’ll work through your ideas with you, design the pages and build the website.",
+                        "That means you can ask the person doing the work why something has been designed a particular way, how a feature will work or what you’ll need to manage after launch. You don’t need to turn up with a technical specification; a conversation about your business is a good place to start.",
                     ],
                 },
                 {
-                    heading: "A freelance business, with agreed availability",
+                    heading: "A website you can use, not just look at",
                     paragraphs: [
-                        "Projects and ongoing services are scoped around the work involved and an agreed schedule. Availability, delivery arrangements and response expectations are agreed before the work starts.",
+                        "The design matters, but so does everything around it. Customers need to find their way through the pages, forms need to work, and the website needs to be comfortable to use on a phone. Search engines need to be able to read it, too.",
+                        "I build with Next.js, WordPress, Shopify and Squarespace. I’ll help you choose a platform based on what you need the website to do and how you want to update it. A custom build can make sense for one business; an established platform can be a better fit for another.",
                     ],
                 },
                 {
-                    heading: "Manchester-based, working further afield",
+                    heading: "New builds, fresh starts and website rescue",
                     paragraphs: [
-                        "I work remotely as well as with businesses in the surrounding area. International work remains UK-based, with meetings and review arrangements agreed around time zones.",
+                        "You might be starting a business, replacing a website you’ve outgrown or adding an online shop. I can help with the design and build, move content from your existing site and get the new version ready for launch.",
+                        "I also help when things have gone wrong. My work with Australian travel business Welcome to Travel began with a hacked, malware-infected website. Recovering compromised sites is part of what I offer, alongside new websites and redesigns.",
+                        "Once a website is live, hosting and maintenance are available to keep it looked after. I also work on technical and local SEO, helping address the website problems that can make it harder for customers to find you.",
                     ],
                 },
                 {
-                    heading: "Three related ADB businesses",
+                    heading: "Manchester-based, with clients further afield",
                     paragraphs: [
-                        "Web Designs covers websites; Software Solutions covers bespoke applications and integrations; Technology covers the infrastructure and deployment underneath. Related service pages link to the appropriate business when a project crosses those boundaries.",
+                        "I work with businesses in Manchester, Salford, Wigan and Lancashire, as well as clients elsewhere in the UK, Australia and the US.",
+                        "For remote projects, we can talk on video calls, share designs online and review the build together. You’ll still work directly with me throughout, wherever your business is based.",
+                    ],
+                },
+                {
+                    heading: "The other sides of ADB",
+                    paragraphs: [
+                        "ADB Web Designs focuses on websites. I also run ADB Software Solutions for bespoke software, mobile apps and integrations, and ADB Technology for cloud infrastructure, migrations and deployment pipelines.",
+                        "If your website needs something beyond the usual pages and forms, we can talk about that too. The three businesses cover different types of work, with the same person behind them.",
                     ],
                 },
             ],
@@ -633,19 +646,19 @@ export const site: PublicSite = {
                 {
                     heading: "Agree the work",
                     paragraphs: [
-                        "We discuss fit, requirements, responsibilities and the scope before implementation. Dates, costs and any ongoing arrangements are agreed for the project. No fixed price or support schedule is implied by a service description.",
+                        "I’ll talk through the options with you and put together a proposal covering the work, cost and timeline. You’ll know what’s included before the build starts.",
                     ],
                 },
                 {
                     heading: "Review as the work takes shape",
                     paragraphs: [
-                        "Appropriate review points give you a chance to check the direction and clarify decisions. Material changes to the scope are discussed, so the work does not quietly become a different project.",
+                        "You’ll see the designs before they become a finished website, with time to give feedback and ask questions. As the build develops, we’ll check the pages and features together.",
                     ],
                 },
                 {
                     heading: "Check and hand over",
                     paragraphs: [
-                        "The result is checked against the agreed scope, with useful documentation and a clear understanding of who manages it afterwards. Hosting, maintenance or further development can be discussed where those services fit.",
+                        "Before launch, I’ll check the website across screen sizes and test its forms and key features. Then I’ll show you how to use it. If you’d like ongoing help, I also offer hosting and maintenance.",
                     ],
                 },
             ],
@@ -661,116 +674,24 @@ export const site: PublicSite = {
                 {
                     heading: "Local working",
                     paragraphs: [
-                        "Area pages describe places served rather than separate offices. The project, platform and business requirements still determine the work; a location name is not a substitute for a useful brief.",
+                        "I’m based in Manchester and build websites for businesses across Salford, Wigan, Greater Manchester and Lancashire. Whether you need your first website, an online shop or a fresh start for an existing site, you’ll work directly with me from the first conversation through to launch.",
                     ],
                 },
                 {
                     heading: "Working remotely",
                     paragraphs: [
-                        "Written scope, shared feedback and agreed review points help remote projects stay understandable. For international work, meeting times and operational arrangements are discussed around the time difference.",
+                        "You don’t need to be nearby to work with me. I also work with businesses across the UK, Australia and the US. We can talk through your ideas on a video call, review the designs online and keep in touch as the website takes shape.",
                     ],
                 },
             ],
         },
-        {
-            slug: "privacy-policy",
-            title: "Privacy policy",
-            description:
-                "Information about contact enquiries and personal data handled through ADB Web Designs.",
-            noindex: true,
-            introduction:
-                "This page explains the information used when you contact ADB Web Designs through this website.",
-            sections: [
-                {
-                    heading: "Information in your enquiry",
-                    paragraphs: [
-                        "The form asks for your name, email address, optional business/project name, the service you are interested in and your message. The website page associated with the enquiry is also recorded. Avoid sending passwords or other secrets.",
-                    ],
-                },
-                {
-                    heading: "How the enquiry is used",
-                    paragraphs: [
-                        "Your enquiry is used to respond, discuss suitable work and keep a record of the conversation. The ADB businesses use a shared business platform, with the originating business identified for each enquiry.",
-                    ],
-                },
-                {
-                    heading: "Website preferences and technical information",
-                    paragraphs: [
-                        "A theme preference can be stored in your browser when you use the dark/light switch. The site does not add advertising trackers or analytics cookies. The hosting and service infrastructure may process technical request information needed to operate the site.",
-                    ],
-                },
-                {
-                    heading: "Questions about your information",
-                    paragraphs: [
-                        "Use the contact form to ask about the information you have supplied or to raise a privacy question. Further details about the operator, retention and service providers must be confirmed before this policy is approved for launch.",
-                    ],
-                },
-            ],
-        },
-        {
-            slug: "cookie-policy",
-            title: "Cookies & website storage",
-            description:
-                "Cookies and browser storage used by ADB Web Designs, including the optional dark/light theme preference.",
-            noindex: true,
-            introduction:
-                "The public website keeps browser storage limited to the functions it actually uses.",
-            sections: [
-                {
-                    heading: "Your display preference",
-                    paragraphs: [
-                        "Using the theme switch can save an optional local preference called adb-public-theme. It controls whether this site opens in light or dark mode on this browser. If storage is unavailable, the site still works with its default appearance.",
-                    ],
-                },
-                {
-                    heading: "No advertising or analytics added",
-                    paragraphs: [
-                        "The public pages do not add advertising trackers, third-party analytics, externally hosted fonts or embedded social widgets. Visiting a related website or signing in to the separate account/operations applications can involve those applications’ own storage.",
-                    ],
-                },
-                {
-                    heading: "Change or clear the preference",
-                    paragraphs: [
-                        "You can change the appearance using the header button or clear this website’s stored data in your browser settings. Cookies and storage must be reviewed again if new integrations are added.",
-                    ],
-                },
-            ],
-        },
-        {
-            slug: "terms",
-            title: "Website terms",
-            description:
-                "Website-use information for ADB Web Designs. Project and service agreements are arranged separately.",
-            noindex: true,
-            introduction:
-                "These pages describe the business and services available to discuss. They do not form a project agreement or a promise of availability.",
-            sections: [
-                {
-                    heading: "Service information",
-                    paragraphs: [
-                        "The scope, cost, delivery dates and ongoing responsibilities for any work are agreed directly. Service descriptions do not imply contracting availability, guaranteed response times or a specific support schedule.",
-                    ],
-                },
-                {
-                    heading: "Content and related links",
-                    paragraphs: [
-                        "Articles and project information explain the relevant subject or work. Links to related businesses and external sites provide further context. Individual project requirements still need their own review.",
-                    ],
-                },
-                {
-                    heading: "Separate project arrangements",
-                    paragraphs: [
-                        "Client agreements, hosting arrangements and other commercial terms are separate from these website-use pages. The full operator details and final website terms need approval before launch.",
-                    ],
-                },
-            ],
-        },
+        ...websitePolicies,
     ],
     contact: {
         title: "Discuss your website",
         introduction:
             "Tell me what you would like to build, improve or fix. I’ll review the enquiry and get back to you to discuss whether the work is a good fit.",
         guidance:
-            "Scope, availability and delivery arrangements are agreed individually. Please do not include passwords or private credentials.",
+            "Tell me what you’d like to build, improve or fix. Please keep passwords and private credentials out of your message.",
     },
 };

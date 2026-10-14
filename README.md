@@ -618,6 +618,22 @@ need a category assigned to the same Brand. A future blog publication date keeps
 an otherwise published post hidden until the date arrives. Empty editorial
 collections are excluded from navigation and sitemaps and marked `noindex`.
 
+For a populated Web Designs local preview, use the removable demo dataset below
+with the backend Python environment active. It creates 12 projects, 12 articles,
+3 testimonials and 10 FAQs with sample images, all explicitly labelled fictional
+and published only to the Web Designs Brand. It requires debug mode and a local
+DB host. Repeat runs skip existing entries; cleanup preserves real CMS content.
+
+```bash
+DEBUG=1 python backend/manage.py seed_web_designs_demo
+# Remove the reserved demo entries and their media when finished:
+DEBUG=1 python backend/manage.py seed_web_designs_demo --clear
+```
+
+Do not carry this published demo dataset into a production database. Web Designs
+inner-page layouts live in `src/components/public/WebPages.tsx`, with editable
+layout labels in `src/content/page-design.ts` alongside the main service copy.
+
 Public SSR and the same-origin contact proxy read `API_INTERNAL_URL` at runtime;
 if absent, they use `NEXT_PUBLIC_API_URL`, then the normal development/production
 backend origin. In production, set `API_INTERNAL_URL` to an origin reachable
@@ -673,3 +689,50 @@ logos, the portrait and local font are shipped in the sites. No fabricated CMS
 projects, ratings or testimonials are published. Review
 [the morning notes](docs/PUBLIC_WEBSITES_MORNING_REVIEW.md) before launch,
 especially policy/trading details, old article accuracy and case-study approval.
+
+## Web Designs Google Analytics and privacy
+
+Set `GA4_WEB_DESIGNS_MEASUREMENT_ID=G-XXXXXXXXXX` in the Web Designs runtime
+environment (Infisical in production), then redeploy. This is a public measurement
+identifier. No script loads when it is blank/invalid. In [Google Analytics](https://analytics.google.com/),
+create an account/property and a Web data stream for `https://adbwebdesigns.co.uk`;
+copy its **Measurement ID** from Admin → Data streams → the Web stream.
+
+The website loads normal GA4 analytics by default and offers an immediate opt-out
+on `/privacy-policy/` and `/cookie-policy/`. Opt-out disables collection and clears
+GA cookies; its choice cookie lasts 12 months. Theme persistence can also be
+disabled. Code disables advertising consent, Google signals and advertising
+personalisation, caps analytics cookies at 12 months and sends pathname-only page
+locations and origin-only referrers. Do not put personal data in URL paths.
+
+Before launch, configure the account/property for aggregate website statistics:
+
+- Admin → Account settings → Data sharing settings: disable optional sharing,
+  including Google products/services, benchmarking and support/specialist access.
+- Admin → Data collection: keep Google signals and advertising features off.
+  Do not link Google Ads, enable remarketing/User-ID, or use individual visitor
+  profiling. Use aggregate site reports to improve these websites.
+- Web stream → Enhanced measurement: disable automatic additional events,
+  including form interactions, site search, outbound clicks and automatic page
+  views; the application sends its own page views without query strings.
+- Admin → Data retention: select 2 months for event/user data and disable resetting
+  retention on new activity. Aggregate standard reports have separate retention.
+- Review Google's processing terms and UK international-transfer arrangements.
+  Verify page views in Realtime and verify opting out stops subsequent collection.
+
+The [ICO statistical-purpose exception](https://ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/guidance-on-the-use-of-storage-and-access-technologies/what-are-the-exceptions/)
+requires aggregate service-improvement use, clear information and a simple free
+objection mechanism. The account settings and actual use must meet these
+conditions alongside the code; enabling unrelated tracking changes that assessment.
+See [Google data-sharing settings](https://support.google.com/analytics/answer/1011397?hl=en)
+and [data retention](https://support.google.com/analytics/answer/7667196?hl=en).
+
+## Enquiry retention operations
+
+Open `/admin/retention` in Software Solutions to review inactive Lost Leads after
+36 months. Scans only queue records. Approve deletion explicitly, or keep with a
+reason and a 3/6/12-month review date. The server rechecks recent contact and
+protected relationships before approval. Apply CRM migration 0006 and grant the
+review capabilities through Users & Access. Existing Celery workers/Beat run the
+daily scan; no extra environment variables or Redis are needed. See
+[Lead retention](docs/LEAD_RETENTION.md) for scope, permissions and mailbox/backups.

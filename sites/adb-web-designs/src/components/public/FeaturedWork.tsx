@@ -3,124 +3,81 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Portfolio } from "@adb/api-client/public";
+import { homeCopy } from "@/content/home";
 
 export function FeaturedWork({ items }: { items: Portfolio[] }) {
     const [selected, setSelected] = useState(0);
     const item = items[selected] || items[0];
+    const href = item
+        ? `/portfolio/${item.slug}/`
+        : "/services/website-rescue/";
+    const source = item
+        ? item.featured_image_url || item.image_url
+        : "/images/welcome-to-travel.webp";
     return (
-        <div className="web-composition">
-            <div className="web-spine" aria-hidden="true">
-                {item ? "SELECTED WORK" : "WEBSITES / ADB WEB DESIGNS"} / ADB
-                WEB DESIGNS
-            </div>
-            {item ? (
-                <figure className="web-project">
-                    {item.featured_image_url || item.image_url ? (
-                        <Link href={`/portfolio/${item.slug}/`}>
-                            <Image
-                                src={
-                                    item.featured_image_url ||
-                                    item.image_url ||
-                                    ""
-                                }
-                                alt={
-                                    item.featured_image_alt ||
-                                    item.image_alt ||
-                                    item.title
-                                }
-                                width={1200}
-                                height={800}
-                                priority
-                                unoptimized
-                            />
-                        </Link>
-                    ) : (
-                        <div className="project-without-image">
-                            <p>Selected work</p>
-                            <h2>{item.title}</h2>
-                            <Link href={`/portfolio/${item.slug}/`}>
-                                Explore the project →
-                            </Link>
-                        </div>
-                    )}
-                    <figcaption>
-                        <h2>
-                            <Link href={`/portfolio/${item.slug}/`}>
-                                {item.title}
-                            </Link>
-                        </h2>
-                        <p>{item.description}</p>
-                    </figcaption>
-                </figure>
-            ) : (
-                <div
-                    className="web-artwork"
-                    aria-label="Website design, development and care"
-                >
-                    <div className="website-outline" aria-hidden="true">
-                        <div className="outline-navigation">
-                            <i />
-                            <i />
-                            <i />
-                        </div>
-                        <div className="outline-title" />
-                        <div className="outline-layout">
-                            <span />
-                            <span />
-                        </div>
-                        <div className="outline-lines">
-                            <i />
-                            <i />
-                            <i />
-                        </div>
-                    </div>
-                    <p>
-                        Business websites.
-                        <br />
-                        Designed and developed
-                        <br />
-                        around what you need.
-                    </p>
-                    <Link href="/services/web-design/">
-                        Explore website development →
+        <div className="web-project-feature">
+            <figure className="web-project-image">
+                {source ? (
+                    <Link href={href}>
+                        <Image
+                            src={source}
+                            className={item ? "cms-project-image" : undefined}
+                            alt={
+                                item
+                                    ? item.featured_image_alt ||
+                                      item.image_alt ||
+                                      item.title
+                                    : homeCopy.workFallback.imageAlt
+                            }
+                            width={1920}
+                            height={1278}
+                            priority
+                            unoptimized={Boolean(item)}
+                            sizes="(max-width: 767px) 100vw, 65vw"
+                        />
                     </Link>
-                </div>
-            )}
-            <aside className="web-sidepiece">
-                <p>
-                    Design.
-                    <br />
-                    Develop.
-                    <br />
-                    Look after.
+                ) : (
+                    <div className="project-without-image">
+                        <p>{homeCopy.work.emptyImageLabel}</p>
+                        <h2>{item?.title}</h2>
+                    </div>
+                )}
+                <figcaption>
+                    {item
+                        ? homeCopy.work.caption
+                        : homeCopy.workFallback.imageCaption}
+                </figcaption>
+            </figure>
+            <div className="web-project-story">
+                <p className="business-label">
+                    {item ? homeCopy.work.label : homeCopy.workFallback.label}
                 </p>
-                <div className="page-mark" aria-hidden="true">
-                    <span />
-                    <span />
-                    <span />
-                </div>
-                <div className="web-project-controls">
-                    {items.length > 1 ? (
-                        <div role="group" aria-label="Choose a project">
-                            {items.map((project, index) => (
-                                <button
-                                    type="button"
-                                    key={project.id}
-                                    onClick={() => setSelected(index)}
-                                    aria-pressed={selected === index}
-                                >
-                                    {String(index + 1).padStart(2, "0")}{" "}
-                                    <span>{project.title}</span>
-                                </button>
-                            ))}
-                        </div>
-                    ) : (
-                        <Link href="/working-together/">
-                            Working together →
-                        </Link>
-                    )}
-                </div>
-            </aside>
+                <h2>{item?.title || homeCopy.workFallback.title}</h2>
+                <p>{item?.description || homeCopy.workFallback.description}</p>
+                <Link href={href} className="project-feature-link">
+                    {item ? homeCopy.work.link : homeCopy.workFallback.link}
+                    <span aria-hidden="true">↗</span>
+                </Link>
+                {items.length > 1 ? (
+                    <div
+                        className="web-project-controls"
+                        role="group"
+                        aria-label={homeCopy.work.chooseProject}
+                    >
+                        {items.map((project, index) => (
+                            <button
+                                key={project.id}
+                                type="button"
+                                onClick={() => setSelected(index)}
+                                aria-pressed={selected === index}
+                            >
+                                {String(index + 1).padStart(2, "0")}
+                                <span>{project.title}</span>
+                            </button>
+                        ))}
+                    </div>
+                ) : null}
+            </div>
         </div>
     );
 }

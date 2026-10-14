@@ -9,6 +9,7 @@
         "./public/types": "./src/public/types.ts",
         "./public/server": "./src/public/server.ts",
         "./public/contact": "./src/public/contact.ts",
+        "./public/privacy": "./src/public/privacy.ts",
         "./public/base.css": "./src/public/base.css"
     },
     "peerDependencies": {

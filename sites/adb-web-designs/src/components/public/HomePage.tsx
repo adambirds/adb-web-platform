@@ -1,5 +1,6 @@
 import { homeCopy } from "@/content/home";
 import Link from "next/link";
+import Image from "next/image";
 import { site } from "@/content/site";
 import { homeContent } from "@adb/ui/public/server";
 import { ArticleCard, Quote } from "@adb/ui/public/Editorial";
@@ -9,47 +10,40 @@ export async function HomePage() {
     const content = await homeContent(site);
     return (
         <>
-            <section className="web-cover">
-                <div className="shell">
-                    <div className="cover-topline">
-                        <p>{site.name}</p>
-                        <span>{homeCopy.coverToplineSpan1}</span>
-                    </div>
-                    <div className="web-heading">
-                        <h1>
-                            {homeCopy.webHeadingH11}
-                            <br />
-                            <span>{homeCopy.webHeadingSpan1}</span>
-                        </h1>
-                        <div>
-                            <p>
-                                {homeCopy.webHeadingP1}
-                                <br />
-                                {homeCopy.webHeadingP2}
-                            </p>
-                            <Link href="/contact/" className="angled-button">
-                                {homeCopy.angledButtonLink1}
-                            </Link>
-                        </div>
-                    </div>
-                    <FeaturedWork items={content.work.items} />
-                    <div className="web-cover-foot">
-                        <p>{homeCopy.webCoverFootP1}</p>
-                        <Link href="/services/">
-                            {homeCopy.webCoverFootLink1}
-                        </Link>
-                    </div>
+            <section className="web-cover shell">
+                <div className="web-intro-line">
+                    <p className="business-label">{homeCopy.hero.label}</p>
+                    <p>{homeCopy.hero.location}</p>
                 </div>
+                <h1 className="web-display">
+                    {homeCopy.hero.headline}
+                    <span>{homeCopy.hero.headlineSecondLine}</span>
+                </h1>
+                <div className="web-introduction">
+                    <p>
+                        {homeCopy.hero.introduction} {homeCopy.hero.description}
+                    </p>
+                    <Link href="/contact/" className="angled-button">
+                        {homeCopy.hero.contactLink}
+                    </Link>
+                    <a href="#website-work" className="web-scroll">
+                        {homeCopy.hero.workLink}{" "}
+                        <span aria-hidden="true">↓</span>
+                    </a>
+                </div>
+            </section>
+            <section id="website-work" className="web-showcase">
+                <FeaturedWork items={content.work.items} />
             </section>
             <section className="shell home-services">
                 <header>
-                    <p className="business-label">{homeCopy.businessLabelP1}</p>
+                    <p className="business-label">{homeCopy.services.label}</p>
                     <h2>
-                        {homeCopy.shellH21}
+                        {homeCopy.services.heading}
                         <br />
-                        {homeCopy.shellH22}
+                        {homeCopy.services.headingSecondLine}
                     </h2>
-                    <p>{homeCopy.shellP1}</p>
+                    <p>{homeCopy.services.introduction}</p>
                 </header>
                 <div className="home-service-list">
                     {site.services
@@ -74,50 +68,57 @@ export async function HomePage() {
                                     href={`/services/${service.slug}/`}
                                     className="text-link"
                                 >
-                                    {homeCopy.textLinkLink1}
+                                    {homeCopy.services.serviceLink}
                                 </Link>
                             </article>
                         ))}
                     <Link href="/services/" className="text-link">
-                        {homeCopy.textLinkLink2}
+                        {homeCopy.services.allServicesLink}
                     </Link>
                 </div>
             </section>
             <section className="home-about">
                 <div className="shell">
-                    <p className="business-label">{homeCopy.businessLabelP2}</p>
+                    <Image
+                        className="home-portrait"
+                        src="/images/adam-birds.jpg"
+                        alt="Adam Birds, the developer behind ADB Web Designs"
+                        width={310}
+                        height={465}
+                    />
+                    <p className="business-label">{homeCopy.about.label}</p>
                     <h2>
-                        {homeCopy.homeAboutH21}
+                        {homeCopy.about.heading}
                         <br />
-                        {homeCopy.homeAboutH22}
+                        {homeCopy.about.headingSecondLine}
                     </h2>
                     <div>
-                        <p>{homeCopy.homeAboutP1}</p>
+                        <p>{homeCopy.about.introduction}</p>
                         <Link href="/about/" className="text-link">
-                            {homeCopy.textLinkLink3}
+                            {homeCopy.about.link}
                         </Link>
                     </div>
                 </div>
             </section>
             {content.testimonials.items.length ? (
                 <section className="shell homepage-editorial">
-                    <h2>{homeCopy.shellH23}</h2>
+                    <h2>{homeCopy.testimonials.heading}</h2>
                     <div className="collection-grid">
                         {content.testimonials.items.map((item) => (
                             <Quote key={item.id} item={item} />
                         ))}
                     </div>
                     <Link href="/testimonials/" className="text-link">
-                        {homeCopy.textLinkLink4}
+                        {homeCopy.testimonials.link}
                     </Link>
                 </section>
             ) : null}
             {content.articles.items.length ? (
                 <section className="shell homepage-editorial">
                     <header>
-                        <h2>{homeCopy.shellH24}</h2>
+                        <h2>{homeCopy.journal.heading}</h2>
                         <Link href="/blog/" className="text-link">
-                            {homeCopy.textLinkLink5}
+                            {homeCopy.journal.link}
                         </Link>
                     </header>
                     <div className="collection-grid">
@@ -128,10 +129,10 @@ export async function HomePage() {
                 </section>
             ) : null}
             <section className="shell enquiry-band">
-                <h2>{homeCopy.shellH25}</h2>
-                <p>{homeCopy.shellP2}</p>
+                <h2>{homeCopy.contact.heading}</h2>
+                <p>{homeCopy.contact.introduction}</p>
                 <Link href="/contact/" className="angled-button">
-                    {homeCopy.angledButtonLink2}
+                    {homeCopy.contact.link}
                 </Link>
             </section>
         </>

@@ -41,8 +41,11 @@ See [the proposed page/service inventory](PUBLIC_WEBSITE_PAGE_INVENTORY.md) for
 all shared routes, brand-specific service pages, area pages and content sources.
 The page and service lists are a review proposal, not a final approved catalogue.
 
-The preferred visual direction is the third temporary design study: three
-business websites with distinct compositions and an ADB family identity. These
+The earlier visual direction was the third temporary design study: three
+business websites with distinct compositions and an ADB family identity. The user
+subsequently requested a redesign after reviewing the production implementation.
+See [the design reference review](PUBLIC_WEBSITE_DESIGN_REFERENCES.md) for the
+new direction and current review status. These
 are freelance businesses, not personal portfolio websites. The production sites
 will be multi-page; homepage sections introduce and link to substantial pages.
 
@@ -199,4 +202,13 @@ blanket redirects to the homepage.
 Site implementation and verified static redirects are complete. Five selected
 original articles and the confirmed Welcome to Travel recovery case study are
 editable CMS drafts. Publication and production cutover require the owner review
-recorded in `PUBLIC_WEBSITES_MORNING_REVIEW.md`; no deployment or commit has been made.
+recorded in `PUBLIC_WEBSITES_MORNING_REVIEW.md`. The initial implementation was
+checkpointed at `e74c153`; the Web Designs whole-site redesign is now approved
+and checkpointed separately. There has been no production deployment.
+
+The user approved the redesigned Web Designs homepage and requested the whole
+Web Designs site use that direction before revisiting the other two brands.
+Web Designs now has its own inner-page compositions in `WebPages.tsx`, with
+editable labels in `page-design.ts`; its existing code-owned service/area copy
+and shared Brand-scoped CMS contracts are retained. A development-only removable
+demo seed supplies published fictional editorial content for local review.
