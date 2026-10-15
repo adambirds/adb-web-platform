@@ -65,7 +65,10 @@ root or Celery's task logger for capture; do not suppress or bypass logging.
 
 Known secret environment values, sensitive named task inputs, credential-shaped
 fields, authentication headers, URL credentials, PEM blocks and account-token
-links are redacted **before storage**. Task code must still avoid logging secrets
+links are redacted **before storage**. Credential patterns are matched before
+known literal values, so short secrets cannot corrupt a field name, authentication
+scheme or token-link prefix and prevent its value from being scrubbed.
+Task code must still avoid logging secrets
 or message bodies: redaction is best-effort protection, not a secret-storage
 mechanism. Tracebacks omit local-variable dumps. Celery argument/result dumps and
 SQL logging are excluded. Capture failure never interrupts the business task.

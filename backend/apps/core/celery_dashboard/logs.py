@@ -47,15 +47,16 @@ def redact(message: str, *, task: Any = None) -> str:
     if task is not None:
         secrets.update(sensitive_values(getattr(task.request, "kwargs", {})))
         secrets.update(sensitive_values(getattr(task.request, "args", ())))
-    for secret in sorted(secrets, key=len, reverse=True):
-        message = message.replace(secret, "[REDACTED]")
-        if "\\n" in secret:
-            message = message.replace(secret.replace("\\n", "\n"), "[REDACTED]")
     message = PEM.sub("[REDACTED PEM]", message)
     message = re.sub(r"(?i)\b(Bearer|Basic)\s+[^\s,;\"']+", r"\1 [REDACTED]", message)
     message = re.sub(r"(\w+://)[^\s/@]+:[^\s/@]+@", r"\1[REDACTED]@", message)
     message = SECRET_FIELD.sub(r"\1[REDACTED]", message)
     message = re.sub(r"(/(?:reset-password|verify-email)/)[^\s/\"'<>]+", r"\1[REDACTED]", message)
+    # Match credential syntax before literal values can alter field names or delimiters.
+    for secret in sorted(secrets, key=len, reverse=True):
+        message = message.replace(secret, "[REDACTED]")
+        if "\\n" in secret:
+            message = message.replace(secret.replace("\\n", "\n"), "[REDACTED]")
     # Keep diagnostics readable, and avoid storing terminal control sequences.
     message = re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", message)
     message = re.sub(r"[\x00-\x08\x0b-\x1f\x7f]", "", message)

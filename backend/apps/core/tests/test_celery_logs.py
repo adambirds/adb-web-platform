@@ -7,10 +7,10 @@ from unittest.mock import patch
 
 from django.contrib.auth.models import Permission
 from django.core.cache import cache
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.utils import timezone
 
-from apps.core.celery_dashboard.logs import TaskLogHandler, append_log, install
+from apps.core.celery_dashboard.logs import TaskLogHandler, append_log, install, redact
 from apps.core.celery_dashboard.signals import failed, finished, started
 from apps.core.models import CeleryTaskExecution, CeleryTaskLog
 from apps.core.tasks import purge_celery_history
@@ -100,6 +100,7 @@ class CeleryLogTests(TestCase):
             )
         self.assertFalse(CeleryTaskLog.objects.exists())
 
+    @patch.dict("os.environ", {"DATABASE_PASSWORD": "pass"})
     def test_secret_redaction_happens_before_storage(self) -> None:
         text = 'password="quoted secret" Bearer opaque-bearer redis://user:pass@host/0 /reset-password/private-uuid env-secret-value task-secret-value\n-----BEGIN PRIVATE KEY-----\nprivate material\n-----END PRIVATE KEY-----'
         with patch.dict("os.environ", {"GITHUB_WEBHOOK_SECRET": "env-secret-value"}):
@@ -117,6 +118,7 @@ class CeleryLogTests(TestCase):
             self.assertNotIn(secret, output)
         self.assertIn("[REDACTED]", output)
 
+    @patch.dict("os.environ", {"DATABASE_PASSWORD": "pass"})
     def test_lifecycle_failure_traceback_and_retry_attempt_are_recorded(self) -> None:
         started(task_id="task-log", task=self.task)
         try:
@@ -220,3 +222,29 @@ class CeleryLogTests(TestCase):
         self.assertTrue(hint.superuser_only)
         self.assertEqual(hint.topic, "celery")
         self.assertNotIn("internal diagnostics", str(hint))
+
+
+class CeleryLogRedactionTests(SimpleTestCase):
+    def test_known_values_cannot_disable_credential_pattern_matching(self) -> None:
+        cases = [
+            ("pass", 'password="quoted secret"', "quoted secret"),
+            ("pass", "password=super-private", "super-private"),
+            ("token", '{"access_token": "opaque-value"}', "opaque-value"),
+            ("Bearer", "Bearer opaque-bearer", "opaque-bearer"),
+            ("redis", "redis://user:pass@host/0", "user:pass"),
+            ("reset", "/reset-password/private-uuid", "private-uuid"),
+            (
+                "PRIVATE",
+                "-----BEGIN PRIVATE KEY-----\nprivate material\n-----END PRIVATE KEY-----",
+                "private material",
+            ),
+        ]
+        for known_secret, message, sensitive_value in cases:
+            with (
+                self.subTest(known_secret=known_secret),
+                patch.dict("os.environ", {"EXAMPLE_SECRET": known_secret}, clear=True),
+            ):
+                output = redact(message)
+                self.assertNotIn(sensitive_value, output)
+                self.assertNotIn(known_secret, output)
+                self.assertIn("[REDACTED", output)
