@@ -104,6 +104,14 @@ def run() -> None:
         description="Python linter",
     )
 
+    linter_config.external_linter(
+        "public-site-dependencies",
+        ["tools/check-public-site-dependencies"],
+        ["json"],
+        pass_targets=False,
+        description="Keep the three public websites on identical dependency declarations",
+    )
+
     gitlint_command = ["tools/commit-message-lint"]
     if args.from_hook:
         gitlint_command.append("--hook")

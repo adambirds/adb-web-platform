@@ -1,7 +1,5 @@
 /** @jest-environment node */
 import { site as web } from "@/content/site";
-import { site as software } from "../../../adb-software-solutions/src/content/site";
-import { site as technology } from "../../../adb-technology/src/content/site";
 import redirects from "../../redirects.json";
 import { legacyAliases } from "@/content/legacy-aliases";
 import { pageMetadata, businessSchema } from "@adb/ui/public/server";
@@ -23,7 +21,7 @@ function routes(site: PublicSite) {
         ...site.areas.map((area) => `/${area.slug}/`),
     ]);
 }
-for (const site of [web, software, technology]) {
+for (const site of [web]) {
     it(`${site.name} has unique page slugs and valid service cross-links`, () => {
         const paths = routes(site);
         expect(new Set(site.services.map((service) => service.slug)).size).toBe(
@@ -74,27 +72,19 @@ it("editorial aliases are gated separately from unconditional redirects", () => 
         "/blog/wordpress-how-to-secure-your-website/",
     );
 });
-it("unconfirmed consultancy and embedded contracting do not appear as software services", () => {
-    expect(
-        software.services.some(
-            (service) => service.slug === "software-consultancy",
-        ),
-    ).toBe(false);
-    expect(
-        software.services.some((service) => service.slug === "ai-code-review"),
-    ).toBe(true);
-});
 
-for (const brand of [web, software, technology]) {
+for (const brand of [web]) {
     it(`${brand.name} leads its own About introduction without employment copy`, () => {
         const about = brand.pages.find((page) => page.slug === "about")!;
         expect(JSON.stringify(about)).not.toContain("full-time");
         const familyParagraph = about.sections
             .flatMap((section) => section.paragraphs)
             .find((paragraph) =>
-                [web.name, software.name, technology.name].every((name) =>
-                    paragraph.includes(name),
-                ),
+                [
+                    "ADB Web Designs",
+                    "ADB Software Solutions",
+                    "ADB Technology",
+                ].every((name) => paragraph.includes(name)),
             );
         expect(familyParagraph?.startsWith(brand.name)).toBe(true);
     });

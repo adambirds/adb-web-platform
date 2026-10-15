@@ -34,3 +34,8 @@ Run `python backend/manage.py export_wordpress_content` before cutover and
 [archive guide](../docs/migrations/README.md) covers the versioned JSON, embedded
 original images, offline restoration and draft review. The exporter is read-only;
 the importer never publishes or overwrites existing editorial records.
+
+`tools/check-public-site-dependencies` runs as part of repository lint and verifies
+that Software Solutions, Web Designs and Technology declare the same dependencies
+and version ranges in all four dependency sections. The auth application remains
+independent. Update the three public manifests together using pnpm.

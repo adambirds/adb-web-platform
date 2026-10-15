@@ -466,6 +466,20 @@ the application's Infisical project through the reusable image-build workflow.
 Verify the generated file has the correct production origins before publishing
 an image. Local `.env` / `.env.local` files are excluded from Docker contexts.
 
+The three public websites share identical dependency/version declarations.
+`tools/check-public-site-dependencies`, included in repository lint, rejects
+missing packages or version differences in runtime, development, peer and optional
+dependencies. Update all three manifests together and regenerate the pnpm lockfile.
+
+Frontend Docker installs use a package-name selector with the dependency suffix,
+for example `pnpm install --frozen-lockfile --filter "@adb/web-designs-site..."`.
+This includes the shared UI/API packages and their own dependency links. A bare
+`./sites/<app>...` directory selector does not expand dependencies in the pinned
+pnpm version; a full-workspace install can hide that mistake. Validate container
+changes with a fresh filtered install rather than existing local `node_modules`.
+Keep content/navigation tests in their owning site; importing a sibling app
+can make the production type check depend on that app’s uninstalled dependencies.
+
 ### 8. Production deployment
 
 Production needs the existing deployable components, provisioned separately from

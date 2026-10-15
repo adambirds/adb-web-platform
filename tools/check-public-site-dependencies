@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+"""Keep dependency declarations identical across the three public brand sites."""
+
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+PUBLIC_SITES = ("adb-software-solutions", "adb-web-designs", "adb-technology")
+DEPENDENCY_SECTIONS = (
+    "dependencies",
+    "devDependencies",
+    "peerDependencies",
+    "optionalDependencies",
+)
+
+
+def dependency_errors(root: Path) -> list[str]:
+    manifests = {
+        site: json.loads((root / "sites" / site / "package.json").read_text())
+        for site in PUBLIC_SITES
+    }
+    reference = manifests[PUBLIC_SITES[0]]
+    errors: list[str] = []
+    for site in PUBLIC_SITES[1:]:
+        for section in DEPENDENCY_SECTIONS:
+            expected = reference.get(section, {})
+            actual = manifests[site].get(section, {})
+            errors.extend(
+                f"{site}: {section}.{package} must match {PUBLIC_SITES[0]} "
+                f"({actual.get(package)!r} != {expected.get(package)!r})"
+                for package in sorted(expected.keys() | actual.keys())
+                if expected.get(package) != actual.get(package)
+            )
+    return errors
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parent.parent)
+    args = parser.parse_args()
+    try:
+        errors = dependency_errors(args.root)
+    except (OSError, ValueError) as failure:
+        print(f"Cannot check public-site dependencies: {failure}")
+        return 1
+    for error in errors:
+        print(error)
+    return int(bool(errors))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
