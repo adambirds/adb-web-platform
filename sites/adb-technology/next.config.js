@@ -4,7 +4,7 @@ const nextConfig = {
     reactStrictMode: true,
     trailingSlash: true,
     skipTrailingSlashRedirect: true,
-    transpilePackages: ["@adb/ui", "@adb/api-client"],
+    transpilePackages: ["@adb/ui", "@adb/api-client", "@adb/observability"],
     images: {
         remotePatterns: [
             {

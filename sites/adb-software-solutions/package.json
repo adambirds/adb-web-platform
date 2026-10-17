@@ -13,6 +13,7 @@
     },
     "dependencies": {
         "@adb/api-client": "workspace:*",
+        "@adb/observability": "workspace:*",
         "@adb/ui": "workspace:*",
         "@headlessui/react": "^2.2.2",
         "@headlessui/tailwindcss": "^0.2.2",

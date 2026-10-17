@@ -74,6 +74,7 @@ See `docs/CURRENT_STATE_AND_FOUNDATION_CHECKLIST.md` for the detailed implementa
 
 - `packages/ui/` — brand-neutral shared UI primitives and types.
 - `packages/api-client/` — shared API helpers/contracts.
+- `packages/observability/` — `/healthz`, Prometheus `/metrics` and JSON console logs, shared by the four frontends.
 - `packages/eslint-config/` — shared ESLint configuration.
 - `packages/typescript-config/` — shared TypeScript configuration.
 
@@ -166,38 +167,41 @@ Set these in the environment of the API, Celery worker and Beat.
 Production values come from your deployment
 secret manager rather than the development `.env` file.
 
-| Variable                                | Development value / how to obtain it                               | Production requirement                                                                       |
-| --------------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| `SECRET_KEY`                            | Generate with the command above                                    | Unique secret, stable across API/worker replicas                                             |
-| `CREDENTIAL_ENCRYPTION_KEYS`            | Generate a Fernet key above; comma-separated key ring for rotation | Same usable key ring wherever Vault secrets are decrypted                                    |
-| `DEBUG`                                 | `1`                                                                | `0`                                                                                          |
-| `DEBUG_TOOLBAR_ENABLED`                 | `0`; optionally `1` for local debugging                            | `0`                                                                                          |
-| `SITE_DOMAIN`                           | `localhost`                                                        | Parent domain, e.g. `adbsoftwaresolutions.co.uk`; no scheme/path/subdomain prefix            |
-| `ADMIN_FRONTEND_URL`                    | `http://localhost:3000`                                            | Combined Software Solutions origin; admin lives under `/admin`                               |
-| `AUTH_FRONTEND_URL`                     | `http://localhost:3004`                                            | Auth origin, e.g. `https://auth.adbsoftwaresolutions.co.uk`; used in account emails          |
-| `SOFTWARE_SOLUTIONS_FRONTEND_URL`       | `http://localhost:3000`                                            | Software Solutions public origin                                                             |
-| `WEB_DESIGNS_FRONTEND_URL`              | `http://localhost:3002`                                            | `https://adbwebdesigns.co.uk` or the configured brand origin                                 |
-| `TECHNOLOGY_FRONTEND_URL`               | `http://localhost:3003`                                            | `https://adbtechnology.co.uk` or the configured brand origin                                 |
-| `FRONTEND_URL`                          | `http://localhost:3000`; compatibility alias                       | Same Software Solutions origin                                                               |
-| `SQL_ENGINE`                            | `django.db.backends.postgresql`                                    | Keep PostgreSQL                                                                              |
-| `SQL_DATABASE`                          | `adbsoftwaresolutions_dev`                                         | Database name from your PostgreSQL provisioning output                                       |
-| `SQL_USER`                              | `adbsoftwaresolutions`                                             | Database user from your provider                                                             |
-| `SQL_PASSWORD`                          | Local Compose password in the template                             | Database password from your provider/secret manager                                          |
-| `SQL_HOST`                              | `db` inside Compose                                                | Private database hostname supplied by your provider                                          |
-| `SQL_PORT`                              | `5432`                                                             | Provider's PostgreSQL port                                                                   |
-| `SQL_SSL`                               | `disable`                                                          | Provider-required libpq SSL mode, usually `require` or `verify-full` with its CA provisioned |
-| `CACHE_BACKEND_URL`                     | `redis://redis-cache:6379/0`                                       | Shared default cache, locks, rate limits, GitHub token cache and SSE Pub/Sub                 |
-| `SESSION_BACKEND_URL`                   | `redis://redis-session:6379/0`                                     | Dedicated session cache; URL from your Redis provider                                        |
-| `CELERY_BROKER_URL`                     | `redis://redis-celery:6379/0`                                      | Task broker URL from your Redis provider                                                     |
-| `CELERY_RESULT_BACKEND`                 | `redis://redis-celery:6379/1`                                      | Result backend URL; separate from broker/cache/sessions                                      |
-| `CELERY_QUEUE`                          | `general`                                                          | Production worker entrypoint consumes this queue; keep `general` for current tasks           |
-| `CELERY_CONCURRENCY`                    | `2`                                                                | Worker process count, sized for available memory/CPU                                         |
-| `TICKETING_GRAPH_SYNC_INTERVAL_SECONDS` | `60`                                                               | Mailbox dispatch interval; integer >= 30; restart Beat after changing                        |
-| `TICKETING_GRAPH_SYNC_LOCK_SECONDS`     | `900`                                                              | Per-mailbox lock lifetime; integer >= 60; size above a normal sync run                       |
-| `TICKETING_MALWARE_SCANNING_ENABLED`    | `0`                                                                | `1` when a scanner is provisioned and attachments must pass scanning                         |
-| `TICKETING_CLAMAV_HOST`                 | `clamav`                                                           | Private clamd hostname reachable from scanning workers                                       |
-| `TICKETING_CLAMAV_PORT`                 | `3310`                                                             | clamd TCP port                                                                               |
-| `TICKETING_CLAMAV_TIMEOUT_SECONDS`      | `30`                                                               | Positive scanner timeout in seconds                                                          |
+| Variable                                | Development value / how to obtain it                               | Production requirement                                                                                    |
+| --------------------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `SECRET_KEY`                            | Generate with the command above                                    | Unique secret, stable across API/worker replicas                                                          |
+| `CREDENTIAL_ENCRYPTION_KEYS`            | Generate a Fernet key above; comma-separated key ring for rotation | Same usable key ring wherever Vault secrets are decrypted                                                 |
+| `DEBUG`                                 | `1`                                                                | `0`                                                                                                       |
+| `DEBUG_TOOLBAR_ENABLED`                 | `0`; optionally `1` for local debugging                            | `0`                                                                                                       |
+| `SITE_DOMAIN`                           | `localhost`                                                        | Parent domain, e.g. `adbsoftwaresolutions.co.uk`; no scheme/path/subdomain prefix                         |
+| `ADMIN_FRONTEND_URL`                    | `http://localhost:3000`                                            | Combined Software Solutions origin; admin lives under `/admin`                                            |
+| `AUTH_FRONTEND_URL`                     | `http://localhost:3004`                                            | Auth origin, e.g. `https://auth.adbsoftwaresolutions.co.uk`; used in account emails                       |
+| `SOFTWARE_SOLUTIONS_FRONTEND_URL`       | `http://localhost:3000`                                            | Software Solutions public origin                                                                          |
+| `WEB_DESIGNS_FRONTEND_URL`              | `http://localhost:3002`                                            | `https://adbwebdesigns.co.uk` or the configured brand origin                                              |
+| `TECHNOLOGY_FRONTEND_URL`               | `http://localhost:3003`                                            | `https://adbtechnology.co.uk` or the configured brand origin                                              |
+| `FRONTEND_URL`                          | `http://localhost:3000`; compatibility alias                       | Same Software Solutions origin                                                                            |
+| `SQL_ENGINE`                            | `django.db.backends.postgresql`                                    | Keep PostgreSQL                                                                                           |
+| `SQL_DATABASE`                          | `adbsoftwaresolutions_dev`                                         | Database name from your PostgreSQL provisioning output                                                    |
+| `SQL_USER`                              | `adbsoftwaresolutions`                                             | Database user from your provider                                                                          |
+| `SQL_PASSWORD`                          | Local Compose password in the template                             | Database password from your provider/secret manager                                                       |
+| `SQL_HOST`                              | `db` inside Compose                                                | Private database hostname supplied by your provider                                                       |
+| `SQL_PORT`                              | `5432`                                                             | Provider's PostgreSQL port                                                                                |
+| `SQL_SSL`                               | `disable`                                                          | Provider-required libpq SSL mode, usually `require` or `verify-full` with its CA provisioned              |
+| `CACHE_BACKEND_URL`                     | `redis://redis-cache:6379/0`                                       | Shared default cache, locks, rate limits, GitHub token cache and SSE Pub/Sub                              |
+| `SESSION_BACKEND_URL`                   | `redis://redis-session:6379/0`                                     | Dedicated session cache; URL from your Redis provider                                                     |
+| `CELERY_BROKER_URL`                     | `redis://redis-celery:6379/0`                                      | Task broker URL from your Redis provider                                                                  |
+| `CELERY_RESULT_BACKEND`                 | `redis://redis-celery:6379/1`                                      | Result backend URL; separate from broker/cache/sessions                                                   |
+| `CELERY_QUEUE`                          | `general`                                                          | Production worker entrypoint consumes this queue; keep `general` for current tasks                        |
+| `CELERY_CONCURRENCY`                    | `2`                                                                | Worker process count, sized for available memory/CPU                                                      |
+| `TICKETING_GRAPH_SYNC_INTERVAL_SECONDS` | `60`                                                               | Mailbox dispatch interval; integer >= 30; restart Beat after changing                                     |
+| `TICKETING_GRAPH_SYNC_LOCK_SECONDS`     | `900`                                                              | Per-mailbox lock lifetime; integer >= 60; size above a normal sync run                                    |
+| `TICKETING_MALWARE_SCANNING_ENABLED`    | `0`                                                                | `1` when a scanner is provisioned and attachments must pass scanning                                      |
+| `TICKETING_CLAMAV_HOST`                 | `clamav`                                                           | Private clamd hostname reachable from scanning workers                                                    |
+| `TICKETING_CLAMAV_PORT`                 | `3310`                                                             | clamd TCP port                                                                                            |
+| `TICKETING_CLAMAV_TIMEOUT_SECONDS`      | `30`                                                               | Positive scanner timeout in seconds                                                                       |
+| `LOG_FORMAT`                            | `text`                                                             | `json` (set in the images): one JSON object per line on stdout, for Loki                                  |
+| `LOG_LEVEL`                             | `INFO`                                                             | `INFO` unless investigating                                                                               |
+| `SERVICE_NAME`                          | Empty                                                              | Set in each image to its component, e.g. `adb-web-platform-backend`; the `service` field of each log line |
 
 Redis credentials belong in the URL, for example
 `rediss://username:password@private-host:port/0` for TLS; URL-encode special
@@ -560,6 +564,23 @@ image-tag dispatch). Its reusable deployment workflow/infrastructure lives in
 maintained in this repository. Supply the variables/services above there using
 the current Infisical projects. This guide documents prerequisites; it does not
 provision accounts, DNS, databases or deployments automatically.
+
+#### Health, metrics and logs
+
+Every image is ready for Prometheus, Grafana and Loki. Docker's `HEALTHCHECK`
+calls `/healthz` every 30 seconds, and adb-deploy waits for it on deploy. nginx
+(adb-deploy) answers 404 for `/healthz` and `/metrics` on the public domains,
+so both are only reachable on the host.
+
+- **Backend** (8000): `/healthz` answers **200** `ok`, or **200** `degraded` when PostgreSQL or the cache or session Redis does not answer (restarting the API would not fix them, and a deploy should not wait on them), with one entry per check: `database`, `cache:default`, `cache:session`. `/metrics` is django-prometheus: requests, responses and latency by view, method and status, summed over all Gunicorn workers (Prometheus multiprocess mode, set up by `entrypoint.sh` and `backend/gunicorn.conf.py`). Both are answered by `adbsoftwaresolutions.health`, first in `MIDDLEWARE`, so the host check, HTTPS redirect and login do not apply and neither is counted in the request metrics.
+- **Frontends** (Software Solutions, Web Designs and Technology on 3000 in their images; auth on 3004): `/healthz` answers **200** `ok` whenever the server answers (it does not check the API). `/metrics` has `http_request_duration_seconds{method, status_code}` and the Node.js process metrics. Both come from `packages/observability`.
+- **Celery worker and Beat**: JSON logs only; no HTTP endpoint.
+
+A process that cannot answer at all fails the check, so none reports
+`unhealthy` itself. Logs are one JSON object per line on stdout in every image
+(`LOG_FORMAT=json`): `time`, `level`, `logger`, `message`, `service`, and
+`exception` when there is one, from Django, Gunicorn, Uvicorn, Celery, pnpm and
+Next.js alike. Celery runs with `--quiet` so it prints no banner.
 
 ### Verification and maintenance
 

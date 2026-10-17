@@ -7,7 +7,7 @@ const nextConfig = {
     async redirects() {
         return require("./redirects.json");
     },
-    transpilePackages: ["@adb/ui", "@adb/api-client"],
+    transpilePackages: ["@adb/ui", "@adb/api-client", "@adb/observability"],
     images: {
         remotePatterns: [
             {

@@ -1,0 +1,21 @@
+{
+    "name": "@adb/observability",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "exports": {
+        "./instrumentation": "./src/instrumentation.ts",
+        "./json-console": "./src/json-console.mjs",
+        "./metrics": "./src/metrics.ts",
+        "./routes": "./src/routes.ts"
+    },
+    "peerDependencies": {
+        "next": "^16.3.1"
+    },
+    "dependencies": {
+        "@prometheus-io/client": "0.16.1"
+    },
+    "devDependencies": {
+        "next": "^16.3.1"
+    }
+}

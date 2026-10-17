@@ -11,5 +11,20 @@ RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=builder /app /app
+
+# JSON logs on stdout for Loki: every Node.js process (pnpm included)
+# preloads json-console.mjs, which formats console output when
+# LOG_FORMAT=json.
+ENV LOG_FORMAT=json \
+    SERVICE_NAME=adb-web-platform-auth-adb-software-solutions \
+    NODE_OPTIONS=--import=/app/packages/observability/src/json-console.mjs
+
 EXPOSE 3004
+
+# GET /healthz on the server itself; /metrics (Prometheus) is beside it.
+# nginx keeps both off the public site. The image has no curl, so Node's
+# fetch makes the request.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD ["node", "-e", "fetch('http://127.0.0.1:3004/healthz').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+
 CMD ["pnpm", "--dir", "sites/auth-adb-software-solutions", "start"]
