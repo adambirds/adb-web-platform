@@ -1,10 +1,13 @@
 import logging
+import logging.config
 import os
 
 from celery import Celery
+from celery.signals import setup_logging
 from django.conf import settings
 
 from adbsoftwaresolutions.bootsteps import LivenessProbe
+from adbsoftwaresolutions.logs import json_enabled
 from apps.ticketing.config import graph_sync_interval_seconds
 
 # Setting the default Django settings module for the 'celery' program.
@@ -51,3 +54,10 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+
+if json_enabled():
+    # JSON lines (adbsoftwaresolutions/logs.py) from the worker and beat too: with a
+    # receiver for this signal, Celery leaves logging to it.
+    @setup_logging.connect
+    def use_django_logging(**kwargs: object) -> None:
+        logging.config.dictConfig(settings.LOGGING)

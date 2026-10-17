@@ -10,6 +10,8 @@ from pathlib import Path
 import django_stubs_ext
 from django.templatetags.static import static
 
+from adbsoftwaresolutions.logs import logging_config
+
 logger = logging.getLogger(__name__)
 
 DEBUG = bool(int(os.environ.get("DEBUG", "0")))
@@ -20,12 +22,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY must be set.")
-
-if DEBUG:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s",
-    )
 
 SITE_DOMAIN = os.environ.get("SITE_DOMAIN", "localhost")
 ADMIN_FRONTEND_URL = os.environ.get("ADMIN_FRONTEND_URL", "http://localhost:3000")
@@ -92,6 +88,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_prometheus",
 ]
 
 UNFOLD = {
@@ -113,6 +110,9 @@ if DEBUG_TOOLBAR_ENABLED:
 AUTH_USER_MODEL = "authentication.User"
 
 MIDDLEWARE = [
+    # First: answers /healthz and /metrics (see adbsoftwaresolutions/health.py).
+    "adbsoftwaresolutions.health.health_middleware",
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -122,6 +122,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "ninja.compatibility.files.fix_request_files_middleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 if DEBUG_TOOLBAR_ENABLED:
@@ -310,3 +311,7 @@ GITHUB_APP_ID = os.environ.get("GITHUB_APP_ID", "")
 GITHUB_APP_SLUG = os.environ.get("GITHUB_APP_SLUG", "")
 GITHUB_APP_PRIVATE_KEY = os.environ.get("GITHUB_APP_PRIVATE_KEY", "")
 GITHUB_WEBHOOK_SECRET = os.environ.get("GITHUB_WEBHOOK_SECRET", "")
+
+# Plain text locally; JSON lines (for Loki) with LOG_FORMAT=json, as in the
+# Docker images.
+LOGGING = logging_config(os.environ.get("LOG_LEVEL", "INFO"))

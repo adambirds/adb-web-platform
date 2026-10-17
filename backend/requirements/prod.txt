@@ -325,6 +325,7 @@ django==6.0.8 \
     #   django-debug-toolbar
     #   django-filter
     #   django-ninja
+    #   django-prometheus
     #   django-redis
     #   django-unfold
     #   graphene-django
@@ -343,6 +344,10 @@ django-filter==26.1 \
 django-ninja==1.6.3 \
     --hash=sha256:a65a5016bbf044702fb1f1ff702f96dc3c806fbd7c918290512659531873039f \
     --hash=sha256:e83ba573e0f17b1d2fddca078613e2aaad512acb3d3c6bc9a5f1a0d9257dd70c
+    # via -r backend/requirements/common.in
+django-prometheus==2.5.0 \
+    --hash=sha256:4837b3c3734d8350880839ab8235aafd250b668c348e159d4aecc3cbefeee53e \
+    --hash=sha256:f15efb526cd53f9cf12da72dc55506322f5566b017a819ff27be1da302303134
     # via -r backend/requirements/common.in
 django-redis==7.0.0 \
     --hash=sha256:4b23aa6e0cd0937bb1242e9a463809e6004de3ca2150f34e986306bb6220d688 \
@@ -565,6 +570,12 @@ pillow==12.3.0 \
     # via
     #   -r backend/requirements/common.in
     #   cairosvg
+prometheus-client==0.26.0 \
+    --hash=sha256:04a91bcf94e2cf74a44a1a874d651a2e853ed354b6e822f3b7487751465d5c2b \
+    --hash=sha256:fa93d06737aa02bacd05794768508bb97d2fbee28cb3bca04eaae92f0ca953d6
+    # via
+    #   -r backend/requirements/common.in
+    #   django-prometheus
 promise==2.3 \
     --hash=sha256:dfd18337c523ba4b6a58801c164c1904a9d4d1b1747c7d5dbf45b693a49d93d0
     # via graphene-django

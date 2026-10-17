@@ -5,7 +5,9 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    LANG=C.UTF-8
+    LANG=C.UTF-8 \
+    LOG_FORMAT=json \
+    SERVICE_NAME=adb-web-platform-celery-beat
 
 # System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -40,4 +42,5 @@ WORKDIR /opt/adb-software-solutions
 # Copy project code (backend directory contents)
 COPY ./backend/ .
 
-CMD ["celery", "-A", "adbsoftwaresolutions", "beat", "-l", "INFO"]
+# --quiet: no start-up banner, so the output is JSON log lines only.
+CMD ["celery", "-A", "adbsoftwaresolutions", "--quiet", "beat", "-l", "INFO"]
