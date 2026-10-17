@@ -5,9 +5,19 @@ COPY . .
 RUN pnpm install --frozen-lockfile --filter "adb-software-solutions..."
 RUN if [ -f sites/adb-software-solutions/.ci.env ]; then cp sites/adb-software-solutions/.ci.env sites/adb-software-solutions/.env.production; fi
 RUN pnpm --dir sites/adb-software-solutions build
+# The server writes its caches (optimised images, fetch and ISR data)
+# under .next at runtime, so the runtime user (uid 1001, below) owns it.
+# COPY --from keeps this ownership; everything else stays root-owned.
+RUN chown -R 1001:1001 sites/adb-software-solutions/.next
 
 FROM node:22-alpine AS runner
+# pnpm goes in a shared directory rather than root's home, so the
+# unprivileged user can run it without downloading it again.
+ENV COREPACK_HOME=/usr/local/share/corepack
 RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
+
+# Create a non-root user
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001 -G nodejs
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=builder /app /app
@@ -18,6 +28,8 @@ COPY --from=builder /app /app
 ENV LOG_FORMAT=json \
     SERVICE_NAME=adb-web-platform-adb-software-solutions \
     NODE_OPTIONS=--import=/app/packages/observability/src/json-console.mjs
+
+USER nextjs
 
 EXPOSE 3000
 

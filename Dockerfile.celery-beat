@@ -42,5 +42,17 @@ WORKDIR /opt/adb-software-solutions
 # Copy project code (backend directory contents)
 COPY ./backend/ .
 
+# Run as www-data (uid/gid 33), the user nginx runs as on the host: the
+# static and media bind mounts belong to it, and nginx serves what the
+# application writes there. The code stays root-owned and read-only to
+# the application; it writes only to the mounts, /tmp and its home
+# (/var/www, for library caches).
+RUN install -d -o www-data -g www-data -m 0755 /var/www
+USER www-data
+
 # --quiet: no start-up banner, so the output is JSON log lines only.
-CMD ["celery", "-A", "adbsoftwaresolutions", "--quiet", "beat", "-l", "INFO"]
+# The schedule file records when each task last ran. The working
+# directory is read-only to www-data, so it lives in /tmp (it was in the
+# container's writable layer before, so nothing outlives a recreate
+# either way).
+CMD ["celery", "-A", "adbsoftwaresolutions", "--quiet", "beat", "-l", "INFO", "--schedule", "/tmp/celerybeat-schedule"]

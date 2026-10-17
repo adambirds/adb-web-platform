@@ -497,8 +497,9 @@ the development Compose stack:
 | Celery Redis       | Broker/results isolated from cache and sessions; appropriate persistence and `noeviction` policy for queued work                                                     |
 | Backend image      | Existing `Dockerfile.backend` starts Gunicorn with an ASGI Uvicorn worker on 8000                                                                                    |
 | Worker image       | Existing `Dockerfile.celery-worker`; `CELERY_QUEUE=general`; include encryption/integration variables                                                                |
-| Beat image         | Existing `Dockerfile.celery-beat`; run exactly one scheduler; persist its schedule state if required                                                                 |
+| Beat image         | Existing `Dockerfile.celery-beat`; run exactly one scheduler; its schedule state is `/tmp/celerybeat-schedule` and does not need persisting                          |
 | Frontend images    | Software Solutions (3000), auth (3004), Web Designs (3002), Technology (3003); build with production public URLs                                                     |
+| Runtime users      | Backend, worker and Beat run as `www-data` (uid/gid 33); frontends as `nextjs` (uid 1001). Media and static mounts must belong to uid 33                             |
 | Attachment storage | Persist `backend/media` (container path `/opt/adb-software-solutions/media`), shared between API/attachment workers; keep protected attachments behind governed APIs |
 | Static assets      | Backend entrypoint runs `collectstatic`; arrange serving of its `staticfiles` output                                                                                 |
 | Optional scanner   | Private ClamAV                                                                                                                                                       |
