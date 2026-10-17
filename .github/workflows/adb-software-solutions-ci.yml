@@ -57,3 +57,19 @@ jobs:
             infisical-application-project-id: 51df9308-efb3-45b0-94ed-bf641f076acf
             build-env-file: sites/adb-software-solutions/.ci.env
             optional-build-env-keys: '["NEXT_PUBLIC_API_URL","NEXT_PUBLIC_AUTH_URL","NEXT_PUBLIC_SITE_URL"]'
+
+    docker-build:
+        # Pull requests build the images without pushing them.
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
+        needs: [frontend, trivy]
+        permissions:
+            contents: read
+            id-token: write
+        uses: adb-software-solutions/github-actions-workflows/.github/workflows/docker-build-ci.yml@v1
+        with:
+            application: adb-web-platform
+            images: '["adb-software-solutions"]'
+            infisical-identity-id: 472a9ad4-4bbd-49b9-94a0-ac81905a1799
+            infisical-application-project-id: cb12b399-589e-4d62-b8b8-7f4ffe4538e0
+            build-env-file: sites/adb-software-solutions/.ci.env
+            optional-build-env-keys: '["NEXT_PUBLIC_API_URL","NEXT_PUBLIC_AUTH_URL","NEXT_PUBLIC_SITE_URL"]'
