@@ -1,5 +1,6 @@
 import type {Metadata} from "next";
 import "./globals.css";
+import {LegalLinks} from "./legal-page";
 export const metadata: Metadata = {
     title: "ADB Analytics",
     description: "Search visibility and website engagement, together.",
@@ -10,7 +11,10 @@ export default function RootLayout({
 }: Readonly<{children: React.ReactNode}>) {
     return (
         <html lang="en-GB">
-            <body>{children}</body>
+            <body>
+                {children}
+                <LegalLinks />
+            </body>
         </html>
     );
 }

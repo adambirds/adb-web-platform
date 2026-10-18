@@ -141,17 +141,17 @@ Open [Google Auth Platform → Branding](https://console.cloud.google.com/auth/b
 If prompted, choose **Get started**. Enter these values for the production project;
 use a clearly marked development name for the development project.
 
-| Console field           | What to enter                                                                                                                                                 |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| App name                | `ADB Analytics`                                                                                                                                               |
-| User support email      | A monitored address available in Google's selector; use a suitable Google-account address or eligible group you control.                                      |
-| Audience                | **External** for the intended client-facing platform; see the decision below.                                                                                 |
-| Developer/contact email | A monitored address for Google's verification and operational messages.                                                                                       |
-| App home page           | `https://analytics.adbsoftwaresolutions.co.uk` once publicly accessible.                                                                                      |
-| Privacy policy          | The actual public HTTPS URL of the policy covering this application's Google data use. Supply your published URL; this feature does not create a policy page. |
-| Terms of service        | Your actual published terms URL, if provided.                                                                                                                 |
-| Authorized domains      | `adbsoftwaresolutions.co.uk`, without a scheme, path or subdomain. Add another domain only if used by your app's URLs.                                        |
-| Logo                    | Optional during initial setup; use an approved ADB asset if supplied.                                                                                         |
+| Console field           | What to enter                                                                                                            |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| App name                | `ADB Analytics`                                                                                                          |
+| User support email      | A monitored address available in Google's selector; use a suitable Google-account address or eligible group you control. |
+| Audience                | Choose for the connecting Google account, not ADB user count; see below.                                                 |
+| Developer/contact email | A monitored address for Google's verification and operational messages.                                                  |
+| App home page           | `https://analytics.adbsoftwaresolutions.co.uk` once publicly accessible.                                                 |
+| Privacy policy          | `https://analytics.adbsoftwaresolutions.co.uk/privacy` after this version is deployed.                                   |
+| Terms of service        | `https://analytics.adbsoftwaresolutions.co.uk/terms` after this version is deployed.                                     |
+| Authorized domains      | `adbsoftwaresolutions.co.uk`, without a scheme, path or subdomain. Add another domain only if used by your app's URLs.   |
+| Logo                    | Optional during initial setup; use an approved ADB asset if supplied.                                                    |
 
 Save the configuration. Ensure verification reviewers can reach the home page and
 policy links. Complete domain ownership verification through
@@ -161,6 +161,13 @@ for ownership and branding requirements. Do not enter placeholder policy URLs fo
 a production verification submission.
 
 ### 3. Choose Audience: External or Internal
+
+The application is currently used only by its operator. Keep External in
+**Testing** with only that operator's Google account listed while testing. One
+user does not itself qualify for Internal: choose Internal only if that Google
+account belongs to the Google organization owning the project. Public privacy and
+terms pages do not open registration or change application permissions. Review
+the policies and operating arrangements before inviting others.
 
 Open [Google Auth Platform → Audience](https://console.cloud.google.com/auth/audience).
 
@@ -328,6 +335,15 @@ CORS and CSRF origin allowlists add only the exact analytics origin and local po
 Rebuild the auth frontend with the analytics return URL configured before launch.
 The new Dockerfile/workflow follow existing non-root, healthcheck, registry and
 main-branch publishing conventions. The pnpm workspace already includes `sites/*`.
+
+### Public policy routes
+
+`/privacy` and `/terms` are public Server Component pages with no authentication
+or provider API dependency. The root layout links them from every application
+state. Their notices describe the current single-operator use, Google API data,
+optional writes, essential cookies, retention and separate disconnection/deletion.
+Confirm the published URLs are reachable without signing in before adding them
+to Google Branding; creating these routes does not deploy them automatically.
 
 ### Live verification checklist
 

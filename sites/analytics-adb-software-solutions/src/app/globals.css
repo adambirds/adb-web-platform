@@ -389,3 +389,33 @@ a {
         padding: 1.5rem 1rem;
     }
 }
+
+.legal-page {
+    max-width: 52rem;
+    margin: 0 auto;
+    padding: 2rem 1.25rem;
+    overflow-wrap: anywhere;
+}
+
+.legal-page article {
+    margin-top: 2rem;
+}
+
+.legal-page h2 {
+    margin-top: 2rem;
+}
+
+.legal-page a,
+.legal-links a {
+    color: var(--accent);
+    text-underline-offset: 0.2em;
+}
+
+.legal-links {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--line);
+    background: var(--paper);
+}
