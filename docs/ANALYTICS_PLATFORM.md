@@ -264,11 +264,11 @@ Create or confirm these public build settings in the same project/environment/ro
 folder. They are stored in Infisical for configuration management but their values
 are public and will be included in the browser application:
 
-| Infisical key               | Production value                               | Build that needs it                                                       |
-| --------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_API_URL`       | `https://api.adbsoftwaresolutions.co.uk`       | Analytics and shared authentication frontend.                             |
-| `NEXT_PUBLIC_AUTH_URL`      | `https://auth.adbsoftwaresolutions.co.uk`      | Analytics and shared authentication frontend.                             |
-| `NEXT_PUBLIC_ANALYTICS_URL` | `https://analytics.adbsoftwaresolutions.co.uk` | Shared authentication frontend, so Analytics is an allowed return origin. |
+| Infisical key               | Production value                               | Build that needs it                                                                 |
+| --------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`       | `https://api.adbsoftwaresolutions.co.uk`       | Analytics and shared authentication frontend.                                       |
+| `NEXT_PUBLIC_AUTH_URL`      | `https://auth.adbsoftwaresolutions.co.uk`      | Analytics and shared authentication frontend.                                       |
+| `NEXT_PUBLIC_ANALYTICS_URL` | `https://analytics.adbsoftwaresolutions.co.uk` | Analytics root login return target and shared authentication allowed return origin. |
 
 `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_AUTH_URL` may already exist; reuse them if
 they match these origins. Keep the existing `NEXT_PUBLIC_APP_URL` pointing to the
@@ -404,16 +404,16 @@ verify background refresh. Production tokens can still be revoked or expire.
 
 ### Environment variables
 
-| Process         | Variable                         | Purpose                                                              |
-| --------------- | -------------------------------- | -------------------------------------------------------------------- |
-| API/worker      | `ANALYTICS_GOOGLE_CLIENT_ID`     | Google Web OAuth client identifier                                   |
-| API/worker      | `ANALYTICS_GOOGLE_CLIENT_SECRET` | Runtime-only OAuth client secret                                     |
-| API             | `ANALYTICS_GOOGLE_REDIRECT_URI`  | Exact registered callback; production default above                  |
-| API             | `ANALYTICS_FRONTEND_URL`         | Fixed post-OAuth return origin; defaults to analytics subdomain      |
-| API/worker      | `CREDENTIAL_ENCRYPTION_KEYS`     | Existing shared Vault key ring                                       |
-| Analytics build | `NEXT_PUBLIC_API_URL`            | Shared API origin; local default `http://localhost:8000`             |
-| Analytics build | `NEXT_PUBLIC_AUTH_URL`           | Existing auth origin; local default `http://localhost:3004`          |
-| Auth build      | `NEXT_PUBLIC_ANALYTICS_URL`      | Exact analytics return origin; local default `http://localhost:3005` |
+| Process              | Variable                         | Purpose                                                              |
+| -------------------- | -------------------------------- | -------------------------------------------------------------------- |
+| API/worker           | `ANALYTICS_GOOGLE_CLIENT_ID`     | Google Web OAuth client identifier                                   |
+| API/worker           | `ANALYTICS_GOOGLE_CLIENT_SECRET` | Runtime-only OAuth client secret                                     |
+| API                  | `ANALYTICS_GOOGLE_REDIRECT_URI`  | Exact registered callback; production default above                  |
+| API                  | `ANALYTICS_FRONTEND_URL`         | Fixed post-OAuth return origin; defaults to analytics subdomain      |
+| API/worker           | `CREDENTIAL_ENCRYPTION_KEYS`     | Existing shared Vault key ring                                       |
+| Analytics build      | `NEXT_PUBLIC_API_URL`            | Shared API origin; local default `http://localhost:8000`             |
+| Analytics build      | `NEXT_PUBLIC_AUTH_URL`           | Existing auth origin; local default `http://localhost:3004`          |
+| Analytics/auth build | `NEXT_PUBLIC_ANALYTICS_URL`      | Exact analytics return origin; local default `http://localhost:3005` |
 
 Existing SQL, cache, session and Celery variables remain required. Production
 session/CSRF cookies remain secure and shared across the established parent domain.
