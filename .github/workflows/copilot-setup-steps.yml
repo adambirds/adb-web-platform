@@ -3,6 +3,8 @@ name: Repository Copilot Setup
 on:
     workflow_dispatch:
     push:
+        branches:
+            - main
         paths:
             - .github/workflows/copilot-setup-steps.yml
             - backend/**
