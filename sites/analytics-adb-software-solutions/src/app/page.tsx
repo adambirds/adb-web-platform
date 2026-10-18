@@ -1,4 +1,6 @@
-import {AnalyticsApp} from "./workspace";
+import {redirect} from "next/navigation";
+import {ANALYTICS_URL, loginUrl} from "./client";
+
 export default function Page() {
-    return <AnalyticsApp />;
+    redirect(loginUrl(new URL("/dashboard", ANALYTICS_URL).toString()));
 }

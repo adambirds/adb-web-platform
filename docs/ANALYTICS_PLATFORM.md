@@ -92,8 +92,8 @@ limit; no deployment or worker-queue infrastructure is changed.
 
 URL joins preserve scheme, host, path slash and query distinctions and drop only
 fragments. Canonical mismatches remain unmatched, rather than silently associating
-unrelated content. GA4 property timezone must match the website timezone; unlink the GA4 property
-before changing that timezone or replacing it with a property in another zone.
+unrelated content. GA4 association reads and applies the provider timezone automatically. It rejects
+a timezone change while a website synchronization is active.
 Unlinking removes only that website provider and its reports; Google account
 revocation remains a separate action affecting all its associated websites. Search
 Console remains Pacific Time. Combined views explicitly separate both systems.
@@ -357,12 +357,19 @@ properties. Use a Google account that already has the appropriate property acces
    and inspect **Settings → Users and permissions**. Have its owner grant the
    connecting account suitable access. Domain (`sc-domain:`) and URL-prefix
    properties are supported; select the one covering the website being tracked.
-3. Log into ADB Analytics with the existing ADB account. Create/select a Business
-   and Website, then choose **Connect Google**. Select the Google account added
-   as a test user and grant the requested reporting permissions.
-4. Discover and link the GA4/Search Console properties. Match the Website timezone
-   to GA4, start synchronization and follow job progress. Test administration
-   consent separately on a test property before making configuration changes.
+3. Open ADB Analytics: `/` sends you to the existing account application's login
+   with `/dashboard` as the return URL. An existing ADB session proceeds to the
+   dashboard. Choose **Connect Google**, select your test-user Google account
+   and grant reporting permissions. A first analytics workspace is created
+   automatically; no Business, domain or timezone form is required.
+4. After Google returns to `/dashboard`, accessible websites are discovered
+   automatically. Tick the websites to add, then choose **Add websites**. GA4 and
+   Search Console are matched by domain, and timezones come from GA4 (Search
+   Console-only websites use `America/Los_Angeles`). If several GA4 properties
+   cover a domain, choose which to use. Adding websites queues initial sync.
+   Reports refresh automatically as background jobs complete.
+   Use **+ Add websites** to import more later. Test administration consent
+   separately on a test property before configuration changes.
 
 ### 8. Move External production access out of Testing
 
@@ -414,6 +421,36 @@ CORS and CSRF origin allowlists add only the exact analytics origin and local po
 Rebuild the auth frontend with the analytics return URL configured before launch.
 The new Dockerfile/workflow follow existing non-root, healthcheck, registry and
 main-branch publishing conventions. The pnpm workspace already includes `sites/*`.
+
+### Dashboard and automatic website discovery
+
+Analytics uses the operations workspace's dark slate surfaces and ADB cyan accent.
+`/` redirects to the dedicated authentication frontend with `/dashboard` as its
+return destination; `/dashboard` checks the existing Django session and redirects
+unauthenticated visitors through the same login. OAuth callbacks return to
+`/dashboard`, preserving the authorized Business and connection selection.
+Privacy and terms remain public and independent of authentication.
+
+The first **Connect Google** action creates `My websites` only if the user has no
+Business membership. Existing Business scopes and capabilities are preserved;
+viewers cannot create or use connections by invoking onboarding endpoints.
+Discovery reads GA4 property timezones and web data stream `defaultUri` values,
+then matches verified Search Console Domain or root URL-prefix properties.
+It groups bare/`www` variants for onboarding only; other subdomains remain separate
+and report URL joins retain their existing conservative behavior. A Domain
+property can cover a subdomain; the most specific/exact match is preferred.
+Multiple GA4 matches require a user choice. Path-only Search Console properties,
+invalid timezones, missing web URLs and inaccessible streams are reported instead
+of guessed. Discovery is capped at 100 GA4 properties with an explicit notice.
+
+Selection imports are limited to 25 websites per request and are revalidated
+against fresh Google inventory. Business/website locks serialize creation and
+linking; initial sync tasks dispatch only after commit. Repeating an identical
+selection reuses the website and links without deleting reports or starting
+another sync. Existing different provider links require explicit unlinking first.
+The original GSC association path now persists its own metadata and search type;
+it never uses uninitialized GA4 metadata. Neither discovery nor import changes
+Google property settings.
 
 ### Public policy routes
 

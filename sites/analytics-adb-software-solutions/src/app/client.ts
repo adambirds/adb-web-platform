@@ -10,6 +10,11 @@ export const AUTH_URL =
     (process.env.NODE_ENV === "production"
         ? "https://auth.adbsoftwaresolutions.co.uk"
         : "http://localhost:3004");
+export const ANALYTICS_URL =
+    process.env.NEXT_PUBLIC_ANALYTICS_URL ??
+    (process.env.NODE_ENV === "production"
+        ? "https://analytics.adbsoftwaresolutions.co.uk"
+        : "http://localhost:3005");
 export class ApiError extends Error {
     constructor(
         public status: number,

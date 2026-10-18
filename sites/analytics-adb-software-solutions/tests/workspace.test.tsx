@@ -1,5 +1,6 @@
 import {afterEach, describe, expect, it, vi} from "vitest";
 import {
+    act,
     cleanup,
     fireEvent,
     render,
@@ -51,7 +52,7 @@ const session: Session = {
 };
 
 describe("analytics workspace", () => {
-    it("shows first-run business onboarding without fabricated statistics", async () => {
+    it("starts first-run onboarding with Google without business forms", async () => {
         vi.mocked(api).mockResolvedValue({
             email: "new@example.com",
             businesses: [],
@@ -59,18 +60,21 @@ describe("analytics workspace", () => {
         });
         render(<AnalyticsApp />);
         expect(
-            await screen.findByText("Start with your business."),
+            await screen.findByText("Your websites. One clear view."),
         ).toBeInTheDocument();
         expect(
-            screen.getByRole("button", {name: "Create business"}),
+            screen.getByRole("button", {name: "Connect Google"}),
         ).toBeInTheDocument();
     });
     it("shows a useful connection empty state and business/website selectors", async () => {
-        vi.mocked(api).mockResolvedValue(session);
+        vi.mocked(api).mockImplementation(
+            async (path) =>
+                (path.endsWith("/connections") ? [] : session) as never,
+        );
         render(<AnalyticsApp />);
         expect(
             await screen.findByRole("heading", {
-                name: "Connect Google Analytics",
+                name: "Your websites. One clear view.",
             }),
         ).toBeInTheDocument();
         expect(screen.getByLabelText("Business")).toHaveValue("1");
@@ -136,6 +140,70 @@ describe("analytics workspace", () => {
                     ),
             ).toBe(true),
         );
+    });
+    it("updates reports automatically after background synchronization completes", async () => {
+        let completed = false;
+        const linked = {
+            ...website,
+            providers: [
+                {
+                    provider: "ga4" as const,
+                    external_id: "properties/123",
+                    connection_id: 1,
+                    last_synced_at: null,
+                    error_code: "",
+                    metadata: {},
+                },
+            ],
+        };
+        vi.mocked(api).mockImplementation(async (path) => {
+            if (path === "/session")
+                return {
+                    ...session,
+                    businesses: [{...business, websites: [linked]}],
+                } as never;
+            if (path.endsWith("/sync"))
+                return [
+                    {
+                        id: 1,
+                        status: completed ? "complete" : "running",
+                        progress: completed ? 100 : 20,
+                        error_code: "",
+                    },
+                ] as never;
+            return {
+                current: completed
+                    ? {
+                          rows: [{sessions: 5678}],
+                          updated_at: "2026-10-18T00:00:00Z",
+                          complete: true,
+                          measurement: "GA4",
+                      }
+                    : null,
+                previous: null,
+                total: completed ? 1 : 0,
+                status: completed ? "available" : "range_not_synchronized",
+            } as never;
+        });
+        const interval = vi.spyOn(window, "setInterval");
+        try {
+            render(<AnalyticsApp />);
+            expect(
+                await screen.findByRole("heading", {
+                    name: "Preparing your reports",
+                }),
+            ).toBeInTheDocument();
+            completed = true;
+            await act(async () => {
+                const poll = interval.mock.calls.find(
+                    ([, delay]) => delay === 10000,
+                )?.[0];
+                if (typeof poll === "function") await poll();
+            });
+            expect(await screen.findByText("5,678")).toBeInTheDocument();
+        } finally {
+            interval.mockRestore();
+        }
     });
     it("surfaces report errors", async () => {
         vi.mocked(api).mockRejectedValue(new Error("Network unavailable"));

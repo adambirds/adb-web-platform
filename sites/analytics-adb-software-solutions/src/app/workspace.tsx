@@ -1,6 +1,7 @@
 "use client";
 
 import {useCallback, useEffect, useState} from "react";
+import {GoogleOnboarding} from "./onboarding";
 import {
     api,
     apiUrl,
@@ -247,17 +248,31 @@ export function AnalyticsApp() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
     const [revision, setRevision] = useState(0);
+    const [addingWebsites, setAddingWebsites] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    useEffect(() => {
+        if (
+            new URLSearchParams(window.location.search).get("integration") ===
+            "connected"
+        )
+            setAddingWebsites(true);
+    }, []);
     const reload = useCallback(async () => {
         const value = await api<Session>("/session");
         setSession(value);
+        const requestedBusiness = Number(
+            new URLSearchParams(window.location.search).get("business"),
+        );
         setBusinessId((previous) =>
-            value.businesses.some((b) => b.id === previous)
-                ? previous
-                : (value.businesses.find((b) =>
-                      b.websites.some((w) => w.id === value.website_id),
-                  )?.id ??
-                  value.businesses[0]?.id ??
-                  0),
+            value.businesses.some((b) => b.id === requestedBusiness)
+                ? requestedBusiness
+                : value.businesses.some((b) => b.id === previous)
+                  ? previous
+                  : (value.businesses.find((b) =>
+                        b.websites.some((w) => w.id === value.website_id),
+                    )?.id ??
+                    value.businesses[0]?.id ??
+                    0),
         );
         setWebsiteId((previous) =>
             value.businesses.some((b) =>
@@ -274,7 +289,14 @@ export function AnalyticsApp() {
         reload()
             .catch((err: unknown) => {
                 if (err instanceof ApiError && err.status === 401)
-                    window.location.assign(loginUrl(window.location.href));
+                    window.location.replace(
+                        loginUrl(
+                            new URL(
+                                "/dashboard",
+                                window.location.origin,
+                            ).toString(),
+                        ),
+                    );
                 else if (active)
                     setError(
                         err instanceof Error
@@ -317,21 +339,38 @@ export function AnalyticsApp() {
     if (!business)
         return (
             <main className="welcome">
-                <p className="eyebrow">ADB Analytics</p>
-                <h1>Start with your business.</h1>
-                <p>
-                    One workspace for the websites you look after. Connect
-                    Google to bring search visibility and website engagement
-                    together.
-                </p>
-                <CreateBusiness refresh={refresh} />
+                <GoogleOnboarding onComplete={refresh} />
+            </main>
+        );
+    if (!business.websites.length && business.role !== "viewer")
+        return (
+            <main className="welcome">
+                <GoogleOnboarding business={business} onComplete={refresh} />
+                <p className="signed-in">Signed in as {session.email}</p>
             </main>
         );
     return (
         <div className="shell">
-            <aside>
-                <div className="wordmark">
+            <div className="mobile-bar">
+                <span className="wordmark">
                     adb<span> / analytics</span>
+                </span>
+                <button
+                    aria-label="Toggle navigation"
+                    aria-expanded={mobileOpen}
+                    onClick={() => setMobileOpen(!mobileOpen)}
+                >
+                    Menu
+                </button>
+            </div>
+            <aside className={mobileOpen ? "mobile-open" : ""}>
+                <div className="wordmark">
+                    <span className="app-mark" aria-hidden="true">
+                        A
+                    </span>
+                    <span>
+                        ADB <strong>Analytics</strong>
+                    </span>
                 </div>
                 <div className="selectors">
                     <label>
@@ -389,13 +428,26 @@ export function AnalyticsApp() {
                             onClick={() => {
                                 setError("");
                                 setSection(key);
+                                setAddingWebsites(false);
+                                setMobileOpen(false);
                             }}
                         >
                             {label}
                         </button>
                     ))}
                 </nav>
-                <p>
+                {business.role !== "viewer" && (
+                    <button
+                        className="add-websites"
+                        onClick={() => {
+                            setAddingWebsites(true);
+                            setMobileOpen(false);
+                        }}
+                    >
+                        + Add websites
+                    </button>
+                )}
+                <p className="account-summary">
                     <small>
                         {session.email}
                         <br />
@@ -409,63 +461,93 @@ export function AnalyticsApp() {
                         <p className="eyebrow">
                             {website?.domain ?? business.name}
                         </p>
-                        <h1>{NAV.find(([key]) => key === section)?.[1]}</h1>
+                        <h1>
+                            {addingWebsites
+                                ? "Add websites"
+                                : NAV.find(([key]) => key === section)?.[1]}
+                        </h1>
+                        <p className="muted">
+                            {website
+                                ? `Website performance · ${website.timezone}`
+                                : "Connect your account to get started"}
+                        </p>
                     </div>
-                    <div className="controls">
-                        <label>
-                            From
-                            <input
-                                type="date"
-                                value={dates.start}
-                                max={dates.end}
-                                onChange={(e) =>
-                                    setDates({...dates, start: e.target.value})
-                                }
-                            />
-                        </label>
-                        <label>
-                            To
-                            <input
-                                type="date"
-                                value={dates.end}
-                                min={dates.start}
-                                max={new Date().toISOString().slice(0, 10)}
-                                onChange={(e) =>
-                                    setDates({...dates, end: e.target.value})
-                                }
-                            />
-                        </label>
-                        <label className="check">
-                            <input
-                                type="checkbox"
-                                checked={comparison}
-                                onChange={(e) =>
-                                    setComparison(e.target.checked)
-                                }
-                            />
-                            Previous period
-                        </label>
-                    </div>
+                    {!addingWebsites && website && (
+                        <div className="controls">
+                            <label>
+                                From
+                                <input
+                                    type="date"
+                                    value={dates.start}
+                                    max={dates.end}
+                                    onChange={(e) =>
+                                        setDates({
+                                            ...dates,
+                                            start: e.target.value,
+                                        })
+                                    }
+                                />
+                            </label>
+                            <label>
+                                To
+                                <input
+                                    type="date"
+                                    value={dates.end}
+                                    min={dates.start}
+                                    max={new Date().toISOString().slice(0, 10)}
+                                    onChange={(e) =>
+                                        setDates({
+                                            ...dates,
+                                            end: e.target.value,
+                                        })
+                                    }
+                                />
+                            </label>
+                            <label className="check">
+                                <input
+                                    type="checkbox"
+                                    checked={comparison}
+                                    onChange={(e) =>
+                                        setComparison(e.target.checked)
+                                    }
+                                />
+                                Previous period
+                            </label>
+                        </div>
+                    )}
                 </header>
                 {error && (
                     <p className="notice error" role="alert">
                         {error}
                     </p>
                 )}
-                {!website ? (
-                    <section className="panel">
-                        <h2>Add your first website</h2>
-                        <p>
-                            Your website can use GA4, Search Console, or both.
-                            Each integration is optional.
-                        </p>
-                        {business.role !== "viewer" && (
-                            <WebsiteForm
-                                business={business}
-                                refresh={refresh}
-                            />
-                        )}
-                    </section>
+                {addingWebsites ||
+                !website ||
+                (!website.providers.length && business.role !== "viewer") ? (
+                    business.role === "viewer" ? (
+                        <section className="panel empty">
+                            <h2>No websites yet</h2>
+                            <p>
+                                Your workspace administrator can connect Google
+                                and add websites.
+                            </p>
+                        </section>
+                    ) : (
+                        <GoogleOnboarding
+                            key={business.id}
+                            business={business}
+                            onComplete={async () => {
+                                await refresh();
+                                setAddingWebsites(false);
+                                setSection("overview");
+                            }}
+                            onCancel={
+                                website?.providers.length
+                                    ? () => setAddingWebsites(false)
+                                    : undefined
+                            }
+                        />
+                    )
                 ) : section === "settings" ? (
                     <WorkspaceSettings
                         business={business}
@@ -554,7 +636,10 @@ export function WebsiteForm({
                         {
                             name: data.get("name"),
                             domain: data.get("domain"),
-                            timezone: data.get("timezone"),
+                            timezone:
+                                website?.timezone ??
+                                Intl.DateTimeFormat().resolvedOptions()
+                                    .timeZone,
                             is_active: data.get("active") === "on",
                         },
                     );
@@ -582,14 +667,12 @@ export function WebsiteForm({
                     required
                 />
             </label>
-            <label>
-                GA4 property timezone
-                <input
-                    name="timezone"
-                    defaultValue={website?.timezone ?? "Europe/London"}
-                    required
-                />
-            </label>
+            <p className="muted">
+                <small>
+                    Timezone is detected from the linked Google Analytics
+                    property{website ? ` · ${website.timezone}` : ""}.
+                </small>
+            </p>
             <label className="check">
                 <input
                     type="checkbox"
@@ -660,6 +743,7 @@ function Reports({
         {eventName: string}[]
     >([]);
     const [parameterRows, setParameterRows] = useState<Row[] | null>(null);
+    const [syncRevision, setSyncRevision] = useState(0);
     const [jobs, setJobs] = useState<
         {id: number; status: string; progress: number; error_code: string}[]
     >([]);
@@ -756,15 +840,35 @@ function Reports({
         return () => {
             active = false;
         };
-    }, [website.id, linked, section, provider, name, query, revision]);
+    }, [
+        website.id,
+        linked,
+        section,
+        provider,
+        name,
+        query,
+        revision,
+        syncRevision,
+    ]);
     useEffect(() => {
         let active = true;
+        let completed = "";
         const poll = async () => {
             try {
                 const value = await api<typeof jobs>(
                     `/websites/${website.id}/sync`,
                 );
-                if (active) setJobs(value);
+                if (active) {
+                    setJobs(value);
+                    const signature = value
+                        .filter((job) => job.status === "complete")
+                        .map((job) => job.id)
+                        .sort()
+                        .join(",");
+                    if (signature && signature !== completed)
+                        setSyncRevision((previous) => previous + 1);
+                    completed = signature;
+                }
             } catch {
                 /* Report requests surface session/network errors. */
             }
@@ -932,11 +1036,17 @@ function Reports({
                 <DataTable rows={extra} />
             ) : !report?.current ? (
                 <section className="panel empty">
-                    <h2>This date range hasn’t been synchronized yet.</h2>
+                    <h2>
+                        {activeJobs.length
+                            ? "Preparing your reports"
+                            : "This date range hasn’t been synchronized yet."}
+                    </h2>
                     <p>
-                        {canManage
-                            ? "Choose Synchronize date range above to prepare this report and its comparison."
-                            : "Ask a business administrator to synchronize this date range."}
+                        {activeJobs.length
+                            ? "Your Google data is syncing in the background. Reports appear here automatically when ready."
+                            : canManage
+                              ? "Choose Synchronize date range above to prepare this report and its comparison."
+                              : "Ask a business administrator to synchronize this date range."}
                     </p>
                 </section>
             ) : (

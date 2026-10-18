@@ -24,17 +24,14 @@ from apps.analytics.administration import (
     delete_key_event,
 )
 from apps.analytics.google import (
-    ADMIN_URL,
     EDIT,
-    READ,
-    SEARCH,
     consume_oauth_state,
     disconnect,
     discover,
-    google_request,
     oauth_callback,
     oauth_start,
 )
+from apps.analytics.linking import link_property
 from apps.analytics.models import (
     AnalyticsPreference,
     Business,
@@ -43,6 +40,7 @@ from apps.analytics.models import (
     ReportSnapshot,
     SyncJob,
 )
+from apps.analytics.onboarding import discover_websites, import_websites
 from apps.analytics.reports import (
     GA_REPORTS,
     GSC_REPORTS,
@@ -59,7 +57,7 @@ from apps.analytics.services import (
     save_website,
     set_membership,
 )
-from apps.analytics.synchronization import queue_sync, scheduled_window
+from apps.analytics.synchronization import queue_sync
 from apps.core.models import AuditEvent
 from authentication.custom_request import AuthenticatedHttpRequest
 
@@ -275,9 +273,14 @@ def callback(
 ) -> HttpResponse:
     if error:
         consume_oauth_state(request, state)
-        return HttpResponseRedirect(settings.ANALYTICS_FRONTEND_URL + "/?integration=denied")
-    oauth_callback(request, state, code)
-    response = HttpResponseRedirect(settings.ANALYTICS_FRONTEND_URL + "/?integration=connected")
+        return HttpResponseRedirect(
+            settings.ANALYTICS_FRONTEND_URL + "/dashboard?integration=denied"
+        )
+    connection = oauth_callback(request, state, code)
+    response = HttpResponseRedirect(
+        settings.ANALYTICS_FRONTEND_URL
+        + f"/dashboard?integration=connected&business={connection.business_id}&connection={connection.pk}"
+    )
     response["Cache-Control"] = "no-store"
     response["Referrer-Policy"] = "no-referrer"
     return response
@@ -312,66 +315,9 @@ def associate(
 ) -> dict[str, bool]:
     website = website_for(request.user, website_id, "change_googleconnection")
     connection = connection_for(request, payload.connection_id)
-    if connection.business_id != website.business_id:
-        raise HttpError(404, "Connection unavailable.")
-    if provider == "ga4":
-        import re
-
-        if (
-            not re.fullmatch(r"properties/[0-9]+", payload.external_id)
-            or READ not in connection.scopes
-        ):
-            raise HttpError(422, "Choose an accessible GA4 property with reporting permission.")
-        metadata = google_request(connection, "GET", ADMIN_URL + payload.external_id)
-        if metadata.get("timeZone") != website.timezone:
-            raise HttpError(
-                422,
-                "Set the website timezone to match the GA4 property timezone: "
-                + metadata.get("timeZone", "unknown"),
-            )
-    else:
-        properties = discover(connection)["gsc"]
-        search_metadata = next(
-            (
-                item
-                for item in properties
-                if item["siteUrl"] == payload.external_id
-                and item.get("permissionLevel") != "siteUnverifiedUser"
-            ),
-            None,
-        )
-        if search_metadata is None or SEARCH not in connection.scopes:
-            raise HttpError(403, "Google account cannot access this Search Console property.")
-    with transaction.atomic():
-        existing = (
-            ProviderProperty.objects.select_for_update()
-            .filter(website=website, provider=provider)
-            .first()
-        )
-        if existing and existing.jobs.filter(status__in=["queued", "running", "retrying"]).exists():
-            raise HttpError(409, "Wait for the active synchronization before changing properties.")
-        prop, _ = ProviderProperty.objects.update_or_create(
-            website=website,
-            provider=provider,
-            defaults={
-                "connection": connection,
-                "external_id": payload.external_id,
-                "metadata": {**metadata, "_backfill_pending": True},
-                "last_synced_at": None,
-                "error_code": "",
-            },
-        )
-        prop.snapshots.all().delete()
-        prop.definitions.all().delete()
-        prop.revision += 1
-        prop.save(update_fields=["revision"])
-        AuditEvent.record(
-            action="analytics.property_linked",
-            actor=request.user,
-            target=prop,
-            metadata={"provider": provider, "external_id": payload.external_id},
-        )
-        queue_sync(prop, *scheduled_window(prop))
+    link_property(
+        request.user, website, connection, provider, payload.external_id, payload.search_type
+    )
     return {"linked": True}
 
 
@@ -764,3 +710,46 @@ def unlink_property(
         )
         prop.delete()
     return {"unlinked": True}
+
+
+class WebsiteSelection(Schema):
+    domain: str = Field(min_length=1, max_length=253)
+    ga4: str | None = None
+    gsc: str | None = None
+
+
+class ImportWebsitesIn(Schema):
+    websites: list[WebsiteSelection] = Field(min_length=1, max_length=25)
+
+
+@router.post("/onboarding")
+def onboarding_workspace(request: AuthenticatedHttpRequest) -> dict[str, int]:
+    # No form is required for a first workspace. Keep the existing Business scope.
+    with transaction.atomic():
+        get_user_model().objects.select_for_update().get(pk=request.user.pk)
+        business = Business.objects.filter(memberships__user=request.user).order_by("pk").first()
+        if business is None:
+            business = create_business(request.user, "My websites")
+        business_for(request.user, business.pk, "change_googleconnection")
+    return {"business_id": business.pk}
+
+
+@router.get("/connections/{connection_id}/websites")
+def website_discovery(
+    request: AuthenticatedHttpRequest, connection_id: int, refresh: bool = False
+) -> dict[str, Any]:
+    throttle(request, "discovery", 10)
+    return discover_websites(connection_for(request, connection_id), refresh=refresh)
+
+
+@router.post("/connections/{connection_id}/websites")
+def website_import(
+    request: AuthenticatedHttpRequest, connection_id: int, payload: ImportWebsitesIn
+) -> dict[str, Any]:
+    throttle(request, "website-import", 10)
+    websites = import_websites(
+        request.user,
+        connection_for(request, connection_id),
+        [row.model_dump() for row in payload.websites],
+    )
+    return {"websites": [website_json(website) for website in websites]}

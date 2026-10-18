@@ -64,9 +64,9 @@ export function IntegrationSettings({
             <section className="panel">
                 <h2>Bring your Google data together</h2>
                 <p>
-                    1. Connect an account. 2. Discover properties. 3. Link each
-                    provider to this website. Initial reports will synchronize
-                    in the background.
+                    Use + Add websites to discover websites and match their
+                    Google properties automatically. Manage account access and
+                    existing connections here.
                 </p>
                 <p>
                     Reporting access reads GA4 and Search Console.
@@ -137,7 +137,7 @@ export function IntegrationSettings({
                                     }
                                 }}
                             >
-                                Discover properties
+                                Advanced property selection
                             </button>
                             {connection.status !== "disconnected" && (
                                 <button
@@ -280,9 +280,9 @@ export function IntegrationSettings({
                     ))}
                     <p>
                         <small>
-                            The GA4 property timezone must match the website
-                            setting. Search Console reports always use Pacific
-                            Time. Providers may use different Google accounts.
+                            GA4 sets the website timezone automatically. Search
+                            Console reports use Pacific Time. Use this advanced
+                            selection only to change an existing association.
                         </small>
                     </p>
                 </section>

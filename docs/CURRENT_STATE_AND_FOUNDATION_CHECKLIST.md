@@ -575,3 +575,9 @@ The analytics product lives in `sites/analytics-adb-software-solutions/`, with
 shared backend services in `backend/apps/analytics/`. Analytics Business membership
 is separate from Brand, Client and staff access. See [Analytics platform](ANALYTICS_PLATFORM.md)
 for the implementation contract, Google setup and verification requirements.
+
+Analytics onboarding now uses `/` → shared account login → `/dashboard`, then
+Google connection and a selectable inventory of domain-matched GA4/Search Console
+websites. Timezones come from Google; the first Business is created automatically
+without widening capabilities or scope. Its interface follows the existing
+operations dark slate/cyan design. See the [Analytics workflow](ANALYTICS_PLATFORM.md#dashboard-and-automatic-website-discovery).

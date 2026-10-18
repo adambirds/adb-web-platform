@@ -423,8 +423,8 @@ class AnalyticsTests(TestCase):
         row["impressions"] = 100
         self.assertTrue(opportunities([row], [], "query")[0]["heuristic"])
 
-    @patch("apps.analytics.api.google_request", return_value={"timeZone": "Europe/London"})
-    @patch("apps.analytics.api.queue_sync")
+    @patch("apps.analytics.linking.google_request", return_value={"timeZone": "Europe/London"})
+    @patch("apps.analytics.linking.queue_sync")
     def test_property_association_scope(self, queue: MagicMock, provider: MagicMock) -> None:
         response = self.client.put(
             f"/api/analytics/websites/{self.website.pk}/properties/ga4",
@@ -645,3 +645,197 @@ class AnalyticsTests(TestCase):
         self.assertFalse(ProviderProperty.objects.filter(pk=self.prop.pk).exists())
         self.connection.refresh_from_db()
         self.assertEqual(self.connection.status, "connected")
+
+    @patch("apps.analytics.linking.queue_sync")
+    @patch("apps.analytics.linking.discover")
+    def test_gsc_association_persists_metadata_and_search_type(
+        self, discovery: MagicMock, queue: MagicMock
+    ) -> None:
+        discovery.return_value = {
+            "gsc": [{"siteUrl": "sc-domain:example.com", "permissionLevel": "siteOwner"}]
+        }
+        response = self.client.put(
+            f"/api/analytics/websites/{self.website.pk}/properties/gsc",
+            {
+                "connection_id": self.connection.pk,
+                "external_id": "sc-domain:example.com",
+                "search_type": "image",
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        prop = self.website.provider_properties.get(provider="gsc")
+        self.assertEqual(prop.metadata["siteUrl"], "sc-domain:example.com")
+        self.assertEqual(prop.metadata["permissionLevel"], "siteOwner")
+        self.assertEqual(prop.metadata["search_type"], "image")
+        queue.assert_called_once()
+
+    @patch("apps.analytics.linking.queue_sync")
+    @patch("apps.analytics.linking.google_request", return_value={"timeZone": "America/New_York"})
+    def test_ga4_link_detects_timezone(self, provider: MagicMock, queue: MagicMock) -> None:
+        response = self.client.put(
+            f"/api/analytics/websites/{self.website.pk}/properties/ga4",
+            {"connection_id": self.connection.pk, "external_id": "properties/456"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.website.refresh_from_db()
+        self.assertEqual(self.website.timezone, "America/New_York")
+
+    @patch("apps.analytics.onboarding.google_request", return_value={"timeZone": "Europe/London"})
+    @patch("apps.analytics.onboarding.paginated")
+    @patch("apps.analytics.onboarding.discover")
+    def test_website_discovery_matches_domains_not_display_names(
+        self, discovery: MagicMock, streams: MagicMock, metadata: MagicMock
+    ) -> None:
+        discovery.return_value = {
+            "ga4": [{"property": "properties/123", "displayName": "Unrelated display name"}],
+            "gsc": [
+                {"siteUrl": "sc-domain:example.com", "permissionLevel": "siteOwner"},
+                {"siteUrl": "https://www.example.com/", "permissionLevel": "siteFullUser"},
+                {"siteUrl": "https://example.com/blog/", "permissionLevel": "siteOwner"},
+                {"siteUrl": "sc-domain:hidden.test", "permissionLevel": "siteUnverifiedUser"},
+            ],
+        }
+        streams.return_value = [{"webStreamData": {"defaultUri": "https://www.example.com/"}}]
+        response = self.client.get(f"/api/analytics/connections/{self.connection.pk}/websites")
+        self.assertEqual(response.status_code, 200)
+        result = response.json()
+        self.assertEqual(len(result["websites"]), 1)
+        row = result["websites"][0]
+        self.assertEqual(row["domain"], "example.com")
+        self.assertEqual(row["ga4"][0]["timezone"], "Europe/London")
+        self.assertEqual(row["gsc"][0]["id"], "sc-domain:example.com")
+        self.assertEqual(len(row["gsc"]), 2)
+        self.assertEqual(row["existing_id"], self.website.pk)
+        self.assertTrue(result["warnings"])
+        self.client.force_login(self.other)
+        self.assertEqual(
+            self.client.get(
+                f"/api/analytics/connections/{self.connection.pk}/websites"
+            ).status_code,
+            404,
+        )
+        self.client.force_login(self.viewer)
+        self.assertEqual(
+            self.client.get(
+                f"/api/analytics/connections/{self.connection.pk}/websites"
+            ).status_code,
+            403,
+        )
+
+    @patch("apps.analytics.linking.queue_sync")
+    @patch("apps.analytics.linking.discover")
+    @patch("apps.analytics.linking.google_request", return_value={"timeZone": "America/New_York"})
+    @patch("apps.analytics.onboarding.discover_websites")
+    def test_website_import_is_scoped_idempotent_and_links_both(
+        self, inventory: MagicMock, metadata: MagicMock, discovery: MagicMock, queue: MagicMock
+    ) -> None:
+        inventory.return_value = {
+            "websites": [
+                {
+                    "domain": "new.example.com",
+                    "ga4": [{"id": "properties/987", "timezone": "America/New_York"}],
+                    "gsc": [{"id": "sc-domain:example.com"}],
+                }
+            ]
+        }
+        discovery.return_value = {
+            "gsc": [{"siteUrl": "sc-domain:example.com", "permissionLevel": "siteOwner"}]
+        }
+        body = {
+            "websites": [
+                {
+                    "domain": "new.example.com",
+                    "ga4": "properties/987",
+                    "gsc": "sc-domain:example.com",
+                }
+            ]
+        }
+        endpoint = f"/api/analytics/connections/{self.connection.pk}/websites"
+        response = self.client.post(endpoint, body, content_type="application/json")
+        self.assertEqual(response.status_code, 200, response.content)
+        website = self.business.websites.get(domain="new.example.com")
+        self.assertEqual(website.timezone, "America/New_York")
+        self.assertEqual(website.provider_properties.count(), 2)
+        response = self.client.post(endpoint, body, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(queue.call_count, 2)
+        self.assertEqual(self.business.websites.filter(domain="new.example.com").count(), 1)
+        body["websites"][0]["ga4"] = "properties/999"
+        self.assertEqual(
+            self.client.post(endpoint, body, content_type="application/json").status_code, 422
+        )
+        self.client.force_login(self.other)
+        self.assertEqual(
+            self.client.post(endpoint, body, content_type="application/json").status_code, 404
+        )
+        self.client.force_login(self.viewer)
+        self.assertEqual(
+            self.client.post(endpoint, body, content_type="application/json").status_code, 403
+        )
+
+    @patch("apps.analytics.onboarding.discover_websites")
+    @patch("apps.analytics.linking.discover")
+    @patch("apps.analytics.linking.queue_sync")
+    def test_search_only_import_uses_provider_timezone(
+        self, queue: MagicMock, discovery: MagicMock, inventory: MagicMock
+    ) -> None:
+        inventory.return_value = {
+            "websites": [
+                {
+                    "domain": "search.example.com",
+                    "ga4": [],
+                    "gsc": [{"id": "sc-domain:search.example.com"}],
+                }
+            ]
+        }
+        discovery.return_value = {
+            "gsc": [{"siteUrl": "sc-domain:search.example.com", "permissionLevel": "siteFullUser"}]
+        }
+        response = self.client.post(
+            f"/api/analytics/connections/{self.connection.pk}/websites",
+            {"websites": [{"domain": "search.example.com", "gsc": "sc-domain:search.example.com"}]},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            self.business.websites.get(domain="search.example.com").timezone, "America/Los_Angeles"
+        )
+
+    def test_first_workspace_is_automatic_idempotent_and_does_not_elevate_viewer(self) -> None:
+        fresh = User.objects.create_user(
+            email="fresh@example.test",
+            password="test-password",
+            first_name="Fresh",
+            last_name="User",
+        )
+        self.client.force_login(fresh)
+        first = self.client.post("/api/analytics/onboarding", content_type="application/json")
+        second = self.client.post("/api/analytics/onboarding", content_type="application/json")
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.json(), second.json())
+        self.assertEqual(BusinessMembership.objects.filter(user=fresh).count(), 1)
+        self.client.force_login(self.viewer)
+        self.assertEqual(
+            self.client.post(
+                "/api/analytics/onboarding", content_type="application/json"
+            ).status_code,
+            403,
+        )
+
+    @override_settings(ANALYTICS_FRONTEND_URL="https://analytics.adbsoftwaresolutions.co.uk")
+    @patch("apps.analytics.api.oauth_callback")
+    def test_google_callback_returns_to_dashboard_with_authorized_context(
+        self, callback: MagicMock
+    ) -> None:
+        callback.return_value = self.connection
+        response = self.client.get(
+            "/api/analytics/oauth/callback?state=bound-state&code=provider-code"
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response["Location"],
+            f"https://analytics.adbsoftwaresolutions.co.uk/dashboard?integration=connected&business={self.business.pk}&connection={self.connection.pk}",
+        )
+        self.assertIn("no-store", response["Cache-Control"])
