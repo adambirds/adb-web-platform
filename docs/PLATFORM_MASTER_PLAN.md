@@ -1181,3 +1181,10 @@ Unsuccessful enquiry history has a 36-month inactivity review period. The
 operations workspace provides a manually approved deletion queue, with reasoned
 keep/defer decisions. Daily Celery scans must never automatically delete Leads.
 See [Lead retention](LEAD_RETENTION.md) for the authoritative workflow and scope.
+
+### Independent analytics product
+
+The analytics product lives in `sites/analytics-adb-software-solutions/`, with
+shared backend services in `backend/apps/analytics/`. Analytics Business membership
+is separate from Brand, Client and staff access. See [Analytics platform](ANALYTICS_PLATFORM.md)
+for the implementation contract, Google setup and verification requirements.

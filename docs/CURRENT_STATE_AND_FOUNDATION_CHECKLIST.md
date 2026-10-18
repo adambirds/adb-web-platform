@@ -568,3 +568,10 @@ daily scan, permissioned approval, reasoned keep decisions and attachment cleanu
 retry. Automatic deletion is disabled by design. Deployment requires migration
 `crm.0006_lead_retention_reviews`, existing workers/Beat and permission grants.
 See [Lead retention](LEAD_RETENTION.md).
+
+### Independent analytics product
+
+The analytics product lives in `sites/analytics-adb-software-solutions/`, with
+shared backend services in `backend/apps/analytics/`. Analytics Business membership
+is separate from Brand, Client and staff access. See [Analytics platform](ANALYTICS_PLATFORM.md)
+for the implementation contract, Google setup and verification requirements.

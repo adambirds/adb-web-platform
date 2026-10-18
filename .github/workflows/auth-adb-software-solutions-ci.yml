@@ -56,7 +56,7 @@ jobs:
             infisical-registry-project-id: 848009f4-aa7d-45e2-8fb6-404bd8f25115
             infisical-application-project-id: 51df9308-efb3-45b0-94ed-bf641f076acf
             build-env-file: sites/auth-adb-software-solutions/.ci.env
-            optional-build-env-keys: '["NEXT_PUBLIC_API_URL","NEXT_PUBLIC_APP_URL","NEXT_PUBLIC_AUTH_URL","NEXT_PUBLIC_WEB_DESIGNS_URL","NEXT_PUBLIC_TECHNOLOGY_URL"]'
+            optional-build-env-keys: '["NEXT_PUBLIC_API_URL","NEXT_PUBLIC_APP_URL","NEXT_PUBLIC_AUTH_URL","NEXT_PUBLIC_WEB_DESIGNS_URL","NEXT_PUBLIC_TECHNOLOGY_URL","NEXT_PUBLIC_ANALYTICS_URL"]'
 
     docker-build:
         # Pull requests build the images without pushing them.
@@ -72,4 +72,4 @@ jobs:
             infisical-identity-id: 472a9ad4-4bbd-49b9-94a0-ac81905a1799
             infisical-application-project-id: cb12b399-589e-4d62-b8b8-7f4ffe4538e0
             build-env-file: sites/auth-adb-software-solutions/.ci.env
-            optional-build-env-keys: '["NEXT_PUBLIC_API_URL","NEXT_PUBLIC_APP_URL","NEXT_PUBLIC_AUTH_URL","NEXT_PUBLIC_WEB_DESIGNS_URL","NEXT_PUBLIC_TECHNOLOGY_URL"]'
+            optional-build-env-keys: '["NEXT_PUBLIC_API_URL","NEXT_PUBLIC_APP_URL","NEXT_PUBLIC_AUTH_URL","NEXT_PUBLIC_WEB_DESIGNS_URL","NEXT_PUBLIC_TECHNOLOGY_URL","NEXT_PUBLIC_ANALYTICS_URL"]'

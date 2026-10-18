@@ -1,0 +1,42 @@
+FROM node:22-alpine AS builder
+RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
+WORKDIR /app
+COPY . .
+RUN pnpm install --frozen-lockfile --filter "adb-software-solutions-analytics..."
+RUN if [ -f sites/analytics-adb-software-solutions/.ci.env ]; then cp sites/analytics-adb-software-solutions/.ci.env sites/analytics-adb-software-solutions/.env.production; fi
+RUN pnpm --dir sites/analytics-adb-software-solutions build
+# The server writes its caches (optimised images, fetch and ISR data)
+# under .next at runtime, so the runtime user (uid 1001, below) owns it.
+# COPY --from keeps this ownership; everything else stays root-owned.
+RUN chown -R 1001:1001 sites/analytics-adb-software-solutions/.next
+
+FROM node:22-alpine AS runner
+# pnpm goes in a shared directory rather than root's home, so the
+# unprivileged user can run it without downloading it again.
+ENV COREPACK_HOME=/usr/local/share/corepack
+RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
+
+# Create a non-root user
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001 -G nodejs
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=builder /app /app
+
+# JSON logs on stdout for Loki: every Node.js process (pnpm included)
+# preloads json-console.mjs, which formats console output when
+# LOG_FORMAT=json.
+ENV LOG_FORMAT=json \
+    SERVICE_NAME=adb-web-platform-analytics-adb-software-solutions \
+    NODE_OPTIONS=--import=/app/packages/observability/src/json-console.mjs
+
+USER nextjs
+
+EXPOSE 3005
+
+# GET /healthz on the server itself; /metrics (Prometheus) is beside it.
+# nginx keeps both off the public site. The image has no curl, so Node's
+# fetch makes the request.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD ["node", "-e", "fetch('http://127.0.0.1:3005/healthz').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+
+CMD ["pnpm", "--dir", "sites/analytics-adb-software-solutions", "start"]

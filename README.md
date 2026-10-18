@@ -818,3 +818,12 @@ from local content files. Do not put marketing styles or analytics in Software's
 root or admin layout. Software's policies additionally describe signed-in
 operations and necessary authentication storage. No contracting, core-hours
 helpdesk or unconfirmed consultancy offer has been added.
+
+### ADB Analytics
+
+`sites/analytics-adb-software-solutions/` is the independent analytics product on
+port 3005 (`analytics.adbsoftwaresolutions.co.uk`). It uses the shared Django
+`/api/analytics` APIs, ADB sessions, encrypted credential Vault and existing Celery
+workers. Run `pnpm --dir sites/analytics-adb-software-solutions dev` locally.
+See [Analytics setup and architecture](docs/ANALYTICS_PLATFORM.md) for Google OAuth,
+required runtime/build configuration, reporting semantics and live verification.
