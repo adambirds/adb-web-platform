@@ -239,8 +239,87 @@ callback in the corresponding nonproduction client. See Google's
 
 ### 6. Set application configuration and start services
 
-Use the [environment variable table](#environment-variables) below. For local
-work, add these values to `.devcontainer/.env` without overwriting existing secrets:
+#### Infisical: production entries to create or confirm
+
+Open [ADB Infisical](https://secrets.adbsoftwaresolutions.co.uk) and select the
+existing **ADB Web Platform application project**, identified in the workflows by
+project ID `51df9308-efb3-45b0-94ed-bf641f076acf`. Choose environment **prod**
+and the root folder **/**. Both production frontend builds and the deployment
+workflow read application values from this location. Use the exact uppercase
+names below, without adding an application prefix or creating an `/analytics`
+subfolder. The registry and deployment-bootstrap projects are separate; these
+Google settings belong in the application project.
+
+Create the following four Analytics backend entries if missing. Update an
+existing entry rather than creating a duplicate:
+
+| Infisical key                    | Production value                                                                                                             | Used by                                                   |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `ANALYTICS_GOOGLE_CLIENT_ID`     | The **Client ID** from the production Google Web application OAuth client, normally ending in `.apps.googleusercontent.com`. | Django API and workers.                                   |
+| `ANALYTICS_GOOGLE_CLIENT_SECRET` | The **Client secret** issued for that same production OAuth client. This is the confidential value.                          | Django API and workers; runtime only.                     |
+| `ANALYTICS_GOOGLE_REDIRECT_URI`  | `https://api.adbsoftwaresolutions.co.uk/api/analytics/oauth/callback`                                                        | Django OAuth callback; must exactly match Google Clients. |
+| `ANALYTICS_FRONTEND_URL`         | `https://analytics.adbsoftwaresolutions.co.uk`                                                                               | Django's fixed return destination after Google consent.   |
+
+Create or confirm these public build settings in the same project/environment/root
+folder. They are stored in Infisical for configuration management but their values
+are public and will be included in the browser application:
+
+| Infisical key               | Production value                               | Build that needs it                                                       |
+| --------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`       | `https://api.adbsoftwaresolutions.co.uk`       | Analytics and shared authentication frontend.                             |
+| `NEXT_PUBLIC_AUTH_URL`      | `https://auth.adbsoftwaresolutions.co.uk`      | Analytics and shared authentication frontend.                             |
+| `NEXT_PUBLIC_ANALYTICS_URL` | `https://analytics.adbsoftwaresolutions.co.uk` | Shared authentication frontend, so Analytics is an allowed return origin. |
+
+`NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_AUTH_URL` may already exist; reuse them if
+they match these origins. Keep the existing `NEXT_PUBLIC_APP_URL` pointing to the
+Software Solutions application, not Analytics. Existing public brand URL settings
+remain as configured. The Analytics frontend does not need the Google client
+secret or a Google measurement ID to read connected properties.
+
+**Keep the existing `CREDENTIAL_ENCRYPTION_KEYS` value unchanged.** Confirm that
+Django and workers receive the same existing key ring; do not generate a new ring
+for Analytics or overwrite the current one. Existing database, Redis, session,
+Celery and Django `SECRET_KEY` settings are shared prerequisites, not new
+Analytics secrets. Google access/refresh tokens and property IDs do not need
+manual Infisical entries: the connection flow stores tokens encrypted in the
+backend and property selection records the selected identifiers.
+
+After saving the values:
+
+1. Rebuild the **Analytics** and **authentication** images so their public build
+   settings are incorporated. Restarting an old Next.js image alone does not
+   update its compiled `NEXT_PUBLIC_*` values.
+2. Ensure the existing deployment maps the four backend keys above and the shared
+   credential key ring into the API and relevant Celery processes, then redeploy
+   them and apply migrations. Deployment exports Infisical root values into
+   Ansible variables; it does not prove every new variable is already mapped to
+   container environments. Those runtime mappings live in the infrastructure
+   repository, not this application repository. Check the mapping without
+   printing secret values before attempting Google consent.
+3. Connect Google through the application and verify discovery and background
+   synchronisation. Merely creating an Infisical entry does not authorise Google
+   property access.
+
+These locations are confirmed by the application's
+[Analytics build workflow](../.github/workflows/analytics-adb-software-solutions-ci.yml),
+[authentication build workflow](../.github/workflows/auth-adb-software-solutions-ci.yml),
+and [deployment workflow](../.github/workflows/deploy.yml), together with the
+reusable [production image workflow](https://github.com/adb-software-solutions/github-actions-workflows/blob/v1/.github/workflows/docker-build-push.yml)
+and [deployment workflow](https://github.com/adb-software-solutions/github-actions-workflows/blob/v1/.github/workflows/deploy-application.yml).
+
+#### Infisical: pull-request CI and local development
+
+Pull-request image builds use the separate CI application project
+`cb12b399-589e-4d62-b8b8-7f4ffe4538e0`, environment **dev**, root path **/**.
+Only the public build settings above are relevant there; do not copy production
+Google secrets into this CI project. The current build workflows treat these
+public settings as optional and use application defaults when absent. A Google
+OAuth connection is not needed for mocked tests or the Docker build.
+
+For local Google testing, use the development OAuth client from step 5 in the
+untracked `.devcontainer/.env`; this does not require creating additional Infisical
+entries. Use the [environment variable table](#environment-variables) below as a
+reference. Add these values without overwriting existing secrets:
 
 ```dotenv
 ANALYTICS_GOOGLE_CLIENT_ID=<development-client-id>
