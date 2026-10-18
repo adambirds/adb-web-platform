@@ -43,6 +43,13 @@ TECHNOLOGY_FRONTEND_URL = os.environ.get(
 # explicit application URLs above.
 FRONTEND_URL = os.environ.get("FRONTEND_URL", SOFTWARE_SOLUTIONS_FRONTEND_URL)
 
+# An explicit allowlist replaces the application-origin fallback in passkey utils.
+WEBAUTHN_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("WEBAUTHN_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
 if not SITE_DOMAIN:
     raise ValueError("SITE_DOMAIN must be set.")
 

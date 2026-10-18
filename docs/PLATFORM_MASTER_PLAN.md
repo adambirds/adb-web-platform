@@ -205,6 +205,13 @@ and account-security application.
 Django remains the identity/session/TOTP/WebAuthn authority. Do not introduce
 Auth.js/NextAuth, browser-stored JWTs or another identity authority by default.
 
+Passkey verification trusts the configured dedicated `AUTH_FRONTEND_URL` alongside
+existing public/admin/docs application origins by default. The optional
+`WEBAUTHN_ALLOWED_ORIGINS` backend environment variable replaces that list with
+comma-separated exact origins and must include the auth origin. Origin checking
+remains exact; the relying party ID continues to default to `SITE_DOMAIN` so
+existing credentials retain their relying party identity.
+
 ---
 
 ## 4. Core domain rules

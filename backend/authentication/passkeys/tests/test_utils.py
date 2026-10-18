@@ -1,5 +1,7 @@
 """Tests for passkey utility functions."""
 
+import json
+
 from django.test import TestCase, override_settings
 
 from authentication.models import User
@@ -54,6 +56,78 @@ class RPConfigurationTestCase(TestCase):
         self.assertEqual(len(origins), 2)
         self.assertIn("https://app.example.com", origins)
         self.assertIn("https://admin.example.com", origins)
+
+    @override_settings(
+        WEBAUTHN_ALLOWED_ORIGINS=[],
+        AUTH_FRONTEND_URL="https://auth.adbsoftwaresolutions.co.uk",
+        FRONTEND_URL="https://adbsoftwaresolutions.co.uk",
+        ADMIN_FRONTEND_URL="https://adbsoftwaresolutions.co.uk",
+        DOCS_FRONTEND_URL=None,
+    )
+    def test_default_origins_include_auth_and_deduplicate_public_admin(self) -> None:
+        self.assertEqual(
+            get_allowed_origins(),
+            ["https://auth.adbsoftwaresolutions.co.uk", "https://adbsoftwaresolutions.co.uk"],
+        )
+        self.assertNotIn("https://untrusted.example.com", get_allowed_origins())
+
+    @override_settings(
+        WEBAUTHN_ALLOWED_ORIGINS=["https://explicit.example.com"],
+        AUTH_FRONTEND_URL="https://auth.example.com",
+    )
+    def test_explicit_origins_replace_defaults(self) -> None:
+        self.assertEqual(get_allowed_origins(), ["https://explicit.example.com"])
+
+    @override_settings(
+        WEBAUTHN_ALLOWED_ORIGINS=[],
+        AUTH_FRONTEND_URL="http://localhost:3004",
+        FRONTEND_URL="http://localhost:3000",
+        ADMIN_FRONTEND_URL="http://localhost:3000",
+        DOCS_FRONTEND_URL=None,
+    )
+    def test_local_auth_origin_preserves_port(self) -> None:
+        self.assertEqual(get_allowed_origins(), ["http://localhost:3004", "http://localhost:3000"])
+
+    @override_settings(
+        WEBAUTHN_ALLOWED_ORIGINS=[],
+        AUTH_FRONTEND_URL="https://auth.adbsoftwaresolutions.co.uk",
+        FRONTEND_URL="https://adbsoftwaresolutions.co.uk",
+        ADMIN_FRONTEND_URL="https://adbsoftwaresolutions.co.uk",
+        DOCS_FRONTEND_URL=None,
+    )
+    def test_verification_rejects_untrusted_origins(self) -> None:
+        from authentication.passkeys.verification import (
+            VerificationError,
+            verify_authentication,
+            verify_registration,
+        )
+
+        challenge = b"test-challenge"
+        for origin in (
+            "https://untrusted.example.com",
+            "https://auth.adbsoftwaresolutions.co.uk.attacker.example",
+            "http://auth.adbsoftwaresolutions.co.uk",
+        ):
+            for ceremony in ("webauthn.create", "webauthn.get"):
+                with self.subTest(origin=origin, ceremony=ceremony):
+                    credential = {
+                        "response": {
+                            "clientDataJSON": bytes_to_base64url(
+                                json.dumps(
+                                    {
+                                        "type": ceremony,
+                                        "challenge": bytes_to_base64url(challenge),
+                                        "origin": origin,
+                                    }
+                                ).encode()
+                            )
+                        }
+                    }
+                    with self.assertRaisesRegex(VerificationError, "Origin mismatch"):
+                        if ceremony == "webauthn.create":
+                            verify_registration(credential, challenge)
+                        else:
+                            verify_authentication(credential, challenge, b"", 0)
 
 
 class ChallengeGenerationTestCase(TestCase):

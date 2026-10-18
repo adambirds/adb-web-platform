@@ -31,15 +31,15 @@ def get_allowed_origins() -> list[str]:
     origins = getattr(settings, "WEBAUTHN_ALLOWED_ORIGINS", None)
     if origins:
         return origins
-    # Default to frontend URL, admin frontend URL, and docs frontend URL
-    allowed = [settings.FRONTEND_URL]
+    # Include the dedicated account application where passkey ceremonies run.
+    allowed = [settings.AUTH_FRONTEND_URL, settings.FRONTEND_URL]
     admin_url = getattr(settings, "ADMIN_FRONTEND_URL", None)
     if admin_url:
         allowed.append(admin_url)
     docs_url = getattr(settings, "DOCS_FRONTEND_URL", None)
     if docs_url:
         allowed.append(docs_url)
-    return allowed
+    return list(dict.fromkeys(allowed))
 
 
 def generate_challenge() -> bytes:
