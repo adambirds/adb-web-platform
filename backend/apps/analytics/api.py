@@ -23,6 +23,8 @@ from apps.analytics.administration import (
     definitions,
     delete_key_event,
 )
+from apps.analytics.experience import dashboard as dashboard_data
+from apps.analytics.experience import portfolio as portfolio_data
 from apps.analytics.google import (
     EDIT,
     consume_oauth_state,
@@ -753,3 +755,22 @@ def website_import(
         [row.model_dump() for row in payload.websites],
     )
     return {"websites": [website_json(website) for website in websites]}
+
+
+@router.get("/portfolio")
+def portfolio_overview(
+    request: AuthenticatedHttpRequest, start: date, end: date, business_id: int | None = None
+) -> dict[str, Any]:
+    date_window(start, end)
+    if business_id is not None:
+        business_for(request.user, business_id, "view_report")
+    return portfolio_data(request.user, start, end, business_id)
+
+
+@router.get("/websites/{website_id}/dashboard")
+def website_dashboard(
+    request: AuthenticatedHttpRequest, website_id: int, start: date, end: date
+) -> dict[str, Any]:
+    website = website_for(request.user, website_id)
+    date_window(start, end)
+    return dashboard_data(website, start, end)

@@ -896,3 +896,255 @@ class AnalyticsTests(TestCase):
         self.assertEqual(provider.call_count, 2)
         self.client.force_login(self.other)
         self.assertEqual(self.client.get(endpoint).status_code, 404)
+
+    def _experience_snapshot(
+        self,
+        report: str,
+        data: list[dict[str, object]],
+        *,
+        previous: bool = False,
+        prop: ProviderProperty | None = None,
+        complete: bool = True,
+    ) -> ReportSnapshot:
+        start, end = previous_window(self.start, self.end) if previous else (self.start, self.end)
+        return ReportSnapshot.objects.create(
+            property=prop or self.prop,
+            report=report,
+            start=start,
+            end=end,
+            payload={"rows": data, "complete": complete},
+        )
+
+    def test_portfolio_uses_exact_period_visitors_and_safe_comparisons(self) -> None:
+        self._experience_snapshot(
+            "overview", [{"totalUsers": 1000, "sessions": 1500, "keyEvents": 40}]
+        )
+        self._experience_snapshot(
+            "overview", [{"totalUsers": 800, "sessions": 1000, "keyEvents": 30}], previous=True
+        )
+        self._experience_snapshot(
+            "trend",
+            [{"date": "20260101", "totalUsers": 100}, {"date": "20260102", "totalUsers": 200}],
+        )
+        response = self.client.get("/api/analytics/portfolio?start=2026-01-01&end=2026-01-28")
+        self.assertEqual(response.status_code, 200)
+        value = response.json()
+        self.assertEqual(value["metrics"]["visitors"]["current"], 1000)
+        self.assertEqual(value["metrics"]["visitors"]["change"], 25)
+        self.assertEqual(value["trend"][0]["visitors"], 100)
+        self.assertIsNone(value["trend"][2]["visitors"])
+        self.assertTrue(any(item["metric"] == "totalUsers" for item in value["insights"]))
+
+    def test_experience_apis_preserve_business_scope_and_viewer_access(self) -> None:
+        endpoint = (
+            f"/api/analytics/websites/{self.website.pk}/dashboard?start=2026-01-01&end=2026-01-28"
+        )
+        self.client.force_login(self.viewer)
+        self.assertEqual(self.client.get(endpoint).status_code, 200)
+        self.assertEqual(
+            len(
+                self.client.get("/api/analytics/portfolio?start=2026-01-01&end=2026-01-28").json()[
+                    "sites"
+                ]
+            ),
+            1,
+        )
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.get(endpoint).status_code, 404)
+        self.assertEqual(
+            self.client.get("/api/analytics/portfolio?start=2026-01-01&end=2026-01-28").json()[
+                "sites"
+            ],
+            [],
+        )
+        self.assertEqual(
+            self.client.get(
+                f"/api/analytics/portfolio?business_id={self.business.pk}&start=2026-01-01&end=2026-01-28"
+            ).status_code,
+            404,
+        )
+        self.client.logout()
+        self.assertEqual(self.client.get(endpoint).status_code, 401)
+
+    def test_portfolio_missing_data_remains_unavailable(self) -> None:
+        response = self.client.get("/api/analytics/portfolio?start=2026-01-01&end=2026-01-28")
+        metric = response.json()["metrics"]["visitors"]
+        self.assertIsNone(metric["current"])
+        self.assertIsNone(metric["change"])
+        self.assertEqual(metric["covered"], 0)
+        self.assertEqual(metric["expected"], 1)
+
+    def test_portfolio_does_not_double_count_shared_google_properties(self) -> None:
+        other = save_website(
+            self.owner,
+            self.business.pk,
+            name="Another domain",
+            domain="another.example.com",
+            timezone="Europe/London",
+        )
+        prop = ProviderProperty.objects.create(
+            website=other,
+            connection=self.connection,
+            provider="ga4",
+            external_id=self.prop.external_id,
+        )
+        for item in (self.prop, prop):
+            self._experience_snapshot("overview", [{"totalUsers": 100, "sessions": 120}], prop=item)
+            self._experience_snapshot("trend", [{"date": "20260101", "totalUsers": 20}], prop=item)
+        response = self.client.get("/api/analytics/portfolio?start=2026-01-01&end=2026-01-28")
+        value = response.json()
+        self.assertEqual(len(value["sites"]), 2)
+        self.assertEqual(value["metrics"]["visitors"]["current"], 100)
+        self.assertEqual(value["metrics"]["visitors"]["expected"], 1)
+        self.assertEqual(value["trend"][0]["visitors"], 20)
+        self.assertTrue(all(site["shared_providers"] == ["ga4"] for site in value["sites"]))
+
+    def test_portfolio_with_incomplete_previous_coverage_does_not_invent_delta(self) -> None:
+        other = save_website(
+            self.owner,
+            self.business.pk,
+            name="New website",
+            domain="new.example.com",
+            timezone="Europe/London",
+        )
+        prop = ProviderProperty.objects.create(
+            website=other, connection=self.connection, provider="ga4", external_id="properties/987"
+        )
+        self._experience_snapshot("overview", [{"totalUsers": 20}], prop=prop)
+        self._experience_snapshot("overview", [{"totalUsers": 100}])
+        self._experience_snapshot("overview", [{"totalUsers": 50}], previous=True)
+        value = self.client.get("/api/analytics/portfolio?start=2026-01-01&end=2026-01-28").json()
+        self.assertEqual(value["metrics"]["visitors"]["current"], 120)
+        self.assertIsNone(value["metrics"]["visitors"]["previous"])
+        self.assertIsNone(value["metrics"]["visitors"]["change"])
+
+    def test_unified_dashboard_ranks_all_rows_and_groups_sources_before_limiting(self) -> None:
+        pages = [{"pageLocation": f"https://example.com/{i}", "sessions": i} for i in range(20)]
+        self._experience_snapshot("pages", pages)
+        self._experience_snapshot(
+            "acquisition",
+            [
+                {
+                    "sessionDefaultChannelGroup": "Organic Search",
+                    "sessionSourceMedium": "google / organic",
+                    "sessionCampaignName": str(i),
+                    "sessions": 10,
+                    "engagedSessions": 5,
+                }
+                for i in range(20)
+            ],
+        )
+        value = self.client.get(
+            f"/api/analytics/websites/{self.website.pk}/dashboard?start=2026-01-01&end=2026-01-28"
+        ).json()
+        self.assertEqual(value["reports"]["ga4"]["pages"]["current"]["rows"][0]["sessions"], 19)
+        self.assertEqual(value["reports"]["ga4"]["pages"]["current"]["total"], 20)
+        channels = value["reports"]["ga4"]["channels"]["current"]["rows"]
+        self.assertEqual(channels[0]["sessions"], 200)
+        self.assertEqual(channels[0]["engagementRate"], 0.5)
+
+    def test_experience_insights_do_not_treat_small_or_truncated_samples_as_anomalies(self) -> None:
+        self._experience_snapshot("overview", [{"totalUsers": 1000}])
+        self._experience_snapshot("overview", [{"totalUsers": 100}], previous=True, complete=False)
+        value = self.client.get("/api/analytics/portfolio?start=2026-01-01&end=2026-01-28").json()
+        self.assertEqual(value["insights"], [])
+        self.assertIsNone(value["metrics"]["visitors"]["change"])
+        ReportSnapshot.objects.all().delete()
+        self._experience_snapshot("overview", [{"totalUsers": 10}])
+        self._experience_snapshot("overview", [{"totalUsers": 2}], previous=True)
+        value = self.client.get("/api/analytics/portfolio?start=2026-01-01&end=2026-01-28").json()
+        self.assertEqual(value["insights"], [])
+
+    def test_dashboard_event_parameters_are_scoped_report_metadata(self) -> None:
+        from apps.analytics.models import EventDefinition
+
+        EventDefinition.objects.create(
+            property=self.prop,
+            kind="dimensions",
+            external_name="customDimensions/1",
+            payload={
+                "parameterName": "button_name",
+                "displayName": "Button name",
+                "scope": "EVENT",
+            },
+        )
+        self.client.force_login(self.viewer)
+        endpoint = (
+            f"/api/analytics/websites/{self.website.pk}/dashboard?start=2026-01-01&end=2026-01-28"
+        )
+        value = self.client.get(endpoint).json()
+        self.assertEqual(
+            value["parameters"], [{"parameterName": "button_name", "displayName": "Button name"}]
+        )
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.get(endpoint).status_code, 404)
+
+    def test_source_insights_aggregate_campaigns_in_both_windows(self) -> None:
+        for previous, counts in ((False, [80, 40]), (True, [40, 40])):
+            self._experience_snapshot(
+                "acquisition",
+                [
+                    {
+                        "sessionSourceMedium": "google / organic",
+                        "sessionCampaignName": str(i),
+                        "sessions": count,
+                    }
+                    for i, count in enumerate(counts)
+                ],
+                previous=previous,
+            )
+        response = self.client.get(
+            "/api/analytics/portfolio?start=2026-01-01&end=2026-01-28"
+        ).json()
+        insight = next(item for item in response["insights"] if item["id"].endswith(":source"))
+        self.assertEqual(insight["current"], 120)
+        self.assertEqual(insight["previous"], 80)
+        self.assertEqual(insight["change"], 50)
+
+    def test_search_opportunities_have_measured_evidence_and_thresholding_is_respected(
+        self,
+    ) -> None:
+        from apps.analytics.models import ProviderProperty
+
+        prop = ProviderProperty.objects.create(
+            website=self.website,
+            connection=self.prop.connection,
+            provider="gsc",
+            external_id="sc-domain:example.com",
+        )
+        self._experience_snapshot(
+            "queries",
+            [
+                {
+                    "query": "custom software",
+                    "clicks": 10,
+                    "impressions": 1000,
+                    "ctr": 0.01,
+                    "position": 8,
+                }
+            ],
+            prop=prop,
+        )
+        endpoint = "/api/analytics/portfolio?start=2026-01-01&end=2026-01-28"
+        insights = self.client.get(endpoint).json()["insights"]
+        self.assertEqual(len(insights), 1)
+        self.assertEqual(insights[0]["value"], "custom software")
+        self.assertEqual(insights[0]["level"], "opportunity")
+        stored = ReportSnapshot.objects.get(property=prop, report="queries")
+        stored.payload["metadata"] = {"subjectToThresholding": True}
+        stored.save(update_fields=["payload"])
+        self.assertEqual(self.client.get(endpoint).json()["insights"], [])
+
+    def test_daily_decline_requires_consecutive_complete_data(self) -> None:
+        rows: list[dict[str, object]] = [
+            {"date": f"202601{i:02d}", "totalUsers": 100 if i < 8 else 20} for i in range(1, 9)
+        ]
+        self._experience_snapshot("trend", rows)
+        endpoint = "/api/analytics/portfolio?start=2026-01-01&end=2026-01-28"
+        insights = self.client.get(endpoint).json()["insights"]
+        self.assertEqual(len(insights), 1)
+        self.assertIn("not seasonally adjusted", insights[0]["detail"])
+        stored = ReportSnapshot.objects.get(property=self.prop, report="trend")
+        stored.payload["rows"][3]["date"] = "20260120"
+        stored.save(update_fields=["payload"])
+        self.assertEqual(self.client.get(endpoint).json()["insights"], [])

@@ -1,25 +1,10 @@
 import {afterEach, describe, expect, it, vi} from "vitest";
-import {
-    act,
-    cleanup,
-    fireEvent,
-    render,
-    screen,
-    waitFor,
-} from "@testing-library/react";
-import {
-    AnalyticsApp,
-    DataTable,
-    Trend,
-    compareRows,
-} from "../src/app/workspace";
-import {IntegrationSettings, TrackingSettings} from "../src/app/settings";
-import {
-    api,
-    type Business,
-    type Session,
-    type Website,
-} from "../src/app/client";
+import {cleanup, fireEvent, render, screen} from "@testing-library/react";
+import {DataTable, compareRows} from "../src/components/reports/ReportTable";
+import {Trend} from "../src/components/experience/ActivityChart";
+import {IntegrationSettings} from "../src/components/settings/IntegrationSettings";
+import {TrackingSettings} from "../src/components/settings/TrackingSettings";
+import {api, type Business, type Website} from "../src/app/client";
 
 vi.mock("../src/app/client", async (importOriginal) => ({
     ...(await importOriginal<typeof import("../src/app/client")>()),
@@ -45,202 +30,6 @@ const business: Business = {
     role: "owner",
     websites: [website],
 };
-const session: Session = {
-    email: "owner@example.com",
-    businesses: [business],
-    website_id: 1,
-};
-
-describe("analytics workspace", () => {
-    it("starts first-run onboarding with Google without business forms", async () => {
-        vi.mocked(api).mockResolvedValue({
-            email: "new@example.com",
-            businesses: [],
-            website_id: null,
-        });
-        render(<AnalyticsApp />);
-        expect(
-            await screen.findByText("Your websites. One clear view."),
-        ).toBeInTheDocument();
-        expect(
-            screen.getByRole("button", {name: "Connect Google"}),
-        ).toBeInTheDocument();
-    });
-    it("shows a useful connection empty state and business/website selectors", async () => {
-        vi.mocked(api).mockImplementation(
-            async (path) =>
-                (path.endsWith("/connections") ? [] : session) as never,
-        );
-        render(<AnalyticsApp />);
-        expect(
-            await screen.findByRole("heading", {
-                name: "Your websites. One clear view.",
-            }),
-        ).toBeInTheDocument();
-        expect(screen.getByLabelText("Business")).toHaveValue("1");
-        expect(screen.getByLabelText("Website")).toHaveValue("1");
-    });
-    it("does not offer privileged settings to a viewer", async () => {
-        vi.mocked(api).mockResolvedValue({
-            ...session,
-            businesses: [{...business, role: "viewer"}],
-        });
-        render(<AnalyticsApp />);
-        await screen.findByLabelText("Business");
-        expect(
-            screen.queryByRole("button", {name: "Integrations"}),
-        ).not.toBeInTheDocument();
-        expect(
-            screen.queryByRole("button", {name: "Tracking configuration"}),
-        ).not.toBeInTheDocument();
-    });
-    it("loads real backend report values and changes date filters", async () => {
-        const linked = {
-            ...website,
-            providers: [
-                {
-                    provider: "ga4" as const,
-                    external_id: "properties/123",
-                    connection_id: 1,
-                    last_synced_at: null,
-                    error_code: "",
-                    metadata: {},
-                },
-            ],
-        };
-        vi.mocked(api).mockImplementation(async (path) => {
-            if (path === "/session")
-                return {
-                    ...session,
-                    businesses: [{...business, websites: [linked]}],
-                } as never;
-            if (path.endsWith("/sync")) return [] as never;
-            return {
-                current: {
-                    rows: [{sessions: 1234}],
-                    updated_at: "2026-01-01T00:00:00Z",
-                    complete: true,
-                    measurement: "GA4",
-                },
-                previous: null,
-                total: 1,
-            } as never;
-        });
-        render(<AnalyticsApp />);
-        expect(await screen.findByText("1,234")).toBeInTheDocument();
-        fireEvent.change(screen.getByLabelText("From"), {
-            target: {value: "2026-01-01"},
-        });
-        await waitFor(() =>
-            expect(
-                vi
-                    .mocked(api)
-                    .mock.calls.some(([path]) =>
-                        path.includes("start=2026-01-01"),
-                    ),
-            ).toBe(true),
-        );
-    });
-    it("updates reports automatically after background synchronization completes", async () => {
-        let completed = false;
-        const linked = {
-            ...website,
-            providers: [
-                {
-                    provider: "ga4" as const,
-                    external_id: "properties/123",
-                    connection_id: 1,
-                    last_synced_at: null,
-                    error_code: "",
-                    metadata: {},
-                },
-            ],
-        };
-        vi.mocked(api).mockImplementation(async (path) => {
-            if (path === "/session")
-                return {
-                    ...session,
-                    businesses: [{...business, websites: [linked]}],
-                } as never;
-            if (path.endsWith("/sync"))
-                return [
-                    {
-                        id: 1,
-                        status: completed ? "complete" : "running",
-                        progress: completed ? 100 : 20,
-                        error_code: "",
-                    },
-                ] as never;
-            return {
-                current: completed
-                    ? {
-                          rows: [{sessions: 5678}],
-                          updated_at: "2026-10-18T00:00:00Z",
-                          complete: true,
-                          measurement: "GA4",
-                      }
-                    : null,
-                previous: null,
-                total: completed ? 1 : 0,
-                status: completed ? "available" : "range_not_synchronized",
-            } as never;
-        });
-        const interval = vi.spyOn(window, "setInterval");
-        try {
-            render(<AnalyticsApp />);
-            expect(
-                await screen.findByRole("heading", {
-                    name: "Preparing your reports",
-                }),
-            ).toBeInTheDocument();
-            completed = true;
-            await act(async () => {
-                const poll = interval.mock.calls.find(
-                    ([, delay]) => delay === 10000,
-                )?.[0];
-                if (typeof poll === "function") await poll();
-            });
-            expect(await screen.findByText("5,678")).toBeInTheDocument();
-        } finally {
-            interval.mockRestore();
-        }
-    });
-    it("surfaces report errors", async () => {
-        vi.mocked(api).mockRejectedValue(new Error("Network unavailable"));
-        render(<AnalyticsApp />);
-        expect(await screen.findByRole("alert")).toHaveTextContent(
-            "Network unavailable",
-        );
-    });
-    it("switches businesses and resets website context", async () => {
-        vi.mocked(api).mockResolvedValue({
-            ...session,
-            businesses: [
-                business,
-                {
-                    ...business,
-                    id: 2,
-                    name: "Other business",
-                    websites: [
-                        {
-                            ...website,
-                            id: 2,
-                            business_id: 2,
-                            name: "Other website",
-                        },
-                    ],
-                },
-            ],
-        });
-        render(<AnalyticsApp />);
-        await screen.findByLabelText("Business");
-        fireEvent.change(screen.getByLabelText("Business"), {
-            target: {value: "2"},
-        });
-        expect(screen.getByLabelText("Website")).toHaveValue("2");
-    });
-});
-
 describe("report rendering", () => {
     it("sorts table rows and retains a readable empty state", () => {
         const {rerender} = render(
@@ -265,9 +54,7 @@ describe("report rendering", () => {
                 metric="sessions"
             />,
         );
-        expect(screen.getByRole("img")).toHaveAccessibleName(
-            "Sessions trend, 1 reported dates",
-        );
+        expect(screen.getByLabelText("Sessions over time")).toBeInTheDocument();
     });
 });
 

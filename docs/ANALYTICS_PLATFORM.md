@@ -427,7 +427,9 @@ main-branch publishing conventions. The pnpm workspace already includes `sites/*
 
 ### Dashboard and automatic website discovery
 
-Analytics uses the operations workspace's dark slate surfaces and ADB cyan accent.
+Analytics uses a full-width, portfolio-first interface with a horizontal header,
+locally bundled Inter typography, interactive Recharts comparisons and light/dark
+themes. Theme preference is stored locally; authentication remains Django-backed.
 `/` redirects to the dedicated authentication frontend with `/dashboard` as its
 return destination; `/dashboard` checks the existing Django session and redirects
 unauthenticated visitors through the same login. OAuth callbacks return to
@@ -454,6 +456,98 @@ another sync. Existing different provider links require explicit unlinking first
 The original GSC association path now persists its own metadata and search type;
 it never uses uninitialized GA4 metadata. Neither discovery nor import changes
 Google property settings.
+
+### Portfolio, website overview and progressive exploration
+
+- `/dashboard`: totals, comparisons and daily trends across accessible websites,
+  attention signals and searchable/sortable website cards. No sidebar report maze.
+- `/dashboard/websites/{id}`: visitors, visits, search clicks and key events;
+  engagement; channels/referrals; pages/landing pages; events; search queries;
+  countries/devices/browsers and actionable evidence together.
+- Click metrics to change the chart; hover or use chart arrow keys for values.
+  Click a website chart point or report row for evidence in a focus-managed drawer.
+  Page evidence places exact URL matches from GA4 and Search Console side by side.
+  Event drawers include daily counts and registered event parameter breakdowns.
+- `/dashboard/websites/{id}/explore`: detailed reports, report-local filters,
+  previous-period comparisons, custom event investigation, realtime and CSV export.
+- `/dashboard/insights`: all portfolio signals with links to supporting reports.
+- `/dashboard/settings` and `/dashboard/websites/{id}/settings`: Google connections,
+  website/access management and existing explicit-confirmation GA4 administration.
+
+Dates and explorer filters are shareable URL state. Missing snapshots show gaps
+and unavailable values, not simulated traffic. The default reporting period ends
+three days ago to align GA4 with final Search Console data. Custom periods can be
+synchronised explicitly; in-progress snapshots refresh automatically.
+
+`GET /api/analytics/portfolio` and `GET /api/analytics/websites/{id}/dashboard`
+read stored snapshots only. Both require `analytics.view_report` within Business
+membership; an optional portfolio `business_id` is checked independently. Viewers
+can inspect reports and cached event-definition metadata but retain no Google
+write capability. Google parameter reports are requested only on investigation.
+
+Portfolio period visitors use the **overview** metric, never the sum of daily
+users. Totals count each provider/external-property ID once, including properties
+linked to several websites. Website cards can therefore show the same property-wide
+figures; both cards and dashboards flag shared properties. This is not domain-level
+filtering or cross-property person deduplication. Coverage reports the number of
+available reporting properties; incomplete overview snapshots are excluded. A
+percentage comparison is withheld when prior coverage is incomplete or zero.
+Daily comparison points align by date offset and preserve missing dates.
+
+Rankings are sorted over all stored rows before selecting the top rows. Traffic
+channels/referrals aggregate additive session metrics across campaign rows first;
+engagement rates are derived from summed engaged sessions and sessions. Visitor
+counts are not added across acquisition rows. Provider truncation is disclosed.
+
+Insights are deterministic and deliberately cautious:
+
+- Visitor changes require a previous baseline of at least 100 and a change of 20%;
+  search clicks require 30 and 25%; key events require 10 and 25%. Absolute changes
+  below five do not create a signal.
+- Acquisition shifts require a source present in both periods, a baseline of 30
+  sessions and an absolute change of 25 sessions. They suggest investigation,
+  without claiming the source caused the overall change.
+- Search opportunities require at least 100 impressions, CTR below 2% and average
+  position between 4 and 20. They recommend reviewing the query/page/snippet,
+  without promising additional clicks or attributing a ranking change.
+- A daily decline signal requires eight consecutive available dates, a preceding
+  seven-day mean of at least 30 and latest traffic below half that mean. It is
+  explicitly not adjusted for seasonality.
+- Incomplete or privacy-thresholded reports do not generate insights. Missing
+  baselines never produce invented percentage changes or causal explanations.
+
+The focused frontend modules live in `src/components/experience`,
+`src/components/reports` and `src/components/settings`. Existing Google discovery,
+OAuth, sync, permissions and advanced administration remain shared backend services.
+No production demo data or additional paid analytics/AI service is introduced.
+Browser-review fixtures intercept APIs only in isolated Playwright sessions.
+
+### Repeatable visual review
+
+Build the application, then start an isolated production preview:
+
+```bash
+NODE_ENV=production pnpm --dir sites/analytics-adb-software-solutions build
+NODE_ENV=production pnpm --dir sites/analytics-adb-software-solutions exec next start -p 3105
+```
+
+In another terminal:
+
+```bash
+pnpm --dir sites/analytics-adb-software-solutions exec playwright install chromium
+pnpm --dir sites/analytics-adb-software-solutions test:browser
+```
+
+`tools/visual-review.mjs` intercepts analytics API requests inside its own browser
+session with explicitly isolated fixtures. It never inserts database rows, calls
+Google or changes a real account. It checks portfolio-to-website navigation,
+metric selection, chart tooltips/day inspection, page/source/event drawers,
+registered parameter exploration, the advanced explorer, Escape dismissal,
+light/dark modes and horizontal overflow at 390, 768, 1440, 1920 and 2560 pixels.
+Screenshots are written to the system temporary directory under
+`adb-analytics-review`; inspect them visually, including mobile and dark mode.
+Override `ANALYTICS_REVIEW_URL` or `ANALYTICS_REVIEW_OUTPUT` when needed. Browser
+checks supplement the unit/API tests and do not verify live Google reporting.
 
 ### Public policy routes
 

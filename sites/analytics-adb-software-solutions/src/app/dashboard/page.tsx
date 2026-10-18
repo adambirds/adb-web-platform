@@ -1,5 +1,4 @@
-import {AnalyticsApp} from "../workspace";
-
+import {PortfolioPage} from "../../components/experience/PortfolioPage";
 export default function DashboardPage() {
-    return <AnalyticsApp />;
+    return <PortfolioPage />;
 }

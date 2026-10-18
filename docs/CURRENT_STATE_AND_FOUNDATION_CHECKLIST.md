@@ -579,5 +579,7 @@ for the implementation contract, Google setup and verification requirements.
 Analytics onboarding now uses `/` → shared account login → `/dashboard`, then
 Google connection and a selectable inventory of domain-matched GA4/Search Console
 websites. Timezones come from Google; the first Business is created automatically
-without widening capabilities or scope. Its interface follows the existing
-operations dark slate/cyan design. See the [Analytics workflow](ANALYTICS_PLATFORM.md#dashboard-and-automatic-website-discovery).
+without widening capabilities or scope. Its portfolio-first interface uses a responsive horizontal shell, light/dark
+themes, an integrated website overview and progressive report exploration.
+Snapshot-only portfolio/dashboard APIs preserve capability and membership scope;
+deterministic insights link measured changes to their evidence. See the [Analytics workflow](ANALYTICS_PLATFORM.md#dashboard-and-automatic-website-discovery).

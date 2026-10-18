@@ -1,0 +1,183 @@
+.advanced-tools {
+    min-width: 0;
+}
+
+.advanced-tools .actions,
+.advanced-tools .controls {
+    display: flex;
+    align-items: end;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 18px 0;
+}
+
+.advanced-tools button {
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--panel);
+    font-size: 11px;
+}
+
+.advanced-tools button.primary {
+    background: var(--accent);
+    color: var(--panel);
+}
+
+.advanced-tools button:hover {
+    border-color: var(--accent);
+}
+
+.advanced-tools label {
+    font-size: 10px;
+}
+
+.advanced-tools .panel {
+    border: 1px solid var(--line);
+    padding: 24px;
+    background: var(--panel);
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+.advanced-tools h2 {
+    font-size: 17px;
+}
+
+.advanced-tools h3 {
+    margin-top: 18px;
+}
+
+.advanced-tools form {
+    display: flex;
+    gap: 14px;
+    align-items: end;
+    flex-wrap: wrap;
+    margin: 15px 0;
+}
+
+.advanced-tools form label {
+    min-width: 150px;
+    flex: 1;
+}
+
+.advanced-tools .check {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-direction: row;
+}
+
+.advanced-tools .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+}
+
+.advanced-tools table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.advanced-tools td,
+.advanced-tools th {
+    padding: 13px 15px;
+    border-bottom: 1px solid var(--line);
+    text-align: right;
+    white-space: nowrap;
+}
+
+.advanced-tools td:first-child,
+.advanced-tools th:first-child {
+    text-align: left;
+    max-width: 440px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.advanced-tools th {
+    font-weight: 500;
+    color: var(--muted);
+    font-size: 10px;
+    background: var(--paper);
+}
+
+.advanced-tools th button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.advanced-tools td button {
+    font-size: 11px;
+    color: var(--accent);
+    border: 0;
+    padding: 0;
+    background: transparent;
+}
+
+.advanced-tools .hero {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    margin: 24px 0;
+}
+
+.advanced-tools .metric strong {
+    display: block;
+    font-size: 28px;
+    letter-spacing: -0.04em;
+    font-weight: 550;
+}
+
+.advanced-tools .metric small {
+    font-size: 10px;
+}
+
+.advanced-tools .notice {
+    padding: 16px;
+    background: var(--accent-soft);
+    border-radius: 8px;
+    margin: 16px 0;
+    font-size: 12px;
+}
+
+.advanced-tools .error {
+    background: var(--negative-soft);
+    color: var(--negative);
+}
+
+.advanced-tools .empty {
+    padding: 45px 20px;
+    text-align: center;
+    color: var(--muted);
+}
+
+.advanced-tools pre {
+    background: var(--paper);
+    padding: 20px;
+    border-radius: 8px;
+    overflow: auto;
+    font-size: 11px;
+}
+
+.advanced-tools .stack {
+    display: grid;
+    gap: 14px;
+}
+
+.advanced-tools progress {
+    width: 100%;
+    accent-color: var(--accent);
+}
+
+.advanced-tools p {
+    font-size: 12px;
+}

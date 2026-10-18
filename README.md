@@ -830,5 +830,8 @@ helpdesk or unconfirmed consultancy offer has been added.
 port 3005 (`analytics.adbsoftwaresolutions.co.uk`). It uses the shared Django
 `/api/analytics` APIs, ADB sessions, encrypted credential Vault and existing Celery
 workers. Run `pnpm --dir sites/analytics-adb-software-solutions dev` locally.
+The portfolio at `/dashboard` opens into integrated website overviews, with
+interactive comparisons, evidence drawers and a deeper report explorer.
+Light/dark themes and mobile layouts share the same Django-backed access rules.
 See [Analytics setup and architecture](docs/ANALYTICS_PLATFORM.md) for Google OAuth,
 required runtime/build configuration, reporting semantics and live verification.
