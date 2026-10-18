@@ -1196,3 +1196,12 @@ without widening capabilities or scope. Its portfolio-first interface uses a res
 themes, an integrated website overview and progressive report exploration.
 Snapshot-only portfolio/dashboard APIs preserve capability and membership scope;
 deterministic insights link measured changes to their evidence. See the [Analytics workflow](ANALYTICS_PLATFORM.md#dashboard-and-automatic-website-discovery).
+
+Analytics Settings separates websites, Google accounts, events/conversions and
+workspace access. Initial Google consent requests the minimum supported reporting
+and GA4 configuration scopes together. Identity-bound reauthorisation preserves
+linked properties. Existing Celery/Beat proactively refreshes encrypted Google
+credentials with connection row locks and persisted backoff; revoked/expired
+grants require reconnection. Apply `analytics.0004_google_token_refresh_health`.
+Google publishing remains a manual operator action; refresh never guarantees a
+refresh token’s lifetime. See [Analytics operations](ANALYTICS_PLATFORM.md#settings-and-unattended-google-access).

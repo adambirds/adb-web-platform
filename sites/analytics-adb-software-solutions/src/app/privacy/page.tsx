@@ -38,9 +38,9 @@ export default function PrivacyPage() {
             <p>
                 Information is used to display reports, compare performance,
                 identify website improvements, export selected reports, and
-                maintain the connection and background synchronisation. Separate
-                administration consent allows explicitly requested changes to
-                GA4 custom definitions and key events. Google access does not
+                maintain the connection and background synchronisation. Initial
+                Google consent also permits explicitly confirmed changes to GA4
+                custom definitions and key events. Google access does not
                 replace ADB sign-in or grant access to unrelated workspaces.
             </p>
             <p>

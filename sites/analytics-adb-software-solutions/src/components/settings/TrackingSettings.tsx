@@ -9,8 +9,14 @@ type Definition = {
     measurementUnit?: string;
     scope?: string;
 };
-export function TrackingSettings({website}: {website: Website}) {
-    const [kind, setKind] = useState("dimensions");
+export function TrackingSettings({
+    website,
+    initialEvent = "",
+}: {
+    website: Website;
+    initialEvent?: string;
+}) {
+    const [kind, setKind] = useState("key-events");
     const [definitions, setDefinitions] = useState<Definition[]>([]);
     const [canEdit, setCanEdit] = useState(false);
     const [error, setError] = useState("");
@@ -48,7 +54,7 @@ export function TrackingSettings({website}: {website: Website}) {
             <section className="panel">
                 <h2>Connect GA4 first</h2>
                 <p>
-                    Open Integrations and link a GA4 property before configuring
+                    Open Websites and link a GA4 property before configuring
                     custom definitions.
                 </p>
             </section>
@@ -65,7 +71,8 @@ export function TrackingSettings({website}: {website: Website}) {
                     {message}
                 </p>
             )}
-            <section className="panel">
+            <details className="settings-card settings-disclosure">
+                <summary>Tracking plans & implementation</summary>
                 <h2>Register event parameters</h2>
                 <p>
                     Tell us which parameters your tracking sends. Google’s
@@ -196,9 +203,9 @@ export function TrackingSettings({website}: {website: Website}) {
                 >
                     Copy example
                 </button>
-            </section>
-            <section className="panel">
-                <h2>GA4 property configuration</h2>
+            </details>
+            <section className="settings-card">
+                <h2>Key events & custom definitions</h2>
                 <div className="actions">
                     <label>
                         Definition type
@@ -226,8 +233,10 @@ export function TrackingSettings({website}: {website: Website}) {
                 </div>
                 {!canEdit && (
                     <p className="notice">
-                        Reporting is available. Reconnect Google with
-                        administration access to change definitions.
+                        Configuration permission was not granted to this
+                        connection. Reauthorise it in Google accounts. Google
+                        also requires Editor or Administrator access on this
+                        property.
                     </p>
                 )}
                 {definitions.length === 0 && (
@@ -338,6 +347,14 @@ export function TrackingSettings({website}: {website: Website}) {
                             : "Parameter name"}
                         <input
                             name="parameter"
+                            defaultValue={
+                                kind === "key-events" ? initialEvent : ""
+                            }
+                            aria-label={
+                                kind === "key-events"
+                                    ? "Event name to configure"
+                                    : "Parameter name to configure"
+                            }
                             pattern="[A-Za-z][A-Za-z0-9_]{0,39}"
                             required
                         />

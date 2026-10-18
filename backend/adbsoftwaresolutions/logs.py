@@ -11,12 +11,41 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from datetime import UTC, datetime
 from typing import Any
 
 # Attributes every LogRecord has; anything else was passed with `extra=`
 # (except Uvicorn's colour-coded copy of the message).
 _STANDARD = set(vars(logging.makeLogRecord({}))) | {"message", "asctime", "color_message"}
+_OAUTH_CALLBACK = re.compile(r"(/api/analytics/oauth/callback)\?[^\s\"']+")
+
+
+def redact_oauth_callback(value: str) -> str:
+    return _OAUTH_CALLBACK.sub(r"\1?[redacted]", value)
+
+
+class OAuthCallbackLogFilter(logging.Filter):
+    """Preserve access-formatter arguments while removing OAuth codes/state."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if "/api/analytics/oauth/callback" not in record.getMessage():
+            return True
+        record.msg = redact_oauth_callback(str(record.msg))
+
+        def clean(value: object) -> object:
+            if isinstance(value, str):
+                redacted = redact_oauth_callback(value)
+                if redacted == value and ("code=" in value or "state=" in value):
+                    return "[redacted]"
+                return redacted
+            return value
+
+        if isinstance(record.args, tuple):
+            record.args = tuple(clean(value) for value in record.args)
+        elif isinstance(record.args, dict):
+            record.args = {key: clean(value) for key, value in record.args.items()}
+        return True
 
 
 class JsonFormatter(logging.Formatter):
@@ -29,15 +58,18 @@ class JsonFormatter(logging.Formatter):
             "time": datetime.fromtimestamp(record.created, UTC).isoformat(timespec="milliseconds"),
             "level": record.levelname.lower(),
             "logger": record.name,
-            "message": record.getMessage(),
+            "message": redact_oauth_callback(record.getMessage()),
             "service": self.service,
         }
         if record.exc_info:
-            entry["exception"] = self.formatException(record.exc_info)
+            entry["exception"] = redact_oauth_callback(self.formatException(record.exc_info))
         for key, value in vars(record).items():
             if key not in _STANDARD and not key.startswith("_"):
-                entry[key] = (
+                rendered = (
                     value if isinstance(value, str | int | float | bool | None) else repr(value)
+                )
+                entry[key] = (
+                    redact_oauth_callback(rendered) if isinstance(rendered, str) else rendered
                 )
         return json.dumps(entry, ensure_ascii=False)
 

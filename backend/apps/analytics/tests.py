@@ -8,7 +8,8 @@ from cryptography.fernet import Fernet
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
-from django.test import Client, RequestFactory, TestCase, override_settings
+from django.http import Http404
+from django.test import Client, RequestFactory, TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
 from ninja.errors import HttpError
 
@@ -233,7 +234,7 @@ class AnalyticsTests(TestCase):
         url = oauth_start(request, self.business.pk, "reporting")
         self.assertIn("code_challenge_method=S256", url)
         self.assertIn("access_type=offline", url)
-        self.assertNotIn("analytics.edit", url)
+        self.assertIn("analytics.edit", url)
         with self.assertRaises(HttpError):
             oauth_callback(request, "wrong", "code")
         self.assertNotIn("analytics_oauth", request.session)
@@ -251,7 +252,7 @@ class AnalyticsTests(TestCase):
             oauth_callback(request, request.session["analytics_oauth"]["state"], "code")
 
     @patch(
-        "apps.analytics.google.google_request",
+        "apps.analytics.google.authorized_request",
         return_value={"email": "google@example.test", "sub": "google-sub"},
     )
     @patch(
@@ -1148,3 +1149,397 @@ class AnalyticsTests(TestCase):
         stored.payload["rows"][3]["date"] = "20260120"
         stored.save(update_fields=["payload"])
         self.assertEqual(self.client.get(endpoint).json()["insights"], [])
+
+    @patch(
+        "apps.analytics.google.token_request",
+        return_value={"access_token": "next-access", "expires_in": 3600},
+    )
+    def test_refresh_preserves_refresh_token_and_skips_fresh_credentials(
+        self, token: MagicMock
+    ) -> None:
+        self.connection.expires_at = timezone.now() - timedelta(seconds=1)
+        self.connection.save()
+        self.assertEqual(access_token(self.connection), "next-access")
+        self.assertEqual(access_token(self.connection), "next-access")
+        token.assert_called_once()
+        self.credential.refresh_from_db()
+        self.assertEqual(
+            load_credential_secrets_for_service(self.credential)["refresh_token"], "refresh-test"
+        )
+        self.connection.refresh_from_db()
+        self.assertIsNotNone(self.connection.last_refreshed_at)
+        self.assertEqual(self.connection.refresh_failures, 0)
+
+    @patch(
+        "apps.analytics.google.token_request",
+        side_effect=ProviderError("quota_exceeded", retryable=True),
+    )
+    def test_transient_refresh_failure_persists_shared_backoff(self, token: MagicMock) -> None:
+        self.connection.expires_at = timezone.now() - timedelta(seconds=1)
+        self.connection.save()
+        for _ in range(2):
+            with self.assertRaises(ProviderError):
+                access_token(self.connection)
+        token.assert_called_once()
+        self.connection.refresh_from_db()
+        self.assertEqual(self.connection.status, "connected")
+        self.assertEqual(self.connection.refresh_failures, 1)
+        assert self.connection.refresh_retry_at is not None
+        self.assertGreater(self.connection.refresh_retry_at, timezone.now())
+        self.connection.refresh_retry_at = timezone.now() - timedelta(seconds=1)
+        self.connection.save()
+        with self.assertRaises(ProviderError):
+            access_token(self.connection)
+        self.connection.refresh_from_db()
+        self.assertEqual(self.connection.refresh_failures, 2)
+        self.assertGreater((self.connection.refresh_retry_at - timezone.now()).total_seconds(), 110)
+
+    @patch("apps.analytics.google.token_request", side_effect=ProviderError("credentials_revoked"))
+    def test_permanent_refresh_failure_stops_further_requests(self, token: MagicMock) -> None:
+        self.connection.expires_at = timezone.now() - timedelta(seconds=1)
+        self.connection.save()
+        for _ in range(2):
+            with self.assertRaises(ProviderError):
+                access_token(self.connection)
+        token.assert_called_once()
+        self.connection.refresh_from_db()
+        self.assertEqual(self.connection.status, "reconnect")
+        self.assertIsNone(self.connection.refresh_retry_at)
+
+    @patch("apps.analytics.tasks.refresh_google_token.delay")
+    def test_beat_enqueues_only_due_connected_accounts_without_a_session(
+        self, enqueue: MagicMock
+    ) -> None:
+        from adbsoftwaresolutions.celery import app
+        from apps.analytics.tasks import enqueue_token_refreshes
+
+        self.assertEqual(app.conf.beat_schedule["analytics-token-refresh"]["schedule"], 300)
+        self.connection.expires_at = timezone.now() + timedelta(minutes=5)
+        self.connection.save()
+        enqueue_token_refreshes()
+        enqueue.assert_called_once_with(self.connection.pk)
+        enqueue.reset_mock()
+        for updates in (
+            {"refresh_retry_at": timezone.now() + timedelta(minutes=2)},
+            {"refresh_retry_at": None, "status": "reconnect"},
+            {"status": "connected", "expires_at": timezone.now() + timedelta(hours=1)},
+        ):
+            GoogleConnection.objects.filter(pk=self.connection.pk).update(**updates)
+            enqueue_token_refreshes()
+        enqueue.assert_not_called()
+
+    @patch(
+        "apps.analytics.tasks.access_token",
+        side_effect=ProviderError("google_unavailable", retryable=True),
+    )
+    def test_background_refresh_retries_transient_failures_only(self, token: MagicMock) -> None:
+        from celery.exceptions import Retry
+
+        from apps.analytics.tasks import refresh_google_token
+
+        with patch.object(refresh_google_token, "retry", side_effect=Retry()) as retry:
+            with self.assertRaises(Retry):
+                refresh_google_token.run(self.connection.pk)
+            self.assertGreaterEqual(retry.call_args.kwargs["countdown"], 60)
+        token.side_effect = ProviderError("credentials_revoked")
+        with patch.object(refresh_google_token, "retry") as retry:
+            refresh_google_token.run(self.connection.pk)
+            retry.assert_not_called()
+
+    @patch(
+        "apps.analytics.google.authorized_request",
+        return_value={"email": "reconnected@example.test", "sub": "same-google-sub"},
+    )
+    @patch(
+        "apps.analytics.google.token_request",
+        return_value={
+            "access_token": "recovered-access",
+            "refresh_token": "recovered-refresh",
+            "scope": READ + " " + SEARCH + " " + EDIT,
+            "expires_in": 3600,
+        },
+    )
+    def test_reauthorization_recovers_same_connection_and_preserves_links(
+        self, token: MagicMock, identity: MagicMock
+    ) -> None:
+        self.connection.subject = "same-google-sub"
+        self.connection.status = "reconnect"
+        self.connection.error_code = "credentials_revoked"
+        self.connection.refresh_failures = 5
+        self.connection.save()
+        request = self._request()
+        oauth_start(request, self.business.pk, "administration", self.connection.pk, "settings")
+        recovered = oauth_callback(request, request.session["analytics_oauth"]["state"], "code")
+        self.assertEqual(recovered.pk, self.connection.pk)
+        self.prop.refresh_from_db()
+        self.assertEqual(self.prop.connection_id, recovered.pk)
+        self.assertEqual(recovered.status, "connected")
+        self.assertEqual(recovered.refresh_failures, 0)
+        self.assertEqual(recovered.error_code, "")
+        self.assertEqual(
+            load_credential_secrets_for_service(recovered.credential)["refresh_token"],
+            "recovered-refresh",
+        )
+        self.assertIn(EDIT, recovered.scopes)
+
+    @patch(
+        "apps.analytics.google.authorized_request",
+        return_value={"email": "different@example.test", "sub": "different-google-sub"},
+    )
+    @patch(
+        "apps.analytics.google.token_request",
+        return_value={"access_token": "wrong-account", "refresh_token": "wrong-refresh"},
+    )
+    def test_reauthorization_refuses_account_substitution_without_changing_tokens(
+        self, token: MagicMock, identity: MagicMock
+    ) -> None:
+        self.connection.subject = "original-sub"
+        self.connection.save()
+        request = self._request()
+        oauth_start(request, self.business.pk, "administration", self.connection.pk)
+        with self.assertRaises(ProviderError):
+            oauth_callback(request, request.session["analytics_oauth"]["state"], "code")
+        self.credential.refresh_from_db()
+        self.assertEqual(
+            load_credential_secrets_for_service(self.credential)["refresh_token"], "refresh-test"
+        )
+
+    def test_reauthorization_cannot_target_another_business_connection(self) -> None:
+        foreign = create_business(self.other, "Other workspace")
+        request = self._request()
+        with self.assertRaises((HttpError, Http404)):
+            oauth_start(request, foreign.pk, "administration", self.connection.pk)
+        self.client.force_login(self.viewer)
+        self.assertEqual(
+            self.client.post(
+                f"/api/analytics/businesses/{self.business.pk}/oauth",
+                {"connection_id": self.connection.pk},
+                content_type="application/json",
+            ).status_code,
+            403,
+        )
+
+    @patch("apps.analytics.google.token_request", return_value={"unexpected": "response"})
+    def test_malformed_refresh_response_does_not_destroy_credentials(
+        self, token: MagicMock
+    ) -> None:
+        self.connection.expires_at = timezone.now() - timedelta(seconds=1)
+        self.connection.save()
+        with self.assertRaises(ProviderError) as caught:
+            access_token(self.connection)
+        self.assertTrue(caught.exception.retryable)
+        self.credential.refresh_from_db()
+        self.assertEqual(
+            load_credential_secrets_for_service(self.credential)["refresh_token"], "refresh-test"
+        )
+
+    def test_connection_health_never_serializes_credentials(self) -> None:
+        response = self.client.get(f"/api/analytics/businesses/{self.business.pk}/connections")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("refresh_retry_at", response.json()[0])
+        self.assertNotIn("refresh-test", response.content.decode())
+        self.assertNotIn("access-test", response.content.decode())
+        self.assertNotIn("credential", response.json()[0])
+
+    @patch("apps.analytics.google.requests.post")
+    def test_token_endpoint_failures_are_classified_without_leaking_bodies(
+        self, post: MagicMock
+    ) -> None:
+        import requests
+
+        from apps.analytics.google import token_request
+
+        for status, body, expected, retryable in (
+            (
+                400,
+                '{"error":"invalid_grant", "error_description":"sensitive-provider-detail"}',
+                "credentials_revoked",
+                False,
+            ),
+            (400, '{"error":"invalid_client"}', "oauth_client_configuration", False),
+            (400, '{"error":"temporarily_unavailable"}', "google_unavailable", True),
+            (429, '{"error":"rate_limited"}', "quota_exceeded", True),
+            (503, '{"error":"server_error"}', "google_unavailable", True),
+        ):
+            response = requests.Response()
+            response.status_code, response._content = status, body.encode()
+            response.headers["Retry-After"] = "300"
+            post.return_value = response
+            with self.assertRaises(ProviderError) as caught:
+                token_request({"grant_type": "refresh_token", "refresh_token": "private-refresh"})
+            self.assertEqual(caught.exception.code, expected)
+            self.assertEqual(caught.exception.retryable, retryable)
+            self.assertNotIn("private-refresh", str(caught.exception))
+            self.assertNotIn("sensitive-provider-detail", str(caught.exception))
+            if status == 429:
+                self.assertEqual(caught.exception.retry_after, 300)
+
+    @patch("apps.analytics.api.definitions", side_effect=ProviderError("google_permission_denied"))
+    def test_google_property_permission_denial_is_distinct_from_oauth_consent(
+        self, definitions: MagicMock
+    ) -> None:
+        response = self.client.get(
+            f"/api/analytics/websites/{self.website.pk}/definitions/key-events"
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["code"], "google_permission_denied")
+        self.assertIn("Editor or Administrator", response.json()["detail"])
+        self.connection.refresh_from_db()
+        self.assertEqual(self.connection.status, "connected")
+
+    @patch(
+        "apps.analytics.google.authorized_request",
+        side_effect=[ProviderError("credentials_revoked"), {"rows": []}],
+    )
+    @patch(
+        "apps.analytics.google.token_request",
+        return_value={"access_token": "recovered-access", "expires_in": 3600},
+    )
+    def test_api_401_recovers_once_without_requiring_interactive_login(
+        self, token: MagicMock, transport: MagicMock
+    ) -> None:
+        from apps.analytics.google import DATA_URL, google_request
+
+        result = google_request(self.connection, "GET", DATA_URL + "properties/1")
+        self.assertEqual(result, {"rows": []})
+        token.assert_called_once()
+        self.assertEqual(transport.call_count, 2)
+        self.connection.refresh_from_db()
+        self.assertEqual(self.connection.status, "connected")
+
+    @patch("apps.analytics.google.token_request")
+    def test_rejected_token_reuses_an_already_rotated_concurrent_token(
+        self, token: MagicMock
+    ) -> None:
+        self.assertEqual(access_token(self.connection, rejected_token="old-access"), "access-test")
+        token.assert_not_called()
+
+    @patch(
+        "apps.analytics.google.authorized_request", side_effect=ProviderError("credentials_revoked")
+    )
+    @patch(
+        "apps.analytics.google.token_request",
+        return_value={"access_token": "still-rejected", "expires_in": 3600},
+    )
+    def test_repeated_api_401_stops_after_one_refresh(
+        self, token: MagicMock, transport: MagicMock
+    ) -> None:
+        from apps.analytics.google import DATA_URL, google_request
+
+        with self.assertRaises(ProviderError):
+            google_request(self.connection, "GET", DATA_URL + "properties/1")
+        token.assert_called_once()
+        self.assertEqual(transport.call_count, 2)
+        self.connection.refresh_from_db()
+        self.assertEqual(self.connection.status, "reconnect")
+
+    @patch(
+        "apps.analytics.google.authorized_request",
+        return_value={"email": "same@example.test", "sub": "same-sub"},
+    )
+    @patch(
+        "apps.analytics.google.token_request",
+        return_value={"access_token": "new-access", "scope": READ + " " + SEARCH + " " + EDIT},
+    )
+    def test_reauthorization_preserves_valid_offline_grant_when_no_replacement_is_returned(
+        self, token: MagicMock, identity: MagicMock
+    ) -> None:
+        request = self._request()
+        oauth_start(request, self.business.pk, "administration", self.connection.pk)
+        result = oauth_callback(request, request.session["analytics_oauth"]["state"], "code")
+        self.assertEqual(result.pk, self.connection.pk)
+        self.assertEqual(
+            load_credential_secrets_for_service(result.credential)["refresh_token"], "refresh-test"
+        )
+
+    @patch(
+        "apps.analytics.google.authorized_request",
+        return_value={"email": "same@example.test", "sub": "same-sub"},
+    )
+    @patch(
+        "apps.analytics.google.token_request",
+        return_value={"access_token": "new-access", "scope": READ + " " + SEARCH + " " + EDIT},
+    )
+    def test_reauthorization_requires_a_new_offline_grant_if_the_old_one_was_revoked(
+        self, token: MagicMock, identity: MagicMock
+    ) -> None:
+        self.connection.status, self.connection.error_code = "reconnect", "credentials_revoked"
+        self.connection.save()
+        request = self._request()
+        oauth_start(request, self.business.pk, "administration", self.connection.pk)
+        with self.assertRaises(ProviderError) as caught:
+            oauth_callback(request, request.session["analytics_oauth"]["state"], "code")
+        self.assertEqual(caught.exception.code, "offline_access_required")
+        self.connection.refresh_from_db()
+        self.assertEqual(self.connection.status, "reconnect")
+
+
+@override_settings(CREDENTIAL_ENCRYPTION_KEYS=[Fernet.generate_key().decode()])
+class GoogleRefreshConcurrencyTests(TransactionTestCase):
+    def test_simultaneous_background_and_sync_refresh_share_one_exchange(self) -> None:
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import Event
+
+        from django.db import close_old_connections, connection, connections
+
+        from apps.analytics.models import Business
+
+        if not connection.features.has_select_for_update:
+            self.skipTest("This concurrency contract requires database row locks.")
+        user = User.objects.create_user(
+            email="concurrency@example.test",
+            password="test-password",
+            first_name="Test",
+            last_name="User",
+        )
+        business = Business.objects.create(name="Concurrency", slug="concurrency")
+        credential = StoredCredential.objects.create(name="Concurrent OAuth", created_by=user)
+        store_credential_secrets(
+            credential, {"access_token": "expired-access", "refresh_token": "original-refresh"}
+        )
+        account = GoogleConnection.objects.create(
+            business=business,
+            credential=credential,
+            created_by=user,
+            expires_at=timezone.now() - timedelta(minutes=1),
+        )
+        refreshing, release, second_started = Event(), Event(), Event()
+
+        def exchange(data: dict[str, str]) -> dict[str, object]:
+            refreshing.set()
+            if not release.wait(10):
+                raise AssertionError("Concurrent refresh did not reach the release gate")
+            return {
+                "access_token": "shared-access",
+                "refresh_token": "rotated-refresh",
+                "expires_in": 3600,
+            }
+
+        def refresh(background: bool) -> str:
+            close_old_connections()
+            if not background:
+                second_started.set()
+            try:
+                return access_token(
+                    account,
+                    refresh_before=timedelta(minutes=10) if background else timedelta(seconds=90),
+                )
+            finally:
+                connections.close_all()
+
+        with patch("apps.analytics.google.token_request", side_effect=exchange) as token:
+            with ThreadPoolExecutor(max_workers=2) as workers:
+                first = workers.submit(refresh, True)
+                try:
+                    self.assertTrue(refreshing.wait(10))
+                    second = workers.submit(refresh, False)
+                    self.assertTrue(second_started.wait(10))
+                finally:
+                    release.set()
+                self.assertEqual(first.result(timeout=15), "shared-access")
+                self.assertEqual(second.result(timeout=15), "shared-access")
+            token.assert_called_once()
+        credential.refresh_from_db()
+        self.assertEqual(
+            load_credential_secrets_for_service(credential)["refresh_token"], "rotated-refresh"
+        )

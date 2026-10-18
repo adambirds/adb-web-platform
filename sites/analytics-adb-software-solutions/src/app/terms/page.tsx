@@ -28,12 +28,13 @@ export default function TermsPage() {
             <h2>Google connections and configuration changes</h2>
             <p>
                 Google services remain subject to their own terms, property
-                permissions and quotas. Reporting consent permits reading data;
-                optional administration consent permits supported configuration
-                changes after confirmation. Check the selected property and
-                intended effect before creating or removing definitions or key
-                events. Such changes affect Google configuration and may affect
-                future reporting; they do not rewrite historical data.
+                permissions and quotas. Google consent includes reporting and
+                supported GA4 configuration permissions together. Configuration
+                changes still require explicit confirmation and appropriate
+                Google property access. Check the selected property and intended
+                effect before creating or removing definitions or key events.
+                Such changes affect Google configuration and may affect future
+                reporting; they do not rewrite historical data.
             </p>
             <h2>Reports and availability</h2>
             <p>

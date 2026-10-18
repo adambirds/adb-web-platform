@@ -700,3 +700,11 @@ links a Website to one GA4 or GSC property; ReportSnapshot stores exact aggregat
 windows, SyncJob stores durable progress, EventDefinition stores provider config
 metadata and AnalyticsPreference stores per-user selection. No raw visitor/event
 store or second user/identity system is introduced. See [Analytics platform](ANALYTICS_PLATFORM.md).
+
+### Analytics Google connection health — Amend
+
+`GoogleConnection` retains encrypted tokens exclusively in `StoredCredential`.
+Add only non-secret refresh metadata: last refresh time, consecutive failures and
+next permitted attempt. The connection row serializes refresh, reauthorisation
+and disconnection; no new identity, token database or scheduler is introduced.
+See [Analytics operations](ANALYTICS_PLATFORM.md#settings-and-unattended-google-access).

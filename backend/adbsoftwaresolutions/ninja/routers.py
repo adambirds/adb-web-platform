@@ -181,6 +181,23 @@ def custom_http_errors(request: HttpRequest, exc: HttpError) -> HttpResponse:
 
 @api.exception_handler(ProviderError)
 def analytics_provider_error(request: HttpRequest, exc: ProviderError) -> JsonResponse:
+    messages = {
+        "google_permission_denied": "Google denied access to this property. Check the selected account’s property role; configuration changes require Editor or Administrator access. OAuth consent alone does not grant that role.",
+        "credentials_revoked": "Google access expired or was revoked. Reconnect this account in Settings → Google accounts.",
+        "reconnection_required": "Reconnect this Google account in Settings → Google accounts to resume collection.",
+        "token_refresh_backoff": "Google access is being retried automatically. Please try again shortly.",
+        "quota_exceeded": "Google’s quota was reached. Background jobs will retry automatically.",
+        "google_unavailable": "Google is temporarily unavailable. Please try again shortly.",
+        "oauth_client_configuration": "Google rejected the application’s OAuth configuration. The operator must check the Google client setup.",
+    }
     return JsonResponse(
-        {"detail": exc.code, "retryable": exc.retryable}, status=503 if exc.retryable else 400
+        {
+            "detail": messages.get(
+                exc.code,
+                "Google could not complete this request. Please retry or review the connection in Settings.",
+            ),
+            "code": exc.code,
+            "retryable": exc.retryable,
+        },
+        status=503 if exc.retryable else 403 if exc.code == "google_permission_denied" else 400,
     )

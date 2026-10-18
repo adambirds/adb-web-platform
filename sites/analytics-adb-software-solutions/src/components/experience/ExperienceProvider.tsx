@@ -77,6 +77,17 @@ export function ExperienceProvider({children}: {children: ReactNode}) {
         [],
     );
     const fallback = initialDates();
+    const activeBusiness =
+        session?.businesses.find(
+            (business) => business.id === Number(search.get("business")),
+        ) ??
+        session?.businesses.find((business) =>
+            business.websites.some(
+                (site) =>
+                    pathname === `/dashboard/websites/${site.id}` ||
+                    pathname.startsWith(`/dashboard/websites/${site.id}/`),
+            ),
+        );
     const valid = (value: string | null) =>
         Boolean(
             value &&
@@ -163,7 +174,7 @@ export function ExperienceProvider({children}: {children: ReactNode}) {
                     {session && (
                         <Link
                             className="button button-small"
-                            href="/dashboard/settings?tab=websites"
+                            href={`/dashboard/settings?tab=websites&action=add${activeBusiness ? `&business=${activeBusiness.id}` : ""}`}
                         >
                             <PlusIcon />
                             Add websites
@@ -185,6 +196,23 @@ export function ExperienceProvider({children}: {children: ReactNode}) {
                     </details>
                 </div>
             </header>
+            {!pathname.includes("/settings") &&
+                [
+                    "error",
+                    "offline_access_required",
+                    "google_account_mismatch",
+                    "google_access_not_granted",
+                    "denied",
+                ].includes(search.get("integration") ?? "") && (
+                    <div className="experience-page">
+                        <p role="alert" className="data-notice warning">
+                            Google connection was not completed. Existing
+                            connections and reports are unchanged. Open Settings
+                            → Google accounts to reconnect, or try Connect
+                            Google again.
+                        </p>
+                    </div>
+                )}
             {error && !session ? (
                 <main className="experience-page">
                     <ErrorState message={error} retry={reload} />

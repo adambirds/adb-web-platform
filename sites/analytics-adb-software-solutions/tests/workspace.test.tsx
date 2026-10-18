@@ -59,23 +59,17 @@ describe("report rendering", () => {
 });
 
 describe("integration and event configuration", () => {
-    it("distinguishes reporting consent from administration consent", async () => {
+    it("provides one Google consent for reporting and confirmed administration", async () => {
         vi.mocked(api).mockResolvedValue([]);
-        render(
-            <IntegrationSettings
-                business={business}
-                website={website}
-                refresh={vi.fn()}
-            />,
-        );
+        render(<IntegrationSettings business={business} refresh={vi.fn()} />);
         expect(
-            screen.getByRole("button", {name: "Connect Google for reporting"}),
+            screen.getByRole("button", {name: "Connect Google"}),
         ).toBeInTheDocument();
         expect(
-            screen.getByRole("button", {
+            screen.queryByRole("button", {
                 name: "Connect with GA4 administration",
             }),
-        ).toBeInTheDocument();
+        ).not.toBeInTheDocument();
     });
     it("requires a reviewed plan and confirmation before creating custom dimensions", async () => {
         vi.mocked(api).mockImplementation(async (path) => {
@@ -105,6 +99,7 @@ describe("integration and event configuration", () => {
                 }}
             />,
         );
+        fireEvent.click(screen.getByText("Tracking plans & implementation"));
         fireEvent.click(
             screen.getByRole("button", {name: "Review definitions"}),
         );

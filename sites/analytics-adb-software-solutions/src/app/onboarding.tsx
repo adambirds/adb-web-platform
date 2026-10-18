@@ -3,7 +3,12 @@
 import {useCallback, useEffect, useState} from "react";
 import {api, type Business} from "./client";
 
-type Connection = {id: number; email: string; status: string};
+type Connection = {
+    id: number;
+    email: string;
+    status: string;
+    scopes?: string[];
+};
 export type DiscoveredWebsite = {
     domain: string;
     existing_id: number | null;
@@ -105,7 +110,7 @@ export function GoogleOnboarding({
             const result = await api<{url: string}>(
                 `/businesses/${id}/oauth`,
                 "POST",
-                {mode: "reporting"},
+                {mode: "administration"},
             );
             window.location.assign(result.url);
         } catch (err) {
@@ -160,6 +165,13 @@ export function GoogleOnboarding({
                         : "Connect your Google account to find your websites and bring Analytics and Search Console together."}
                 </p>
             </div>
+            <p className="onboarding-permissions">
+                Google consent includes Analytics reports, Search Console and
+                supported GA4 configuration. Offline access keeps reports
+                updating while you’re away. We never change Google configuration
+                without your confirmation. <a href="/privacy">Privacy</a> ·{" "}
+                <a href="/terms">Terms</a>
+            </p>
             <div className="setup-steps" aria-label="Setup progress">
                 <span className={!inventory ? "current" : ""}>
                     1 · Connect Google
@@ -185,6 +197,25 @@ export function GoogleOnboarding({
                     {inventory
                         ? "Adding your websites…"
                         : "Finding your websites in Google…"}
+                </p>
+            )}
+            {connections.some(
+                (account) =>
+                    account.scopes &&
+                    !account.scopes.some((scope) =>
+                        scope.endsWith("/analytics.edit"),
+                    ),
+            ) && (
+                <p className="data-notice warning">
+                    Some existing Google connections have reporting-only
+                    consent. Reauthorise them in{" "}
+                    <a
+                        href={`/dashboard/settings?tab=accounts&business=${business?.id}`}
+                    >
+                        Google accounts
+                    </a>{" "}
+                    to enable supported GA4 configuration. Available reporting
+                    can continue.
                 </p>
             )}
             {connections.length > 0 && (

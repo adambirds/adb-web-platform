@@ -27,6 +27,7 @@ from apps.analytics.experience import dashboard as dashboard_data
 from apps.analytics.experience import portfolio as portfolio_data
 from apps.analytics.google import (
     EDIT,
+    ProviderError,
     consume_oauth_state,
     disconnect,
     discover,
@@ -83,7 +84,9 @@ class MembershipIn(Schema):
 
 
 class OAuthIn(Schema):
-    mode: Literal["reporting", "administration"] = "reporting"
+    mode: Literal["reporting", "administration"] = "administration"
+    connection_id: int | None = None
+    return_to: Literal["onboarding", "settings"] = "onboarding"
 
 
 class PropertyIn(Schema):
@@ -255,7 +258,16 @@ def connections(request: AuthenticatedHttpRequest, business_id: int) -> list[dic
         dict(row)
         for row in (
             GoogleConnection.objects.filter(business_id=business_id).values(
-                "id", "email", "status", "scopes", "error_code", "last_validated_at"
+                "id",
+                "email",
+                "status",
+                "scopes",
+                "error_code",
+                "last_validated_at",
+                "expires_at",
+                "last_refreshed_at",
+                "refresh_retry_at",
+                "refresh_failures",
             )
         )
     ]
@@ -266,22 +278,46 @@ def connect(
     request: AuthenticatedHttpRequest, business_id: int, payload: OAuthIn
 ) -> dict[str, str]:
     throttle(request, "oauth", 10)
-    return {"url": oauth_start(request, business_id, payload.mode)}
+    return {
+        "url": oauth_start(
+            request, business_id, payload.mode, payload.connection_id, payload.return_to
+        )
+    }
 
 
 @router.get("/oauth/callback")
 def callback(
     request: AuthenticatedHttpRequest, state: str = "", code: str = "", error: str = ""
 ) -> HttpResponse:
+    pending = request.session.get("analytics_oauth", {})
+    destination = (
+        "/dashboard/settings?tab=accounts&"
+        if pending.get("return_to") == "settings"
+        else "/dashboard?"
+    )
     if error:
         consume_oauth_state(request, state)
         return HttpResponseRedirect(
-            settings.ANALYTICS_FRONTEND_URL + "/dashboard?integration=denied"
+            settings.ANALYTICS_FRONTEND_URL
+            + destination
+            + f"integration=denied&business={pending['business']}"
         )
-    connection = oauth_callback(request, state, code)
+    try:
+        connection = oauth_callback(request, state, code)
+    except ProviderError as exc:
+        reason = (
+            exc.code
+            if exc.code
+            in {"google_account_mismatch", "offline_access_required", "google_access_not_granted"}
+            else "error"
+        )
+        return HttpResponseRedirect(
+            settings.ANALYTICS_FRONTEND_URL + destination + f"integration={reason}"
+        )
     response = HttpResponseRedirect(
         settings.ANALYTICS_FRONTEND_URL
-        + f"/dashboard?integration=connected&business={connection.business_id}&connection={connection.pk}"
+        + destination
+        + f"integration=connected&business={connection.business_id}&connection={connection.pk}"
     )
     response["Cache-Control"] = "no-store"
     response["Referrer-Policy"] = "no-referrer"

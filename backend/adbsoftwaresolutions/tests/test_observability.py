@@ -122,3 +122,41 @@ class JsonFormatterTests(SimpleTestCase):
             self.assertEqual(logging_config()["handlers"]["console"]["formatter"], "json")
         with mock.patch.dict(os.environ, {"LOG_FORMAT": ""}):
             self.assertEqual(logging_config()["handlers"]["console"]["formatter"], "text")
+
+
+class OAuthCallbackLoggingTests(SimpleTestCase):
+    def test_access_log_redaction_preserves_uvicorn_argument_contract(self) -> None:
+        from adbsoftwaresolutions.logs import OAuthCallbackLogFilter
+
+        record = logging.LogRecord(
+            "uvicorn.access",
+            logging.INFO,
+            __file__,
+            1,
+            '%s - "%s %s HTTP/%s" %d',
+            (
+                "127.0.0.1",
+                "GET",
+                "/api/analytics/oauth/callback?code=private-code&state=private-state",
+                "1.1",
+                302,
+            ),
+            None,
+        )
+        self.assertTrue(OAuthCallbackLogFilter().filter(record))
+        assert isinstance(record.args, tuple)
+        self.assertEqual(len(record.args), 5)
+        self.assertIn("/api/analytics/oauth/callback?[redacted]", record.getMessage())
+        self.assertNotIn("private-code", record.getMessage())
+        self.assertNotIn("private-state", record.getMessage())
+
+    def test_json_logging_redacts_callback_urls_in_messages_and_extra(self) -> None:
+        url = "/api/analytics/oauth/callback?code=private-code&state=private-state"
+        record = logging.LogRecord(
+            "django.request", logging.WARNING, __file__, 1, "Callback %s", (url,), None
+        )
+        record.__dict__["request_path"] = url
+        rendered = JsonFormatter().format(record)
+        self.assertNotIn("private-code", rendered)
+        self.assertNotIn("private-state", rendered)
+        self.assertIn("[redacted]", rendered)

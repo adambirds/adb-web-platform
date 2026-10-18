@@ -207,12 +207,15 @@ Save/update the scope selection.
 | `https://www.googleapis.com/auth/userinfo.email`      | Email identity; the backend requests the equivalent OpenID Connect `email` scope. |
 | `https://www.googleapis.com/auth/analytics.readonly`  | Discover GA4 properties and read reports.                                         |
 | `https://www.googleapis.com/auth/webmasters.readonly` | Discover Search Console properties and read search performance.                   |
-| `https://www.googleapis.com/auth/analytics.edit`      | Optional administration consent for custom dimensions, metrics and key events.    |
+| `https://www.googleapis.com/auth/analytics.edit`      | Supported, explicitly confirmed custom dimensions, metrics and key-event changes. |
 
-Register the edit scope if offering configuration management. Adding it to the
-console does not grant it automatically: the backend requests it only when the
-user chooses administration consent. Reporting consent requests only identity
-and read scopes. No Gmail, Drive or Search Console write scope is needed.
+Register all three API scopes. Initial connection and reauthorisation request
+Analytics read, Analytics edit and Search Console read together, plus OpenID/email
+identity, offline access and explicit consent. Adding scopes in the Console alone
+does not grant them to an existing connection: use **Reauthorise account** in
+Settings → Google accounts. No Gmail, Drive, Analytics user-management or Search
+Console write scope is requested. Consent is separate from the Google property
+role: supported GA4 configuration writes require Editor or Administrator access.
 For the console workflow, see Google's
 [consent and scope guide](https://developers.google.com/workspace/guides/configure-oauth-consent).
 
@@ -363,7 +366,7 @@ properties. Use a Google account that already has the appropriate property acces
 3. Open ADB Analytics: `/` sends you to the existing account application's login
    with `/dashboard` as the return URL. An existing ADB session proceeds to the
    dashboard. Choose **Connect Google**, select your test-user Google account
-   and grant reporting permissions. A first analytics workspace is created
+   and grant reporting and supported GA4 configuration permissions in the same consent. A first analytics workspace is created
    automatically; no Business, domain or timezone form is required.
 4. After Google returns to `/dashboard`, accessible websites are discovered
    automatically. Tick the websites to add, then choose **Add websites**. GA4 and
@@ -371,8 +374,9 @@ properties. Use a Google account that already has the appropriate property acces
    Console-only websites use `America/Los_Angeles`). If several GA4 properties
    cover a domain, choose which to use. Adding websites queues initial sync.
    Reports refresh automatically as background jobs complete.
-   Use **+ Add websites** to import more later. Test administration consent
-   separately on a test property before configuration changes.
+   Use **+ Add websites** to import more later. Verify the property role and
+   explicitly confirmed configuration on a test property; no scope-upgrade flow
+   is needed after initial consent.
 
 ### 8. Move External production access out of Testing
 
@@ -395,15 +399,15 @@ verify background refresh. Production tokens can still be revoked or expire.
 
 ### Troubleshooting Google setup
 
-| Symptom                                               | Check                                                                                                                                                    |
-| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `org_internal` or account rejected by an Internal app | The authorizing Google account must belong to the project's Google organization; use External for accounts outside it.                                   |
-| External Testing access blocked                       | Add the exact Google account under Audience → Test users, save, then select that account during consent.                                                 |
-| `redirect_uri_mismatch`                               | Compare the exact callback with the selected client's registered redirect URI and backend environment; check the project/client pair.                    |
-| Property missing from discovery                       | Confirm the selected Google account has property access, all three APIs are enabled in the client's project, and the granted scopes match the operation. |
-| Read reports work but configuration fails             | Reconnect with administration consent and confirm the account's GA4 property role allows writes.                                                         |
-| Sync stops about a week after connection              | Check External Testing token expiry; complete production setup and reconnect. Revocation or organization policy can also require reconnection.           |
-| Unverified-app warning or administrator block         | Check Verification Center and Google Workspace administrator policy; adding a test user does not override an organization block.                         |
+| Symptom                                               | Check                                                                                                                                                       |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `org_internal` or account rejected by an Internal app | The authorizing Google account must belong to the project's Google organization; use External for accounts outside it.                                      |
+| External Testing access blocked                       | Add the exact Google account under Audience → Test users, save, then select that account during consent.                                                    |
+| `redirect_uri_mismatch`                               | Compare the exact callback with the selected client's registered redirect URI and backend environment; check the project/client pair.                       |
+| Property missing from discovery                       | Confirm the selected Google account has property access, all three APIs are enabled in the client's project, and the granted scopes match the operation.    |
+| Read reports work but configuration fails             | Check the granted scopes in Settings → Google accounts; reauthorise legacy connections, and confirm the account’s property role is Editor or Administrator. |
+| Sync stops about a week after connection              | Check External Testing token expiry; complete production setup and reconnect. Revocation or organization policy can also require reconnection.              |
+| Unverified-app warning or administrator block         | Check Verification Center and Google Workspace administrator policy; adding a test user does not override an organization block.                            |
 
 ### Environment variables
 
@@ -548,6 +552,74 @@ Screenshots are written to the system temporary directory under
 `adb-analytics-review`; inspect them visually, including mobile and dark mode.
 Override `ANALYTICS_REVIEW_URL` or `ANALYTICS_REVIEW_OUTPUT` when needed. Browser
 checks supplement the unit/API tests and do not verify live Google reporting.
+
+### Settings and unattended Google access
+
+Settings has four areas: **Websites** (properties, detected timezones and sync),
+**Google accounts** (account-wide consent, health and disconnection), **Events &
+conversions** (observed events, key actions and progressively disclosed tracking
+plans/custom definitions), and **Workspace** (business details, members and roles).
+Workspace access never depends on having a website. Individual website settings
+link back to the account-wide Workspace area; account disconnection clearly warns
+that all linked websites will stop collecting. Viewers retain report-only access.
+
+All new Google connections request the documented read/edit/search scopes upfront.
+Legacy `reporting`/`administration` API mode values remain compatible but request
+this same set. Reauthorisation sends an existing connection ID in session-bound
+OAuth state, validates workspace capability again, and verifies the returned
+Google subject matches the existing account **before** replacing credentials.
+Linked properties and reports are preserved. Cancelled or failed consent leaves
+the existing credentials intact. Partial consent is displayed as missing
+permissions, not treated as proof of Google property-level edit authority.
+
+Apply migration `analytics.0004_google_token_refresh_health`, then restart the
+existing API, Celery workers and Beat as part of the normal application release.
+No new environment variables, secrets, worker services or infrastructure are
+required. Beat dispatches `analytics.enqueue_token_refreshes` every **five minutes**;
+`analytics.refresh_google_token` refreshes connected accounts within **ten minutes**
+of access-token expiry, independently of browser sessions. Existing six-hour
+report scheduling continues for active websites while credentials remain valid.
+Both token refresh and report sync use the same credential service and connection
+row lock; duplicate workers recheck persisted expiry and do not repeat a successful
+exchange. Token storage and expiry updates commit together. A missing replacement
+refresh token preserves the current encrypted token; a returned replacement is
+stored atomically. Reauthorisation of a known revoked offline grant requires a
+new refresh token rather than pretending an access token repairs that grant. A provider 401 gets one coordinated access-token recovery
+attempt before requiring reauthorisation; concurrent newer tokens are reused. Disconnection and reauthorisation take the same lock.
+
+Transient failures retain the connection, persist a shared retry gate and use
+exponential backoff (60 seconds up to one hour, plus jitter). Numeric Google
+`Retry-After` hints are honoured up to one day. A token task makes at most five
+Celery retries; Beat later resumes due transient failures. Valid access tokens may
+still serve reports during a retry delay. Malformed responses do not overwrite
+working encrypted credentials. Invalid/expired/revoked grants mark the connection
+**Reconnect required**, stop automatic refresh/sync dispatch and do not enter an
+endless retry loop. OAuth client-configuration failures require an operator to
+check Google setup. Reauthorising the same account clears the refresh failure
+state so scheduled collection can resume.
+
+Connection health APIs expose status, last refresh/validation, expiry, failure
+count and next retry only. They never return access tokens, refresh tokens or
+credential records. Provider error messages are mapped to safe explanations;
+Celery arguments contain a connection ID only. Application access/JSON logging
+redacts the OAuth callback query (including codes/state) without changing server
+handlers. Keep equivalent query redaction at any external access-log boundary. Application write capability,
+explicit confirmation, Google scope/property permissions and audit logging remain
+required for every supported Google configuration write.
+
+**Refresh is not a refresh-token lifetime extension.** External Testing grants
+using these scopes can expire after seven days, even if access tokens are refreshed
+regularly. Production publishing does not guarantee indefinite refresh-token
+validity: revocation, account policies, token limits and other Google expiry rules
+still apply. The operator will manually publish the OAuth app when public policy
+URLs are live; this implementation does not change Google publishing status.
+See the [manual production checklist above](#8-move-external-production-access-out-of-testing)
+and Google’s [OAuth expiration rules](https://developers.google.com/identity/protocols/oauth2#expiration).
+
+The repeatable browser review also covers all Settings areas, account health,
+legacy-scope reauthorisation, light/dark mobile layouts and confirmed key-event
+configuration. Google requests/writes in that review are isolated fixtures; live
+consent, refresh and property-role checks still require a real test account.
 
 ### Public policy routes
 

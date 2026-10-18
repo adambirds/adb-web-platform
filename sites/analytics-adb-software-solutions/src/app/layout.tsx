@@ -1,6 +1,7 @@
 import type {Metadata} from "next";
 import "./globals.css";
 import "./advanced.css";
+import "./settings.css";
 import {LegalLinks} from "./legal-page";
 export const metadata: Metadata = {
     title: "ADB Analytics",

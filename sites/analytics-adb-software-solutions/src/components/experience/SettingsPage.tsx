@@ -1,30 +1,81 @@
 "use client";
 import {useState} from "react";
 import Link from "next/link";
-import {useSearchParams} from "next/navigation";
-import {ArrowLeftIcon} from "@heroicons/react/24/outline";
+import {useRouter, useSearchParams} from "next/navigation";
+import {
+    ArrowLeftIcon,
+    ArrowUpRightIcon,
+    BoltIcon,
+    GlobeAltIcon,
+    LinkIcon,
+    PlusIcon,
+    UsersIcon,
+} from "@heroicons/react/24/outline";
 import {GoogleOnboarding} from "../../app/onboarding";
 import {siteHref} from "../../lib/experience";
 import {IntegrationSettings} from "../settings/IntegrationSettings";
-import {TrackingSettings} from "../settings/TrackingSettings";
+import {EventsSettings} from "../settings/EventsSettings";
+import {WebsiteSettings} from "../settings/WebsiteSettings";
 import {WorkspaceSettings} from "../settings/WorkspaceSettings";
+import {WebsiteForm} from "../settings/WorkspaceForms";
 import {useExperience} from "./ExperienceProvider";
-import {Tabs} from "./Tabs";
+const areas = [
+    {
+        key: "websites",
+        label: "Websites",
+        detail: "Properties & collection",
+        icon: GlobeAltIcon,
+    },
+    {
+        key: "accounts",
+        label: "Google accounts",
+        detail: "Connections & permissions",
+        icon: LinkIcon,
+    },
+    {
+        key: "events",
+        label: "Events & conversions",
+        detail: "Actions & definitions",
+        icon: BoltIcon,
+    },
+    {
+        key: "workspace",
+        label: "Workspace",
+        detail: "People & access",
+        icon: UsersIcon,
+    },
+];
 export function SettingsPage({websiteId}: {websiteId?: number}) {
-    const {session, period, refreshSession} = useExperience();
-    const query = useSearchParams();
+    const {session, period, refreshSession} = useExperience(),
+        query = useSearchParams(),
+        router = useRouter();
     const website = session.businesses
-        .flatMap((b) => b.websites)
+        .flatMap((business) => business.websites)
         .find((site) => site.id === websiteId);
-    const [businessId, setBusinessId] = useState(
-        website?.business_id ?? session.businesses[0]?.id ?? 0,
+    const requestedBusiness =
+        website?.business_id ??
+        (query.has("business")
+            ? Number(query.get("business"))
+            : session.businesses[0]?.id);
+    const business = session.businesses.find(
+        (item) => item.id === requestedBusiness,
     );
-    const business = session.businesses.find((item) => item.id === businessId);
-    const [tab, setTab] = useState(
-        query.get("tab") === "websites" || !website
-            ? "websites"
-            : "connections",
+    const legacyTab = {connections: "accounts", tracking: "events"}[
+            query.get("tab") ?? ""
+        ],
+        tab =
+            areas.find((area) => area.key === query.get("tab"))?.key ??
+            legacyTab ??
+            "websites";
+    const [eventSite, setEventSite] = useState(
+        website?.id ?? business?.websites[0]?.id ?? 0,
     );
+    const chosen =
+        website ??
+        business?.websites.find((site) => site.id === eventSite) ??
+        business?.websites[0];
+    const href = (area: string, id = business?.id) =>
+        `${websiteId ? siteHref(websiteId, undefined, "/settings") : "/dashboard/settings"}?${new URLSearchParams({tab: area, ...(id ? {business: String(id)} : {})})}`;
     const refresh = async () => {
         refreshSession();
     };
@@ -39,24 +90,29 @@ export function SettingsPage({websiteId}: {websiteId?: number}) {
             </Link>
             <div className="page-heading">
                 <div>
-                    <p className="eyebrow">WORKSPACE & CONNECTIONS</p>
+                    <p className="eyebrow">
+                        A LITTLE ORGANISATION. A LOT LESS FRICTION.
+                    </p>
                     <h1>
                         {website
-                            ? "Keep everything connected."
-                            : "Make yourself at home."}
+                            ? "Website settings"
+                            : "Your workspace, connected."}
                     </h1>
                     <p className="page-description">
-                        Google connections, website settings and advanced
-                        tracking configuration.
+                        {website
+                            ? `${website.domain} · Properties, collection and meaningful actions.`
+                            : "Your websites, Google accounts and people. Everything in its place."}
                     </p>
                 </div>
                 {!website && session.businesses.length > 1 && (
                     <label>
                         Workspace
                         <select
-                            value={businessId}
+                            value={business?.id}
                             onChange={(event) =>
-                                setBusinessId(Number(event.target.value))
+                                router.push(
+                                    href(tab, Number(event.target.value)),
+                                )
                             }
                         >
                             {session.businesses.map((item) => (
@@ -68,77 +124,273 @@ export function SettingsPage({websiteId}: {websiteId?: number}) {
                     </label>
                 )}
             </div>
-            {business?.role === "viewer" ? (
+            {(websiteId && !website) || (query.has("business") && !business) ? (
+                <div className="error-state" role="alert">
+                    This website or workspace is not available to your account.
+                </div>
+            ) : business?.role === "viewer" ? (
                 <div className="data-notice">
                     Your workspace administrator manages connections and access.{" "}
                     <Link href="/dashboard">Return to reports</Link>
                 </div>
             ) : (
-                <>
-                    <Tabs
-                        value={tab}
-                        onChange={setTab}
-                        values={
-                            website
-                                ? [
-                                      ["connections", "Connections"],
-                                      ["tracking", "Events & configuration"],
-                                      ["workspace", "Website & access"],
-                                      ["websites", "Add websites"],
-                                  ]
-                                : [
-                                      ["websites", "Add websites"],
-                                      ["workspace", "Workspace"],
-                                  ]
-                        }
-                    />
-                    {tab === "websites" ? (
-                        <div className="onboarding-page">
-                            <GoogleOnboarding
+                <div className="settings-layout">
+                    <nav
+                        className="settings-navigation"
+                        aria-label="Settings areas"
+                    >
+                        {areas.map((area) => (
+                            <Link
+                                key={area.key}
+                                aria-label={area.label}
+                                className={tab === area.key ? "active" : ""}
+                                aria-current={
+                                    tab === area.key ? "page" : undefined
+                                }
+                                href={
+                                    area.key === "workspace" && website
+                                        ? `/dashboard/settings?tab=workspace&business=${business?.id}`
+                                        : href(area.key)
+                                }
+                            >
+                                <area.icon />
+                                <span>
+                                    <strong>{area.label}</strong>
+                                    <small>{area.detail}</small>
+                                </span>
+                                {area.key === "workspace" && website && (
+                                    <ArrowUpRightIcon />
+                                )}
+                            </Link>
+                        ))}
+                        <p>
+                            Changes to Google accounts and workspace access
+                            apply across this business.
+                        </p>
+                    </nav>
+                    <div
+                        className="settings-content"
+                        key={`${business?.id}:${websiteId ?? "portfolio"}:${tab}`}
+                    >
+                        {query.get("integration") === "denied" && (
+                            <p role="alert" className="data-notice warning">
+                                Google consent was cancelled or declined. Your
+                                existing connection has not been replaced. Try
+                                again when you’re ready.
+                            </p>
+                        )}
+                        {query.get("integration") ===
+                            "google_account_mismatch" && (
+                            <p role="alert" className="data-notice warning">
+                                Choose the same Google account to reconnect it.
+                                Your existing connection has not changed. To add
+                                a different account, choose Connect Google.
+                            </p>
+                        )}
+                        {query.get("integration") ===
+                            "offline_access_required" && (
+                            <p role="alert" className="data-notice warning">
+                                Google did not grant offline access. Connect
+                                again and accept the requested permissions so
+                                reporting can continue while you’re away.
+                            </p>
+                        )}
+                        {["error", "google_access_not_granted"].includes(
+                            query.get("integration") ?? "",
+                        ) && (
+                            <p role="alert" className="data-notice warning">
+                                Google could not complete the connection. Your
+                                existing reports are safe. Please try again.
+                            </p>
+                        )}
+                        {query.get("integration") === "connected" && (
+                            <p role="status" className="data-notice">
+                                Google account connected. Permissions shown
+                                below reflect the access Google actually
+                                granted.
+                            </p>
+                        )}
+                        {tab === "accounts" && business ? (
+                            <IntegrationSettings
                                 business={business}
-                                onComplete={refresh}
+                                refresh={refresh}
                             />
-                        </div>
-                    ) : !website || !business ? (
-                        <section className="empty-state">
-                            <h2>Select a website to manage its settings</h2>
-                            <div className="settings-site-links">
-                                {session.businesses
-                                    .flatMap((item) => item.websites)
-                                    .map((site) => (
-                                        <Link
-                                            key={site.id}
-                                            href={siteHref(
-                                                site.id,
-                                                period,
-                                                "/settings",
-                                            )}
+                        ) : tab === "workspace" && business ? (
+                            <WorkspaceSettings
+                                business={business}
+                                refresh={refresh}
+                            />
+                        ) : tab === "events" ? (
+                            <>
+                                {!website && business && (
+                                    <label className="settings-website-picker">
+                                        Website
+                                        <select
+                                            value={chosen?.id ?? 0}
+                                            onChange={(event) =>
+                                                setEventSite(
+                                                    Number(event.target.value),
+                                                )
+                                            }
                                         >
-                                            {site.domain}
+                                            {business.websites.map((site) => (
+                                                <option
+                                                    key={site.id}
+                                                    value={site.id}
+                                                >
+                                                    {site.domain}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                )}
+                                {chosen ? (
+                                    <EventsSettings website={chosen} />
+                                ) : (
+                                    <section className="settings-card settings-empty">
+                                        <BoltIcon />
+                                        <h2>Add a website to explore events</h2>
+                                        <p>
+                                            Connect a GA4 property, then
+                                            discover collected events and
+                                            configure key actions.
+                                        </p>
+                                        <Link
+                                            className="button"
+                                            href={href("websites")}
+                                        >
+                                            View websites
                                         </Link>
-                                    ))}
+                                    </section>
+                                )}
+                            </>
+                        ) : website && business ? (
+                            <WebsiteSettings
+                                website={website}
+                                business={business}
+                                refresh={refresh}
+                            />
+                        ) : (
+                            <div className="settings-sections">
+                                <div className="settings-section-heading">
+                                    <div>
+                                        <h2>Your connected websites</h2>
+                                        <p>
+                                            Manage individual properties and
+                                            collection from each website.
+                                        </p>
+                                    </div>
+                                    <Link
+                                        className="button primary"
+                                        href={href("websites") + "&action=add"}
+                                    >
+                                        <PlusIcon />
+                                        Add websites
+                                    </Link>
+                                </div>
+                                {query.get("action") === "add" ||
+                                !business?.websites.length ? (
+                                    <GoogleOnboarding
+                                        business={business}
+                                        onComplete={refresh}
+                                    />
+                                ) : (
+                                    <div className="settings-website-grid">
+                                        {business.websites.map((site) => (
+                                            <section
+                                                className="settings-card website-settings-tile"
+                                                key={site.id}
+                                            >
+                                                <div className="settings-card-title">
+                                                    <span className="site-avatar">
+                                                        {site.domain[0].toUpperCase()}
+                                                    </span>
+                                                    <div>
+                                                        <h3>{site.domain}</h3>
+                                                        <p>{site.timezone}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="website-provider-badges">
+                                                    {site.providers.map(
+                                                        (prop) => (
+                                                            <span
+                                                                key={
+                                                                    prop.provider
+                                                                }
+                                                                className={`health-pill ${prop.error_code ? "warning" : "healthy"}`}
+                                                            >
+                                                                {prop.provider ===
+                                                                "ga4"
+                                                                    ? "Analytics"
+                                                                    : "Search Console"}{" "}
+                                                                ·{" "}
+                                                                {prop.error_code
+                                                                    ? "Needs attention"
+                                                                    : "Connected"}
+                                                            </span>
+                                                        ),
+                                                    )}
+                                                    {!site.providers.length && (
+                                                        <span className="health-pill warning">
+                                                            No properties linked
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p>
+                                                    {site.is_active
+                                                        ? "Scheduled collection enabled"
+                                                        : "Collection paused"}
+                                                </p>
+                                                <div className="settings-card-actions">
+                                                    <Link
+                                                        className="button"
+                                                        href={siteHref(
+                                                            site.id,
+                                                            period,
+                                                            "/settings",
+                                                        )}
+                                                    >
+                                                        Manage website
+                                                    </Link>
+                                                    <Link
+                                                        className="text-link"
+                                                        href={siteHref(
+                                                            site.id,
+                                                            period,
+                                                        )}
+                                                    >
+                                                        View reports{" "}
+                                                        <ArrowUpRightIcon />
+                                                    </Link>
+                                                </div>
+                                            </section>
+                                        ))}
+                                    </div>
+                                )}
+                                {business && (
+                                    <details className="settings-card settings-disclosure">
+                                        <summary>
+                                            Manually add a website
+                                        </summary>
+                                        <p>
+                                            Automatic discovery pairs Google
+                                            properties and detects timezone. Use
+                                            manual entry only when you need a
+                                            website record before connecting its
+                                            properties.
+                                        </p>
+                                        <div className="advanced-tools">
+                                            <WebsiteForm
+                                                business={business}
+                                                refresh={refresh}
+                                            />
+                                        </div>
+                                    </details>
+                                )}
                             </div>
-                        </section>
-                    ) : (
-                        <div className="advanced-tools">
-                            {tab === "connections" ? (
-                                <IntegrationSettings
-                                    business={business}
-                                    website={website}
-                                    refresh={refresh}
-                                />
-                            ) : tab === "tracking" ? (
-                                <TrackingSettings website={website} />
-                            ) : (
-                                <WorkspaceSettings
-                                    business={business}
-                                    website={website}
-                                    refresh={refresh}
-                                />
-                            )}
-                        </div>
-                    )}
-                </>
+                        )}
+                    </div>
+                </div>
             )}
         </main>
     );

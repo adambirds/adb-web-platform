@@ -344,6 +344,47 @@ const portfolio = {
         previous_keyEvents: trend(2, true)[i].keyEvents,
     })),
 };
+const consentScopes = [
+    "analytics.readonly",
+    "webmasters.readonly",
+    "analytics.edit",
+].map((scope) => "https://www.googleapis.com/auth/" + scope);
+const settingsAccounts = [
+    {
+        id: 1,
+        email: "owner@browser-fixture.test",
+        status: "connected",
+        scopes: consentScopes,
+        error_code: "",
+        last_refreshed_at: "2026-10-18T13:20:00Z",
+    },
+    {
+        id: 2,
+        email: "legacy@browser-fixture.test",
+        status: "connected",
+        scopes: consentScopes.slice(0, 2),
+        error_code: "",
+        last_refreshed_at: null,
+    },
+    {
+        id: 3,
+        email: "revoked@browser-fixture.test",
+        status: "reconnect",
+        scopes: consentScopes,
+        error_code: "credentials_revoked",
+        last_refreshed_at: "2026-10-10T10:00:00Z",
+    },
+    {
+        id: 4,
+        email: "retry@browser-fixture.test",
+        status: "connected",
+        scopes: consentScopes,
+        error_code: "google_unavailable",
+        last_refreshed_at: "2026-10-18T12:20:00Z",
+        refresh_retry_at: "2026-10-18T13:25:00Z",
+    },
+];
+const fixtureMutations = [];
 (async () => {
     const browser = await chromium.launch({
         headless: true,
@@ -359,7 +400,32 @@ const portfolio = {
         const url = new URL(route.request().url()),
             p = url.pathname;
         let json;
-        if (p.endsWith("/session")) json = session;
+        if (route.request().method() !== "GET" && p.includes("/api/analytics/"))
+            fixtureMutations.push({
+                path: p,
+                body: route.request().postDataJSON(),
+            });
+        if (p.endsWith("/csrf"))
+            json = {csrf_token: "isolated-browser-fixture"};
+        else if (p.endsWith("/oauth")) {
+            const body = route.request().postDataJSON();
+            const account = settingsAccounts.find(
+                (item) => item.id === body.connection_id,
+            );
+            if (account) {
+                account.status = "connected";
+                account.scopes = consentScopes;
+                account.error_code = "";
+            }
+            json = {
+                url: `${process.env.ANALYTICS_REVIEW_URL || "http://localhost:3105"}/dashboard/settings?tab=accounts&business=1&integration=connected`,
+            };
+        } else if (p.endsWith("/members"))
+            json = [
+                {email: session.email, role: "owner"},
+                {email: "analyst@browser-fixture.test", role: "viewer"},
+            ];
+        else if (p.endsWith("/session")) json = session;
         else if (p.endsWith("/portfolio")) json = portfolio;
         else if (p.endsWith("/dashboard"))
             json = {
@@ -420,7 +486,24 @@ const portfolio = {
             };
         else if (p.endsWith("/realtime"))
             json = {rows: [], totals: {activeUsers: 0, eventCount: 0}};
-        else if (p.endsWith("/sync") || p.endsWith("/connections")) json = [];
+        else if (p.endsWith("/connections")) json = settingsAccounts;
+        else if (p.endsWith("/websites"))
+            json = {
+                websites: sites.map((site) => ({
+                    domain: site.domain,
+                    existing_id: site.id,
+                    ga4: [
+                        {
+                            id: site.property_ids.ga4,
+                            name: site.name,
+                            timezone: site.timezone,
+                        },
+                    ],
+                    gsc: [{id: site.property_ids.gsc, name: site.domain}],
+                })),
+                warnings: [],
+            };
+        else if (p.endsWith("/sync")) json = [];
         else json = {items: [], can_edit: true};
         await route.fulfill({json});
     });
@@ -543,9 +626,132 @@ const portfolio = {
             `portfolio overflow at ${width}px`,
         );
     }
+
+    await page.setViewportSize({width: 1440, height: 1100});
+    await page.goto(root + "/dashboard/settings?tab=websites&business=1");
+    await page
+        .getByRole("heading", {name: "Your connected websites"})
+        .waitFor();
+    await page.screenshot({
+        path: path.join(output, "analytics-settings-websites-desktop.png"),
+        fullPage: true,
+    });
+    await page.goto(root + "/dashboard/settings?tab=accounts&business=1");
+    await page.getByText("Permissions incomplete", {exact: true}).waitFor();
+    await page.getByText("Reconnect required", {exact: true}).waitFor();
+    await page.getByText("Retry scheduled", {exact: true}).waitFor();
+    await page.screenshot({
+        path: path.join(output, "analytics-settings-accounts-desktop.png"),
+        fullPage: true,
+    });
+    await page.getByRole("button", {name: "Switch to dark mode"}).click();
+    await page.screenshot({
+        path: path.join(output, "analytics-settings-accounts-dark.png"),
+        fullPage: true,
+    });
+    await page.setViewportSize({width: 390, height: 844});
+    await page.screenshot({
+        path: path.join(output, "analytics-settings-accounts-mobile-dark.png"),
+        fullPage: true,
+    });
+    assert.equal(
+        await page.evaluate(
+            () => document.documentElement.scrollWidth > innerWidth,
+        ),
+        false,
+        "settings mobile overflow",
+    );
+    await page.getByRole("button", {name: "Switch to light mode"}).click();
+    await page.screenshot({
+        path: path.join(output, "analytics-settings-accounts-mobile.png"),
+        fullPage: true,
+    });
+    assert.equal(
+        fixtureMutations.length,
+        0,
+        "settings browsing must never configure Google",
+    );
+    await page
+        .getByRole("button", {name: "Reauthorise account", exact: true})
+        .click();
+    await page.getByText("Google account connected.", {exact: false}).waitFor();
+    assert(
+        fixtureMutations.some(
+            (item) =>
+                item.path.endsWith("/oauth") &&
+                item.body.connection_id === 2 &&
+                item.body.return_to === "settings",
+        ),
+    );
+    await page.setViewportSize({width: 1440, height: 1100});
+    await page.goto(root + "/dashboard/websites/1/settings?tab=websites");
+    await page.getByRole("heading", {name: "Website details"}).waitFor();
+    await page.screenshot({
+        path: path.join(output, "analytics-settings-website-desktop.png"),
+        fullPage: true,
+    });
+    await page.goto(root + "/dashboard/websites/1/settings?tab=events");
+    await page.getByRole("heading", {name: "Events on your website"}).waitFor();
+    await page
+        .getByRole("button", {name: "generate_lead", exact: true})
+        .click();
+    assert.equal(
+        await page
+            .getByLabel("Event name to configure", {exact: true})
+            .inputValue(),
+        "generate_lead",
+    );
+    const create = page.getByRole("button", {name: "Review and create"});
+    await create.waitFor();
+    await page.screenshot({
+        path: path.join(output, "analytics-settings-events-desktop.png"),
+        fullPage: true,
+    });
+    page.once("dialog", (dialog) => dialog.accept());
+    await create.click();
+    await page
+        .getByText("Definition created and verified with Google.", {
+            exact: true,
+        })
+        .waitFor();
+    assert(
+        fixtureMutations.some(
+            (item) =>
+                item.path.endsWith("/definitions/key-events") &&
+                item.body.confirmed === true,
+        ),
+    );
+    await page.setViewportSize({width: 390, height: 844});
+    await page.screenshot({
+        path: path.join(output, "analytics-settings-events-mobile.png"),
+        fullPage: true,
+    });
+    assert.equal(
+        await page.evaluate(
+            () => document.documentElement.scrollWidth > innerWidth,
+        ),
+        false,
+        "events settings mobile overflow",
+    );
+    await page.goto(root + "/dashboard/settings?tab=workspace&business=1");
+    await page.getByRole("heading", {name: "People & access"}).waitFor();
+    await page
+        .getByText("analyst@browser-fixture.test", {exact: true})
+        .waitFor();
+    await page.screenshot({
+        path: path.join(output, "analytics-settings-workspace-mobile.png"),
+        fullPage: true,
+    });
+    assert.equal(
+        await page.evaluate(
+            () => document.documentElement.scrollWidth > innerWidth,
+        ),
+        false,
+        "workspace mobile overflow",
+    );
     assert.deepEqual(errors, []);
     console.log(
-        `Browser review passed: portfolio, unified dashboard, tooltips, day/source/page/event drawers, custom parameters, explorer, themes and 390/768/1440/1920/2560px layouts. All analytics are isolated fixtures. Screenshots: ${output}`,
+        `Browser review passed: portfolio, unified dashboard, tooltips, day/source/page/event drawers, custom parameters, explorer, themes and 390/768/1440/1920/2560px layouts. Settings areas, account health, scoped reauthorisation and explicitly confirmed key-event configuration also passed. All analytics and Google actions are isolated fixtures. Screenshots: ${output}`,
     );
     await browser.close();
 })().catch((e) => {
