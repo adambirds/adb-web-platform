@@ -110,55 +110,204 @@ Google tag and requires the site's established consent configuration.
 
 ## Google Cloud setup
 
-Select the same project in the console's project selector for every link below;
-these links are not pinned to a particular project ID.
+This connects Google data to an existing ADB account; it does not replace ADB
+login. Configure the following in order. Select the same project in the console's
+project selector for every link below; links are not pinned to a project ID.
 
-1. [Create a Google Cloud project](https://console.cloud.google.com/projectcreate)
-   or [select an existing project](https://console.cloud.google.com/cloud-resource-manager).
-   Open each API's library page and click **Enable**:
+### 1. Create the project and enable APIs
+
+Use separate Google Cloud projects for development/testing and production, with
+separate OAuth clients and secrets. Suggested names are `ADB Analytics Development`
+and `ADB Analytics Production`; record each generated project ID in your deployment
+configuration. Google's [OAuth policies](https://developers.google.com/identity/protocols/oauth2/policies)
+explain environment separation.
+
+1. [Create a project](https://console.cloud.google.com/projectcreate), or
+   [select an existing project](https://console.cloud.google.com/cloud-resource-manager).
+   Select the appropriate organization if your Google administrator provides one.
+2. Open each API page and click **Enable**:
    [Google Analytics Data API](https://console.cloud.google.com/apis/library/analyticsdata.googleapis.com),
    [Google Analytics Admin API](https://console.cloud.google.com/apis/library/analyticsadmin.googleapis.com),
    and [Google Search Console API](https://console.cloud.google.com/apis/library/searchconsole.googleapis.com).
-   Check [Enabled APIs & services](https://console.cloud.google.com/apis/dashboard)
-   afterwards.
-2. Open [Google Auth Platform → Branding](https://console.cloud.google.com/auth/branding)
-   and click **Get started** if the platform has not been configured. Set the
-   application name, verified `adbsoftwaresolutions.co.uk` domain, privacy policy
-   and support contact. In [Audience](https://console.cloud.google.com/auth/audience),
-   configure who can use the app and add test accounts while it is in Testing. External production access to
-   sensitive scopes may require Google verification. Testing-mode refresh tokens
-   may expire; complete the appropriate publishing/verification process.
-3. Open [Google Auth Platform → Clients](https://console.cloud.google.com/auth/clients),
-   choose **Create client**, and select **Web application**. Add this exact
-   production URI under **Authorized redirect URIs**:
-   `https://api.adbsoftwaresolutions.co.uk/api/analytics/oauth/callback`.
-   For development register a separate exact callback such as
-   `http://localhost:8000/api/analytics/oauth/callback` and set the variable below.
-4. In [Google Auth Platform → Data Access](https://console.cloud.google.com/auth/scopes),
-   use **Add or remove scopes** to configure the scopes below. Reporting consent
-   requests `openid`, `email`,
-   `https://www.googleapis.com/auth/analytics.readonly` and
-   `https://www.googleapis.com/auth/webmasters.readonly`. Administration adds
-   `https://www.googleapis.com/auth/analytics.edit`. Reporting consent never
-   requests write scope. No BigQuery or paid API is required.
-5. The Google account must have access to each GA4 and Search Console property.
-   Editing custom definitions/key events additionally requires the corresponding
-   Google property role (normally Editor or Administrator). OAuth edit scope does
-   not override Google's property authorization. Domain and URL-prefix Search
-   Console properties are supported, including encoded `sc-domain:` identifiers.
-6. Supply backend secrets through the existing runtime secret-injection process.
-   Do not put Google secrets into frontend build environments.
-7. Apply Django migrations and restart API, existing workers and Beat. Deploy the
-   analytics frontend image using the existing automation. No Ansible, Terraform,
-   DNS, provisioning or other infrastructure changes are part of this feature.
-8. Log in with an existing ADB account, create a Business and Website, connect
-   Google, discover properties and link one or both integrations. Match the
-   Website timezone to the selected GA4 property's timezone. Follow job progress,
-   then synchronize the desired date range and refresh reports.
+3. Confirm all three appear under
+   [Enabled APIs & services](https://console.cloud.google.com/apis/dashboard).
 
-Google's [OAuth consent setup guide](https://developers.google.com/workspace/guides/configure-oauth-consent)
-and [OAuth client creation guide](https://developers.google.com/workspace/guides/create-credentials#oauth-client-id)
-provide the corresponding console navigation instructions.
+This implementation uses user OAuth. You do not need a service-account JSON key,
+an API key, BigQuery, or Google Cloud IAM access for each Analytics user.
+
+### 2. Configure Branding
+
+Open [Google Auth Platform → Branding](https://console.cloud.google.com/auth/branding).
+If prompted, choose **Get started**. Enter these values for the production project;
+use a clearly marked development name for the development project.
+
+| Console field           | What to enter                                                                                                                                                 |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| App name                | `ADB Analytics`                                                                                                                                               |
+| User support email      | A monitored address available in Google's selector; use a suitable Google-account address or eligible group you control.                                      |
+| Audience                | **External** for the intended client-facing platform; see the decision below.                                                                                 |
+| Developer/contact email | A monitored address for Google's verification and operational messages.                                                                                       |
+| App home page           | `https://analytics.adbsoftwaresolutions.co.uk` once publicly accessible.                                                                                      |
+| Privacy policy          | The actual public HTTPS URL of the policy covering this application's Google data use. Supply your published URL; this feature does not create a policy page. |
+| Terms of service        | Your actual published terms URL, if provided.                                                                                                                 |
+| Authorized domains      | `adbsoftwaresolutions.co.uk`, without a scheme, path or subdomain. Add another domain only if used by your app's URLs.                                        |
+| Logo                    | Optional during initial setup; use an approved ADB asset if supplied.                                                                                         |
+
+Save the configuration. Ensure verification reviewers can reach the home page and
+policy links. Complete domain ownership verification through
+[Google Search Console](https://search.google.com/search-console) when required;
+use Google's [brand verification instructions](https://developers.google.com/identity/protocols/oauth2/production-readiness/brand-verification)
+for ownership and branding requirements. Do not enter placeholder policy URLs for
+a production verification submission.
+
+### 3. Choose Audience: External or Internal
+
+Open [Google Auth Platform → Audience](https://console.cloud.google.com/auth/audience).
+
+| Situation                                                                                                                                   | Choose                                                             |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Clients connect their own Google accounts, including Gmail or another company's Workspace accounts.                                         | **External** — recommended for this platform.                      |
+| ADB staff use personal Google accounts or Google accounts outside the project's owning organization.                                        | **External**, even if only ADB staff can log into the application. |
+| Every Google account that will authorize connections belongs to the same Google Workspace/Cloud Identity organization as the Cloud project. | **Internal** may be appropriate for a staff-only deployment.       |
+| Internal is unavailable in the console, or the project has no qualifying Google organization.                                               | **External**.                                                      |
+
+An ADB email address or Microsoft 365 tenant alone does not establish membership
+of a Google organization. Internal describes the **Google accounts authorizing
+access**, not whether the ADB application is private. External does not bypass
+ADB login, Business membership or website permissions, and Internal does not
+prevent an eligible staff Google account from accessing client-owned properties
+that have been shared with that account.
+
+For initial External setup, keep **Publishing status: Testing**. Under **Test
+users → Add users**, add the exact Google account addresses that will click
+**Connect Google**, then save. Add the authorizing account, not just the ADB login
+address. Testing supports up to 100 listed test users. Internal access is instead
+restricted by the owning Google organization; its administrator may also need to
+approve the app. See [Google's audience rules](https://support.google.com/cloud/answer/15549945?hl=en).
+
+### 4. Register the requested scopes
+
+Open [Google Auth Platform → Data Access](https://console.cloud.google.com/auth/scopes),
+choose **Add or remove scopes**, and select or manually enter the following.
+Save/update the scope selection.
+
+| Scope                                                 | Why this application requests it                                                  |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `openid`                                              | Identify the connected Google account.                                            |
+| `https://www.googleapis.com/auth/userinfo.email`      | Email identity; the backend requests the equivalent OpenID Connect `email` scope. |
+| `https://www.googleapis.com/auth/analytics.readonly`  | Discover GA4 properties and read reports.                                         |
+| `https://www.googleapis.com/auth/webmasters.readonly` | Discover Search Console properties and read search performance.                   |
+| `https://www.googleapis.com/auth/analytics.edit`      | Optional administration consent for custom dimensions, metrics and key events.    |
+
+Register the edit scope if offering configuration management. Adding it to the
+console does not grant it automatically: the backend requests it only when the
+user chooses administration consent. Reporting consent requests only identity
+and read scopes. No Gmail, Drive or Search Console write scope is needed.
+For the console workflow, see Google's
+[consent and scope guide](https://developers.google.com/workspace/guides/configure-oauth-consent).
+
+### 5. Create the Web application OAuth client
+
+Open [Google Auth Platform → Clients](https://console.cloud.google.com/auth/clients),
+choose **Create client**, and use the following settings in each project's client.
+
+| Field                         | Production project                                                                        | Development project                                  |
+| ----------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Application type              | **Web application**                                                                       | **Web application**                                  |
+| Name                          | `ADB Analytics Production Web`                                                            | `ADB Analytics Local Web`                            |
+| Authorized JavaScript origins | Leave empty: this integration redirects through Django and exchanges codes on the server. | Leave empty for the same reason.                     |
+| Authorized redirect URIs      | `https://api.adbsoftwaresolutions.co.uk/api/analytics/oauth/callback`                     | `http://localhost:8000/api/analytics/oauth/callback` |
+
+Click **Create** and securely capture the **Client ID** and **Client secret**.
+The secret belongs in the backend runtime secret store, never in `NEXT_PUBLIC_*`,
+Git or a frontend build. These credentials identify the app; user refresh tokens
+are obtained later by connecting Google and encrypted by the existing Vault.
+
+The callback belongs to the API, not port 3005 or the account application's login
+page. Match scheme, hostname, port, path and trailing slash exactly between the
+console and `ANALYTICS_GOOGLE_REDIRECT_URI`. Use `localhost` consistently for the
+local app, API and account frontend. For another staging host, register its exact
+callback in the corresponding nonproduction client. See Google's
+[web-server OAuth instructions](https://developers.google.com/identity/protocols/oauth2/web-server).
+
+### 6. Set application configuration and start services
+
+Use the [environment variable table](#environment-variables) below. For local
+work, add these values to `.devcontainer/.env` without overwriting existing secrets:
+
+```dotenv
+ANALYTICS_GOOGLE_CLIENT_ID=<development-client-id>
+ANALYTICS_GOOGLE_CLIENT_SECRET=<development-client-secret>
+ANALYTICS_GOOGLE_REDIRECT_URI=http://localhost:8000/api/analytics/oauth/callback
+ANALYTICS_FRONTEND_URL=http://localhost:3005
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_AUTH_URL=http://localhost:3004
+NEXT_PUBLIC_ANALYTICS_URL=http://localhost:3005
+```
+
+Keep the existing valid `CREDENTIAL_ENCRYPTION_KEYS` key ring; replacing it can
+make stored secrets unreadable. Rebuild the devcontainer after environment changes
+so Compose reloads the variables. Apply migrations, then use **Start Analytics
+Stack**; see [development tasks](../.devcontainer/README.md). Django, the general
+Celery worker and Beat must all be running for synchronization and refreshes.
+
+Production uses the production client's values, the HTTPS callback above,
+`ANALYTICS_FRONTEND_URL=https://analytics.adbsoftwaresolutions.co.uk`, and the
+production API/auth/Analytics frontend origins. Inject secrets through the existing
+runtime process, apply migrations, restart API/workers/Beat and rebuild the auth
+frontend with its Analytics return origin. Deploy through the existing automation;
+this feature does not provision infrastructure or DNS.
+
+### 7. Grant Google property access and connect
+
+The Cloud project and OAuth scopes do not grant access to GA4 or Search Console
+properties. Use a Google account that already has the appropriate property access.
+
+1. In [Google Analytics](https://analytics.google.com/), select the correct property
+   and inspect **Admin → Property access management**. Reporting needs a role that
+   can read its data; configuration writes require an appropriate role such as
+   Editor or Administrator. Ask the property's administrator to grant access.
+2. In [Search Console](https://search.google.com/search-console), select the property
+   and inspect **Settings → Users and permissions**. Have its owner grant the
+   connecting account suitable access. Domain (`sc-domain:`) and URL-prefix
+   properties are supported; select the one covering the website being tracked.
+3. Log into ADB Analytics with the existing ADB account. Create/select a Business
+   and Website, then choose **Connect Google**. Select the Google account added
+   as a test user and grant the requested reporting permissions.
+4. Discover and link the GA4/Search Console properties. Match the Website timezone
+   to GA4, start synchronization and follow job progress. Test administration
+   consent separately on a test property before making configuration changes.
+
+### 8. Move External production access out of Testing
+
+External Testing refresh tokens expire after **seven days** for the scopes this
+app uses. This can stop unattended synchronization; reconnecting is a temporary
+testing measure. The identity-only exception does not apply to Analytics/Search
+Console scopes. See Google's [refresh-token expiration rules](https://developers.google.com/identity/protocols/oauth2/#expiration).
+
+For launch, finish the production project's branding, real public policy URLs,
+domain ownership and scope configuration. In
+[Audience](https://console.cloud.google.com/auth/audience), use **Publish app**
+when ready, and follow
+[Verification Center](https://console.cloud.google.com/auth/verification) for any
+required brand/sensitive-scope verification. Prepare a description of each scope's
+use and a demonstration of the consent and reporting/configuration flows. Use
+Google's displayed requirements to determine the required submission material.
+Publishing and verification are separate; publishing alone does not mean approved.
+After changing status, reconnect accounts previously authorized in Testing and
+verify background refresh. Production tokens can still be revoked or expire.
+
+### Troubleshooting Google setup
+
+| Symptom                                               | Check                                                                                                                                                    |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `org_internal` or account rejected by an Internal app | The authorizing Google account must belong to the project's Google organization; use External for accounts outside it.                                   |
+| External Testing access blocked                       | Add the exact Google account under Audience → Test users, save, then select that account during consent.                                                 |
+| `redirect_uri_mismatch`                               | Compare the exact callback with the selected client's registered redirect URI and backend environment; check the project/client pair.                    |
+| Property missing from discovery                       | Confirm the selected Google account has property access, all three APIs are enabled in the client's project, and the granted scopes match the operation. |
+| Read reports work but configuration fails             | Reconnect with administration consent and confirm the account's GA4 property role allows writes.                                                         |
+| Sync stops about a week after connection              | Check External Testing token expiry; complete production setup and reconnect. Revocation or organization policy can also require reconnection.           |
+| Unverified-app warning or administrator block         | Check Verification Center and Google Workspace administrator policy; adding a test user does not override an organization block.                         |
 
 ### Environment variables
 
