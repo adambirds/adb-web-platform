@@ -641,3 +641,18 @@ The retention queue requires staff status plus `crm.view_lead` and
 plus `crm.delete_lead`, and Ticket view/delete with scope to every included Queue
 when conversations are removed. Services and APIs enforce these boundaries. See
 [Lead retention](LEAD_RETENTION.md).
+
+## Analytics Business scope
+
+The independent analytics product uses existing User identities and Django's
+permission interface with a Business object scope. `business_has_perm` through the existing EmailBackend
+applies the standard `Analytics / Owner`, `Analytics / Admin` and `Analytics / Viewer`
+Django Group permission bundles inside BusinessMembership scope: Viewer can read
+reports; Admin can manage websites, connections, synchronization and GA4 definitions;
+Owner can also manage the Business and membership. Django global capability grants
+remain effective only after the caller passes membership filtering. No analytics
+membership sets `is_staff`, grants operational Groups, or derives access from an
+optional Client/Brand relationship. All IDs, exports and background-job status
+lookups pass the same Business scope. Google write scope and confirmation are
+additional checks, never substitutes for Business authorization. See
+[Analytics platform](ANALYTICS_PLATFORM.md) for OAuth and Vault integration.

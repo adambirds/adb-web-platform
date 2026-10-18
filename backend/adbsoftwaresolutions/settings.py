@@ -66,6 +66,7 @@ else:
 INSTALLED_APPS = [
     "authentication",
     "apps.core",
+    "apps.analytics",
     "apps.access_control",
     "apps.website",
     "apps.clients",
@@ -115,6 +116,7 @@ MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "apps.analytics.middleware.analytics_response_headers",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -229,6 +231,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://" + SITE_DOMAIN,
     "https://api." + SITE_DOMAIN,
     "https://auth." + SITE_DOMAIN,
+    "https://analytics." + SITE_DOMAIN,
     "https://admin." + SITE_DOMAIN,
     "https://adbwebdesigns.co.uk",
     "https://www.adbwebdesigns.co.uk",
@@ -243,6 +246,7 @@ if DEBUG:
         "http://localhost:3002",
         "http://localhost:3003",
         "http://localhost:3004",
+        "http://localhost:3005",
     ]
 
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
@@ -315,3 +319,13 @@ GITHUB_WEBHOOK_SECRET = os.environ.get("GITHUB_WEBHOOK_SECRET", "")
 # Plain text locally; JSON lines (for Loki) with LOG_FORMAT=json, as in the
 # Docker images.
 LOGGING = logging_config(os.environ.get("LOG_LEVEL", "INFO"))
+
+# Google secrets are runtime-only; the frontend never receives these values.
+ANALYTICS_GOOGLE_CLIENT_ID = os.environ.get("ANALYTICS_GOOGLE_CLIENT_ID", "")
+ANALYTICS_GOOGLE_CLIENT_SECRET = os.environ.get("ANALYTICS_GOOGLE_CLIENT_SECRET", "")
+ANALYTICS_GOOGLE_REDIRECT_URI = os.environ.get(
+    "ANALYTICS_GOOGLE_REDIRECT_URI", "https://api." + SITE_DOMAIN + "/api/analytics/oauth/callback"
+)
+ANALYTICS_FRONTEND_URL = os.environ.get(
+    "ANALYTICS_FRONTEND_URL", "https://analytics." + SITE_DOMAIN
+)

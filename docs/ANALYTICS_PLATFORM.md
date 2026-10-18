@@ -47,3 +47,124 @@ Search Console clicks and GA4 sessions must remain distinct metrics. Page-level 
 ## Cost policy
 
 Use quota-limited Google APIs, existing hosting and local caching. No paid BigQuery export, paid AI API or metered third-party analytics service is required for the MVP.
+
+## Implemented application contract
+
+The analytics application is a separate Next.js deployment on port **3005**.
+Django registers `/api/analytics` separately from `/api/admin`; analytics membership
+does not set `is_staff`, add operational Groups, or grant access to Client records.
+`business_has_perm` through the existing EmailBackend implements Django's object-permission interface for
+Business objects. Owner, Admin and Viewer use the `Analytics / Owner`, `Analytics / Admin` and
+`Analytics / Viewer` Django Group capability bundles without assigning global user
+Group membership. Every resource lookup first requires business membership. Explicit Django capability grants
+can extend a member's capabilities, but never bypass membership filtering.
+BusinessMembership user deletion uses PROTECT; owner removal/demotion goes through
+a serialized Business lock and retains an owner. Do not bypass the service with
+bulk membership updates.
+
+GoogleConnection references a shared StoredCredential. Token payloads use the
+Vault service and `CREDENTIAL_ENCRYPTION_KEYS`; no alternate encryption key or
+plaintext token field exists. OAuth states are session/actor/business bound,
+expire after ten minutes, use PKCE S256 and are consumed before exchange. Callbacks
+return only to the configured analytics origin. Each connection is business-owned,
+so sharing a Google account across businesses requires separate consent connections.
+An administrator can reconnect by authorizing again and relinking properties.
+
+Reporting uses exact provider date-window snapshots in PostgreSQL, cached for five
+minutes in Redis. This avoids adding daily unique-user counts or averaging daily
+ratios incorrectly. Reports for an unsynchronized window explicitly return
+`range_not_synchronized`; an administrator can request any past window up to 366
+days, including its equal-length previous period. There are no fabricated zeros.
+Each report request is bounded to four pages of 25,000 rows and reports truncation.
+Successful empty responses are stored distinctly from missing responses.
+
+Celery's `analytics.enqueue_syncs` refreshes the recent 28-day window every six
+hours. Both providers end three days ago to align the initial reporting window; Search
+Console requests final data. Both providers refresh their previous comparison window as well. This is a
+bounded historical correction policy; arbitrary older ranges are fetched only on
+explicit request. Initial property association queues this same initial window, followed by a
+one-time 90-day historical window and its previous period. Existing historical
+windows older than the 14-day correction horizon are reused on subsequent jobs.
+Jobs have durable state, progress, bounded retry/backoff and a database unique
+constraint preventing concurrent jobs for a property. Interrupted jobs expire
+after two hours. Tasks run on the existing `general` queue, with a 30-minute hard
+limit; no deployment or worker-queue infrastructure is changed.
+
+URL joins preserve scheme, host, path slash and query distinctions and drop only
+fragments. Canonical mismatches remain unmatched, rather than silently associating
+unrelated content. GA4 property timezone must match the website timezone; Search
+Console remains Pacific Time. Combined views explicitly separate both systems.
+The supported realtime view reports active users and event counts by event,
+country and device; it does not invent realtime page paths.
+
+GA4 configuration uses the Admin API with explicit `analytics.edit` consent,
+business write permission, input validation, confirmation and audit intent plus
+completion events. The wizard refreshes existing event dimensions, identifies
+missing parameters and verifies created definitions. Property tier limits are
+left to Google validation rather than guessed. Registration is non-retroactive;
+allow 24–48 hours for new reportable data. The tracking example uses the existing
+Google tag and requires the site's established consent configuration.
+
+## Google Cloud setup
+
+1. Create or select a Google Cloud project. Enable **Google Analytics Data API**,
+   **Google Analytics Admin API** and **Google Search Console API**.
+2. Configure the OAuth consent screen with the application name, verified
+   `adbsoftwaresolutions.co.uk` domain, privacy policy and support contact. Add
+   test accounts while the app is in Testing. External production access to
+   sensitive scopes may require Google verification. Testing-mode refresh tokens
+   may expire; complete the appropriate publishing/verification process.
+3. Create an OAuth **Web application** client. Register this exact production URI:
+   `https://api.adbsoftwaresolutions.co.uk/api/analytics/oauth/callback`.
+   For development register a separate exact callback such as
+   `http://localhost:8000/api/analytics/oauth/callback` and set the variable below.
+4. Reporting consent requests `openid`, `email`,
+   `https://www.googleapis.com/auth/analytics.readonly` and
+   `https://www.googleapis.com/auth/webmasters.readonly`. Administration adds
+   `https://www.googleapis.com/auth/analytics.edit`. Reporting consent never
+   requests write scope. No BigQuery or paid API is required.
+5. The Google account must have access to each GA4 and Search Console property.
+   Editing custom definitions/key events additionally requires the corresponding
+   Google property role (normally Editor or Administrator). OAuth edit scope does
+   not override Google's property authorization. Domain and URL-prefix Search
+   Console properties are supported, including encoded `sc-domain:` identifiers.
+6. Supply backend secrets through the existing runtime secret-injection process.
+   Do not put Google secrets into frontend build environments.
+7. Apply Django migrations and restart API, existing workers and Beat. Deploy the
+   analytics frontend image using the existing automation. No Ansible, Terraform,
+   DNS, provisioning or other infrastructure changes are part of this feature.
+8. Log in with an existing ADB account, create a Business and Website, connect
+   Google, discover properties and link one or both integrations. Match the
+   Website timezone to the selected GA4 property's timezone. Follow job progress,
+   then synchronize the desired date range and refresh reports.
+
+### Environment variables
+
+| Process         | Variable                         | Purpose                                                              |
+| --------------- | -------------------------------- | -------------------------------------------------------------------- |
+| API/worker      | `ANALYTICS_GOOGLE_CLIENT_ID`     | Google Web OAuth client identifier                                   |
+| API/worker      | `ANALYTICS_GOOGLE_CLIENT_SECRET` | Runtime-only OAuth client secret                                     |
+| API             | `ANALYTICS_GOOGLE_REDIRECT_URI`  | Exact registered callback; production default above                  |
+| API             | `ANALYTICS_FRONTEND_URL`         | Fixed post-OAuth return origin; defaults to analytics subdomain      |
+| API/worker      | `CREDENTIAL_ENCRYPTION_KEYS`     | Existing shared Vault key ring                                       |
+| Analytics build | `NEXT_PUBLIC_API_URL`            | Shared API origin; local default `http://localhost:8000`             |
+| Analytics build | `NEXT_PUBLIC_AUTH_URL`           | Existing auth origin; local default `http://localhost:3004`          |
+| Auth build      | `NEXT_PUBLIC_ANALYTICS_URL`      | Exact analytics return origin; local default `http://localhost:3005` |
+
+Existing SQL, cache, session and Celery variables remain required. Production
+session/CSRF cookies remain secure and shared across the established parent domain.
+CORS and CSRF origin allowlists add only the exact analytics origin and local port.
+Rebuild the auth frontend with the analytics return URL configured before launch.
+The new Dockerfile/workflow follow existing non-root, healthcheck, registry and
+main-branch publishing conventions. The pnpm workspace already includes `sites/*`.
+
+### Live verification checklist
+
+Automated tests mock all Google responses. Before production use, verify consent
+and any Google verification requirements; offline refresh; revocation; real GA4
+and GSC property discovery; timezone selection; initial and custom-range sync;
+provider quota/permission error displays; definition creation and key-event deletion
+on a test property; account login/MFA return across the real subdomains; and the
+image build/publish in the existing CI environment. Provider reports may exclude
+privacy-filtered queries, have processing delays or expose only top rows; missing
+or truncated data is not equivalent to zero.

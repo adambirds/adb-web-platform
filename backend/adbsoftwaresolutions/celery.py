@@ -23,6 +23,7 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 app.conf.beat_schedule = {
+    "analytics-sync": {"task": "analytics.enqueue_syncs", "schedule": 21600},
     "lead-retention-review": {"task": "crm.refresh_retention_reviews", "schedule": 86400},
     "celery-history-retention": {"task": "core.purge_celery_history", "schedule": 86400},
     "github-delivery-recovery": {"task": "github.recover_deliveries", "schedule": 60},

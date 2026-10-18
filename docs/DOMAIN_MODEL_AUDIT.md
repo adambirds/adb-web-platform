@@ -689,3 +689,14 @@ copy occupies `solution`; missing project claims are not invented. Original
 marketing pages are archived for reference and remain code-owned. Existing
 cross-Brand taxonomy collisions must stop import rather than extend visibility.
 See [the archive guide](migrations/README.md) for the runbook and tests.
+
+### Analytics workspace models — Keep / extend
+
+Business and BusinessMembership define analytics-only scope and role selection,
+separate from Brand and Client. Role capability bundles remain Django Groups,
+applied by the existing EmailBackend only within verified Business membership.
+GoogleConnection references the shared encrypted StoredCredential. ProviderProperty
+links a Website to one GA4 or GSC property; ReportSnapshot stores exact aggregate
+windows, SyncJob stores durable progress, EventDefinition stores provider config
+metadata and AnalyticsPreference stores per-user selection. No raw visitor/event
+store or second user/identity system is introduced. See [Analytics platform](ANALYTICS_PLATFORM.md).

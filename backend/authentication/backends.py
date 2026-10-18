@@ -2,6 +2,7 @@ from typing import Any
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth.models import AnonymousUser
 from django.http import HttpRequest
 
 from authentication.models import User
@@ -26,3 +27,13 @@ class EmailBackend(ModelBackend):
                 return user
             else:
                 return None
+
+    def has_perm(self, user_obj: User | AnonymousUser, perm: str, obj: Any = None) -> bool:
+        # Keep one identity backend: existing login/MFA flows can safely infer it.
+        if obj is not None:
+            from apps.analytics.access import business_has_perm
+            from apps.analytics.models import Business
+
+            if isinstance(obj, Business):
+                return business_has_perm(user_obj, perm, obj)
+        return super().has_perm(user_obj, perm, obj)

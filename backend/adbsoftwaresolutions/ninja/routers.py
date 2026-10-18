@@ -8,6 +8,8 @@ from ninja.errors import HttpError
 from pydantic import ValidationError
 
 from apps.access_control.ninja.views import staff_access_router
+from apps.analytics.api import router as analytics_router
+from apps.analytics.google import ProviderError
 from apps.clients.ninja.admin_views import clients_admin_router
 from apps.clients.ninja.command_centre_views import client_command_centre_router
 from apps.clients.ninja.overview_views import client_overview_router
@@ -74,6 +76,7 @@ api = NinjaAPI(
     description="Shared API for the ADB Business Platform and public ADB websites.",
 )
 
+api.add_router("/analytics", analytics_router)
 api.add_router("/auth", auth_router)
 api.add_router("/auth-service", auth_service_router)
 api.add_router("/sessions", sessions_router)
@@ -173,4 +176,11 @@ def custom_http_errors(request: HttpRequest, exc: HttpError) -> HttpResponse:
         request,
         {"detail": str(exc)},
         status=exc.status_code,
+    )
+
+
+@api.exception_handler(ProviderError)
+def analytics_provider_error(request: HttpRequest, exc: ProviderError) -> JsonResponse:
+    return JsonResponse(
+        {"detail": exc.code, "retryable": exc.retryable}, status=503 if exc.retryable else 400
     )
