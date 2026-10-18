@@ -43,7 +43,7 @@ jobs:
             artifact-name: trivy-fs-scan-auth-adb-software-solutions
 
     build:
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         needs: [frontend, trivy]
         permissions:
             contents: read

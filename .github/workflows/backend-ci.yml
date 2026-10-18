@@ -47,7 +47,7 @@ jobs:
             artifact-name: trivy-fs-scan-backend
 
     build:
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         needs: [django, trivy]
         permissions:
             contents: read
