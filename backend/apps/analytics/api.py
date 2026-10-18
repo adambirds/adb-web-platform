@@ -732,3 +732,35 @@ def event_trend(
         "rows": [row for row in stored["rows"] if row.get("eventName") == event] if stored else [],
         "available": stored is not None,
     }
+
+
+class ConfirmationIn(Schema):
+    confirmed: bool = False
+
+
+@router.delete("/websites/{website_id}/properties/{provider}")
+def unlink_property(
+    request: AuthenticatedHttpRequest,
+    website_id: int,
+    provider: Literal["ga4", "gsc"],
+    payload: ConfirmationIn,
+) -> dict[str, bool]:
+    website = website_for(request.user, website_id, "change_googleconnection")
+    if not payload.confirmed:
+        raise HttpError(
+            422, "Confirm unlinking this property and removing its synchronized reports."
+        )
+    with transaction.atomic():
+        prop = get_object_or_404(website.provider_properties.select_for_update(), provider=provider)
+        if prop.jobs.filter(status__in=["queued", "running", "retrying"]).exists():
+            raise HttpError(
+                409, "Wait for the active synchronization before unlinking this property."
+            )
+        AuditEvent.record(
+            action="analytics.property_unlinked",
+            actor=request.user,
+            target=prop,
+            metadata={"provider": provider, "external_id": prop.external_id},
+        )
+        prop.delete()
+    return {"unlinked": True}

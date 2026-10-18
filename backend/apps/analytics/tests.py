@@ -599,3 +599,49 @@ class AnalyticsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()["current"]["rows"]), 120)
         self.assertEqual(response.json()["current"]["rows"][-1]["sessions"], 120)
+
+    def test_linked_ga_timezone_cannot_drift(self) -> None:
+        self.prop.metadata = {"timeZone": "Europe/London"}
+        self.prop.save()
+        with self.assertRaises(HttpError):
+            save_website(
+                self.owner,
+                self.business.pk,
+                website=self.website,
+                name=self.website.name,
+                domain=self.website.domain,
+                timezone="UTC",
+            )
+
+    def test_property_unlink_is_scoped_confirmed_and_keeps_google_account(self) -> None:
+        path = f"/api/analytics/websites/{self.website.pk}/properties/ga4"
+        self.client.force_login(self.viewer)
+        self.assertEqual(
+            self.client.delete(
+                path, {"confirmed": True}, content_type="application/json"
+            ).status_code,
+            403,
+        )
+        self.client.force_login(self.other)
+        self.assertEqual(
+            self.client.delete(
+                path, {"confirmed": True}, content_type="application/json"
+            ).status_code,
+            404,
+        )
+        self.client.force_login(self.owner)
+        self.assertEqual(
+            self.client.delete(
+                path, {"confirmed": False}, content_type="application/json"
+            ).status_code,
+            422,
+        )
+        self.assertEqual(
+            self.client.delete(
+                path, {"confirmed": True}, content_type="application/json"
+            ).status_code,
+            200,
+        )
+        self.assertFalse(ProviderProperty.objects.filter(pk=self.prop.pk).exists())
+        self.connection.refresh_from_db()
+        self.assertEqual(self.connection.status, "connected")

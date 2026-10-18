@@ -301,6 +301,34 @@ export function IntegrationSettings({
                                         ? `Last synchronized ${new Date(p.last_synced_at).toLocaleString("en-GB")}`
                                         : "Awaiting initial synchronization")}
                             </small>
+                            <br />
+                            <button
+                                disabled={busy}
+                                onClick={async () => {
+                                    if (
+                                        !window.confirm(
+                                            "Unlink this website property and remove its synchronized reports? The Google account remains available to other websites.",
+                                        )
+                                    )
+                                        return;
+                                    setBusy(true);
+                                    try {
+                                        await api(
+                                            `/websites/${website.id}/properties/${p.provider}`,
+                                            "DELETE",
+                                            {confirmed: true},
+                                        );
+                                        await refresh();
+                                        setMessage("Property unlinked.");
+                                    } catch (err) {
+                                        setError(String(err));
+                                    } finally {
+                                        setBusy(false);
+                                    }
+                                }}
+                            >
+                                Unlink property
+                            </button>
                         </p>
                     ))
                 ) : (

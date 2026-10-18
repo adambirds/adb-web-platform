@@ -92,7 +92,10 @@ limit; no deployment or worker-queue infrastructure is changed.
 
 URL joins preserve scheme, host, path slash and query distinctions and drop only
 fragments. Canonical mismatches remain unmatched, rather than silently associating
-unrelated content. GA4 property timezone must match the website timezone; Search
+unrelated content. GA4 property timezone must match the website timezone; unlink the GA4 property
+before changing that timezone or replacing it with a property in another zone.
+Unlinking removes only that website provider and its reports; Google account
+revocation remains a separate action affecting all its associated websites. Search
 Console remains Pacific Time. Combined views explicitly separate both systems.
 The supported realtime view reports active users and event counts by event,
 country and device; it does not invent realtime page paths.

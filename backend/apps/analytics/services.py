@@ -126,6 +126,12 @@ def save_website(
         ZoneInfo(timezone)
     except (ZoneInfoNotFoundError, ValueError):
         raise HttpError(422, "Choose a valid IANA timezone.") from None
+    if website and timezone != website.timezone:
+        linked = website.provider_properties.filter(provider="ga4").first()
+        if linked and linked.metadata.get("timeZone") != timezone:
+            raise HttpError(
+                409, "Unlink the current GA4 property before changing the website timezone."
+            )
     normalized = normalize_domain(domain)
     duplicates = Website.objects.filter(business=business, domain=normalized)
     if website:
