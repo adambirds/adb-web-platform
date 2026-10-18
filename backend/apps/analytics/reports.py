@@ -16,6 +16,7 @@ GA_METRICS = [
     "engagedSessions",
     "userEngagementDuration",
     "keyEvents",
+    "eventCount",
 ]
 GA_REPORTS = {
     "overview": ([], GA_METRICS),

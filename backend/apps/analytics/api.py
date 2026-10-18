@@ -450,6 +450,7 @@ def report_get(
     sort: str = "",
     descending: bool = True,
     page: int = 1,
+    page_size: int = 100,
     export: bool = False,
 ) -> Any:
     prop = prop_for(request, website_id, provider)
@@ -495,7 +496,8 @@ def report_get(
         return response
     total = len(rows)
     if current:
-        current = {**current, "rows": rows[(max(page, 1) - 1) * 100 : max(page, 1) * 100]}
+        size = min(max(page_size, 1), 1000)
+        current = {**current, "rows": rows[(max(page, 1) - 1) * size : max(page, 1) * size]}
     return {
         "current": current,
         "previous": previous,

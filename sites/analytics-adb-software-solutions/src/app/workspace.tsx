@@ -740,7 +740,7 @@ function Reports({
                     (section !== "search" || name === "overview")
                 ) {
                     const trend = await api<Report>(
-                        `/websites/${website.id}/reports/${provider}/${section === "events" ? "event_trend" : "trend"}?${query}`,
+                        `/websites/${website.id}/reports/${provider}/trend?${query}&page_size=400`,
                     );
                     if (active) setExtra(trend.current?.rows ?? []);
                 }

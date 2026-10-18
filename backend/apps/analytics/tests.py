@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from cryptography.fernet import Fernet
 from django.contrib.auth.models import AnonymousUser
+from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.test import Client, RequestFactory, TestCase, override_settings
 from django.utils import timezone
@@ -59,6 +60,7 @@ CACHES = {
 )
 class AnalyticsTests(TestCase):
     def setUp(self) -> None:
+        cache.clear()
         self.owner = User.objects.create_user(
             email="owner@example.test",
             password="test-password",
@@ -577,3 +579,23 @@ class AnalyticsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["rows"][0]["url"], url)
         self.assertEqual(len(response.json()["rows"][0]["ga4_page_trend"]), 1)
+
+    def test_long_range_trend_can_return_every_day(self) -> None:
+        long_end = self.start + timedelta(days=119)
+        rows = [
+            {"date": str(self.start + timedelta(days=day)), "sessions": day + 1}
+            for day in range(120)
+        ]
+        ReportSnapshot.objects.create(
+            property=self.prop,
+            report="trend",
+            start=self.start,
+            end=long_end,
+            payload={"rows": rows},
+        )
+        response = self.client.get(
+            f"/api/analytics/websites/{self.website.pk}/reports/ga4/trend?start={self.start}&end={long_end}&page_size=400"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()["current"]["rows"]), 120)
+        self.assertEqual(response.json()["current"]["rows"][-1]["sessions"], 120)
