@@ -18,6 +18,10 @@ const ALLOWED_REDIRECT_ORIGINS = [
     WEB_DESIGNS_URL,
     TECHNOLOGY_URL,
     AUTH_URL,
+    process.env.NEXT_PUBLIC_ANALYTICS_URL ??
+        (process.env.NODE_ENV === "production"
+            ? "https://analytics.adbsoftwaresolutions.co.uk"
+            : "http://localhost:3005"),
 ];
 
 /**

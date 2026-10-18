@@ -45,11 +45,12 @@ def run() -> None:
         "sites/adb-web-designs",
         "sites/adb-technology",
         "sites/auth-adb-software-solutions",
+        "sites/analytics-adb-software-solutions",
     ]
 
     for frontend_dir in FRONTEND_DIRS:
         linter_config.external_linter(
-            "css",
+            "css-analytics" if frontend_dir.endswith("analytics-adb-software-solutions") else "css",
             ["pnpm", "exec", "stylelint", "**/*.{css,scss}", "--allow-empty-input"],
             ["css"],
             fix_arg="--fix",
@@ -59,7 +60,9 @@ def run() -> None:
         )
 
         linter_config.external_linter(
-            "eslint",
+            "eslint-analytics"
+            if frontend_dir.endswith("analytics-adb-software-solutions")
+            else "eslint",
             ["pnpm", "exec", "eslint", ".", "--max-warnings=0", "--cache"],
             ["js", "ts", "tsx", "jsx"],
             fix_arg="--fix",

@@ -79,3 +79,28 @@ describe("combined public/admin redirect origin", () => {
         }
     });
 });
+
+describe("analytics return origin", () => {
+    it("accepts only the configured analytics origin", async () => {
+        vi.stubEnv(
+            "NEXT_PUBLIC_ANALYTICS_URL",
+            "https://analytics.adbsoftwaresolutions.co.uk",
+        );
+        const settings = await config();
+        expect(
+            settings.isValidRedirectUrl(
+                "https://analytics.adbsoftwaresolutions.co.uk/",
+            ),
+        ).toBe(true);
+        expect(
+            settings.isValidRedirectUrl(
+                "https://analytics.adbsoftwaresolutions.co.uk.evil.test/",
+            ),
+        ).toBe(false);
+        expect(
+            settings.isValidRedirectUrl(
+                "https://other.adbsoftwaresolutions.co.uk/",
+            ),
+        ).toBe(false);
+    });
+});
