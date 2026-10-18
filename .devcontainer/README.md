@@ -1,179 +1,64 @@
-# Devcontainer Setup
+# ADB development container
 
-This directory contains the devcontainer configuration for the project template monorepo. The devcontainer provides a complete development environment with all necessary tools and services.
+Open the repository in VS Code and choose **Dev Containers: Reopen in Container**.
+Docker and the VS Code Dev Containers extension must be installed on the host.
+Post-create installs workspace dependencies, prepares the Python environment and
+runs Django migrations. Compose starts PostgreSQL and the Redis services.
+Application servers and Celery are started explicitly using the tasks below.
 
-## 🚀 Getting Started
+## Starting applications
 
-### Prerequisites
+Choose **Tasks: Run Task → Start Analytics Stack** to start Django, the shared
+account application, Analytics, all Celery workers and Celery Beat in separate
+terminals. The general worker processes analytics synchronization; Beat schedules
+refreshes. **Start Full Stack** also starts the three public brand applications.
+Stop the compound task's running terminals when finished. Run one compound stack
+at a time, since both use the same servers and workers.
 
-- [Visual Studio Code](https://code.visualstudio.com/)
-- [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop)
+| Application                       | Command from `/workspace`                 | Local URL               |
+| --------------------------------- | ----------------------------------------- | ----------------------- |
+| Django API                        | `start-backend`                           | <http://localhost:8000> |
+| Software Solutions and operations | `pnpm dev:software-solutions`             | <http://localhost:3000> |
+| Web Designs                       | `pnpm dev:web-designs`                    | <http://localhost:3002> |
+| Technology                        | `pnpm dev:technology`                     | <http://localhost:3003> |
+| Authentication/accounts           | `pnpm dev:auth`                           | <http://localhost:3004> |
+| Analytics                         | `pnpm dev:analytics` or `start-analytics` | <http://localhost:3005> |
 
-### Quick Start
+For a minimal Analytics setup from individual terminals, run `start-backend`,
+`pnpm dev:auth`, `pnpm dev:analytics`, `start-celery-general` and
+`start-celery-beat`. Each command remains running. All application ports and
+PostgreSQL port 5432 are forwarded by the devcontainer.
 
-1. Open the project in VS Code
-2. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac)
-3. Type "Dev Containers: Reopen in Container"
-4. Wait for the container to build and start
+## Environment and Google setup
 
-The devcontainer will automatically:
+Post-create copies `.env.example` to `.devcontainer/.env` when it does not exist.
+For an existing container, add missing variables from the example without
+replacing your secrets, then rebuild the container to load them through Compose.
+Keep `NODE_ENV` blank for normal Next.js mode selection.
 
-- Set up the Python environment with all dependencies
-- Start PostgreSQL, Redis, and other necessary services
-- Run Django migrations
-- Configure VS Code with extensions and settings
+Analytics uses `ANALYTICS_FRONTEND_URL` and `NEXT_PUBLIC_ANALYTICS_URL` pointing to
+`http://localhost:3005`. Google integration requires
+`ANALYTICS_GOOGLE_CLIENT_ID`, `ANALYTICS_GOOGLE_CLIENT_SECRET`, and the registered
+callback `ANALYTICS_GOOGLE_REDIRECT_URI`:
+`http://localhost:8000/api/analytics/oauth/callback`.
+Follow the [Analytics setup guide](../docs/ANALYTICS_PLATFORM.md) for APIs,
+consent scopes, property permissions and verification against real Google data.
+Create a local account with `python backend/manage.py createsuperuser`; there is
+no default administrator password.
 
-## 📁 Project Structure
+## Tests and debugging
 
-```
-project-template/
-├── .devcontainer/          # Devcontainer configuration
-├── .git/                   # Git repository
-├── .gitignore              # Root gitignore
-├── backend/                # Django backend
-│   ├── apps/
-│   ├── authentication/     # Auth app (reusable)
-│   ├── app/                # Django settings module
-│   └── ...
-├── website/                # Website/Frontend (Next.js)
-│   ├── src/
-│   └── package.json
-├── auth-frontend/          # Auth frontend (Vite/React)
-│   ├── src/
-│   └── package.json
-├── tools/                  # Development scripts and tools
-```
+- **Test Analytics** runs the Analytics frontend suite; CLI: `test-analytics`.
+- Backend Analytics tests: `cd backend && DJANGO_SETTINGS_MODULE=adbsoftwaresolutions.settings_test python manage.py test apps.analytics`.
+- **Test All** runs the repository test runner. **Lint Code** and **Lint and Fix Code** use `tools/lint`.
+- **Django: Debug** launches Django under the debugger. Stop the existing backend first.
+- **Django: Test** discovers tests from `backend/` using isolated test settings.
 
-## 🛠️ Development Tools
+Rebuild after changing the Dockerfile or adding helper scripts, since scripts
+are installed into `/usr/local/bin` during image build. Before rebuilding, the
+new helpers can also be run as `bash .devcontainer/scripts/start-analytics` and
+`bash .devcontainer/scripts/test-analytics`.
 
-### Available Commands
-
-The devcontainer includes several helper scripts:
-
-```bash
-# Backend Development
-start-backend          # Start Django development server
-
-# Frontend Development
-start-website          # Start Next.js website/frontend (port 3000)
-
-# Code Quality & Dependencies
-lint                  # Run project linting checks (tools/lint)
-lint-fix              # Run linting with auto-fix (tools/lint --fix)
-update-requirements   # Update pip-tools locked requirements
-
-# Testing
-test-backend          # Run Django tests
-test-website          # Run Next.js website tests
-test-all              # Run all tests (backend + frontend)
-```
-
-**Linting Tools Installation:**
-
-- The devcontainer uses your existing `tools/setup/install-shellcheck` and `tools/setup/install-shfmt` scripts
-- This ensures consistency with your local development environment
-- All linting tools are installed with the exact versions you've specified
-
-### VS Code Tasks
-
-Use `Ctrl+Shift+P` → "Tasks: Run Task" to access:
-
-**Backend Services:**
-
-- **Start Backend** - Django development server
-
-**Frontend Services:**
-
-- **Start Website (Next.js)** - Marketing website (port 3000)
-
-**Development Tasks:**
-
-- **Lint Code** - Run project linting checks
-- **Lint and Fix Code** - Run linting with auto-fix
-- **Update Requirements** - Update pip-tools locked requirements
-- **Run Tests** - Execute Django test suite
-- **Test All** - Run all tests (backend + all frontends)
-- **Test Website** - Run Next.js website tests
-- **Django Shell** - Interactive Django shell
-
-**Composite Tasks:**
-
-- **Start Full Stack** - Start everything (backend + frontend)
-
-### Debugging
-
-Pre-configured debug configurations:
-
-- **Django: Debug** - Debug Django application
-- **Django: Test** - Debug Django test
-
-## Setup, environment and services
-
-Use the [main setup guide](../README.md#setup-and-configuration) for the complete
-variable inventory, secret generation, local ports, GitHub/Graph provisioning,
-Redis topology, optional ClamAV and production requirements. The PostgreSQL
-service is `db` inside Compose (host port 5432); credentials match
-[the environment template](.env.example). There is no default admin password;
-run `python backend/manage.py createsuperuser` after migrations.
-
-## 🔧 Customization
-
-### Adding Extensions
-
-Edit `.devcontainer/devcontainer.json` to add VS Code extensions:
-
-```json
-"extensions": [
-  "your.extension.id"
-]
-```
-
-### Modifying Services
-
-Edit `.devcontainer/docker-compose.yml` to add or modify services.
-
-### Post-Create Scripts
-
-Modify `.devcontainer/post-create.sh` to add custom setup steps.
-
-## 🐛 Troubleshooting
-
-### Container Won't Start
-
-1. Ensure Docker Desktop is running
-2. Check Docker Desktop has sufficient resources allocated
-3. Try rebuilding: `Ctrl+Shift+P` → "Dev Containers: Rebuild Container"
-
-### Database Connection Issues
-
-1. Wait for database to be ready (check Docker logs)
-2. Check environment variables in `.devcontainer/.env`
-
-### Environment Variable Issues
-
-1. Ensure `.devcontainer/.env` file exists (copy from `.env.example`)
-2. Verify all required variables are set with actual values
-3. Check for typos in variable names
-4. Restart devcontainer after changing environment variables
-
-### Python Import Issues
-
-1. Ensure you're using the correct Python interpreter: `/opt/venv/bin/python`
-2. Check if dependencies are installed: `pip list`
-3. Rebuild container if packages are missing
-
-## 🤝 Contributing
-
-When working on the project:
-
-1. Always work within the devcontainer
-2. Use the provided VS Code tasks for common operations
-3. Commit and push changes normally - Git works from within the container
-4. Use the debug configurations for troubleshooting
-
-## 📝 Notes
-
-- The devcontainer is configured for development only
-- Production deployments should use the existing Dockerfile setup
-- All development data is persisted in Docker volumes
+See the [main setup guide](../README.md#setup-and-configuration) for the complete
+environment inventory, optional ClamAV, database services and deployment setup.
+Production uses the application Dockerfiles rather than this development image.

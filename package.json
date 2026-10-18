@@ -9,7 +9,8 @@
         "dev:web-designs": "pnpm --dir sites/adb-web-designs dev",
         "dev:technology": "pnpm --dir sites/adb-technology dev",
         "lint": "tools/lint",
-        "test": "tools/test-all"
+        "test": "tools/test-all",
+        "dev:analytics": "pnpm --dir sites/analytics-adb-software-solutions dev"
     },
     "repository": {
         "type": "git",

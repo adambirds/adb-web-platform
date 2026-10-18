@@ -11,6 +11,7 @@ All browser-facing applications live under `sites/`:
 - `sites/adb-software-solutions/` — combined ADB Software Solutions Next.js application. Public marketing routes live alongside the authenticated internal operations workspace under `/admin`.
 - `sites/adb-web-designs/` — public ADB Web Designs website.
 - `sites/adb-technology/` — public ADB Technology website for cloud/DevOps, infrastructure, migrations, deployment pipelines and server work.
+- `sites/analytics-adb-software-solutions/` — standalone Analytics workspace for scoped GA4 and Search Console reporting.
 - `sites/auth-adb-software-solutions/` — shared authentication/account-security application for login, password/account flows, passkeys, TOTP and session management.
 
 The shared Django backend lives at `backend/`; reusable frontend/tooling packages live under `packages/`.
@@ -126,12 +127,15 @@ Run the following in separate terminals:
 .devcontainer/scripts/start-backend
 pnpm dev:software-solutions
 pnpm dev:auth
+pnpm dev:analytics
 .devcontainer/scripts/start-celery-general
 .devcontainer/scripts/start-celery-beat
 ```
 
 The worker and Beat are needed for monitoring, expiry/metadata refreshes,
-GitHub webhook processing/recovery, mailbox sync and attachment scanning.
+GitHub webhook processing/recovery, mailbox sync, attachment scanning and Analytics synchronization.
+VS Code tasks **Start Analytics Stack** and **Start Full Stack** start the required
+servers, workers and scheduler; see [devcontainer tasks](.devcontainer/README.md).
 Monitor workers, queue depths, task history, per-task logs and scheduled jobs at
 <http://localhost:3000/admin/celery>. Access requires an active staff superuser.
 The dashboard is part of the existing backend and operations frontend; no extra
@@ -151,6 +155,7 @@ pnpm dev:technology
 | Django bootstrap admin          | <http://localhost:8000/admin/>                          |
 | Software Solutions + operations | <http://localhost:3000> / <http://localhost:3000/admin> |
 | Authentication/account frontend | <http://localhost:3004>                                 |
+| Analytics                       | <http://localhost:3005>                                 |
 | Web Designs                     | <http://localhost:3002>                                 |
 | Technology                      | <http://localhost:3003>                                 |
 
@@ -498,7 +503,7 @@ the development Compose stack:
 | Backend image      | Existing `Dockerfile.backend` starts Gunicorn with an ASGI Uvicorn worker on 8000                                                                                    |
 | Worker image       | Existing `Dockerfile.celery-worker`; `CELERY_QUEUE=general`; include encryption/integration variables                                                                |
 | Beat image         | Existing `Dockerfile.celery-beat`; run exactly one scheduler; its schedule state is `/tmp/celerybeat-schedule` and does not need persisting                          |
-| Frontend images    | Software Solutions (3000), auth (3004), Web Designs (3002), Technology (3003); build with production public URLs                                                     |
+| Frontend images    | Software Solutions (3000), auth (3004), Web Designs (3002), Technology (3003), Analytics (3005); build with production public URLs                                   |
 | Runtime users      | Backend, worker and Beat run as `www-data` (uid/gid 33); frontends as `nextjs` (uid 1001). Media and static mounts must belong to uid 33                             |
 | Attachment storage | Persist `backend/media` (container path `/opt/adb-software-solutions/media`), shared between API/attachment workers; keep protected attachments behind governed APIs |
 | Static assets      | Backend entrypoint runs `collectstatic`; arrange serving of its `staticfiles` output                                                                                 |
@@ -574,7 +579,7 @@ calls `/healthz` every 30 seconds, and adb-deploy waits for it on deploy. nginx
 so both are only reachable on the host.
 
 - **Backend** (8000): `/healthz` answers **200** `ok`, or **200** `degraded` when PostgreSQL or the cache or session Redis does not answer (restarting the API would not fix them, and a deploy should not wait on them), with one entry per check: `database`, `cache:default`, `cache:session`. `/metrics` is django-prometheus: requests, responses and latency by view, method and status, summed over all Gunicorn workers (Prometheus multiprocess mode, set up by `entrypoint.sh` and `backend/gunicorn.conf.py`). Both are answered by `adbsoftwaresolutions.health`, first in `MIDDLEWARE`, so the host check, HTTPS redirect and login do not apply and neither is counted in the request metrics.
-- **Frontends** (Software Solutions, Web Designs and Technology on 3000 in their images; auth on 3004): `/healthz` answers **200** `ok` whenever the server answers (it does not check the API). `/metrics` has `http_request_duration_seconds{method, status_code}` and the Node.js process metrics. Both come from `packages/observability`.
+- **Frontends** (Software Solutions, Web Designs and Technology on 3000 in their images; auth on 3004; Analytics on 3005): `/healthz` answers **200** `ok` whenever the server answers (it does not check the API). `/metrics` has `http_request_duration_seconds{method, status_code}` and the Node.js process metrics. Both come from `packages/observability`.
 - **Celery worker and Beat**: JSON logs only; no HTTP endpoint.
 
 A process that cannot answer at all fails the check, so none reports

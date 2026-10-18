@@ -8,7 +8,10 @@
                 "Start Auth",
                 "Start ADB Software Solutions",
                 "Start ADB Web Designs",
-                "Start ADB Technology"
+                "Start ADB Technology",
+                "Start ADB Analytics",
+                "Start All Celery Workers",
+                "Start Celery Beat"
             ],
             "dependsOrder": "parallel",
             "group": "build"
@@ -92,6 +95,32 @@
             "group": "build",
             "isBackground": true,
             "problemMatcher": []
+        },
+        {
+            "label": "Start ADB Analytics",
+            "type": "shell",
+            "command": "pnpm dev:analytics",
+            "group": "build",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "Start Analytics Stack",
+            "dependsOn": [
+                "Start Backend",
+                "Start Auth",
+                "Start ADB Analytics",
+                "Start All Celery Workers",
+                "Start Celery Beat"
+            ],
+            "dependsOrder": "parallel",
+            "group": "build"
+        },
+        {
+            "label": "Test Analytics",
+            "type": "shell",
+            "command": "bash .devcontainer/scripts/test-analytics",
+            "group": "test"
         }
     ]
 }

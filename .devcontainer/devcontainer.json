@@ -55,7 +55,7 @@
             }
         }
     },
-    "forwardPorts": [8000, 3000, 3002, 3003, 3004, 5432],
+    "forwardPorts": [8000, 3000, 3002, 3003, 3004, 3005, 5432],
     "portsAttributes": {
         "8000": {
             "label": "Django Backend",
@@ -80,6 +80,10 @@
         "5432": {
             "label": "PostgreSQL",
             "onAutoForward": "silent"
+        },
+        "3005": {
+            "label": "ADB Analytics",
+            "onAutoForward": "notify"
         }
     },
     "postCreateCommand": "bash .devcontainer/post-create.sh",

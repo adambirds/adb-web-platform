@@ -24,13 +24,14 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/backend/manage.py",
-            "args": ["test", "${workspaceFolder}"],
+            "args": ["test"],
             "env": {
-                "DJANGO_SETTINGS_MODULE": "adbsoftwaresolutions.settings"
+                "DJANGO_SETTINGS_MODULE": "adbsoftwaresolutions.settings_test"
             },
             "django": true,
             "justMyCode": true,
-            "python": "/opt/venv/bin/python"
+            "python": "/opt/venv/bin/python",
+            "cwd": "${workspaceFolder}/backend"
         }
     ]
 }

@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+
+cd /workspace/sites/analytics-adb-software-solutions
+exec pnpm dev "$@"
