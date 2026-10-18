@@ -110,18 +110,33 @@ Google tag and requires the site's established consent configuration.
 
 ## Google Cloud setup
 
-1. Create or select a Google Cloud project. Enable **Google Analytics Data API**,
-   **Google Analytics Admin API** and **Google Search Console API**.
-2. Configure the OAuth consent screen with the application name, verified
-   `adbsoftwaresolutions.co.uk` domain, privacy policy and support contact. Add
-   test accounts while the app is in Testing. External production access to
+Select the same project in the console's project selector for every link below;
+these links are not pinned to a particular project ID.
+
+1. [Create a Google Cloud project](https://console.cloud.google.com/projectcreate)
+   or [select an existing project](https://console.cloud.google.com/cloud-resource-manager).
+   Open each API's library page and click **Enable**:
+   [Google Analytics Data API](https://console.cloud.google.com/apis/library/analyticsdata.googleapis.com),
+   [Google Analytics Admin API](https://console.cloud.google.com/apis/library/analyticsadmin.googleapis.com),
+   and [Google Search Console API](https://console.cloud.google.com/apis/library/searchconsole.googleapis.com).
+   Check [Enabled APIs & services](https://console.cloud.google.com/apis/dashboard)
+   afterwards.
+2. Open [Google Auth Platform → Branding](https://console.cloud.google.com/auth/branding)
+   and click **Get started** if the platform has not been configured. Set the
+   application name, verified `adbsoftwaresolutions.co.uk` domain, privacy policy
+   and support contact. In [Audience](https://console.cloud.google.com/auth/audience),
+   configure who can use the app and add test accounts while it is in Testing. External production access to
    sensitive scopes may require Google verification. Testing-mode refresh tokens
    may expire; complete the appropriate publishing/verification process.
-3. Create an OAuth **Web application** client. Register this exact production URI:
+3. Open [Google Auth Platform → Clients](https://console.cloud.google.com/auth/clients),
+   choose **Create client**, and select **Web application**. Add this exact
+   production URI under **Authorized redirect URIs**:
    `https://api.adbsoftwaresolutions.co.uk/api/analytics/oauth/callback`.
    For development register a separate exact callback such as
    `http://localhost:8000/api/analytics/oauth/callback` and set the variable below.
-4. Reporting consent requests `openid`, `email`,
+4. In [Google Auth Platform → Data Access](https://console.cloud.google.com/auth/scopes),
+   use **Add or remove scopes** to configure the scopes below. Reporting consent
+   requests `openid`, `email`,
    `https://www.googleapis.com/auth/analytics.readonly` and
    `https://www.googleapis.com/auth/webmasters.readonly`. Administration adds
    `https://www.googleapis.com/auth/analytics.edit`. Reporting consent never
@@ -140,6 +155,10 @@ Google tag and requires the site's established consent configuration.
    Google, discover properties and link one or both integrations. Match the
    Website timezone to the selected GA4 property's timezone. Follow job progress,
    then synchronize the desired date range and refresh reports.
+
+Google's [OAuth consent setup guide](https://developers.google.com/workspace/guides/configure-oauth-consent)
+and [OAuth client creation guide](https://developers.google.com/workspace/guides/create-credentials#oauth-client-id)
+provide the corresponding console navigation instructions.
 
 ### Environment variables
 
