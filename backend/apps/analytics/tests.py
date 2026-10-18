@@ -839,3 +839,60 @@ class AnalyticsTests(TestCase):
             f"https://analytics.adbsoftwaresolutions.co.uk/dashboard?integration=connected&business={self.business.pk}&connection={self.connection.pk}",
         )
         self.assertIn("no-store", response["Cache-Control"])
+
+    @patch("apps.analytics.reports.google_request")
+    def test_realtime_uses_compatible_event_metrics_and_separate_user_totals(
+        self, provider: MagicMock
+    ) -> None:
+        provider.side_effect = [
+            {
+                "dimensionHeaders": [
+                    {"name": "eventName"},
+                    {"name": "country"},
+                    {"name": "deviceCategory"},
+                ],
+                "metricHeaders": [{"name": "eventCount", "type": "TYPE_INTEGER"}],
+                "rows": [
+                    {
+                        "dimensionValues": [
+                            {"value": "page_view"},
+                            {"value": "United Kingdom"},
+                            {"value": "desktop"},
+                        ],
+                        "metricValues": [{"value": "8"}],
+                    }
+                ],
+            },
+            {
+                "metricHeaders": [
+                    {"name": "activeUsers", "type": "TYPE_INTEGER"},
+                    {"name": "eventCount", "type": "TYPE_INTEGER"},
+                ],
+                "rows": [{"metricValues": [{"value": "2"}, {"value": "8"}]}],
+            },
+        ]
+        endpoint = f"/api/analytics/websites/{self.website.pk}/realtime"
+        response = self.client.get(endpoint)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()["rows"],
+            [
+                {
+                    "eventName": "page_view",
+                    "country": "United Kingdom",
+                    "deviceCategory": "desktop",
+                    "eventCount": 8,
+                }
+            ],
+        )
+        self.assertEqual(response.json()["totals"], [{"activeUsers": 2, "eventCount": 8}])
+        breakdown = provider.call_args_list[0].kwargs["body"]
+        self.assertIn({"name": "eventName"}, breakdown["dimensions"])
+        self.assertEqual(breakdown["metrics"], [{"name": "eventCount"}])
+        totals = provider.call_args_list[1].kwargs["body"]
+        self.assertNotIn("dimensions", totals)
+        self.assertEqual(totals["metrics"], [{"name": "activeUsers"}, {"name": "eventCount"}])
+        self.assertEqual(self.client.get(endpoint).status_code, 200)
+        self.assertEqual(provider.call_count, 2)
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.get(endpoint).status_code, 404)

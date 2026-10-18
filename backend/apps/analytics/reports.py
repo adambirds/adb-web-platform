@@ -181,7 +181,7 @@ def realtime(prop: ProviderProperty) -> dict[str, Any]:
         DATA_URL + prop.external_id + ":runRealtimeReport",
         body={
             "dimensions": [{"name": "eventName"}, {"name": "country"}, {"name": "deviceCategory"}],
-            "metrics": [{"name": "activeUsers"}, {"name": "eventCount"}],
+            "metrics": [{"name": "eventCount"}],
             "limit": 1000,
         },
     )
@@ -195,7 +195,7 @@ def realtime(prop: ProviderProperty) -> dict[str, Any]:
         "rows": parse_ga(result),
         "totals": parse_ga(totals),
         "window": "Last 30 minutes",
-        "limitations": "Users may occur in multiple breakdown rows. Page paths are not available in this realtime report.",
+        "limitations": "Breakdown rows show event counts by event, country and device. Active users are shown only in the overall total because Google does not support activeUsers with eventName. Page paths are not available in this realtime report.",
     }
 
 

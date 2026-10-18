@@ -97,8 +97,11 @@ a timezone change while a website synchronization is active.
 Unlinking removes only that website provider and its reports; Google account
 revocation remains a separate action affecting all its associated websites. Search
 Console remains Pacific Time. Combined views explicitly separate both systems.
-The supported realtime view reports active users and event counts by event,
-country and device; it does not invent realtime page paths.
+The realtime view shows overall active users and event counts, with event-count
+breakdowns by event, country and device. Google's realtime API rejects
+`activeUsers` combined with `eventName`, so active-user totals are queried
+separately and never derived by summing event rows. It does not invent realtime
+page paths. See the [Google realtime schema](https://developers.google.com/analytics/devguides/reporting/data/v1/realtime-api-schema).
 
 GA4 configuration uses the Admin API with explicit `analytics.edit` consent,
 business write permission, input validation, confirmation and audit intent plus
