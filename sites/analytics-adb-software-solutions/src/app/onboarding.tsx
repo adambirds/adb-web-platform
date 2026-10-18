@@ -1,6 +1,7 @@
 "use client";
 
 import {useCallback, useEffect, useState} from "react";
+import {BrandLogo} from "../components/BrandLogo";
 import {api, type Business} from "./client";
 
 type Connection = {
@@ -150,10 +151,8 @@ export function GoogleOnboarding({
     return (
         <section className="onboarding panel" aria-busy={busy || loading}>
             <div className="onboarding-heading">
-                <span className="app-mark" aria-hidden="true">
-                    A
-                </span>
-                <p className="eyebrow">ADB Analytics</p>
+                <BrandLogo />
+                <p className="eyebrow">Analytics</p>
                 <h1>
                     {inventory
                         ? "Choose your websites"

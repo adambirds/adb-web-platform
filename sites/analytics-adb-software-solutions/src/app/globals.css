@@ -277,31 +277,37 @@ button.primary {
     white-space: nowrap;
 }
 
-.experience-brand strong {
-    font-weight: 550;
+.brand-product {
+    padding-left: 12px;
+    border-left: 1px solid var(--line);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
 }
 
-.brand-symbol {
+.software-logo {
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 9px;
-    color: white;
-    background: #4374f1;
-    box-shadow: 0 3px 8px #4374f126;
+    flex-shrink: 0;
+    height: 52px;
+    width: 83px;
 }
 
-.brand-symbol svg {
-    width: 21px;
-    height: 21px;
+.software-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
-.brand-divider {
-    color: var(--line);
-    margin: 0 9px;
-    font-weight: 350;
+.software-logo-dark {
+    display: none;
+}
+
+:root[data-theme="dark"] .software-logo-light {
+    display: none;
+}
+
+:root[data-theme="dark"] .software-logo-dark {
+    display: block;
 }
 
 .experience-navigation {
@@ -1782,17 +1788,6 @@ button.primary {
     margin-top: 24px;
 }
 
-.onboarding .app-mark {
-    background: var(--accent);
-    color: var(--panel);
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    display: inline-grid;
-    place-items: center;
-    font-weight: 700;
-}
-
 .onboarding p {
     font-size: 12px;
 }
@@ -2001,15 +1996,6 @@ button.primary {
     .experience-brand {
         font-size: 19px;
         gap: 9px;
-    }
-
-    .brand-symbol {
-        width: 28px;
-        height: 28px;
-    }
-
-    .brand-divider {
-        margin: 0 7px;
     }
 
     .topbar-actions {

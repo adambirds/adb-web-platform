@@ -10,13 +10,13 @@ import Link from "next/link";
 import {usePathname, useSearchParams} from "next/navigation";
 import {
     ArrowUpRightIcon,
-    ChartBarIcon,
     MoonIcon,
     PlusIcon,
     SunIcon,
 } from "@heroicons/react/24/outline";
 import {AUTH_URL, initialDates, type Session} from "../../app/client";
 import type {Period} from "../../lib/experience";
+import {BrandLogo} from "../BrandLogo";
 import {useResource} from "./useResource";
 
 type Experience = {
@@ -110,13 +110,8 @@ export function ExperienceProvider({children}: {children: ReactNode}) {
         <div className="analytics-experience">
             <header className="experience-topbar">
                 <Link className="experience-brand" href="/dashboard">
-                    <span className="brand-symbol">
-                        <ChartBarIcon />
-                    </span>
-                    <span>
-                        adb<span className="brand-divider">/</span>
-                        <strong>analytics</strong>
-                    </span>
+                    <BrandLogo />
+                    <span className="brand-product">Analytics</span>
                 </Link>
                 <nav
                     className="experience-navigation"

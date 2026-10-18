@@ -1,4 +1,5 @@
 import Link from "next/link";
+import {BrandLogo} from "../components/BrandLogo";
 import type {ReactNode} from "react";
 
 export function LegalLinks() {
@@ -19,7 +20,7 @@ export function LegalPage({
 }) {
     return (
         <main className="legal-page">
-            <Link href="/">ADB Analytics</Link>
+            <Link href="/" aria-label="ADB Analytics home"><BrandLogo /></Link>
             <article>
                 <p className="eyebrow">Personal-use workspace</p>
                 <h1>{title}</h1>
